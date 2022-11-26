@@ -42,7 +42,7 @@ PetscErrorCode PEPSetDefaultST_Transform(PEP pep)
    PEPSetDSType - Sets the type of the internal DS object based on the current
    settings of the polynomial eigensolver.
 
-   Collective on pep
+   Collective
 
    Input Parameter:
 .  pep - polynomial eigensolver context
@@ -67,7 +67,7 @@ PetscErrorCode PEPSetDSType(PEP pep)
    PEPSetUp - Sets up all the internal data structures necessary for the
    execution of the PEP solver.
 
-   Collective on pep
+   Collective
 
    Input Parameter:
 .  pep   - solver context
@@ -260,7 +260,7 @@ PetscErrorCode PEPSetUp(PEP pep)
    PEPSetOperators - Sets the coefficient matrices associated with the polynomial
    eigenvalue problem.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep  - the eigenproblem solver context
@@ -322,7 +322,7 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 /*@
    PEPGetOperators - Gets the matrices associated with the polynomial eigensystem.
 
-   Not collective, though parallel Mats are returned if the PEP is parallel
+   Not Collective
 
    Input Parameters:
 +  pep - the PEP context
@@ -348,7 +348,7 @@ PetscErrorCode PEPGetOperators(PEP pep,PetscInt k,Mat *A)
 /*@
    PEPGetNumMatrices - Returns the number of matrices stored in the PEP.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  pep - the PEP context
@@ -373,7 +373,7 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
    PEPSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep   - the polynomial eigensolver context
@@ -447,7 +447,7 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
    PEPAllocateSolution - Allocate memory storage for common variables such
    as eigenvalues and eigenvectors.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep   - eigensolver context

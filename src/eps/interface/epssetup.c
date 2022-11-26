@@ -243,7 +243,7 @@ PetscErrorCode EPSSetUpSort_Default(EPS eps)
    EPSSetDSType - Sets the type of the internal DS object based on the current
    settings of the eigenvalue solver.
 
-   Collective on eps
+   Collective
 
    Input Parameter:
 .  eps - eigenproblem solver context
@@ -269,7 +269,7 @@ PetscErrorCode EPSSetDSType(EPS eps)
    execution of the eigensolver. Then calls STSetUp() for any set-up
    operations associated to the ST object.
 
-   Collective on eps
+   Collective
 
    Input Parameter:
 .  eps   - eigenproblem solver context
@@ -412,7 +412,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 /*@
    EPSSetOperators - Sets the matrices associated with the eigenvalue problem.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -471,7 +471,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 /*@
    EPSGetOperators - Gets the matrices associated with the eigensystem.
 
-   Collective on eps
+   Collective
 
    Input Parameter:
 .  eps - the EPS context
@@ -511,7 +511,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
    EPSSetDeflationSpace - Specify a basis of vectors that constitute the deflation
    space.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -553,7 +553,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
    EPSSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -596,7 +596,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
    EPSSetLeftInitialSpace - Specify a basis of vectors that constitute the left
    initial space, used by two-sided solvers to start the left subspace.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -662,7 +662,7 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
    EPSAllocateSolution - Allocate memory storage for common variables such
    as eigenvalues and eigenvectors.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps   - eigensolver context

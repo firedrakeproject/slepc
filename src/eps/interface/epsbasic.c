@@ -130,7 +130,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 /*@C
    EPSSetType - Selects the particular solver to be used in the EPS object.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps  - the eigensolver context
@@ -285,7 +285,7 @@ PetscErrorCode EPSMonitorRegister(const char name[],PetscViewerType vtype,PetscV
    EPSReset - Resets the EPS context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
 
-   Collective on eps
+   Collective
 
    Input Parameter:
 .  eps - eigensolver context obtained from EPSCreate()
@@ -319,7 +319,7 @@ PetscErrorCode EPSReset(EPS eps)
 /*@C
    EPSDestroy - Destroys the EPS context.
 
-   Collective on eps
+   Collective
 
    Input Parameter:
 .  eps - eigensolver context obtained from EPSCreate()
@@ -355,7 +355,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
 /*@
    EPSSetTarget - Sets the value of the target.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -417,7 +417,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 /*@
    EPSSetInterval - Defines the computational interval for spectrum slicing.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps  - eigensolver context
@@ -488,7 +488,7 @@ PetscErrorCode EPSGetInterval(EPS eps,PetscReal* inta,PetscReal* intb)
 /*@
    EPSSetST - Associates a spectral transformation object to the eigensolver.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
@@ -547,7 +547,7 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
 /*@
    EPSSetBV - Associates a basis vectors object to the eigensolver.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
@@ -601,7 +601,7 @@ PetscErrorCode EPSGetBV(EPS eps,BV *V)
 /*@
    EPSSetRG - Associates a region object to the eigensolver.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
@@ -661,7 +661,7 @@ PetscErrorCode EPSGetRG(EPS eps,RG *rg)
 /*@
    EPSSetDS - Associates a direct solver object to the eigensolver.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
@@ -720,7 +720,7 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
    EPSIsGeneralized - Ask if the EPS object corresponds to a generalized
    eigenvalue problem.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
@@ -745,7 +745,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
    EPSIsHermitian - Ask if the EPS object corresponds to a Hermitian
    eigenvalue problem.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
@@ -770,7 +770,7 @@ PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
    EPSIsPositive - Ask if the EPS object corresponds to an eigenvalue
    problem type that requires a positive (semi-) definite matrix B.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context

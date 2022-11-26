@@ -129,7 +129,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
 /*@C
    PEPSetType - Selects the particular solver to be used in the PEP object.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep      - the polynomial eigensolver context
@@ -284,7 +284,7 @@ PetscErrorCode PEPMonitorRegister(const char name[],PetscViewerType vtype,PetscV
    PEPReset - Resets the PEP context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
 
-   Collective on pep
+   Collective
 
    Input Parameter:
 .  pep - eigensolver context obtained from PEPCreate()
@@ -319,7 +319,7 @@ PetscErrorCode PEPReset(PEP pep)
 /*@C
    PEPDestroy - Destroys the PEP context.
 
-   Collective on pep
+   Collective
 
    Input Parameter:
 .  pep - eigensolver context obtained from PEPCreate()
@@ -354,7 +354,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
 /*@
    PEPSetBV - Associates a basis vectors object to the polynomial eigensolver.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep - eigensolver context obtained from PEPCreate()
@@ -413,7 +413,7 @@ PetscErrorCode PEPGetBV(PEP pep,BV *bv)
 /*@
    PEPSetRG - Associates a region object to the polynomial eigensolver.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep - eigensolver context obtained from PEPCreate()
@@ -474,7 +474,7 @@ PetscErrorCode PEPGetRG(PEP pep,RG *rg)
 /*@
    PEPSetDS - Associates a direct solver object to the polynomial eigensolver.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep - eigensolver context obtained from PEPCreate()
@@ -533,7 +533,7 @@ PetscErrorCode PEPGetDS(PEP pep,DS *ds)
 /*@
    PEPSetST - Associates a spectral transformation object to the eigensolver.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep - eigensolver context obtained from PEPCreate()
@@ -593,7 +593,7 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
    PEPRefineGetKSP - Obtain the ksp object used by the eigensolver
    object in the refinement phase.
 
-   Not Collective
+   Collective
 
    Input Parameters:
 .  pep - eigensolver context obtained from PEPCreate()
@@ -634,7 +634,7 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
 /*@
    PEPSetTarget - Sets the value of the target.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep    - eigensolver context
@@ -696,7 +696,7 @@ PetscErrorCode PEPGetTarget(PEP pep,PetscScalar* target)
 /*@
    PEPSetInterval - Defines the computational interval for spectrum slicing.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep  - eigensolver context

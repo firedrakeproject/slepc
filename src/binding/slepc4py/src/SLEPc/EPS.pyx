@@ -2001,7 +2001,6 @@ cdef class EPS(Object):
 
         Notes
         -----
-        Logically Collective on EPS
         This function must be called after setKrylovSchurPartitions().
         For npart partitions, the argument subint must contain npart+1
         real values sorted in ascending order:

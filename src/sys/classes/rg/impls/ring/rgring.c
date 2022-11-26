@@ -67,7 +67,7 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
 /*@
    RGRingSetParameters - Sets the parameters defining the ring region.
 
-   Logically Collective on rg
+   Logically Collective
 
    Input Parameters:
 +  rg        - the region context

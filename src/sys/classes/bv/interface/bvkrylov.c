@@ -16,7 +16,7 @@
 /*@
    BVMatArnoldi - Computes an Arnoldi factorization associated with a matrix.
 
-   Collective on V
+   Collective
 
    Input Parameters:
 +  V - basis vectors context
@@ -115,7 +115,7 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
 /*@C
    BVMatLanczos - Computes a Lanczos factorization associated with a matrix.
 
-   Collective on V
+   Collective
 
    Input Parameters:
 +  V - basis vectors context

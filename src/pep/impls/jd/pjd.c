@@ -1480,7 +1480,7 @@ PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
    method, in particular the proportion of basis vectors that must be kept
    after restart.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep  - the eigenproblem solver context
@@ -1555,7 +1555,7 @@ PetscErrorCode PEPJDSetFix_JD(PEP pep,PetscReal fix)
    PEPJDSetFix - Sets the threshold for changing the target in the correction
    equation.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep - the eigenproblem solver context
@@ -1634,7 +1634,7 @@ PetscErrorCode PEPJDSetReusePreconditioner_JD(PEP pep,PetscBool reusepc)
    PEPJDSetReusePreconditioner - Sets a flag indicating whether the preconditioner
    must be reused or not.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep     - the eigenproblem solver context
@@ -1713,7 +1713,7 @@ PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
 /*@
    PEPJDSetMinimalityIndex - Sets the maximum allowed value for the minimality index.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep   - the eigenproblem solver context
@@ -1795,7 +1795,7 @@ PetscErrorCode PEPJDSetProjection_JD(PEP pep,PEPJDProjection proj)
 /*@
    PEPJDSetProjection - Sets the type of projection to be used in the Jacobi-Davidson solver.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep  - the eigenproblem solver context

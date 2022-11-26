@@ -85,7 +85,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 /*@
    SVDSolve - Solves the singular value problem.
 
-   Collective on svd
+   Collective
 
    Input Parameter:
 .  svd - singular value solver context obtained from SVDCreate()
@@ -279,7 +279,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
    as computed by SVDSolve(). The solution consists in the singular value and its left
    and right singular vectors.
 
-   Not Collective, but vectors are shared by all processors that share the SVD
+   Collective
 
    Input Parameters:
 +  svd - singular value solver context
@@ -457,7 +457,7 @@ static PetscErrorCode SVDComputeResidualNorms_Hyperbolic(SVD svd,PetscReal sigma
    SVDComputeError - Computes the error (based on the residual norm) associated
    with the i-th singular triplet.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd  - the singular value solver context

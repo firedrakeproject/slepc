@@ -593,7 +593,7 @@ static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
    DSNEPSetFN - Sets a number of functions that define the nonlinear
    eigenproblem.
 
-   Collective on ds
+   Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -641,7 +641,7 @@ static PetscErrorCode DSNEPGetFN_NEP(DS ds,PetscInt k,FN *fn)
 /*@
    DSNEPGetFN - Gets the functions associated with the nonlinear DS.
 
-   Not collective, though parallel FNs are returned if the DS is parallel
+   Not Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -676,7 +676,7 @@ static PetscErrorCode DSNEPGetNumFN_NEP(DS ds,PetscInt *n)
    DSNEPGetNumFN - Returns the number of functions stored internally by
    the DS.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context
@@ -714,7 +714,7 @@ static PetscErrorCode DSNEPSetMinimality_NEP(DS ds,PetscInt n)
    DSNEPSetMinimality - Sets the maximum minimality index used internally by
    the DSNEP.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -755,7 +755,7 @@ static PetscErrorCode DSNEPGetMinimality_NEP(DS ds,PetscInt *n)
    DSNEPGetMinimality - Returns the maximum minimality index used internally by
    the DSNEP.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context
@@ -798,7 +798,7 @@ static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
    DSNEPSetRefine - Sets the tolerance and the number of iterations of Newton iterative
    refinement for eigenpairs.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds  - the direct solver context
@@ -841,7 +841,7 @@ static PetscErrorCode DSNEPGetRefine_NEP(DS ds,PetscReal *tol,PetscInt *its)
    DSNEPGetRefine - Returns the tolerance and the number of iterations of Newton iterative
    refinement for eigenpairs.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context
@@ -880,7 +880,7 @@ static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
    DSNEPSetIntegrationPoints - Sets the number of integration points to be
    used in the contour integral method.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -918,7 +918,7 @@ static PetscErrorCode DSNEPGetIntegrationPoints_NEP(DS ds,PetscInt *ip)
    DSNEPGetIntegrationPoints - Returns the number of integration points used
    in the contour integral method.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context
@@ -956,7 +956,7 @@ static PetscErrorCode DSNEPSetSamplingSize_NEP(DS ds,PetscInt p)
    DSNEPSetSamplingSize - Sets the number of sampling columns to be
    used in the contour integral method.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -994,7 +994,7 @@ static PetscErrorCode DSNEPGetSamplingSize_NEP(DS ds,PetscInt *p)
    DSNEPGetSamplingSize - Returns the number of sampling columns used
    in the contour integral method.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context
@@ -1029,7 +1029,7 @@ static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*f
    DSNEPSetComputeMatrixFunction - Sets a user-provided subroutine to compute
    the matrices T(lambda) or T'(lambda).
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds  - the direct solver context
@@ -1110,7 +1110,7 @@ static PetscErrorCode DSNEPSetRG_NEP(DS ds,RG rg)
 /*@
    DSNEPSetRG - Associates a region object to the DSNEP solver.
 
-   Logically Collective on ds
+   Collective
 
    Input Parameters:
 +  ds  - the direct solver context
@@ -1155,7 +1155,7 @@ static PetscErrorCode DSNEPGetRG_NEP(DS ds,RG *rg)
 /*@
    DSNEPGetRG - Obtain the region object associated to the DSNEP solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  ds  - the direct solver context

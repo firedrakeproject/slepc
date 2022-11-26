@@ -220,7 +220,7 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
    BVOrthogonalizeVec - Orthogonalize a given vector with respect to all
    active columns.
 
-   Collective on bv
+   Collective
 
    Input Parameters:
 +  bv     - the basis vectors context
@@ -276,7 +276,7 @@ PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,Pet
    BVOrthogonalizeColumn - Orthogonalize one of the column vectors with respect to
    the previous ones.
 
-   Collective on bv
+   Collective
 
    Input Parameters:
 +  bv     - the basis vectors context
@@ -343,7 +343,7 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
    BVOrthonormalizeColumn - Orthonormalize one of the column vectors with respect to
    the previous ones.
 
-   Collective on bv
+   Collective
 
    Input Parameters:
 +  bv      - the basis vectors context
@@ -430,7 +430,7 @@ PetscErrorCode BVOrthonormalizeColumn(BV bv,PetscInt j,PetscBool replace,PetscRe
    BVOrthogonalizeSomeColumn - Orthogonalize one of the column vectors with
    respect to some of the previous ones.
 
-   Collective on bv
+   Collective
 
    Input Parameters:
 +  bv     - the basis vectors context
@@ -683,7 +683,7 @@ static PetscErrorCode BVOrthogonalize_SVQB(BV V,Mat Rin)
    BVOrthogonalize - Orthogonalize all columns (starting from the leading ones),
    that is, compute the QR decomposition.
 
-   Collective on V
+   Collective
 
    Input Parameters:
 +  V - basis vectors to be orthogonalized (or B-orthogonalized), modified on output

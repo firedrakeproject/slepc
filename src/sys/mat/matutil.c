@@ -254,7 +254,7 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
 /*@
    MatCreateTile - Explicitly build a matrix from four blocks, G = [ a*A b*B; c*C d*D ].
 
-   Collective on A
+   Collective
 
    Input Parameters:
 +  A - matrix for top-left block
@@ -359,7 +359,7 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
    MatCreateVecsEmpty - Get vector(s) compatible with the matrix, i.e. with the same
    parallel layout, but without internal array.
 
-   Collective on mat
+   Collective
 
    Input Parameter:
 .  mat - the matrix
@@ -436,7 +436,7 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
 /*@C
    MatNormEstimate - Estimate the 2-norm of a matrix.
 
-   Collective on A
+   Collective
 
    Input Parameters:
 +  A   - the matrix

@@ -288,7 +288,7 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
    LMEDenseHessLyapunovChol - Computes the Cholesky factor of the solution of a
    dense Lyapunov equation with an upper Hessenberg coefficient matrix.
 
-   Logically Collective on lme
+   Logically Collective
 
    Input Parameters:
 +  lme - linear matrix equation solver context
@@ -462,7 +462,7 @@ static PetscErrorCode Lyapunov_LAPACK(PetscInt m,PetscScalar *A,PetscInt lda,Pet
    LMEDenseLyapunov - Computes the solution of a dense continuous-time Lyapunov
    equation.
 
-   Logically Collective on lme
+   Logically Collective
 
    Input Parameters:
 +  lme - linear matrix equation solver context

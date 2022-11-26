@@ -1296,7 +1296,7 @@ static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErro
    NEPNLEIGSSetSingularitiesFunction - Sets a user function to compute a discretization
    of the singularity set (where T(.) is not analytic).
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep - the NEP context
@@ -1385,7 +1385,7 @@ static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
    method, in particular the proportion of basis vectors that must be kept
    after restart.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep  - the nonlinear eigensolver context
@@ -1456,7 +1456,7 @@ static PetscErrorCode NEPNLEIGSSetLocking_NLEIGS(NEP nep,PetscBool lock)
    NEPNLEIGSSetLocking - Choose between locking and non-locking variants of
    the NLEIGS method.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep  - the nonlinear eigensolver context
@@ -1548,7 +1548,7 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
    NEPNLEIGSSetInterpolation - Sets the tolerance and maximum degree
    when building the interpolation via divided differences.
 
-   Logically Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -1635,7 +1635,7 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
    NEPNLEIGSSetRKShifts - Sets a list of shifts to be used in the Rational
    Krylov method.
 
-   Logically Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -1752,7 +1752,7 @@ static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,PetscInt *nsolve,KSP **ksp
    NEPNLEIGSGetKSPs - Retrieve the array of linear solver objects associated with
    the nonlinear eigenvalue solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  nep - nonlinear eigenvalue solver
@@ -1794,7 +1794,7 @@ static PetscErrorCode NEPNLEIGSSetFullBasis_NLEIGS(NEP nep,PetscBool fullbasis)
    NEPNLEIGSSetFullBasis - Choose between TOAR-basis (default) and full-basis
    variants of the NLEIGS method.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep  - the nonlinear eigensolver context

@@ -555,7 +555,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 /*@
    NEPCISSSetSizes - Sets the values of various size parameters in the CISS solver.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep   - the nonlinear eigensolver context
@@ -667,7 +667,7 @@ static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal
    NEPCISSSetThreshold - Sets the values of various threshold parameters in
    the CISS solver.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep   - the nonlinear eigensolver context
@@ -751,7 +751,7 @@ static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt 
    NEPCISSSetRefinement - Sets the values of various refinement parameters
    in the CISS solver.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -826,7 +826,7 @@ static PetscErrorCode NEPCISSSetExtraction_CISS(NEP nep,NEPCISSExtraction extrac
 /*@
    NEPCISSSetExtraction - Sets the extraction technique used in the CISS solver.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep        - the nonlinear eigensolver context
@@ -932,7 +932,7 @@ static PetscErrorCode NEPCISSGetKSPs_CISS(NEP nep,PetscInt *nsolve,KSP **ksp)
    NEPCISSGetKSPs - Retrieve the array of linear solver objects associated with
    the CISS solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  nep - nonlinear eigenvalue solver

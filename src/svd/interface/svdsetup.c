@@ -16,7 +16,7 @@
 /*@
    SVDSetOperators - Set the matrices associated with the singular value problem.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -81,7 +81,7 @@ PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
 /*@
    SVDGetOperators - Get the matrices associated with the singular value problem.
 
-   Collective on svd
+   Not Collective
 
    Input Parameter:
 .  svd - the singular value solver context
@@ -106,7 +106,7 @@ PetscErrorCode SVDGetOperators(SVD svd,Mat *A,Mat *B)
 /*@
    SVDSetSignature - Set the signature matrix defining a hyperbolic singular value problem.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd   - the singular value solver context
@@ -150,7 +150,7 @@ PetscErrorCode SVDSetSignature(SVD svd,Vec omega)
 /*@
    SVDGetSignature - Get the signature matrix defining a hyperbolic singular value problem.
 
-   Collective on svd
+   Not Collective
 
    Input Parameter:
 .  svd - the singular value solver context
@@ -175,7 +175,7 @@ PetscErrorCode SVDGetSignature(SVD svd,Vec *omega)
    SVDSetDSType - Sets the type of the internal DS object based on the current
    settings of the singular value solver.
 
-   Collective on svd
+   Collective
 
    Input Parameter:
 .  svd - singular value solver context
@@ -200,7 +200,7 @@ PetscErrorCode SVDSetDSType(SVD svd)
    SVDSetUp - Sets up all the internal data structures necessary for the
    execution of the singular value solver.
 
-   Collective on svd
+   Collective
 
    Input Parameter:
 .  svd   - singular value solver context
@@ -378,7 +378,7 @@ PetscErrorCode SVDSetUp(SVD svd)
    SVDSetInitialSpaces - Specify two basis of vectors that constitute the initial
    right and/or left spaces.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd   - the singular value solver context
@@ -464,7 +464,7 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
    SVDAllocateSolution - Allocate memory storage for common variables such
    as the singular values and the basis vectors.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd   - eigensolver context

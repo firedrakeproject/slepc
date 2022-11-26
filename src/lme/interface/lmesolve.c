@@ -17,7 +17,7 @@
 /*@
    LMESolve - Solves the linear matrix equation.
 
-   Collective on lme
+   Collective
 
    Input Parameter:
 .  lme - linear matrix equation solver context obtained from LMECreate()
@@ -279,7 +279,7 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
    LMEComputeError - Computes the error (based on the residual norm) associated
    with the last equation solved.
 
-   Collective on lme
+   Collective
 
    Input Parameter:
 .  lme  - the linear matrix equation solver context

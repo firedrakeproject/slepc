@@ -29,7 +29,7 @@ PetscErrorCode STApply_Generic(ST st,Vec x,Vec y)
    instance (A - sB)^-1 B in the case of the shift-and-invert transformation
    and generalized eigenproblem.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -78,7 +78,7 @@ PetscErrorCode STApplyMat_Generic(ST st,Mat B,Mat C)
    instance (A - sB)^-1 B in the case of the shift-and-invert transformation
    and generalized eigenproblem.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -120,7 +120,7 @@ PetscErrorCode STApplyTranspose_Generic(ST st,Vec x,Vec y)
    instance B^T(A - sB)^-T in the case of the shift-and-invert transformation
    and generalized eigenproblem.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -155,7 +155,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
    to a vector, for instance B^H(A - sB)^-H in the case of the shift-and-invert
    transformation and generalized eigenproblem.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -192,7 +192,7 @@ PetscErrorCode STApplyHermitianTranspose(ST st,Vec x,Vec y)
    STGetBilinearForm - Returns the matrix used in the bilinear form with a
    generalized problem with semi-definite B.
 
-   Not collective, though a parallel Mat may be returned
+   Logically Collective
 
    Input Parameters:
 .  st - the spectral transformation context
@@ -340,7 +340,7 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
    STGetOperator - Returns a shell matrix that represents the operator of the
    spectral transformation.
 
-   Collective on st
+   Collective
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -397,7 +397,7 @@ PetscErrorCode STGetOperator(ST st,Mat *Op)
 /*@
    STRestoreOperator - Restore the previously seized operator matrix.
 
-   Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -474,7 +474,7 @@ PetscErrorCode STComputeOperator(ST st)
 /*@
    STSetUp - Prepares for the use of a spectral transformation.
 
-   Collective on st
+   Collective
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -637,7 +637,7 @@ PetscErrorCode STCoeffs_Monomial(ST st, PetscScalar *coeffs)
    STPostSolve - Optional post-solve phase, intended for any actions that must
    be performed on the ST object after the eigensolver has finished.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 .  st  - the spectral transformation context
@@ -686,7 +686,7 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
    (that is, if it corresponds to a one-to-one mapping). If not, then it
    does not make sense to call STBackTransform().
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  st   - the spectral transformation context
@@ -716,7 +716,7 @@ PetscErrorCode STIsInjective(ST st,PetscBool* is)
 /*@
    STMatSetUp - Build the preconditioner matrix used in STMatSolve().
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st     - the spectral transformation context
@@ -754,7 +754,7 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 /*@
    STSetWorkVecs - Sets a number of work vectors into the ST object.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context

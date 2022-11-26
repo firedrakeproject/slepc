@@ -62,7 +62,7 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
    STMatMult - Computes the matrix-vector product y = T[k] x, where T[k] is
    the k-th matrix of the spectral transformation.
 
-   Neighbor-wise Collective on st
+   Neighbor-wise Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -102,7 +102,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
    STMatMultTranspose - Computes the matrix-vector product y = T[k]' x, where T[k] is
    the k-th matrix of the spectral transformation.
 
-   Neighbor-wise Collective on st
+   Neighbor-wise Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -142,7 +142,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
    STMatSolve - Solves P x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -179,7 +179,7 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
    STMatMatSolve - Solves P X = B, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -212,7 +212,7 @@ PetscErrorCode STMatMatSolve(ST st,Mat B,Mat X)
    STMatSolveTranspose - Solves P' x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -268,7 +268,7 @@ PetscErrorCode STCheckFactorPackage(ST st)
    STSetKSP - Sets the KSP object associated with the spectral
    transformation.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st   - the spectral transformation context
@@ -295,7 +295,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
    STGetKSP - Gets the KSP object associated with the spectral
    transformation.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -367,7 +367,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
 /*@
    STCheckNullSpace - Tests if constraint vectors are nullspace vectors.
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context

@@ -80,7 +80,7 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
 /*@
    RGPolygonSetVertices - Sets the vertices that define the polygon region.
 
-   Logically Collective on rg
+   Logically Collective
 
    Input Parameters:
 +  rg - the region context

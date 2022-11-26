@@ -19,7 +19,7 @@ PetscFunctionList STList = NULL;
 /*@C
    STSetType - Builds ST for a particular spectral transformation.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st   - the spectral transformation context.
@@ -99,7 +99,7 @@ PetscErrorCode STGetType(ST st,STType *type)
    This routine must be called before STSetUp() if the user is to be
    allowed to set the type of transformation.
 
-   Collective on st
+   Collective
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -151,7 +151,7 @@ PetscErrorCode STSetFromOptions(ST st)
    STSetMatStructure - Sets an internal MatStructure attribute to
    indicate which is the relation of the sparsity pattern of all ST matrices.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st  - the spectral transformation context
@@ -228,7 +228,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
    STSetMatMode - Sets a flag to indicate how the transformed matrices are
    being stored in the spectral transformations.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -305,7 +305,7 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
    STSetTransform - Sets a flag to indicate whether the transformed matrices are
    computed or not.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st  - the spectral transformation context

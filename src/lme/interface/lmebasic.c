@@ -30,7 +30,7 @@ PetscBool         LMEMonitorRegisterAllCalled = PETSC_FALSE;
 /*@C
    LMEView - Prints the LME data structure.
 
-   Collective on lme
+   Collective
 
    Input Parameters:
 +  lme - the linear matrix equation solver context
@@ -93,7 +93,7 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 /*@C
    LMEViewFromOptions - View from options
 
-   Collective on LME
+   Collective
 
    Input Parameters:
 +  lme  - the linear matrix equation context
@@ -114,7 +114,7 @@ PetscErrorCode LMEViewFromOptions(LME lme,PetscObject obj,const char name[])
 /*@C
    LMEConvergedReasonView - Displays the reason an LME solve converged or diverged.
 
-   Collective on lme
+   Collective
 
    Input Parameters:
 +  lme - the linear matrix equation context
@@ -155,7 +155,7 @@ PetscErrorCode LMEConvergedReasonView(LME lme,PetscViewer viewer)
    LMEConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the LME converged reason is to be viewed.
 
-   Collective on lme
+   Collective
 
    Input Parameter:
 .  lme - the linear matrix equation context
@@ -244,7 +244,7 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
 /*@C
    LMESetType - Selects the particular solver to be used in the LME object.
 
-   Logically Collective on lme
+   Logically Collective
 
    Input Parameters:
 +  lme  - the linear matrix equation context
@@ -399,7 +399,7 @@ PetscErrorCode LMEMonitorRegister(const char name[],PetscViewerType vtype,PetscV
    LMEReset - Resets the LME context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
 
-   Collective on lme
+   Collective
 
    Input Parameter:
 .  lme - linear matrix equation context obtained from LMECreate()
@@ -430,7 +430,7 @@ PetscErrorCode LMEReset(LME lme)
 /*@C
    LMEDestroy - Destroys the LME context.
 
-   Collective on lme
+   Collective
 
    Input Parameter:
 .  lme - linear matrix equation context obtained from LMECreate()
@@ -455,7 +455,7 @@ PetscErrorCode LMEDestroy(LME *lme)
 /*@
    LMESetBV - Associates a basis vectors object to the linear matrix equation solver.
 
-   Collective on lme
+   Collective
 
    Input Parameters:
 +  lme - linear matrix equation context obtained from LMECreate()

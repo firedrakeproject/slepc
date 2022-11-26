@@ -91,7 +91,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
 /*@
    EPSSolve - Solves the eigensystem.
 
-   Collective on eps
+   Collective
 
    Input Parameter:
 .  eps - eigensolver context obtained from EPSCreate()
@@ -302,7 +302,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
    EPSGetInvariantSubspace - Gets an orthonormal basis of the computed invariant
    subspace.
 
-   Not Collective, but vectors are shared by all processors that share the EPS
+   Collective
 
    Input Parameter:
 .  eps - the eigensolver context
@@ -359,7 +359,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
    EPSGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    EPSSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
-   Logically Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - eigensolver context
@@ -456,7 +456,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
 /*@
    EPSGetEigenvector - Gets the i-th right eigenvector as computed by EPSSolve().
 
-   Logically Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - eigensolver context
@@ -508,7 +508,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 /*@
    EPSGetLeftEigenvector - Gets the i-th left eigenvector as computed by EPSSolve().
 
-   Logically Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - eigensolver context
@@ -659,7 +659,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
    EPSComputeError - Computes the error (based on the residual norm) associated
    with the i-th computed eigenpair.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps  - the eigensolver context
@@ -756,7 +756,7 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
    EPSGetStartVector - Generate a suitable vector to be used as the starting vector
    for the recurrence that builds the right subspace.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps - the eigensolver context

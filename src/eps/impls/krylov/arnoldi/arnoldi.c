@@ -157,7 +157,7 @@ static PetscErrorCode EPSArnoldiSetDelayed_Arnoldi(EPS eps,PetscBool delayed)
    EPSArnoldiSetDelayed - Activates or deactivates delayed reorthogonalization
    in the Arnoldi iteration.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context

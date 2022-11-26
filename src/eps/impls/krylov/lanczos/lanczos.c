@@ -739,7 +739,7 @@ static PetscErrorCode EPSLanczosSetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
    EPSLanczosSetReorthog - Sets the type of reorthogonalization used during the Lanczos
    iteration.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context

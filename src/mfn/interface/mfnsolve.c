@@ -52,7 +52,7 @@ static PetscErrorCode MFNSolve_Private(MFN mfn,Vec b,Vec x)
    MFNSolve - Solves the matrix function problem. Given a vector b, the
    vector x = f(A)*b is returned.
 
-   Collective on mfn
+   Collective
 
    Input Parameters:
 +  mfn - matrix function context obtained from MFNCreate()
@@ -95,7 +95,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
    MFNSolveTranspose - Solves the transpose matrix function problem. Given a vector b,
    the vector x = f(A^T)*b is returned.
 
-   Collective on mfn
+   Collective
 
    Input Parameters:
 +  mfn - matrix function context obtained from MFNCreate()

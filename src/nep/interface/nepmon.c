@@ -49,7 +49,7 @@ PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
    NEPMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested eigenpair.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep     - eigensolver context obtained from NEPCreate()
@@ -107,7 +107,7 @@ PetscErrorCode NEPMonitorSet(NEP nep,PetscErrorCode (*monitor)(NEP,PetscInt,Pets
 /*@
    NEPMonitorCancel - Clears all monitors for a NEP object.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 .  nep - eigensolver context obtained from NEPCreate()
@@ -162,7 +162,7 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void *ctx)
    NEPMonitorFirst - Print the first unconverged approximate value and
    error estimate at each iteration of the nonlinear eigensolver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context
@@ -212,7 +212,7 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
    NEPMonitorAll - Print the current approximate values and
    error estimates at each iteration of the nonlinear eigensolver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context
@@ -264,7 +264,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
    NEPMonitorConverged - Print the approximate values and
    error estimates as they converge.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context
@@ -344,7 +344,7 @@ PetscErrorCode NEPMonitorConvergedDestroy(PetscViewerAndFormat **vf)
    NEPMonitorFirstDrawLG - Plots the error estimate of the first unconverged
    approximation at each iteration of the nonlinear eigensolver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context
@@ -397,7 +397,7 @@ PetscErrorCode NEPMonitorFirstDrawLG(NEP nep,PetscInt its,PetscInt nconv,PetscSc
 /*@C
    NEPMonitorFirstDrawLGCreate - Creates the plotter for the first error estimate.
 
-   Collective on viewer
+   Collective
 
    Input Parameters:
 +  viewer - the viewer
@@ -424,7 +424,7 @@ PetscErrorCode NEPMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
    NEPMonitorAllDrawLG - Plots the error estimate of all unconverged
    approximations at each iteration of the nonlinear eigensolver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context
@@ -480,7 +480,7 @@ PetscErrorCode NEPMonitorAllDrawLG(NEP nep,PetscInt its,PetscInt nconv,PetscScal
 /*@C
    NEPMonitorAllDrawLGCreate - Creates the plotter for all the error estimates.
 
-   Collective on viewer
+   Collective
 
    Input Parameters:
 +  viewer - the viewer
@@ -507,7 +507,7 @@ PetscErrorCode NEPMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
    NEPMonitorConvergedDrawLG - Plots the number of converged eigenvalues
    at each iteration of the nonlinear eigensolver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context
@@ -557,7 +557,7 @@ PetscErrorCode NEPMonitorConvergedDrawLG(NEP nep,PetscInt its,PetscInt nconv,Pet
 /*@C
    NEPMonitorConvergedDrawLGCreate - Creates the plotter for the convergence history.
 
-   Collective on viewer
+   Collective
 
    Input Parameters:
 +  viewer - the viewer

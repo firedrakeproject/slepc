@@ -17,7 +17,7 @@
    NEPSetDSType - Sets the type of the internal DS object based on the current
    settings of the nonlinear eigensolver.
 
-   Collective on nep
+   Collective
 
    Input Parameter:
 .  nep - nonlinear eigensolver context
@@ -42,7 +42,7 @@ PetscErrorCode NEPSetDSType(NEP nep)
    NEPSetUp - Sets up all the internal data structures necessary for the
    execution of the NEP solver.
 
-   Collective on nep
+   Collective
 
    Input Parameter:
 .  nep   - solver context
@@ -220,7 +220,7 @@ PetscErrorCode NEPSetUp(NEP nep)
    NEPSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep   - the nonlinear eigensolver context
@@ -285,7 +285,7 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
    NEPAllocateSolution - Allocate memory storage for common variables such
    as eigenvalues and eigenvectors.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep   - eigensolver context

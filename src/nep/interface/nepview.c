@@ -18,7 +18,7 @@
 /*@C
    NEPView - Prints the NEP data structure.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - the nonlinear eigenproblem solver context
@@ -182,7 +182,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 /*@C
    NEPViewFromOptions - View from options
 
-   Collective on NEP
+   Collective
 
    Input Parameters:
 +  nep  - the nonlinear eigensolver context
@@ -204,7 +204,7 @@ PetscErrorCode NEPViewFromOptions(NEP nep,PetscObject obj,const char name[])
 /*@C
    NEPConvergedReasonView - Displays the reason a NEP solve converged or diverged.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context
@@ -245,7 +245,7 @@ PetscErrorCode NEPConvergedReasonView(NEP nep,PetscViewer viewer)
    NEPConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the NEP converged reason is to be viewed.
 
-   Collective on nep
+   Collective
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context
@@ -370,7 +370,7 @@ static PetscErrorCode NEPErrorView_MATLAB(NEP nep,NEPErrorType etype,PetscViewer
    NEPErrorView - Displays the errors associated with the computed solution
    (as well as the eigenvalues).
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -428,7 +428,7 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
    NEPErrorViewFromOptions - Processes command line options to determine if/how
    the errors of the computed solution are to be viewed.
 
-   Collective on nep
+   Collective
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context
@@ -615,7 +615,7 @@ static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
 /*@C
    NEPValuesView - Displays the computed eigenvalues in a viewer.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -675,7 +675,7 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
    NEPValuesViewFromOptions - Processes command line options to determine if/how
    the computed eigenvalues are to be viewed.
 
-   Collective on nep
+   Collective
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context
@@ -708,7 +708,7 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 /*@C
    NEPVectorsView - Outputs computed eigenvectors to a viewer.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -768,7 +768,7 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
    NEPVectorsViewFromOptions - Processes command line options to determine if/how
    the computed eigenvectors are to be viewed.
 
-   Collective on nep
+   Collective
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context

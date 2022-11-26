@@ -16,7 +16,7 @@
 /*@
    PEPSetWorkVecs - Sets a number of work vectors into a PEP object.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep - polynomial eigensolver context
@@ -116,7 +116,7 @@ PetscErrorCode PEPConvergedAbsolute(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
    PEPStoppingBasic - Default routine to determine whether the outer eigensolver
    iteration must be stopped.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep    - eigensolver context obtained from PEPCreate()

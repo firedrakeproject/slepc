@@ -19,7 +19,7 @@ SLEPC_EXTERN PetscErrorCode PCCreate_HPDDM(PC);
 /*@C
     SlepcGetVersion - Gets the SLEPc version information in a string.
 
-    Not collective
+    Not Collective
 
     Input Parameter:
 .   len - length of the string
@@ -45,7 +45,7 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
 /*@C
     SlepcGetVersionNumber - Gets the SLEPc version information from the library.
 
-    Not collective
+    Not Collective
 
     Output Parameters:
 +   major    - the major version

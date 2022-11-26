@@ -290,7 +290,7 @@ static PetscErrorCode NEPSLPSetDeflationThreshold_SLP(NEP nep,PetscReal deftol)
    NEPSLPSetDeflationThreshold - Sets the threshold value used to switch between
    deflated and non-deflated iteration.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep    - nonlinear eigenvalue solver
@@ -369,7 +369,7 @@ static PetscErrorCode NEPSLPSetEPS_SLP(NEP nep,EPS eps)
    NEPSLPSetEPS - Associate a linear eigensolver object (EPS) to the
    nonlinear eigenvalue solver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
@@ -409,7 +409,7 @@ static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
    NEPSLPGetEPS - Retrieve the linear eigensolver object (EPS) associated
    to the nonlinear eigenvalue solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  nep - nonlinear eigenvalue solver
@@ -447,7 +447,7 @@ static PetscErrorCode NEPSLPSetEPSLeft_SLP(NEP nep,EPS eps)
    nonlinear eigenvalue solver, used to compute left eigenvectors in the
    two-sided variant of SLP.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
@@ -488,7 +488,7 @@ static PetscErrorCode NEPSLPGetEPSLeft_SLP(NEP nep,EPS *eps)
    to the nonlinear eigenvalue solver, used to compute left eigenvectors in the
    two-sided variant of SLP.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  nep - nonlinear eigenvalue solver
@@ -525,7 +525,7 @@ static PetscErrorCode NEPSLPSetKSP_SLP(NEP nep,KSP ksp)
    NEPSLPSetKSP - Associate a linear solver object (KSP) to the nonlinear
    eigenvalue solver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - eigenvalue solver
@@ -567,7 +567,7 @@ static PetscErrorCode NEPSLPGetKSP_SLP(NEP nep,KSP *ksp)
    NEPSLPGetKSP - Retrieve the linear solver object (KSP) associated with
    the nonlinear eigenvalue solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  nep - nonlinear eigenvalue solver

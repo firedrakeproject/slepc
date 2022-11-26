@@ -254,7 +254,7 @@ static PetscErrorCode NEPRIISetMaximumIterations_RII(NEP nep,PetscInt its)
    used in the RII solver. These are the Newton iterations related to the computation
    of the nonlinear Rayleigh functional.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
@@ -320,7 +320,7 @@ static PetscErrorCode NEPRIISetLagPreconditioner_RII(NEP nep,PetscInt lag)
    NEPRIISetLagPreconditioner - Determines when the preconditioner is rebuilt in the
    nonlinear solve.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
@@ -394,7 +394,7 @@ static PetscErrorCode NEPRIISetConstCorrectionTol_RII(NEP nep,PetscBool cct)
    NEPRIISetConstCorrectionTol - Sets a flag to keep the tolerance used
    in the linear solver constant.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
@@ -468,7 +468,7 @@ static PetscErrorCode NEPRIISetHermitian_RII(NEP nep,PetscBool herm)
    NEPRIISetHermitian - Sets a flag to indicate if the Hermitian version of the
    scalar nonlinear equation must be used by the solver.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep  - nonlinear eigenvalue solver
@@ -543,7 +543,7 @@ static PetscErrorCode NEPRIISetDeflationThreshold_RII(NEP nep,PetscReal deftol)
    NEPRIISetDeflationThreshold - Sets the threshold value used to switch between
    deflated and non-deflated iteration.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep    - nonlinear eigenvalue solver
@@ -622,7 +622,7 @@ static PetscErrorCode NEPRIISetKSP_RII(NEP nep,KSP ksp)
    NEPRIISetKSP - Associate a linear solver object (KSP) to the nonlinear
    eigenvalue solver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - eigenvalue solver
@@ -664,7 +664,7 @@ static PetscErrorCode NEPRIIGetKSP_RII(NEP nep,KSP *ksp)
    NEPRIIGetKSP - Retrieve the linear solver object (KSP) associated with
    the nonlinear eigenvalue solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  nep - nonlinear eigenvalue solver

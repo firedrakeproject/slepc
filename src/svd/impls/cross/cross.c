@@ -413,7 +413,7 @@ static PetscErrorCode SVDCrossSetExplicitMatrix_Cross(SVD svd,PetscBool explicit
    SVDCrossSetExplicitMatrix - Indicate if the eigensolver operator A^T*A must
    be computed explicitly.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd         - singular value solver
@@ -485,7 +485,7 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
    SVDCrossSetEPS - Associate an eigensolver object (EPS) to the
    singular value solver.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd - singular value solver
@@ -527,7 +527,7 @@ static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
    SVDCrossGetEPS - Retrieve the eigensolver object (EPS) associated
    to the singular value solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  svd - singular value solver

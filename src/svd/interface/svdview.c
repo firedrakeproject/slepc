@@ -17,7 +17,7 @@
 /*@C
    SVDView - Prints the SVD data structure.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -111,7 +111,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 /*@C
    SVDViewFromOptions - View from options
 
-   Collective on SVD
+   Collective
 
    Input Parameters:
 +  svd  - the singular value solver context
@@ -133,7 +133,7 @@ PetscErrorCode SVDViewFromOptions(SVD svd,PetscObject obj,const char name[])
 /*@C
    SVDConvergedReasonView - Displays the reason an SVD solve converged or diverged.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -174,7 +174,7 @@ PetscErrorCode SVDConvergedReasonView(SVD svd,PetscViewer viewer)
    SVDConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the SVD converged reason is to be viewed.
 
-   Collective on svd
+   Collective
 
    Input Parameter:
 .  svd - the singular value solver context
@@ -285,7 +285,7 @@ static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer
    SVDErrorView - Displays the errors associated with the computed solution
    (as well as the singular values).
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd    - the singular value solver context
@@ -343,7 +343,7 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
    SVDErrorViewFromOptions - Processes command line options to determine if/how
    the errors of the computed solution are to be viewed.
 
-   Collective on svd
+   Collective
 
    Input Parameter:
 .  svd - the singular value solver context
@@ -484,7 +484,7 @@ static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
 /*@C
    SVDValuesView - Displays the computed singular values in a viewer.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd    - the singular value solver context
@@ -544,7 +544,7 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
    SVDValuesViewFromOptions - Processes command line options to determine if/how
    the computed singular values are to be viewed.
 
-   Collective on svd
+   Collective
 
    Input Parameter:
 .  svd - the singular value solver context
@@ -577,7 +577,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
 /*@C
    SVDVectorsView - Outputs computed singular vectors to a viewer.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd    - the singular value solver context
@@ -631,7 +631,7 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
    SVDVectorsViewFromOptions - Processes command line options to determine if/how
    the computed singular vectors are to be viewed.
 
-   Collective on svd
+   Collective
 
    Input Parameter:
 .  svd - the singular value solver context

@@ -411,7 +411,7 @@ static PetscErrorCode EPSLOBPCGSetBlockSize_LOBPCG(EPS eps,PetscInt bs)
 /*@
    EPSLOBPCGSetBlockSize - Sets the block size of the LOBPCG method.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -483,7 +483,7 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
 /*@
    EPSLOBPCGSetRestart - Sets the restart parameter for the LOBPCG method.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -557,7 +557,7 @@ static PetscErrorCode EPSLOBPCGSetLocking_LOBPCG(EPS eps,PetscBool lock)
    EPSLOBPCGSetLocking - Choose between locking and non-locking variants of
    the LOBPCG method.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps  - the eigenproblem solver context

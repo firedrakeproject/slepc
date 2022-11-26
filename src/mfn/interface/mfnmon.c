@@ -49,7 +49,7 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
    MFNMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor convergence.
 
-   Logically Collective on mfn
+   Logically Collective
 
    Input Parameters:
 +  mfn     - matrix function context obtained from MFNCreate()
@@ -96,7 +96,7 @@ PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN,PetscInt,Pets
 /*@
    MFNMonitorCancel - Clears all monitors for an MFN object.
 
-   Logically Collective on mfn
+   Logically Collective
 
    Input Parameters:
 .  mfn - matrix function context obtained from MFNCreate()
@@ -151,7 +151,7 @@ PetscErrorCode MFNGetMonitorContext(MFN mfn,void *ctx)
    MFNMonitorDefault - Print the error estimate of the current approximation at each
    iteration of the matrix function solver.
 
-   Collective on mfn
+   Collective
 
    Input Parameters:
 +  mfn    - matrix function context
@@ -186,7 +186,7 @@ PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,PetscView
    MFNMonitorDefaultDrawLG - Plots the error estimate of the current approximation at each
    iteration of the matrix function solver.
 
-   Collective on mfn
+   Collective
 
    Input Parameters:
 +  mfn    - matrix function context
@@ -232,7 +232,7 @@ PetscErrorCode MFNMonitorDefaultDrawLG(MFN mfn,PetscInt its,PetscReal errest,Pet
 /*@C
    MFNMonitorDefaultDrawLGCreate - Creates the plotter for the error estimate.
 
-   Collective on viewer
+   Collective
 
    Input Parameters:
 +  viewer - the viewer

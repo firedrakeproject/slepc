@@ -55,7 +55,7 @@ PetscErrorCode STShellGetContext(ST st,void *ctx)
 /*@
    STShellSetContext - Sets the context for a shell ST
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st - the shell ST
@@ -160,7 +160,7 @@ static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec
    STShellSetApply - Sets routine to use as the application of the
    operator to a vector in the user-defined spectral transformation.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st    - the spectral transformation context
@@ -198,7 +198,7 @@ static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*appl
    STShellSetApplyTranspose - Sets routine to use as the application of the
    transposed operator to a vector in the user-defined spectral transformation.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st    - the spectral transformation context
@@ -237,7 +237,7 @@ static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backt
    eigensolution process has finished in order to transform back the
    computed eigenvalues.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st     - the spectral transformation context

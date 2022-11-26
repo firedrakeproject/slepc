@@ -93,7 +93,7 @@ static PetscErrorCode STFilterSetInterval_Filter(ST st,PetscReal inta,PetscReal 
 /*@
    STFilterSetInterval - Defines the interval containing the desired eigenvalues.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st   - the spectral transformation context
@@ -181,7 +181,7 @@ static PetscErrorCode STFilterSetRange_Filter(ST st,PetscReal left,PetscReal rig
    STFilterSetRange - Defines the numerical range (or field of values) of the matrix, that is,
    the interval containing all eigenvalues.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st    - the spectral transformation context
@@ -268,7 +268,7 @@ static PetscErrorCode STFilterSetDegree_Filter(ST st,PetscInt deg)
 /*@
    STFilterSetDegree - Sets the degree of the filter polynomial.
 
-   Logically Collective on st
+   Logically Collective
 
    Input Parameters:
 +  st  - the spectral transformation context

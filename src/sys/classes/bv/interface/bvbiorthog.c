@@ -78,7 +78,7 @@ static PetscErrorCode BVBiorthogonalizeGS(BV V,BV W,Vec v)
 /*@
    BVBiorthogonalizeColumn - Bi-orthogonalize a column of two BV objects.
 
-   Collective on V
+   Collective
 
    Input Parameters:
 +  V - first basis vectors context
@@ -146,7 +146,7 @@ PetscErrorCode BVBiorthogonalizeColumn(BV V,BV W,PetscInt j)
 /*@
    BVBiorthonormalizeColumn - Bi-orthonormalize a column of two BV objects.
 
-   Collective on V
+   Collective
 
    Input Parameters:
 +  V - first basis vectors context

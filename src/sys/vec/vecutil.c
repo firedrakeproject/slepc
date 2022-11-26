@@ -13,7 +13,7 @@
 /*@
    VecNormalizeComplex - Normalizes a possibly complex vector by the 2-norm.
 
-   Collective on xr
+   Collective
 
    Input Parameters:
 +  xr - the real part of the vector (overwritten on output)
@@ -107,7 +107,7 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
    VecCheckOrthogonality - Checks (or prints) the level of (bi-)orthogonality
    of a set of vectors.
 
-   Collective on V
+   Collective
 
    Input Parameters:
 +  V  - a set of vectors
@@ -156,7 +156,7 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
    VecCheckOrthonormality - Checks (or prints) the level of (bi-)orthonormality
    of a set of vectors.
 
-   Collective on V
+   Collective
 
    Input Parameters:
 +  V  - a set of vectors
@@ -198,7 +198,7 @@ PetscErrorCode VecCheckOrthonormality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Ma
    VecDuplicateEmpty - Creates a new vector of the same type as an existing vector,
    but without internal array.
 
-   Collective on v
+   Collective
 
    Input Parameters:
 .  v - a vector to mimic
@@ -247,7 +247,7 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
 /*@
    VecSetRandomNormal - Sets all components of a vector to normally distributed random values.
 
-   Logically Collective on v
+   Logically Collective
 
    Input Parameters:
 +  v    - the vector to be filled with random values

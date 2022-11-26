@@ -331,7 +331,7 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
    VecCreateCompWithVecs - Creates a new vector containing several subvectors,
    each stored separately, from an array of Vecs.
 
-   Collective on x
+   Collective
 
    Input Parameters:
 +  x - array of Vecs
@@ -391,7 +391,7 @@ static PetscErrorCode VecCompGetSubVecs_Comp(Vec win,PetscInt *n,const Vec **x)
    VecCompGetSubVecs - Returns the entire array of vectors defining a
    compound vector.
 
-   Collective on win
+   Collective
 
    Input Parameter:
 .  win - compound vector
@@ -450,7 +450,7 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
    VecCompSetSubVecs - Resets the number of subvectors defining a compound vector,
    or replaces the subvectors.
 
-   Collective on win
+   Collective
 
    Input Parameters:
 +  win - compound vector
