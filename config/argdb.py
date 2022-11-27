@@ -35,6 +35,9 @@ class ArgDB:
   def UsedArgs(self):
     return ' '.join(self.useda)
 
+  def UsedArgsList(self):
+    return self.useda
+
   def PopString(self,keyword):
     string = ''
     numhits = 0
