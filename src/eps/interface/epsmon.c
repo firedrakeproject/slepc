@@ -49,7 +49,7 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
    EPSMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested eigenpair.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps     - eigensolver context obtained from EPSCreate()
@@ -107,7 +107,7 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,Pets
 /*@
    EPSMonitorCancel - Clears all monitors for an EPS object.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 .  eps - eigensolver context obtained from EPSCreate()
@@ -162,7 +162,7 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void *ctx)
    EPSMonitorFirst - Print the first unconverged approximate value and
    error estimate at each iteration of the eigensolver.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -215,7 +215,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
    EPSMonitorAll - Print the current approximate values and
    error estimates at each iteration of the eigensolver.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -270,7 +270,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
    EPSMonitorConverged - Print the approximate values and
    error estimates as they converge.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -353,7 +353,7 @@ PetscErrorCode EPSMonitorConvergedDestroy(PetscViewerAndFormat **vf)
    EPSMonitorFirstDrawLG - Plots the error estimate of the first unconverged
    approximation at each iteration of the eigensolver.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -406,7 +406,7 @@ PetscErrorCode EPSMonitorFirstDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscSc
 /*@C
    EPSMonitorFirstDrawLGCreate - Creates the plotter for the first error estimate.
 
-   Collective on viewer
+   Collective
 
    Input Parameters:
 +  viewer - the viewer
@@ -433,7 +433,7 @@ PetscErrorCode EPSMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
    EPSMonitorAllDrawLG - Plots the error estimate of all unconverged
    approximations at each iteration of the eigensolver.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -489,7 +489,7 @@ PetscErrorCode EPSMonitorAllDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScal
 /*@C
    EPSMonitorAllDrawLGCreate - Creates the plotter for all the error estimates.
 
-   Collective on viewer
+   Collective
 
    Input Parameters:
 +  viewer - the viewer
@@ -516,7 +516,7 @@ PetscErrorCode EPSMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
    EPSMonitorConvergedDrawLG - Plots the number of converged eigenvalues
    at each iteration of the eigensolver.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -566,7 +566,7 @@ PetscErrorCode EPSMonitorConvergedDrawLG(EPS eps,PetscInt its,PetscInt nconv,Pet
 /*@C
    EPSMonitorConvergedDrawLGCreate - Creates the plotter for the convergence history.
 
-   Collective on viewer
+   Collective
 
    Input Parameters:
 +  viewer - the viewer

@@ -434,7 +434,7 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 /*@
    EPSPRIMMESetBlockSize - The maximum block size that PRIMME will try to use.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -510,7 +510,7 @@ static PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
 /*@
    EPSPRIMMESetMethod - Sets the method for the PRIMME library.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context

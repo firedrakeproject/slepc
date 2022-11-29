@@ -1668,7 +1668,7 @@ static PetscErrorCode SVDTRLanczosSetOneSide_TRLanczos(SVD svd,PetscBool oneside
    SVDTRLanczosSetOneSide - Indicate if the variant of the Lanczos method
    to be used is one-sided or two-sided.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd     - singular value solver
@@ -1756,7 +1756,7 @@ static PetscErrorCode SVDTRLanczosSetGBidiag_TRLanczos(SVD svd,SVDTRLanczosGBidi
    SVDTRLanczosSetGBidiag - Sets the bidiagonalization choice to use in
    the GSVD TRLanczos solver.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd - the singular value solver
@@ -1828,7 +1828,7 @@ static PetscErrorCode SVDTRLanczosSetKSP_TRLanczos(SVD svd,KSP ksp)
 /*@
    SVDTRLanczosSetKSP - Associate a linear solver object (KSP) to the SVD solver.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd - SVD solver
@@ -1878,7 +1878,7 @@ static PetscErrorCode SVDTRLanczosGetKSP_TRLanczos(SVD svd,KSP *ksp)
    SVDTRLanczosGetKSP - Retrieve the linear solver object (KSP) associated with
    the SVD solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  svd - SVD solver
@@ -1917,7 +1917,7 @@ static PetscErrorCode SVDTRLanczosSetRestart_TRLanczos(SVD svd,PetscReal keep)
    Lanczos method, in particular the proportion of basis vectors that must be
    kept after restart.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd  - the singular value solver
@@ -1989,7 +1989,7 @@ static PetscErrorCode SVDTRLanczosSetLocking_TRLanczos(SVD svd,PetscBool lock)
    SVDTRLanczosSetLocking - Choose between locking and non-locking variants of
    the thick-restart Lanczos method.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd  - the singular value solver
@@ -2067,7 +2067,7 @@ static PetscErrorCode SVDTRLanczosSetExplicitMatrix_TRLanczos(SVD svd,PetscBool 
    SVDTRLanczosSetExplicitMatrix - Indicate if the matrix Z=[A;B] must
    be built explicitly.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd         - singular value solver
@@ -2144,7 +2144,7 @@ static PetscErrorCode SVDTRLanczosSetScale_TRLanczos(SVD svd,PetscReal scale)
 /*@
    SVDTRLanczosSetScale - Sets the scale parameter for the GSVD.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd   - singular value solver

@@ -20,7 +20,7 @@
    BVScatter - Scatters the columns of a BV to another BV created in a
    subcommunicator.
 
-   Collective on Vin
+   Collective
 
    Input Parameters:
 +  Vin  - input basis vectors (defined on the whole communicator)
@@ -69,7 +69,7 @@ PetscErrorCode BVScatter(BV Vin,BV Vout,VecScatter scat,Vec xdup)
    BVSumQuadrature - Computes the sum of terms required in the quadrature
    rule to approximate the contour integral.
 
-   Collective on S
+   Collective
 
    Input Parameters:
 +  Y       - input basis vectors
@@ -148,7 +148,7 @@ PetscErrorCode BVSumQuadrature(BV S,BV Y,PetscInt M,PetscInt L,PetscInt L_max,Pe
    BVDotQuadrature - Computes the projection terms required in the quadrature
    rule to approximate the contour integral.
 
-   Collective on Y
+   Collective
 
    Input Parameters:
 +  Y       - first basis vectors
@@ -239,7 +239,7 @@ PetscErrorCode BVDotQuadrature(BV Y,BV V,PetscScalar *Mu,PetscInt M,PetscInt L,P
    inside a region via quantities computed in the quadrature rule of
    contour integral methods.
 
-   Collective on Y
+   Collective
 
    Input Parameters:
 +  Y       - first basis vectors
@@ -498,7 +498,7 @@ PetscErrorCode BVSVDAndRank_QR_CAA(BV S,PetscInt M,PetscInt L,PetscReal delta,Pe
    BVSVDAndRank - Compute the SVD (left singular vectors only, and singular
    values) and determine the numerical rank according to a tolerance.
 
-   Collective on S
+   Collective
 
    Input Parameters:
 +  S     - the basis vectors
@@ -565,7 +565,7 @@ PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,BVSVDMeth
 /*@
    BVCISSResizeBases - Resize the bases involved in CISS solvers when the L grows.
 
-   Collective on S
+   Logically Collective
 
    Input Parameters:
 +  S      - basis of L*M columns

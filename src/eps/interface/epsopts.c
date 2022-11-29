@@ -19,7 +19,7 @@
    EPSMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 +  eps      - the eigensolver context
@@ -69,7 +69,7 @@ PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char opt[],const char name
    This routine must be called before EPSSetUp() if the user is to be
    allowed to set the solver type.
 
-   Collective on eps
+   Collective
 
    Input Parameters:
 .  eps - the eigensolver context
@@ -274,7 +274,7 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
    EPSSetTolerances - Sets the tolerance and maximum iteration count used
    by the EPS convergence tests.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigensolver context
@@ -347,7 +347,7 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    EPSSetDimensions - Sets the number of eigenvalues to compute
    and the dimension of the subspace.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigensolver context
@@ -410,7 +410,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
    EPSSetWhichEigenpairs - Specifies which portion of the spectrum is
    to be sought.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps   - eigensolver context obtained from EPSCreate()
@@ -532,7 +532,7 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
    EPSSetEigenvalueComparison - Specifies the eigenvalue comparison function
    when EPSSetWhichEigenpairs() is set to EPS_WHICH_USER.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps  - eigensolver context obtained from EPSCreate()
@@ -574,7 +574,7 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscSc
    eigenvalues according to an arbitrary selection criterion. This criterion
    can be based on a computation involving the current eigenvector approximation.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps  - eigensolver context obtained from EPSCreate()
@@ -630,7 +630,7 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
    EPSSetConvergenceTestFunction - Sets a function to compute the error estimate
    used in the convergence test.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps     - eigensolver context obtained from EPSCreate()
@@ -678,7 +678,7 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
    EPSSetConvergenceTest - Specifies how to compute the error estimate
    used in the convergence test.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps  - eigensolver context obtained from EPSCreate()
@@ -750,7 +750,7 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
    EPSSetStoppingTestFunction - Sets a function to decide when to stop the outer
    iteration of the eigensolver.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps     - eigensolver context obtained from EPSCreate()
@@ -799,7 +799,7 @@ PetscErrorCode EPSSetStoppingTestFunction(EPS eps,PetscErrorCode (*func)(EPS,Pet
    EPSSetStoppingTest - Specifies how to decide the termination of the outer
    loop of the eigensolver.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps  - eigensolver context obtained from EPSCreate()
@@ -864,7 +864,7 @@ PetscErrorCode EPSGetStoppingTest(EPS eps,EPSStop *stop)
 /*@
    EPSSetProblemType - Specifies the type of the eigenvalue problem.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps      - the eigensolver context
@@ -969,7 +969,7 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
    EPSSetExtraction - Specifies the type of extraction technique to be employed
    by the eigensolver.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps  - the eigensolver context
@@ -1035,7 +1035,7 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
    EPSSetBalance - Specifies the balancing technique to be employed by the
    eigensolver, and some parameters associated to it.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps    - the eigensolver context
@@ -1141,7 +1141,7 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
    EPSSetTwoSided - Sets the solver to use a two-sided variant so that left
    eigenvectors are also computed.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps      - the eigensolver context
@@ -1203,7 +1203,7 @@ PetscErrorCode EPSGetTwoSided(EPS eps,PetscBool *twosided)
    EPSSetTrueResidual - Specifies if the solver must compute the true residual
    explicitly or not.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps     - the eigensolver context
@@ -1264,7 +1264,7 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
    EPSSetTrackAll - Specifies if the solver must compute the residual norm of all
    approximate eigenpairs or not.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps      - the eigensolver context
@@ -1319,7 +1319,7 @@ PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
 /*@
    EPSSetPurify - Deactivate eigenvector purification (which is activated by default).
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps    - the eigensolver context
@@ -1379,7 +1379,7 @@ PetscErrorCode EPSGetPurify(EPS eps,PetscBool *purify)
    EPSSetOptionsPrefix - Sets the prefix used for searching for all
    EPS options in the database.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigensolver context
@@ -1421,7 +1421,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
    EPSAppendOptionsPrefix - Appends to the prefix used for searching for all
    EPS options in the database.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigensolver context

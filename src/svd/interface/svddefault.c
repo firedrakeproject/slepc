@@ -57,7 +57,7 @@ PetscErrorCode SVDConvergedMaxIt(SVD svd,PetscReal sigma,PetscReal res,PetscReal
    SVDStoppingBasic - Default routine to determine whether the outer singular value
    solver iteration must be stopped.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd    - singular value solver context obtained from SVDCreate()
@@ -105,7 +105,7 @@ PetscErrorCode SVDStoppingBasic(SVD svd,PetscInt its,PetscInt max_it,PetscInt nc
 /*@
    SVDSetWorkVecs - Sets a number of work vectors into an SVD object.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd    - singular value solver context

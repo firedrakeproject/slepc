@@ -17,7 +17,7 @@
 /*@
    BVMult - Computes Y = beta*Y + alpha*X*Q.
 
-   Logically Collective on Y
+   Logically Collective
 
    Input Parameters:
 +  Y     - first basis vectors context (modified on output)
@@ -82,7 +82,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 /*@
    BVMultVec - Computes y = beta*y + alpha*X*q.
 
-   Logically Collective on X
+   Logically Collective
 
    Input Parameters:
 +  X     - a basis vectors object
@@ -137,7 +137,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
    BVMultColumn - Computes y = beta*y + alpha*X*q, where y is the j-th column
    of X.
 
-   Logically Collective on X
+   Logically Collective
 
    Input Parameters:
 +  X     - a basis vectors object
@@ -194,7 +194,7 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
 /*@
    BVMultInPlace - Update a set of vectors as V(:,s:e-1) = V*Q(:,s:e-1).
 
-   Logically Collective on V
+   Logically Collective
 
    Input Parameters:
 +  Q - a sequential dense matrix
@@ -248,7 +248,7 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 /*@
    BVMultInPlaceHermitianTranspose - Update a set of vectors as V(:,s:e-1) = V*Q'(:,s:e-1).
 
-   Logically Collective on V
+   Logically Collective
 
    Input Parameters:
 +  Q - a sequential dense matrix
@@ -297,7 +297,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 /*@
    BVScale - Multiply the BV entries by a scalar value.
 
-   Logically Collective on bv
+   Logically Collective
 
    Input Parameters:
 +  bv    - basis vectors
@@ -329,7 +329,7 @@ PetscErrorCode BVScale(BV bv,PetscScalar alpha)
 /*@
    BVScaleColumn - Scale one column of a BV.
 
-   Logically Collective on bv
+   Logically Collective
 
    Input Parameters:
 +  bv    - basis vectors
@@ -439,7 +439,7 @@ static inline PetscErrorCode BVSetRandomSignColumn_Private(BV bv,PetscInt k)
 /*@
    BVSetRandom - Set the columns of a BV to random numbers.
 
-   Logically Collective on bv
+   Logically Collective
 
    Input Parameters:
 .  bv - basis vectors
@@ -471,7 +471,7 @@ PetscErrorCode BVSetRandom(BV bv)
 /*@
    BVSetRandomColumn - Set one column of a BV to random numbers.
 
-   Logically Collective on bv
+   Logically Collective
 
    Input Parameters:
 +  bv - basis vectors
@@ -502,7 +502,7 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
    BVSetRandomNormal - Set the columns of a BV to random numbers with a normal
    distribution.
 
-   Logically Collective on bv
+   Logically Collective
 
    Input Parameter:
 .  bv - basis vectors
@@ -552,7 +552,7 @@ PetscErrorCode BVSetRandomNormal(BV bv)
    BVSetRandomSign - Set the entries of a BV to values 1 or -1 with equal
    probability.
 
-   Logically Collective on bv
+   Logically Collective
 
    Input Parameter:
 .  bv - basis vectors
@@ -596,7 +596,7 @@ PetscErrorCode BVSetRandomSign(BV bv)
    BVSetRandomCond - Set the columns of a BV to random numbers, in a way that
    the generated matrix has a given condition number.
 
-   Logically Collective on bv
+   Logically Collective
 
    Input Parameters:
 +  bv    - basis vectors
@@ -668,7 +668,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
 /*@
    BVMatMult - Computes the matrix-vector product for each column, Y=A*V.
 
-   Neighbor-wise Collective on A
+   Neighbor-wise Collective
 
    Input Parameters:
 +  V - basis vectors context
@@ -727,7 +727,7 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
    BVMatMultTranspose - Computes the matrix-vector product with the transpose
    of a matrix for each column, Y=A^T*V.
 
-   Neighbor-wise Collective on A
+   Neighbor-wise Collective
 
    Input Parameters:
 +  V - basis vectors context
@@ -784,7 +784,7 @@ PetscErrorCode BVMatMultTranspose(BV V,Mat A,BV Y)
    BVMatMultHermitianTranspose - Computes the matrix-vector product with the
    conjugate transpose of a matrix for each column, Y=A^H*V.
 
-   Neighbor-wise Collective on A
+   Neighbor-wise Collective
 
    Input Parameters:
 +  V - basis vectors context
@@ -850,7 +850,7 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
    BVMatMultColumn - Computes the matrix-vector product for a specified
    column, storing the result in the next column v_{j+1}=A*v_j.
 
-   Neighbor-wise Collective on A
+   Neighbor-wise Collective
 
    Input Parameters:
 +  V - basis vectors context
@@ -890,7 +890,7 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
    BVMatMultTransposeColumn - Computes the transpose matrix-vector product for a
    specified column, storing the result in the next column v_{j+1}=A^T*v_j.
 
-   Neighbor-wise Collective on A
+   Neighbor-wise Collective
 
    Input Parameters:
 +  V - basis vectors context
@@ -930,7 +930,7 @@ PetscErrorCode BVMatMultTransposeColumn(BV V,Mat A,PetscInt j)
    BVMatMultHermitianTransposeColumn - Computes the conjugate-transpose matrix-vector
    product for a specified column, storing the result in the next column v_{j+1}=A^H*v_j.
 
-   Neighbor-wise Collective on A
+   Neighbor-wise Collective
 
    Input Parameters:
 +  V - basis vectors context

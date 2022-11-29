@@ -259,7 +259,7 @@ static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
    EPSRQCGSetReset - Sets the reset parameter of the RQCG iteration. Every
    nrest iterations, the solver performs a Rayleigh-Ritz projection step.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context

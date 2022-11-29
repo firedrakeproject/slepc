@@ -314,7 +314,7 @@ static inline PetscErrorCode PEPQSliceEvaluateQEP(PEP pep,PetscScalar x,Mat M,Ma
    PEPCheckDefiniteQEP - Determines if a symmetric/Hermitian quadratic eigenvalue problem
    is definite or not.
 
-   Logically Collective on pep
+   Collective
 
    Input Parameter:
 .  pep  - eigensolver context

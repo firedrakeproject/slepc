@@ -567,7 +567,7 @@ static PetscErrorCode EPSLyapIISetRanks_LyapII(EPS eps,PetscInt rkc,PetscInt rkl
 /*@
    EPSLyapIISetRanks - Set the ranks used in the solution of the Lyapunov equation.
 
-   Logically Collective on EPS
+   Logically Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -648,7 +648,7 @@ static PetscErrorCode EPSLyapIISetLME_LyapII(EPS eps,LME lme)
    EPSLyapIISetLME - Associate a linear matrix equation solver object (LME) to the
    eigenvalue solver.
 
-   Collective on EPS
+   Collective
 
    Input Parameters:
 +  eps - the eigenproblem solver context

@@ -18,7 +18,7 @@
    SVDSetImplicitTranspose - Indicates how to handle the transpose of the matrix
    associated with the singular value problem.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd  - the singular value solver context
@@ -82,7 +82,7 @@ PetscErrorCode SVDGetImplicitTranspose(SVD svd,PetscBool *impl)
    SVDSetTolerances - Sets the tolerance and maximum
    iteration count used by the default SVD convergence testers.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -156,7 +156,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
    SVDSetDimensions - Sets the number of singular values to compute
    and the dimension of the subspace.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -246,7 +246,7 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
     SVDSetWhichSingularTriplets - Specifies which singular triplets are
     to be sought.
 
-    Logically Collective on svd
+    Logically Collective
 
     Input Parameter:
 .   svd - singular value solver context obtained from SVDCreate()
@@ -319,7 +319,7 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
    SVDSetConvergenceTestFunction - Sets a function to compute the error estimate
    used in the convergence test.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
@@ -367,7 +367,7 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,
    SVDSetConvergenceTest - Specifies how to compute the error estimate
    used in the convergence test.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd  - singular value solver context obtained from SVDCreate()
@@ -444,7 +444,7 @@ PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
    SVDSetStoppingTestFunction - Sets a function to decide when to stop the outer
    iteration of the singular value solver.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
@@ -493,7 +493,7 @@ PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD,Pet
    SVDSetStoppingTest - Specifies how to decide the termination of the outer
    loop of the singular value solver.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd  - singular value solver context obtained from SVDCreate()
@@ -559,7 +559,7 @@ PetscErrorCode SVDGetStoppingTest(SVD svd,SVDStop *stop)
    SVDMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 +  svd      - the singular value solver context
@@ -609,7 +609,7 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
    This routine must be called before SVDSetUp() if the user is to be
    allowed to set the solver type.
 
-   Collective on svd
+   Collective
 
    Input Parameters:
 .  svd - the singular value solver context
@@ -718,7 +718,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 /*@
    SVDSetProblemType - Specifies the type of the singular value problem.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd  - the singular value solver context
@@ -792,7 +792,7 @@ PetscErrorCode SVDGetProblemType(SVD svd,SVDProblemType *type)
    SVDIsGeneralized - Ask if the SVD object corresponds to a generalized
    singular value problem.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  svd - the singular value solver context
@@ -817,7 +817,7 @@ PetscErrorCode SVDIsGeneralized(SVD svd,PetscBool* is)
    SVDIsHyperbolic - Ask if the SVD object corresponds to a hyperbolic
    singular value problem.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  svd - the singular value solver context
@@ -842,7 +842,7 @@ PetscErrorCode SVDIsHyperbolic(SVD svd,PetscBool* is)
    SVDSetTrackAll - Specifies if the solver must compute the residual norm of all
    approximate singular value or not.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd      - the singular value solver context
@@ -898,7 +898,7 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
    SVDSetOptionsPrefix - Sets the prefix used for searching for all
    SVD options in the database.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -937,7 +937,7 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
    SVDAppendOptionsPrefix - Appends to the prefix used for searching for all
    SVD options in the database.
 
-   Logically Collective on svd
+   Logically Collective
 
    Input Parameters:
 +  svd - the singular value solver context

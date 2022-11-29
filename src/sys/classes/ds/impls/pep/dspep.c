@@ -303,7 +303,7 @@ static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
 /*@
    DSPEPSetDegree - Sets the polynomial degree for a DSPEP.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -334,7 +334,7 @@ static PetscErrorCode DSPEPGetDegree_PEP(DS ds,PetscInt *d)
 /*@
    DSPEPGetDegree - Returns the polynomial degree for a DSPEP.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context
@@ -372,7 +372,7 @@ static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
 /*@C
    DSPEPSetCoefficients - Sets the polynomial basis coefficients for a DSPEP.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds  - the direct solver context
@@ -419,7 +419,7 @@ static PetscErrorCode DSPEPGetCoefficients_PEP(DS ds,PetscReal **pbc)
 /*@C
    DSPEPGetCoefficients - Returns the polynomial basis coefficients for a DSPEP.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context

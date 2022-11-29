@@ -247,7 +247,7 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
    FNRationalSetNumerator - Sets the parameters defining the numerator of the
    rational function.
 
-   Logically Collective on fn
+   Logically Collective
 
    Input Parameters:
 +  fn     - the math function context
@@ -344,7 +344,7 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
    FNRationalSetDenominator - Sets the parameters defining the denominator of the
    rational function.
 
-   Logically Collective on fn
+   Logically Collective
 
    Input Parameters:
 +  fn     - the math function context

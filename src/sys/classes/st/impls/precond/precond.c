@@ -146,7 +146,7 @@ static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool ksphasmat)
    matrix of the KSP linear solver (A) must be set to be the same matrix as the
    preconditioner (P).
 
-   Collective on st
+   Collective
 
    Input Parameters:
 +  st - the spectral transformation context

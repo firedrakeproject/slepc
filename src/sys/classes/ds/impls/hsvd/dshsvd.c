@@ -503,7 +503,7 @@ static PetscErrorCode DSHSVDSetDimensions_HSVD(DS ds,PetscInt m)
 /*@
    DSHSVDSetDimensions - Sets the number of columns for a DSHSVD.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -538,7 +538,7 @@ static PetscErrorCode DSHSVDGetDimensions_HSVD(DS ds,PetscInt *m)
 /*@
    DSHSVDGetDimensions - Returns the number of columns for a DSHSVD.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context
@@ -571,7 +571,7 @@ static PetscErrorCode DSHSVDSetReorthogonalize_HSVD(DS ds,PetscBool reorth)
 /*@
    DSHSVDSetReorthogonalize - Sets the reorthogonalization of the left vectors in a DSHSVD.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds     - the direct solver context
@@ -610,7 +610,7 @@ static PetscErrorCode DSHSVDGetReorthogonalize_HSVD(DS ds,PetscBool *reorth)
 /*@
    DSHSVDGetReorthogonalize - Returns the reorthogonalization flag of a DSHSVD.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context

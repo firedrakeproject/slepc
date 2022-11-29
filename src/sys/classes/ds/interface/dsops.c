@@ -41,7 +41,7 @@ PetscErrorCode DSGetLeadingDimension(DS ds,PetscInt *ld)
 /*@
    DSSetState - Change the state of the DS object.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds    - the direct solver context
@@ -106,7 +106,7 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
 /*@
    DSSetDimensions - Resize the matrices in the DS object.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -201,7 +201,7 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *l,PetscInt *k,PetscIn
 /*@
    DSTruncate - Truncates the system represented in the DS object.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds   - the direct solver context
@@ -703,7 +703,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
 /*@
    DSSolve - Solves the problem.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds   - the direct solver context
@@ -743,7 +743,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
    DSSort - Sorts the result of DSSolve() according to a given sorting
    criterion.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds   - the direct solver context
@@ -801,7 +801,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
    DSSortWithPermutation - Reorders the result of DSSolve() according to a given
    permutation.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds   - the direct solver context
@@ -844,7 +844,7 @@ PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,Pets
    DSSynchronize - Make sure that all processes have the same data, performing
    communication if necessary.
 
-   Collective on ds
+   Collective
 
    Input Parameter:
 .  ds   - the direct solver context
@@ -893,7 +893,7 @@ PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
    DSVectors - Compute vectors associated to the dense system such
    as eigenvectors.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds  - the direct solver context
@@ -950,7 +950,7 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
    DSUpdateExtraRow - Performs all necessary operations so that the extra
    row gets up-to-date after a call to DSSolve().
 
-   Not Collective
+   Logically Collective
 
    Input Parameters:
 .  ds - the direct solver context
@@ -978,7 +978,7 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
 /*@
    DSCond - Compute the condition number.
 
-   Not Collective
+   Logically Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -1016,7 +1016,7 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
 /*@C
    DSTranslateHarmonic - Computes a translation of the dense system.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds      - the direct solver context
@@ -1067,7 +1067,7 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
    DSTranslateRKS - Computes a modification of the dense system corresponding
    to an update of the shift in a rational Krylov method.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds    - the direct solver context

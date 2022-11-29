@@ -441,7 +441,7 @@ static PetscErrorCode DSSVDSetDimensions_SVD(DS ds,PetscInt m)
 /*@
    DSSVDSetDimensions - Sets the number of columns for a DSSVD.
 
-   Logically Collective on ds
+   Logically Collective
 
    Input Parameters:
 +  ds - the direct solver context
@@ -476,7 +476,7 @@ static PetscErrorCode DSSVDGetDimensions_SVD(DS ds,PetscInt *m)
 /*@
    DSSVDGetDimensions - Returns the number of columns for a DSSVD.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  ds - the direct solver context

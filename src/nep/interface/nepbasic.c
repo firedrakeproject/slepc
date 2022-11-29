@@ -126,7 +126,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 /*@C
    NEPSetType - Selects the particular solver to be used in the NEP object.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep      - the nonlinear eigensolver context
@@ -302,7 +302,7 @@ PetscErrorCode NEPReset_Problem(NEP nep)
    NEPReset - Resets the NEP context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
 
-   Collective on nep
+   Collective
 
    Input Parameter:
 .  nep - eigensolver context obtained from NEPCreate()
@@ -331,7 +331,7 @@ PetscErrorCode NEPReset(NEP nep)
 /*@C
    NEPDestroy - Destroys the NEP context.
 
-   Collective on nep
+   Collective
 
    Input Parameter:
 .  nep - eigensolver context obtained from NEPCreate()
@@ -365,7 +365,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
 /*@
    NEPSetBV - Associates a basis vectors object to the nonlinear eigensolver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - eigensolver context obtained from NEPCreate()
@@ -424,7 +424,7 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
 /*@
    NEPSetRG - Associates a region object to the nonlinear eigensolver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - eigensolver context obtained from NEPCreate()
@@ -485,7 +485,7 @@ PetscErrorCode NEPGetRG(NEP nep,RG *rg)
 /*@
    NEPSetDS - Associates a direct solver object to the nonlinear eigensolver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - eigensolver context obtained from NEPCreate()
@@ -545,7 +545,7 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
    NEPRefineGetKSP - Obtain the ksp object used by the eigensolver
    object in the refinement phase.
 
-   Not Collective
+   Collective
 
    Input Parameters:
 .  nep - eigensolver context obtained from NEPCreate()
@@ -586,7 +586,7 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
 /*@
    NEPSetTarget - Sets the value of the target.
 
-   Logically Collective on nep
+   Logically Collective
 
    Input Parameters:
 +  nep    - eigensolver context
@@ -647,7 +647,7 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
    NEPSetFunction - Sets the function to compute the nonlinear Function T(lambda)
    as well as the location to store the matrix.
 
-   Logically Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - the NEP context
@@ -705,7 +705,7 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
    NEPGetFunction - Returns the Function matrix and optionally the user
    provided context for evaluating the Function.
 
-   Not Collective, but Mat object will be parallel if NEP object is
+   Not Collective
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context
@@ -736,7 +736,7 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
    NEPSetJacobian - Sets the function to compute the Jacobian T'(lambda) as well
    as the location to store the matrix.
 
-   Logically Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - the NEP context
@@ -785,7 +785,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
    NEPGetJacobian - Returns the Jacobian matrix and optionally the user
    provided routine and context for evaluating the Jacobian.
 
-   Not Collective, but Mat object will be parallel if NEP object is
+   Not Collective
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context
@@ -814,7 +814,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
    NEPSetSplitOperator - Sets the operator of the nonlinear eigenvalue problem
    in split form.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context
@@ -891,7 +891,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructu
    NEPGetSplitOperatorTerm - Gets the matrices and functions associated with
    the nonlinear operator in split form.
 
-   Not collective, though parallel Mats and FNs are returned if the NEP is parallel
+   Not Collective
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context
@@ -921,7 +921,7 @@ PetscErrorCode NEPGetSplitOperatorTerm(NEP nep,PetscInt k,Mat *A,FN *f)
    NEPGetSplitOperatorInfo - Returns the number of terms of the split form of
    the nonlinear operator, as well as the structure flag for matrices.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context
@@ -949,7 +949,7 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
    to build the preconditioner to be used when solving the nonlinear
    eigenvalue problem in split form.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep  - the nonlinear eigensolver context
@@ -1021,7 +1021,7 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
    NEPGetSplitPreconditionerTerm - Gets the matrices associated with
    the split preconditioner.
 
-   Not collective, though parallel Mats are returned if the NEP is parallel
+   Not Collective
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context
@@ -1051,7 +1051,7 @@ PetscErrorCode NEPGetSplitPreconditionerTerm(NEP nep,PetscInt k,Mat *P)
    NEPGetSplitPreconditionerInfo - Returns the number of terms of the split
    preconditioner, as well as the structure flag for matrices.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context

@@ -16,7 +16,7 @@
 /*@C
    SlepcVecPoolCreate - Create a pool of Vec.
 
-   Collective on v
+   Collective
 
    Input Parameters:
 +  v - template vector.
@@ -49,7 +49,7 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
 /*@C
    SlepcVecPoolDestroy - Destroy the pool of Vec.
 
-   Collective on p
+   Collective
 
    Input Parameters:
 .  p - pool of Vec.
@@ -78,7 +78,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
 /*@C
    SlepcVecPoolGetVecs - Get an array of Vec from the pool.
 
-   Collective on p
+   Collective
 
    Input Parameters:
 +  p - pool of Vec.
@@ -119,7 +119,7 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
    SlepcVecPoolRestoreVecs - Get back an array of Vec previously returned by
    SlepcVecPoolGetVecs().
 
-   Collective on p
+   Collective
 
    Input Parameters:
 +  p    - pool of Vec.

@@ -524,7 +524,7 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
 /*@
    PEPCISSSetSizes - Sets the values of various size parameters in the CISS solver.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep   - the polynomial eigensolver context
@@ -632,7 +632,7 @@ static PetscErrorCode PEPCISSSetThreshold_CISS(PEP pep,PetscReal delta,PetscReal
    PEPCISSSetThreshold - Sets the values of various threshold parameters in
    the CISS solver.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep   - the polynomial eigensolver context
@@ -716,7 +716,7 @@ static PetscErrorCode PEPCISSSetRefinement_CISS(PEP pep,PetscInt inner,PetscInt 
    PEPCISSSetRefinement - Sets the values of various refinement parameters
    in the CISS solver.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep    - the polynomial eigensolver context
@@ -791,7 +791,7 @@ static PetscErrorCode PEPCISSSetExtraction_CISS(PEP pep,PEPCISSExtraction extrac
 /*@
    PEPCISSSetExtraction - Sets the extraction technique used in the CISS solver.
 
-   Logically Collective on pep
+   Logically Collective
 
    Input Parameters:
 +  pep        - the polynomial eigensolver context
@@ -899,7 +899,7 @@ static PetscErrorCode PEPCISSGetKSPs_CISS(PEP pep,PetscInt *nsolve,KSP **ksp)
    PEPCISSGetKSPs - Retrieve the array of linear solver objects associated with
    the CISS solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  pep - polynomial eigenvalue solver

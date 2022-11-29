@@ -419,7 +419,7 @@ PetscErrorCode NEPNLEIGSSetEPS_NLEIGS(NEP nep,EPS eps)
 /*@
    NEPNLEIGSSetEPS - Associate an eigensolver object (EPS) to the NLEIGS solver.
 
-   Collective on nep
+   Collective
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
@@ -476,7 +476,7 @@ PetscErrorCode NEPNLEIGSGetEPS_NLEIGS(NEP nep,EPS *eps)
    NEPNLEIGSGetEPS - Retrieve the eigensolver object (EPS) associated
    to the nonlinear eigenvalue solver.
 
-   Not Collective
+   Collective
 
    Input Parameter:
 .  nep - nonlinear eigenvalue solver

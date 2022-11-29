@@ -18,7 +18,7 @@
 /*@C
    PEPView - Prints the PEP data structure.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep - the polynomial eigenproblem solver context
@@ -190,7 +190,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 /*@C
    PEPViewFromOptions - View from options
 
-   Collective on PEP
+   Collective
 
    Input Parameters:
 +  pep  - the eigensolver context
@@ -212,7 +212,7 @@ PetscErrorCode PEPViewFromOptions(PEP pep,PetscObject obj,const char name[])
 /*@C
    PEPConvergedReasonView - Displays the reason a PEP solve converged or diverged.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep - the eigensolver context
@@ -253,7 +253,7 @@ PetscErrorCode PEPConvergedReasonView(PEP pep,PetscViewer viewer)
    PEPConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the PEP converged reason is to be viewed.
 
-   Collective on pep
+   Collective
 
    Input Parameter:
 .  pep - the eigensolver context
@@ -378,7 +378,7 @@ static PetscErrorCode PEPErrorView_MATLAB(PEP pep,PEPErrorType etype,PetscViewer
    PEPErrorView - Displays the errors associated with the computed solution
    (as well as the eigenvalues).
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep    - the eigensolver context
@@ -436,7 +436,7 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
    PEPErrorViewFromOptions - Processes command line options to determine if/how
    the errors of the computed solution are to be viewed.
 
-   Collective on pep
+   Collective
 
    Input Parameter:
 .  pep - the eigensolver context
@@ -623,7 +623,7 @@ static PetscErrorCode PEPValuesView_MATLAB(PEP pep,PetscViewer viewer)
 /*@C
    PEPValuesView - Displays the computed eigenvalues in a viewer.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep    - the eigensolver context
@@ -683,7 +683,7 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
    PEPValuesViewFromOptions - Processes command line options to determine if/how
    the computed eigenvalues are to be viewed.
 
-   Collective on pep
+   Collective
 
    Input Parameter:
 .  pep - the eigensolver context
@@ -716,7 +716,7 @@ PetscErrorCode PEPValuesViewFromOptions(PEP pep)
 /*@C
    PEPVectorsView - Outputs computed eigenvectors to a viewer.
 
-   Collective on pep
+   Collective
 
    Input Parameters:
 +  pep    - the eigensolver context
@@ -768,7 +768,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
    PEPVectorsViewFromOptions - Processes command line options to determine if/how
    the computed eigenvectors are to be viewed.
 
-   Collective on pep
+   Collective
 
    Input Parameter:
 .  pep - the eigensolver context

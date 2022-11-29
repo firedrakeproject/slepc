@@ -227,7 +227,7 @@ static PetscErrorCode FNCombineSetChildren_Combine(FN fn,FNCombineType comb,FN f
    FNCombineSetChildren - Sets the two child functions that constitute this
    combined function, and the way they must be combined.
 
-   Logically Collective on fn
+   Logically Collective
 
    Input Parameters:
 +  fn   - the math function context

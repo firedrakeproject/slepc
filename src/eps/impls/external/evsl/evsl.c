@@ -274,7 +274,7 @@ static PetscErrorCode EPSEVSLSetSlices_EVSL(EPS eps,PetscInt nslices)
    EPSEVSLSetSlices - Set the number of slices in which the interval must be
    subdivided.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps     - the eigensolver context
@@ -353,7 +353,7 @@ static PetscErrorCode EPSEVSLSetRange_EVSL(EPS eps,PetscReal lmin,PetscReal lmax
    EPSEVSLSetRange - Defines the numerical range (or field of values) of the problem,
    that is, the interval containing all eigenvalues.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps  - the eigensolver context
@@ -459,7 +459,7 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
    EPSEVSLSetDOSParameters - Defines the parameters used for computing the
    density of states (DOS) in the EVSL solver.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps     - the eigensolver context
@@ -563,7 +563,7 @@ static PetscErrorCode EPSEVSLSetPolParameters_EVSL(EPS eps,PetscInt max_deg,Pets
    EPSEVSLSetPolParameters - Defines the parameters used for building the
    building the polynomial in the EVSL solver.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps     - the eigensolver context
@@ -638,7 +638,7 @@ static PetscErrorCode EPSEVSLSetDamping_EVSL(EPS eps,EPSEVSLDamping damping)
 /*@
    EPSEVSLSetDamping - Set the type of damping to be used in EVSL.
 
-   Logically Collective on eps
+   Logically Collective
 
    Input Parameters:
 +  eps     - the eigensolver context

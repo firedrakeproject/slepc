@@ -43,7 +43,7 @@ static PetscErrorCode RGIntervalSetEndpoints_Interval(RG rg,PetscReal a,PetscRea
 /*@
    RGIntervalSetEndpoints - Sets the parameters defining the interval region.
 
-   Logically Collective on rg
+   Logically Collective
 
    Input Parameters:
 +  rg  - the region context
