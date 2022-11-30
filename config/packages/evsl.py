@@ -80,7 +80,7 @@ class Evsl(package.Package):
     incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
 
     # Build package
-    confopt = ['--prefix='+prefixdir, '--with-blas-lib="'+petsc.blaslapack_lib+'"', '--with-lapack-lib="'+petsc.blaslapack_lib+'"', 'CC="'+petsc.cc+'"', 'CFLAGS="'+petsc.getCFlags()+'"']
+    confopt = ['--prefix='+prefixdir, '--libdir='+os.path.join(prefixdir,'lib'), '--with-blas-lib="'+petsc.blaslapack_lib+'"', '--with-lapack-lib="'+petsc.blaslapack_lib+'"', 'CC="'+petsc.cc+'"', 'CFLAGS="'+petsc.getCFlags()+'"']
     if hasattr(petsc,'fc'):
       confopt = confopt + ['F77="'+petsc.fc+'"', 'FFLAGS="'+petsc.getFFlags()+'"', 'FC="'+petsc.fc+'"', 'FCFLAGS="'+petsc.getFFlags()+'"']
     if petsc.buildsharedlib:
