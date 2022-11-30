@@ -85,7 +85,7 @@ class Arpack(package.Package):
 
     if hasattr(petsc,'cmake'): # Build with cmake
       builddir = slepc.CreateDir(builddir,'build')
-      confopt = ['-DCMAKE_INSTALL_PREFIX='+prefixdir, '-DCMAKE_C_COMPILER="'+petsc.cc+'"', '-DCMAKE_C_FLAGS:STRING="'+petsc.getCFlags()+'"', '-DCMAKE_Fortran_COMPILER="'+petsc.fc+'"', '-DCMAKE_Fortran_FLAGS:STRING="'+petsc.getFFlags()+'"', '-DBLAS_LIBRARIES="'+petsc.blaslapack_lib+'"']
+      confopt = ['-DCMAKE_INSTALL_PREFIX='+prefixdir, '-DCMAKE_INSTALL_NAME_DIR:STRING="'+os.path.join(prefixdir,'lib')+'"', '-DCMAKE_INSTALL_LIBDIR:STRING="lib"', '-DCMAKE_C_COMPILER="'+petsc.cc+'"', '-DCMAKE_C_FLAGS:STRING="'+petsc.getCFlags()+'"', '-DCMAKE_Fortran_COMPILER="'+petsc.fc+'"', '-DCMAKE_Fortran_FLAGS:STRING="'+petsc.getFFlags()+'"', '-DBLAS_LIBRARIES="'+petsc.blaslapack_lib+'"']
       if not petsc.mpiuni and not petsc.msmpi:
         confopt = confopt + ['-DMPI=ON', '-DMPI_C_COMPILER="'+petsc.cc+'"', '-DMPI_Fortran_COMPILER="'+petsc.fc+'"']
       confopt = confopt + ['-DCMAKE_BUILD_TYPE='+ ('Debug' if petsc.debug else 'Release')]
@@ -105,7 +105,7 @@ class Arpack(package.Package):
         self.log.Exit('--download-arpack requires that the command autoreconf is available on your PATH, or alternatively that PETSc has been configured with CMake')
       if self.buildflags:
         self.log.Exit('You specified --download-arpack-cmake-arguments but ARPACK will be built with autoreconf because PETSc was not configured with CMake')
-      confopt = ['--prefix='+prefixdir, 'CC="'+petsc.cc+'"', 'CFLAGS="'+petsc.getCFlags()+'"', 'F77="'+petsc.fc+'"', 'FFLAGS="'+petsc.getFFlags()+'"', 'FC="'+petsc.fc+'"', 'FCFLAGS="'+petsc.getFFlags()+'"', 'LIBS="'+petsc.blaslapack_lib+'"']
+      confopt = ['--prefix='+prefixdir, '--libdir='+os.path.join(prefixdir,'lib'), 'CC="'+petsc.cc+'"', 'CFLAGS="'+petsc.getCFlags()+'"', 'F77="'+petsc.fc+'"', 'FFLAGS="'+petsc.getFFlags()+'"', 'FC="'+petsc.fc+'"', 'FCFLAGS="'+petsc.getFFlags()+'"', 'LIBS="'+petsc.blaslapack_lib+'"']
       if not petsc.mpiuni and not petsc.msmpi:
         confopt = confopt + ['--enable-mpi MPICC="'+petsc.cc+'"', 'MPIF77="'+petsc.fc+'"', 'MPIFC="'+petsc.fc+'"']
       if not petsc.buildsharedlib:
