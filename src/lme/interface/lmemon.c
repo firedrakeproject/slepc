@@ -58,8 +58,7 @@ PetscErrorCode LMEMonitor(LME lme,PetscInt it,PetscReal errest)
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Calling Sequence of monitor:
-$   monitor(LME lme,PetscInt its,PetscReal errest,void *mctx)
+   Parameters of monitor:
 
 +  lme    - linear matrix equation solver context obtained from LMECreate()
 .  its    - iteration number
@@ -82,7 +81,7 @@ $   monitor(LME lme,PetscInt its,PetscReal errest,void *mctx)
 
 .seealso: LMEMonitorCancel()
 @*/
-PetscErrorCode LMEMonitorSet(LME lme,PetscErrorCode (*monitor)(LME,PetscInt,PetscReal,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
+PetscErrorCode LMEMonitorSet(LME lme,PetscErrorCode (*monitor)(LME lme,PetscInt its,PetscReal errest,void*mctx),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);

@@ -1,90 +1,85 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import os
+import sys
+try:
+  import petsclinter as pl
+except ModuleNotFoundError as mnfe:
+  try:
+    petsc_dir = os.environ['PETSC_DIR']
+  except KeyError as ke:
+    raise RuntimeError('Must set PETSC_DIR environment variable') from ke
+  sys.path.insert(0, os.path.join(petsc_dir, 'lib', 'petsc', 'bin', 'maint', 'petsclinter'))
+  import petsclinter as pl
 
-slepcMansecs    = ["eps","lme","mfn","nep","pep","svd","sys"]
-slepcAuxMansecs = ["bv","ds","fn","rg","st"]
-slepcClassIdMap = {
-  "_p_BV *"     : "BV_CLASSID",
-  "_p_DS *"     : "DS_CLASSID",
-  "_p_FN *"     : "FN_CLASSID",
-  "_p_RG *"     : "RG_CLASSID",
-  "_p_ST *"     : "ST_CLASSID",
-  "_p_EPS *"    : "EPS_CLASSID",
-  "_p_PEP *"    : "PEP_CLASSID",
-  "_p_NEP *"    : "NEP_CLASSID",
-  "_p_SVD *"    : "SVD_CLASSID",
-  "_p_MFN *"    : "MFN_CLASSID",
-  "_p_LME *"    : "LME_CLASSID",
-}
+def __prepare_ns_args(ns_args, parser):
+  slepc_mansecs     = ['eps','lme','mfn','nep','pep','svd','sys']
+  slepc_aux_mansecs = ['bv','ds','fn','rg','st']
 
-def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,werror=False,maxWorkers=-1,checkFunctionFilter=None,applyPatches=False):
-  extraCompilerFlags = [ '-I'+os.path.join(slepcDir,'include'), '-I'+os.path.join(slepcDir,petscArch,'include') ]
-  with open(os.path.join(slepcDir,petscArch,"lib","slepc","conf","slepcvariables"),"r") as sv:
+  if ns_args.slepc_dir is None:
+    raise RuntimeError('Could not determine SLEPC_DIR from environment, please set via options')
+
+  extra_compiler_flags = [
+    '-I' + os.path.join(ns_args.slepc_dir, 'include'),
+    '-I' + os.path.join(ns_args.slepc_dir, ns_args.petsc_arch, 'include')
+  ]
+  with open(os.path.join(ns_args.slepc_dir, ns_args.petsc_arch, 'lib', 'slepc', 'conf', 'slepcvariables'), 'r') as sv:
     line = sv.readline()
     while line:
-      if line.find("INCLUDE")>-1:
-        for inc in line.split("=",1)[1].split():
-          extraCompilerFlags.append(inc)
+      if 'INCLUDE' in line:
+        for inc in line.split('=', 1)[1].split():
+          extra_compiler_flags.append(inc)
       line = sv.readline()
 
-  extraHeaderIncludes = []
-  mansecimpls = [m+"impl.h" for m in slepcMansecs+slepcAuxMansecs]+["slepcimpl.h","vecimplslepc.h"]
-  for headerFile in os.listdir(os.path.join(slepcDir,"include","slepc","private")):
-    if headerFile in mansecimpls:
-      extraHeaderIncludes.append("#include <slepc/private/{}>".format(headerFile))
-  ret = petscClangLinter.main(petscDir,petscArch,srcDir=os.path.join(slepcDir,"src"),clangDir=clangDir,clangLib=clangLib,verbose=verbose,werror=werror,workers=maxWorkers,checkFunctionFilter=checkFunctionFilter,patchDir=os.path.join(slepcDir,"slepcLintPatches"),applyPatches=applyPatches,extraCompilerFlags=extraCompilerFlags,extraHeaderIncludes=extraHeaderIncludes)
-  return ret
+  extra_header_includes = []
+  mansecimpls           = [m + 'impl.h' for m in slepc_mansecs + slepc_aux_mansecs] + [
+    'slepcimpl.h', 'vecimplslepc.h'
+  ]
+  for header_file in os.listdir(os.path.join(ns_args.slepc_dir, 'include', 'slepc', 'private')):
+    if header_file in mansecimpls:
+      extra_header_includes.append(f'#include <slepc/private/{header_file}>')
 
+  if ns_args.src_path == parser.get_default('src_path'):
+    ns_args.src_path = os.path.join(ns_args.slepc_dir, 'src')
+  if ns_args.patch_dir == parser.get_default('patch_dir'):
+    ns_args.patch_dir = os.path.join(ns_args.slepc_dir, 'slepcLintPatches')
 
-if __name__ == "__main__":
-  import sys,argparse
+  # prepend these
+  ns_args.extra_compiler_flags = extra_compiler_flags + ns_args.extra_compiler_flags
+  # replace these
+  if not ns_args.extra_header_includes:
+    ns_args.extra_header_includes = extra_header_includes
 
-  try:
-    slepcDir = os.environ["SLEPC_DIR"]
-  except KeyError:
-    slepcDir = None
-  try:
-    petscDir = os.environ["PETSC_DIR"]
-  except KeyError:
-    petscDir = None
-  try:
-    petscArch = os.environ["PETSC_ARCH"]
-  except KeyError:
-    petscArch = None
+  return ns_args
 
-  sys.path.insert(0, os.path.join(petscDir,'lib','petsc','bin','maint'))
-  import petscClangLinter
-  clangDir = petscClangLinter.tryToFindLibclangDir()
-  petscClangLinter.classIdMap.update(slepcClassIdMap)
+def command_line_main():
+  import argparse
 
-  parser = argparse.ArgumentParser(description="set options for clang static analysis tool",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-  grouplibclang = parser.add_argument_group(title="libclang location settings")
-  group = grouplibclang.add_mutually_exclusive_group(required=False)
-  group.add_argument("--clang_dir",nargs="?",help="directory containing libclang.[so|dylib|dll], if not given attempts to automatically detect it via llvm-config",default=clangDir,dest="clangdir")
-  group.add_argument("--clang_lib",nargs="?",help="direct location of libclang.[so|dylib|dll], overrides clang directory if set",dest="clanglib")
-  grouppetsc = parser.add_argument_group(title="petsc/slepc location settings")
-  grouppetsc.add_argument("--SLEPC_DIR",required=False,default=slepcDir,help="if this option is unused defaults to environment variable $SLEPC_DIR",dest="slepcdir")
-  grouppetsc.add_argument("--PETSC_DIR",required=False,default=petscDir,help="if this option is unused defaults to environment variable $PETSC_DIR",dest="petscdir")
-  grouppetsc.add_argument("--PETSC_ARCH",required=False,default=petscArch,help="if this option is unused defaults to environment variable $PETSC_ARCH",dest="petscarch")
-  parser.add_argument("-v","--verbose",required=False,action="store_true",help="verbose progress printed to screen")
-  parser.add_argument("--werror",required=False,action="store_true",help="treat all warnings as errors")
-  filterFuncChoices = ", ".join(list(petscClangLinter.checkFunctionMap.keys()))
-  parser.add_argument("-f","--functions",required=False,nargs="+",choices=list(petscClangLinter.checkFunctionMap.keys()),metavar="FUNCTIONNAME",help="filter to display errors only related to list of provided function names, default is all functions. Choose from available function names: "+filterFuncChoices,dest="funcs")
-  parser.add_argument("-j","--jobs",required=False,type=int,default=-1,nargs="?",help="number of multiprocessing jobs, -1 means number of processors on machine")
-  parser.add_argument("-a","--apply-patches",required=False,action="store_true",help="automatically apply patches that are saved to file",dest="apply")
-  args = parser.parse_args()
+  slepc_classid_map = {
+    '_p_BV *'  : 'BV_CLASSID',
+    '_p_DS *'  : 'DS_CLASSID',
+    '_p_FN *'  : 'FN_CLASSID',
+    '_p_RG *'  : 'RG_CLASSID',
+    '_p_ST *'  : 'ST_CLASSID',
+    '_p_EPS *' : 'EPS_CLASSID',
+    '_p_PEP *' : 'PEP_CLASSID',
+    '_p_NEP *' : 'NEP_CLASSID',
+    '_p_SVD *' : 'SVD_CLASSID',
+    '_p_MFN *' : 'MFN_CLASSID',
+    '_p_LME *' : 'LME_CLASSID',
+  }
 
-  if args.slepcdir is None:
-    raise RuntimeError("Could not determine SLEPC_DIR from environment, please set via options")
-  if args.petscdir is None:
-    raise RuntimeError("Could not determine PETSC_DIR from environment, please set via options")
-  if args.petscarch is None:
-    raise RuntimeError("Could not determine PETSC_ARCH from environment, please set via options")
+  for struct_name, classid_name in slepc_classid_map.items():
+    pl.register_classid(struct_name, classid_name)
 
-  if args.clanglib:
-    args.clangdir = None
+  parser      = argparse.ArgumentParser(prog='slepclinter', add_help=False)
+  group_slepc = parser.add_argument_group(title='SLEPc location settings')
+  group_slepc.add_argument('--SLEPC_DIR', required=False, default=os.environ.get('SLEPC_DIR', None), help='if this option is unused defaults to environment variable $SLEPC_DIR', dest='slepc_dir')
 
-  ret = main(args.slepcdir,args.petscdir,args.petscarch,clangDir=args.clangdir,clangLib=args.clanglib,verbose=args.verbose,maxWorkers=args.jobs,checkFunctionFilter=args.funcs,applyPatches=args.apply)
-  sys.exit(ret)
+  args, parser = pl.main.parse_command_line_args(parent_parsers=[parser])
+  args         = __prepare_ns_args(args, parser)
+
+  return pl.main.namespace_main(args)
+
+if __name__ == '__main__':
+  sys.exit(command_line_main())
