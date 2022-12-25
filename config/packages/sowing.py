@@ -17,7 +17,7 @@ class Sowing(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'sowing'
     self.downloadable = True
-    self.version      = '1.1.26-p5'
+    self.version      = '1.1.26-p6'
     self.url          = 'https://bitbucket.org/petsc/pkg-sowing/get/v'+self.version+'.tar.gz'
     self.archive      = 'sowing-'+self.version+'.tar.gz'
     self.ProcessArgs(argdb)
