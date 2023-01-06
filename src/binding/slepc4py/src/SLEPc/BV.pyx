@@ -1051,12 +1051,13 @@ cdef class BV(Object):
             Coefficient that multiplies Y.
         X: BV
             Input basis vectors.
-        Q: Mat
-            Input matrix.
+        Q: Mat, optional
+            Input matrix, if not given the identity matrix is assumed.
         """
         cdef PetscScalar sval1 = asScalar(alpha)
         cdef PetscScalar sval2 = asScalar(beta)
-        CHKERR( BVMult(self.bv, sval1, sval2, X.bv, Q.mat) )
+        cdef PetscMat Qmat = <PetscMat>NULL if Q is None else Q.mat
+        CHKERR( BVMult(self.bv, sval1, sval2, X.bv, Qmat) )
 
     def multInPlace(self, Mat Q, s, e):
         """
