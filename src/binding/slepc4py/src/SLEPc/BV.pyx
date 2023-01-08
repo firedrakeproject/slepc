@@ -983,8 +983,8 @@ cdef class BV(Object):
         if Y is None: Y = BV()
         if Y.bv == NULL:
             CHKERR( BVGetType(self.bv, &bv_type) )
-            CHKERR( MatGetLocalSize(A.mat, &n, NULL) )
-            CHKERR( MatGetSize(A.mat, &N, NULL) )
+            CHKERR( MatGetLocalSize(A.mat, NULL, &n) )
+            CHKERR( MatGetSize(A.mat, NULL, &N) )
             CHKERR( BVGetSizes(self.bv, NULL, NULL, &m) )
             CHKERR( BVGetOrthogonalization(self.bv, &val1, &val2, &rval, &val3) )
             CHKERR( BVCreate(comm, &Y.bv) )
