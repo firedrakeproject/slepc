@@ -25,11 +25,11 @@ SLEPC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN);
 PetscErrorCode MFNRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (MFNRegisterAllCalled) PetscFunctionReturn(0);
+  if (MFNRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   MFNRegisterAllCalled = PETSC_TRUE;
   PetscCall(MFNRegister(MFNKRYLOV,MFNCreate_Krylov));
   PetscCall(MFNRegister(MFNEXPOKIT,MFNCreate_Expokit));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -44,10 +44,10 @@ PetscErrorCode MFNRegisterAll(void)
 PetscErrorCode MFNMonitorRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (MFNMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  if (MFNMonitorRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   MFNMonitorRegisterAllCalled = PETSC_TRUE;
 
   PetscCall(MFNMonitorRegister("error_estimate",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,MFNMonitorDefault,NULL,NULL));
   PetscCall(MFNMonitorRegister("error_estimate",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,MFNMonitorDefaultDrawLG,MFNMonitorDefaultDrawLGCreate,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

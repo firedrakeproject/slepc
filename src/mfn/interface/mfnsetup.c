@@ -41,7 +41,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   /* reset the convergence flag from the previous solves */
   mfn->reason = MFN_CONVERGED_ITERATING;
 
-  if (mfn->setupcalled) PetscFunctionReturn(0);
+  if (mfn->setupcalled) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscLogEventBegin(MFN_SetUp,mfn,0,0,0));
 
   /* Set default solver type (MFNSetFromOptions was not called) */
@@ -62,7 +62,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
 
   PetscCall(PetscLogEventEnd(MFN_SetUp,mfn,0,0,0));
   mfn->setupcalled = 1;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -98,7 +98,7 @@ PetscErrorCode MFNSetOperator(MFN mfn,Mat A)
   else PetscCall(MatDestroy(&mfn->A));
   mfn->A = A;
   mfn->setupcalled = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -122,7 +122,7 @@ PetscErrorCode MFNGetOperator(MFN mfn,Mat *A)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(A,2);
   *A = mfn->A;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -163,5 +163,5 @@ PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
     PetscCall(BVSetSizesFromVec(mfn->V,t,requested));
     PetscCall(VecDestroy(&t));
   } else PetscCall(BVResize(mfn->V,requested,PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

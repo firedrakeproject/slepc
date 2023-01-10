@@ -45,7 +45,7 @@ PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
     PetscCall(VecDuplicateVecs(t,nw,&nep->work));
     PetscCall(BVRestoreColumn(nep->V,0,&t));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -78,7 +78,7 @@ PetscErrorCode NEPGetDefaultShift(NEP nep,PetscScalar *sigma)
       *sigma = nep->target;
       break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -91,7 +91,7 @@ PetscErrorCode NEPConvergedRelative(NEP nep,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
   *errest = res/w;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -101,7 +101,7 @@ PetscErrorCode NEPConvergedAbsolute(NEP nep,PetscScalar eigr,PetscScalar eigi,Pe
 {
   PetscFunctionBegin;
   *errest = res;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -135,7 +135,7 @@ PetscErrorCode NEPConvergedNorm(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscR
     }
   }
   *errest = res/w;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -181,7 +181,7 @@ PetscErrorCode NEPStoppingBasic(NEP nep,PetscInt its,PetscInt max_it,PetscInt nc
     *reason = NEP_DIVERGED_ITS;
     PetscCall(PetscInfo(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPComputeVectors_Schur(NEP nep)
@@ -194,5 +194,5 @@ PetscErrorCode NEPComputeVectors_Schur(NEP nep)
   PetscCall(BVMultInPlace(nep->V,Z,0,nep->nconv));
   PetscCall(DSRestoreMat(nep->ds,DS_MAT_X,&Z));
   PetscCall(BVNormalize(nep->V,nep->eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

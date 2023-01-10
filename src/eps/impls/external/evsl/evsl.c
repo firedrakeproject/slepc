@@ -156,7 +156,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
   PetscCall(EPSAllocateSolution(eps,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_EVSL(EPS eps)
@@ -253,7 +253,7 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
   }
   PetscCall(VecDestroy(&w));
   PetscCall(PetscFree5(nevloc,disp,eigr,errest,X));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLSetSlices_EVSL(EPS eps,PetscInt nslices)
@@ -267,7 +267,7 @@ static PetscErrorCode EPSEVSLSetSlices_EVSL(EPS eps,PetscInt nslices)
     ctx->nslices = nslices;
     eps->state   = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -298,7 +298,7 @@ PetscErrorCode EPSEVSLSetSlices(EPS eps,PetscInt nslices)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,nslices,2);
   PetscTryMethod(eps,"EPSEVSLSetSlices_C",(EPS,PetscInt),(eps,nslices));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLGetSlices_EVSL(EPS eps,PetscInt *nslices)
@@ -307,7 +307,7 @@ static PetscErrorCode EPSEVSLGetSlices_EVSL(EPS eps,PetscInt *nslices)
 
   PetscFunctionBegin;
   *nslices = ctx->nslices;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -332,7 +332,7 @@ PetscErrorCode EPSEVSLGetSlices(EPS eps,PetscInt *nslices)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(nslices,2);
   PetscUseMethod(eps,"EPSEVSLGetSlices_C",(EPS,PetscInt*),(eps,nslices));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLSetRange_EVSL(EPS eps,PetscReal lmin,PetscReal lmax)
@@ -346,7 +346,7 @@ static PetscErrorCode EPSEVSLSetRange_EVSL(EPS eps,PetscReal lmin,PetscReal lmax
     ctx->lmax  = lmax;
     eps->state = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -382,7 +382,7 @@ PetscErrorCode EPSEVSLSetRange(EPS eps,PetscReal lmin,PetscReal lmax)
   PetscValidLogicalCollectiveReal(eps,lmin,2);
   PetscValidLogicalCollectiveReal(eps,lmax,3);
   PetscTryMethod(eps,"EPSEVSLSetRange_C",(EPS,PetscReal,PetscReal),(eps,lmin,lmax));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLGetRange_EVSL(EPS eps,PetscReal *lmin,PetscReal *lmax)
@@ -392,7 +392,7 @@ static PetscErrorCode EPSEVSLGetRange_EVSL(EPS eps,PetscReal *lmin,PetscReal *lm
   PetscFunctionBegin;
   if (lmin) *lmin = ctx->lmin;
   if (lmax) *lmax = ctx->lmax;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -416,7 +416,7 @@ PetscErrorCode EPSEVSLGetRange(EPS eps,PetscReal *lmin,PetscReal *lmax)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscUseMethod(eps,"EPSEVSLGetRange_C",(EPS,PetscReal*,PetscReal*),(eps,lmin,lmax));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,PetscInt nvec,PetscInt deg,PetscInt steps,PetscInt npoints)
@@ -452,7 +452,7 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
       break;
   }
   eps->state = EPS_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -496,7 +496,7 @@ PetscErrorCode EPSEVSLSetDOSParameters(EPS eps,EPSEVSLDOSMethod dos,PetscInt nve
   PetscValidLogicalCollectiveInt(eps,steps,5);
   PetscValidLogicalCollectiveInt(eps,npoints,6);
   PetscTryMethod(eps,"EPSEVSLSetDOSParameters_C",(EPS,EPSEVSLDOSMethod,PetscInt,PetscInt,PetscInt,PetscInt),(eps,dos,nvec,deg,steps,npoints));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLGetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod *dos,PetscInt *nvec,PetscInt *deg,PetscInt *steps,PetscInt *npoints)
@@ -509,7 +509,7 @@ static PetscErrorCode EPSEVSLGetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod *dos
   if (deg)     *deg     = ctx->deg;
   if (steps)   *steps   = ctx->steps;
   if (npoints) *npoints = ctx->npoints;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -537,7 +537,7 @@ PetscErrorCode EPSEVSLGetDOSParameters(EPS eps,EPSEVSLDOSMethod *dos,PetscInt *n
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscUseMethod(eps,"EPSEVSLGetDOSParameters_C",(EPS,EPSEVSLDOSMethod*,PetscInt*,PetscInt*,PetscInt*,PetscInt*),(eps,dos,nvec,deg,steps,npoints));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLSetPolParameters_EVSL(EPS eps,PetscInt max_deg,PetscReal thresh)
@@ -556,7 +556,7 @@ static PetscErrorCode EPSEVSLSetPolParameters_EVSL(EPS eps,PetscInt max_deg,Pets
     ctx->thresh = thresh;
   }
   eps->state = EPS_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -585,7 +585,7 @@ PetscErrorCode EPSEVSLSetPolParameters(EPS eps,PetscInt max_deg,PetscReal thresh
   PetscValidLogicalCollectiveInt(eps,max_deg,2);
   PetscValidLogicalCollectiveReal(eps,thresh,3);
   PetscTryMethod(eps,"EPSEVSLSetPolParameters_C",(EPS,PetscInt,PetscReal),(eps,max_deg,thresh));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLGetPolParameters_EVSL(EPS eps,PetscInt *max_deg,PetscReal *thresh)
@@ -595,7 +595,7 @@ static PetscErrorCode EPSEVSLGetPolParameters_EVSL(EPS eps,PetscInt *max_deg,Pet
   PetscFunctionBegin;
   if (max_deg) *max_deg = ctx->max_deg;
   if (thresh)  *thresh  = ctx->thresh;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -620,7 +620,7 @@ PetscErrorCode EPSEVSLGetPolParameters(EPS eps,PetscInt *max_deg,PetscReal *thre
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscUseMethod(eps,"EPSEVSLGetPolParameters_C",(EPS,PetscInt*,PetscReal*),(eps,max_deg,thresh));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLSetDamping_EVSL(EPS eps,EPSEVSLDamping damping)
@@ -632,7 +632,7 @@ static PetscErrorCode EPSEVSLSetDamping_EVSL(EPS eps,EPSEVSLDamping damping)
     ctx->damping = damping;
     eps->state   = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -661,7 +661,7 @@ PetscErrorCode EPSEVSLSetDamping(EPS eps,EPSEVSLDamping damping)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,damping,2);
   PetscTryMethod(eps,"EPSEVSLSetDamping_C",(EPS,EPSEVSLDamping),(eps,damping));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSEVSLGetDamping_EVSL(EPS eps,EPSEVSLDamping *damping)
@@ -670,7 +670,7 @@ static PetscErrorCode EPSEVSLGetDamping_EVSL(EPS eps,EPSEVSLDamping *damping)
 
   PetscFunctionBegin;
   *damping = ctx->damping;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -694,7 +694,7 @@ PetscErrorCode EPSEVSLGetDamping(EPS eps,EPSEVSLDamping *damping)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(damping,2);
   PetscUseMethod(eps,"EPSEVSLGetDamping_C",(EPS,EPSEVSLDamping*),(eps,damping));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
@@ -721,7 +721,7 @@ PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  polynomial parameters: max degree = %" PetscInt_FMT ", threshold = %g\n",ctx->max_deg,(double)ctx->thresh));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetFromOptions_EVSL(EPS eps,PetscOptionItems *PetscOptionsObject)
@@ -766,7 +766,7 @@ PetscErrorCode EPSSetFromOptions_EVSL(EPS eps,PetscOptionItems *PetscOptionsObje
     if (flg || flg1) PetscCall(EPSEVSLSetPolParameters(eps,i1,th));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_EVSL(EPS eps)
@@ -788,7 +788,7 @@ PetscErrorCode EPSDestroy_EVSL(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetPolParameters_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDamping_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDamping_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_EVSL(EPS eps)
@@ -799,7 +799,7 @@ PetscErrorCode EPSReset_EVSL(EPS eps)
   PetscCall(MatDestroy(&ctx->A));
   PetscCall(VecDestroy(&ctx->x));
   PetscCall(VecDestroy(&ctx->y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
@@ -844,5 +844,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetPolParameters_C",EPSEVSLGetPolParameters_EVSL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDamping_C",EPSEVSLSetDamping_EVSL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDamping_C",EPSEVSLGetDamping_EVSL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

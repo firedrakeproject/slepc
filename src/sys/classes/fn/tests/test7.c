@@ -69,7 +69,7 @@ PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Pets
   PetscCall(MatDestroy(&R));
   PetscCall(VecDestroy(&v));
   PetscCall(VecDestroy(&f0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

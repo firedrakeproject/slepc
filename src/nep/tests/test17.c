@@ -72,7 +72,7 @@ PetscErrorCode BuildSplitMatrices(PetscInt n,PetscReal a,Mat *Id,Mat *A,Mat *B)
   PetscCall(MatAssemblyBegin(*B,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(*B,MAT_FINAL_ASSEMBLY));
   PetscCall(MatSetOption(*B,MAT_HERMITIAN,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -96,7 +96,7 @@ PetscErrorCode BuildSplitPreconditioner(PetscInt n,PetscReal a,Mat *Ap)
   PetscCall(MatAssemblyBegin(*Ap,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(*Ap,MAT_FINAL_ASSEMBLY));
   PetscCall(MatSetOption(*Ap,MAT_HERMITIAN,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -127,7 +127,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
     PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
     PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -151,7 +151,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   }
   PetscCall(MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

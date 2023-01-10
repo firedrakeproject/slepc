@@ -60,7 +60,7 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
   else {
     PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
@@ -81,7 +81,7 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
     PetscCall(PetscMalloc1(i,&ds->iwork));
     ds->liwork = i;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -120,7 +120,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ds,1,viewer,2);
   PetscCall(PetscViewerGetFormat(viewer,&format));
-  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
   PetscCall(DSMatGetSize(ds,m,&rows,&cols));
   PetscCall(MatDenseGetArrayRead(ds->omat[m],&M));
@@ -166,7 +166,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   if (format == PETSC_VIEWER_ASCII_MATLAB) PetscCall(PetscViewerASCIIPrintf(viewer,"];\n"));
   PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
   PetscCall(PetscViewerFlush(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,PetscInt *perm,PetscBool isghiep)
@@ -218,7 +218,7 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
     perm[j+1] = tmp1;
     if (d==2) perm[j+2] = tmp2;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm)
@@ -239,7 +239,7 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
       if (j>=l) PetscCall(SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -266,7 +266,7 @@ PetscErrorCode DSPermuteColumns_Private(DS ds,PetscInt istart,PetscInt iend,Pets
     }
   }
   PetscCall(MatDenseRestoreArray(ds->omat[mat],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -296,7 +296,7 @@ PetscErrorCode DSPermuteColumnsTwo_Private(DS ds,PetscInt istart,PetscInt iend,P
   }
   PetscCall(MatDenseRestoreArray(ds->omat[mat1],&Q));
   PetscCall(MatDenseRestoreArray(ds->omat[mat2],&Z));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -323,7 +323,7 @@ PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt istart,PetscInt iend,PetscIn
     }
   }
   PetscCall(MatDenseRestoreArray(ds->omat[mat],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -357,7 +357,7 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt istart,PetscInt iend,PetscIn
   }
   PetscCall(MatDenseRestoreArray(ds->omat[mat1],&U));
   PetscCall(MatDenseRestoreArray(ds->omat[mat2],&V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -392,7 +392,7 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   for (i=l;i<n;i++) A[i+i*ld] = 1.0;
   PetscCall(MatDenseRestoreArray(ds->omat[mat],&A));
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -429,7 +429,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   PetscCall(DSGetLeadingDimension(ds,&ld));
   n = n - l;
   PetscCheck(cols<=n,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");
-  if (n == 0 || cols == 0) PetscFunctionReturn(0);
+  if (n == 0 || cols == 0) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(DS_Other,ds,0,0,0));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
@@ -454,7 +454,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   PetscCall(MatDenseRestoreArray(ds->omat[mat],&A));
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -474,7 +474,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
   const char     *N = "N", *T = "C", *qA = N, *qB = N;
 
   PetscFunctionBegin;
-  if ((rA == 0) || (cB == 0)) PetscFunctionReturn(0);
+  if ((rA == 0) || (cB == 0)) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidScalarPointer(C,1);
   PetscValidScalarPointer(A,5);
   PetscValidScalarPointer(B,10);
@@ -499,7 +499,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
   }
 
   PetscCall(PetscLogFlops(2.0*m*n*k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -543,7 +543,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   PetscCall(DSGetLeadingDimension(ds,&ld));
   n = n - l;
   PetscCheck(cols<=n,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");
-  if (n == 0 || cols == 0) PetscFunctionReturn(0);
+  if (n == 0 || cols == 0) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscLogEventBegin(DS_Other,ds,0,0,0));
   PetscCall(PetscBLASIntCast(n,&rA_));
   PetscCall(PetscBLASIntCast(ld,&ld_));
@@ -585,5 +585,5 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   if (lindcols) *lindcols = cols;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

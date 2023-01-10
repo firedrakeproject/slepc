@@ -74,7 +74,7 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
     ctx->vi[i] = vi[i];
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -117,7 +117,7 @@ PetscErrorCode RGPolygonSetVertices(RG rg,PetscInt n,PetscScalar vr[],PetscScala
   PetscValidScalarPointer(vi,4);
 #endif
   PetscTryMethod(rg,"RGPolygonSetVertices_C",(RG,PetscInt,PetscScalar*,PetscScalar*),(rg,n,vr,vi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar **vr,PetscScalar **vi)
@@ -143,7 +143,7 @@ static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar
     }
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -173,7 +173,7 @@ PetscErrorCode RGPolygonGetVertices(RG rg,PetscInt *n,PetscScalar **vr,PetscScal
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscUseMethod(rg,"RGPolygonGetVertices_C",(RG,PetscInt*,PetscScalar**,PetscScalar**),(rg,n,vr,vi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
@@ -247,7 +247,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
     PetscCall(PetscDrawSave(draw));
     PetscCall(PetscDrawPause(draw));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
@@ -256,7 +256,7 @@ PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
 
   PetscFunctionBegin;
   *trivial = PetscNot(ctx->n);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscScalar *uci)
@@ -326,7 +326,7 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscS
   }
   if (!ucr) PetscCall(PetscFree(cr));
   if (!uci) PetscCall(PetscFree(ci));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGComputeBoundingBox_Polygon(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
@@ -352,7 +352,7 @@ PetscErrorCode RGComputeBoundingBox_Polygon(RG rg,PetscReal *a,PetscReal *b,Pets
     if (d) *d = PetscMax(*d,ctx->vi[i]);
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *inout)
@@ -387,10 +387,10 @@ PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *i
     val = (y[i]*x[j]-x[i]*y[j])/(x[j]-x[i]);
     if (PetscAbs(val)<10*PETSC_MACHINE_EPSILON) {
       *inout = 0;
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     } else if (val>0.0) *inout = -*inout;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGSetFromOptions_Polygon(RG rg,PetscOptionItems *PetscOptionsObject)
@@ -420,7 +420,7 @@ PetscErrorCode RGSetFromOptions_Polygon(RG rg,PetscOptionItems *PetscOptionsObje
     if (flg || flgi) PetscCall(RGPolygonSetVertices(rg,k,array,arrayi));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGDestroy_Polygon(RG rg)
@@ -437,7 +437,7 @@ PetscErrorCode RGDestroy_Polygon(RG rg)
   PetscCall(PetscFree(rg->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGPolygonSetVertices_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGPolygonGetVertices_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
@@ -457,5 +457,5 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
   rg->ops->destroy        = RGDestroy_Polygon;
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGPolygonSetVertices_C",RGPolygonSetVertices_Polygon));
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGPolygonGetVertices_C",RGPolygonGetVertices_Polygon));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

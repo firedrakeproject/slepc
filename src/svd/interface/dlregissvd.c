@@ -36,7 +36,7 @@ PetscErrorCode SVDFinalizePackage(void)
   SVDPackageInitialized       = PETSC_FALSE;
   SVDRegisterAllCalled        = PETSC_FALSE;
   SVDMonitorRegisterAllCalled = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -55,7 +55,7 @@ PetscErrorCode SVDInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (SVDPackageInitialized) PetscFunctionReturn(0);
+  if (SVDPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   SVDPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("SVD Solver",&SVD_CLASSID));
@@ -77,7 +77,7 @@ PetscErrorCode SVDInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(SVDFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
@@ -92,6 +92,6 @@ SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsvd(void)
 {
   PetscFunctionBegin;
   PetscCall(SVDInitializePackage());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

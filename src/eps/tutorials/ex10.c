@@ -168,7 +168,7 @@ PetscErrorCode STCreate_User(SampleShellST **shell)
   PetscCall(KSPCreate(PETSC_COMM_WORLD,&newctx->ksp));
   PetscCall(KSPAppendOptionsPrefix(newctx->ksp,"st_"));
   *shell = newctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 /* ------------------------------------------------------------------- */
 /*
@@ -196,7 +196,7 @@ PetscErrorCode STSetUp_User(SampleShellST *shell,ST st)
   PetscCall(STGetMatrix(st,0,&A));
   PetscCall(KSPSetOperators(shell->ksp,A,A));
   PetscCall(KSPSetFromOptions(shell->ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 /* ------------------------------------------------------------------- */
 /*
@@ -222,7 +222,7 @@ PetscErrorCode STApply_User(ST st,Vec x,Vec y)
   PetscFunctionBeginUser;
   PetscCall(STShellGetContext(st,&shell));
   PetscCall(KSPSolve(shell->ksp,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 /* ------------------------------------------------------------------- */
 /*
@@ -243,7 +243,7 @@ PetscErrorCode STApplyTranspose_User(ST st,Vec x,Vec y)
   PetscFunctionBeginUser;
   PetscCall(STShellGetContext(st,&shell));
   PetscCall(KSPSolveTranspose(shell->ksp,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 /* ------------------------------------------------------------------- */
 /*
@@ -271,7 +271,7 @@ PetscErrorCode STBackTransform_User(ST st,PetscInt n,PetscScalar *eigr,PetscScal
   for (j=0;j<n;j++) {
     eigr[j] = 1.0 / eigr[j];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 /* ------------------------------------------------------------------- */
 /*
@@ -286,7 +286,7 @@ PetscErrorCode STDestroy_User(SampleShellST *shell)
   PetscFunctionBeginUser;
   PetscCall(KSPDestroy(&shell->ksp));
   PetscCall(PetscFree(shell));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

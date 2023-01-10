@@ -24,7 +24,7 @@ PetscErrorCode PEPSetDefaultST(PEP pep)
   PetscFunctionBegin;
   PetscTryTypeMethod(pep,setdefaultst);
   if (!((PetscObject)pep->st)->type_name) PetscCall(STSetType(pep->st,STSHIFT));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -35,7 +35,7 @@ PetscErrorCode PEPSetDefaultST_Transform(PEP pep)
 {
   PetscFunctionBegin;
   PetscCall(STSetTransform(pep->st,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -60,7 +60,7 @@ PetscErrorCode PEPSetDSType(PEP pep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscTryTypeMethod(pep,setdstype);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -93,7 +93,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (pep->state) PetscFunctionReturn(0);
+  if (pep->state) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscLogEventBegin(PEP_SetUp,pep,0,0,0));
 
   /* reset the convergence flag from the previous solves */
@@ -253,7 +253,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   }
   PetscCall(PetscLogEventEnd(PEP_SetUp,pep,0,0,0));
   pep->state = PEP_STATE_SETUP;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -316,7 +316,7 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   }
   pep->nmat = nmat;
   pep->state = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -342,7 +342,7 @@ PetscErrorCode PEPGetOperators(PEP pep,PetscInt k,Mat *A)
   PetscValidPointer(A,3);
   PetscCheck(k>=0 && k<pep->nmat,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,pep->nmat-1);
   *A = pep->A[k];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -366,7 +366,7 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidIntPointer(nmat,2);
   *nmat = pep->nmat;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -409,7 +409,7 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec is[])
   }
   PetscCall(SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS));
   if (n>0) pep->state = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -440,7 +440,7 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
     }
   }
   if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -488,5 +488,5 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
     PetscCall(BVSetSizesFromVec(pep->V,t,requestedbv));
     PetscCall(VecDestroy(&t));
   } else PetscCall(BVResize(pep->V,requestedbv,PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

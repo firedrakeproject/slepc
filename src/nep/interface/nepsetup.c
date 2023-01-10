@@ -35,7 +35,7 @@ PetscErrorCode NEPSetDSType(NEP nep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscTryTypeMethod(nep,setdstype);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -70,7 +70,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   NEPCheckProblem(nep,1);
-  if (nep->state) PetscFunctionReturn(0);
+  if (nep->state) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscLogEventBegin(NEP_SetUp,nep,0,0,0));
 
   /* reset the convergence flag from the previous solves */
@@ -213,7 +213,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   }
   PetscCall(PetscLogEventEnd(NEP_SetUp,nep,0,0,0));
   nep->state = NEP_STATE_SETUP;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -256,7 +256,7 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec is[])
   }
   PetscCall(SlepcBasisReference_Private(n,is,&nep->nini,&nep->IS));
   if (n>0) nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -278,7 +278,7 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
     }
   }
   if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -336,5 +336,5 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
     PetscCall(BVDestroy(&nep->W));
     PetscCall(BVDuplicate(nep->V,&nep->W));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

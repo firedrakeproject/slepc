@@ -52,7 +52,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   PetscCall(DSSetCompact(svd->ds,PETSC_TRUE));
   PetscCall(DSSetExtraRow(svd->ds,PETSC_TRUE));
   PetscCall(DSAllocate(svd->ds,svd->ncv+1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,BV U,PetscInt k,PetscInt *n,PetscBool *breakdown)
@@ -71,7 +71,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
   if (PetscUnlikely(lindep)) {
     *n = k;
     if (breakdown) *breakdown = lindep;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   for (i=k+1;i<*n;i++) {
@@ -106,7 +106,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
     PetscCall(BVOrthogonalizeColumn(svd->V,*n,NULL,beta+*n-1,&lindep));
   }
   if (breakdown) *breakdown = lindep;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,Vec u,Vec u_1,PetscInt k,PetscInt n,PetscScalar* work)
@@ -169,7 +169,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
   alpha[n-1] = a;
   beta[n-1] = b;
   PetscCall(BVSetActiveColumns(V,bvl,bvk));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -214,7 +214,7 @@ PetscErrorCode SVDKrylovConvergence(SVD svd,PetscBool getall,PetscInt kini,Petsc
     if (marker!=-1) k = marker;
     *kout = k;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_Lanczos(SVD svd)
@@ -306,7 +306,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   PetscCall(VecDestroy(&u));
   PetscCall(VecDestroy(&u_1));
   PetscCall(PetscFree2(w,swork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd,PetscOptionItems *PetscOptionsObject)
@@ -321,7 +321,7 @@ PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd,PetscOptionItems *PetscOptionsO
     if (set) PetscCall(SVDLanczosSetOneSide(svd,val));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDLanczosSetOneSide_Lanczos(SVD svd,PetscBool oneside)
@@ -333,7 +333,7 @@ static PetscErrorCode SVDLanczosSetOneSide_Lanczos(SVD svd,PetscBool oneside)
     lanczos->oneside = oneside;
     svd->state = SVD_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -365,7 +365,7 @@ PetscErrorCode SVDLanczosSetOneSide(SVD svd,PetscBool oneside)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveBool(svd,oneside,2);
   PetscTryMethod(svd,"SVDLanczosSetOneSide_C",(SVD,PetscBool),(svd,oneside));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDLanczosGetOneSide_Lanczos(SVD svd,PetscBool *oneside)
@@ -374,7 +374,7 @@ static PetscErrorCode SVDLanczosGetOneSide_Lanczos(SVD svd,PetscBool *oneside)
 
   PetscFunctionBegin;
   *oneside = lanczos->oneside;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -399,7 +399,7 @@ PetscErrorCode SVDLanczosGetOneSide(SVD svd,PetscBool *oneside)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(oneside,2);
   PetscUseMethod(svd,"SVDLanczosGetOneSide_C",(SVD,PetscBool*),(svd,oneside));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDDestroy_Lanczos(SVD svd)
@@ -408,7 +408,7 @@ PetscErrorCode SVDDestroy_Lanczos(SVD svd)
   PetscCall(PetscFree(svd->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosSetOneSide_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosGetOneSide_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
@@ -419,7 +419,7 @@ PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) PetscCall(PetscViewerASCIIPrintf(viewer,"  %s-sided reorthogonalization\n",lanczos->oneside? "one": "two"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD svd)
@@ -438,5 +438,5 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD svd)
   svd->ops->computevectors = SVDComputeVectors_Left;
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosSetOneSide_C",SVDLanczosSetOneSide_Lanczos));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosGetOneSide_C",SVDLanczosGetOneSide_Lanczos));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

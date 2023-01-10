@@ -40,7 +40,7 @@ static PetscErrorCode MatMult_FS(Mat M ,Vec x,Vec y)
   t *= ctx->m3/ctx->M4;
   PetscCall(MatMult(ctx->M1,x,y));
   PetscCall(VecAXPY(y,-t,ctx->M2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
@@ -114,7 +114,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
       PetscCall(PetscFree(idx1));
       PetscCall(ISDestroy(&is1));
     }
-  }  PetscFunctionReturn(0);
+  }  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -153,7 +153,7 @@ static PetscErrorCode NEPSimpleNRefGatherEigenpair(NEP nep,NEPSimpNRefctx *ctx,P
   } else {
     if (nep->scheme==NEP_REFINE_SCHEME_EXPLICIT && !(*fail)) PetscCallMPI(MPI_Bcast(&nep->eigr[idx],1,MPIU_SCALAR,p,comm));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSimpleNRefScatterEigenvector(NEP nep,NEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
@@ -176,7 +176,7 @@ static PetscErrorCode NEPSimpleNRefScatterEigenvector(NEP nep,NEPSimpNRefctx *ct
     }
     PetscCall(BVRestoreColumn(nep->V,idx,&v));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *A,PetscInt idx,Mat *Mt,Mat *T,Mat *P,PetscBool ini,Vec t,Vec v)
@@ -332,7 +332,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
     break;
   }
   PetscCall(PetscFree2(coeffs,coeffs2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,PetscInt k)
@@ -539,5 +539,5 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   PetscCall(MatDestroy(&T));
   PetscCall(PetscFree(ctx));
   PetscCall(PetscLogEventEnd(NEP_Refine,nep,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -32,7 +32,7 @@ PetscErrorCode MyMatNorm(Mat A,PetscInt lda,PetscInt l,PetscInt k,PetscScalar di
   }
   *norm = PetscSqrtReal(s);
   PetscCall(MatDenseRestoreArrayRead(A,&pA));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

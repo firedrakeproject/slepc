@@ -87,7 +87,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   PetscCall(PEPSetTarget(ctx->pep,(nep->target-(a+b)/2)*s));
 
   PetscCall(NEPAllocateSolution(nep,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -109,7 +109,7 @@ static PetscErrorCode ChebyshevNodes(PetscInt d,PetscReal a,PetscReal b,PetscSca
     x[j] = (a+b)/2.0+((b-a)/2.0)*PetscCosReal(t);
     for (i=0;i<d+1;i++) dct2[j*(d+1)+i] = PetscCosReal(i*t);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSolve_Interpol(NEP nep)
@@ -196,7 +196,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   PetscCall(VecDestroy(&vi));
 
   nep->state = NEP_STATE_EIGENVECTORS;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
@@ -223,7 +223,7 @@ static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,Pe
     nep->eigi[i] /= s;
   }
   PetscCall(NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSetFromOptions_Interpol(NEP nep,PetscOptionItems *PetscOptionsObject)
@@ -246,7 +246,7 @@ PetscErrorCode NEPSetFromOptions_Interpol(NEP nep,PetscOptionItems *PetscOptions
 
   if (!ctx->pep) PetscCall(NEPInterpolGetPEP(nep,&ctx->pep));
   PetscCall(PEPSetFromOptions(ctx->pep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol,PetscInt degree)
@@ -273,7 +273,7 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
       nep->state = NEP_STATE_INITIAL;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -305,7 +305,7 @@ PetscErrorCode NEPInterpolSetInterpolation(NEP nep,PetscReal tol,PetscInt deg)
   PetscValidLogicalCollectiveReal(nep,tol,2);
   PetscValidLogicalCollectiveInt(nep,deg,3);
   PetscTryMethod(nep,"NEPInterpolSetInterpolation_C",(NEP,PetscReal,PetscInt),(nep,tol,deg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPInterpolGetInterpolation_Interpol(NEP nep,PetscReal *tol,PetscInt *deg)
@@ -315,7 +315,7 @@ static PetscErrorCode NEPInterpolGetInterpolation_Interpol(NEP nep,PetscReal *to
   PetscFunctionBegin;
   if (tol) *tol = ctx->tol;
   if (deg) *deg = ctx->maxdeg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -340,7 +340,7 @@ PetscErrorCode NEPInterpolGetInterpolation(NEP nep,PetscReal *tol,PetscInt *deg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscUseMethod(nep,"NEPInterpolGetInterpolation_C",(NEP,PetscReal*,PetscInt*),(nep,tol,deg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPInterpolSetPEP_Interpol(NEP nep,PEP pep)
@@ -352,7 +352,7 @@ static PetscErrorCode NEPInterpolSetPEP_Interpol(NEP nep,PEP pep)
   PetscCall(PEPDestroy(&ctx->pep));
   ctx->pep = pep;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -376,7 +376,7 @@ PetscErrorCode NEPInterpolSetPEP(NEP nep,PEP pep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,2);
   PetscCheckSameComm(nep,1,pep,2);
   PetscTryMethod(nep,"NEPInterpolSetPEP_C",(NEP,PEP),(nep,pep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
@@ -393,7 +393,7 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
     PetscCall(PEPMonitorSet(ctx->pep,PEPMonitor_Interpol,nep,NULL));
   }
   *pep = ctx->pep;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -418,7 +418,7 @@ PetscErrorCode NEPInterpolGetPEP(NEP nep,PEP *pep)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(pep,2);
   PetscUseMethod(nep,"NEPInterpolGetPEP_C",(NEP,PEP*),(nep,pep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
@@ -436,7 +436,7 @@ PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
     PetscCall(PEPView(ctx->pep,viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPReset_Interpol(NEP nep)
@@ -445,7 +445,7 @@ PetscErrorCode NEPReset_Interpol(NEP nep)
 
   PetscFunctionBegin;
   PetscCall(PEPReset(ctx->pep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDestroy_Interpol(NEP nep)
@@ -459,7 +459,7 @@ PetscErrorCode NEPDestroy_Interpol(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetInterpolation_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetPEP_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetPEP_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
@@ -483,5 +483,5 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetInterpolation_C",NEPInterpolGetInterpolation_Interpol));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetPEP_C",NEPInterpolSetPEP_Interpol));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetPEP_C",NEPInterpolGetPEP_Interpol));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

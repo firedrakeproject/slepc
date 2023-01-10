@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
   PetscCall(EPSAllocateSolution(eps,0));
   PetscCall(BVGetRandomContext(eps->V,&rand));  /* make sure the random context is available when duplicating */
   PetscCall(EPSSetWorkVecs(eps,3));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_EPSLyapIIOperator(Mat M,Vec x,Vec r)
@@ -97,7 +97,7 @@ static PetscErrorCode MatMult_EPSLyapIIOperator(Mat M,Vec x,Vec r)
   PetscCall(MatShellGetContext(M,&matctx));
   PetscCall(MatMult(matctx->S,x,r));
   PetscCall(BVOrthogonalizeVec(matctx->Q,r,NULL,NULL,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
@@ -108,7 +108,7 @@ static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
   PetscCall(MatShellGetContext(M,&matctx));
   PetscCall(MatDestroy(&matctx->S));
   PetscCall(PetscFree(matctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
@@ -150,7 +150,7 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
   PetscCall(VecRestoreArray(y,&Y));
   PetscCall(MatDenseRestoreArrayRead(matctx->S,&S));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_EigOperator(Mat M)
@@ -168,7 +168,7 @@ static PetscErrorCode MatDestroy_EigOperator(Mat M)
   PetscCall(MatDestroy(&matctx->S));
 #endif
   PetscCall(PetscFree(matctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -193,7 +193,7 @@ static PetscErrorCode EV2x2(PetscScalar *M,PetscInt ld,PetscScalar *wr,PetscScal
 #endif
   SlepcCheckLapackInfo("geev",info);
   PetscCall(PetscFPTrapPop());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -227,7 +227,7 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
     PetscCall(VecRestoreArray(u,&uu));
     PetscCall(MatDenseRestoreColumn(U,&array));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -305,7 +305,7 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
   matctx->lme = lme;
   matctx->n = n;
   PetscCall(VecSet(*v0,1.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_LyapII(EPS eps)
@@ -521,7 +521,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   PetscCall(BVDestroy(&V));
   PetscCall(EPSDestroy(&epsrr));
   PetscCall(PetscFree(s));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetFromOptions_LyapII(EPS eps,PetscOptionItems *PetscOptionsObject)
@@ -541,7 +541,7 @@ PetscErrorCode EPSSetFromOptions_LyapII(EPS eps,PetscOptionItems *PetscOptionsOb
 
   if (!ctx->lme) PetscCall(EPSLyapIIGetLME(eps,&ctx->lme));
   PetscCall(LMESetFromOptions(ctx->lme));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLyapIISetRanks_LyapII(EPS eps,PetscInt rkc,PetscInt rkl)
@@ -561,7 +561,7 @@ static PetscErrorCode EPSLyapIISetRanks_LyapII(EPS eps,PetscInt rkc,PetscInt rkl
     ctx->rkl   = rkl;
     eps->state = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -595,7 +595,7 @@ PetscErrorCode EPSLyapIISetRanks(EPS eps,PetscInt rkc,PetscInt rkl)
   PetscValidLogicalCollectiveInt(eps,rkc,2);
   PetscValidLogicalCollectiveInt(eps,rkl,3);
   PetscTryMethod(eps,"EPSLyapIISetRanks_C",(EPS,PetscInt,PetscInt),(eps,rkc,rkl));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLyapIIGetRanks_LyapII(EPS eps,PetscInt *rkc,PetscInt *rkl)
@@ -605,7 +605,7 @@ static PetscErrorCode EPSLyapIIGetRanks_LyapII(EPS eps,PetscInt *rkc,PetscInt *r
   PetscFunctionBegin;
   if (rkc) *rkc = ctx->rkc;
   if (rkl) *rkl = ctx->rkl;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -629,7 +629,7 @@ PetscErrorCode EPSLyapIIGetRanks(EPS eps,PetscInt *rkc,PetscInt *rkl)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscUseMethod(eps,"EPSLyapIIGetRanks_C",(EPS,PetscInt*,PetscInt*),(eps,rkc,rkl));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLyapIISetLME_LyapII(EPS eps,LME lme)
@@ -641,7 +641,7 @@ static PetscErrorCode EPSLyapIISetLME_LyapII(EPS eps,LME lme)
   PetscCall(LMEDestroy(&ctx->lme));
   ctx->lme = lme;
   eps->state = EPS_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -665,7 +665,7 @@ PetscErrorCode EPSLyapIISetLME(EPS eps,LME lme)
   PetscValidHeaderSpecific(lme,LME_CLASSID,2);
   PetscCheckSameComm(eps,1,lme,2);
   PetscTryMethod(eps,"EPSLyapIISetLME_C",(EPS,LME),(eps,lme));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLyapIIGetLME_LyapII(EPS eps,LME *lme)
@@ -680,7 +680,7 @@ static PetscErrorCode EPSLyapIIGetLME_LyapII(EPS eps,LME *lme)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->lme,(PetscObject)eps,1));
   }
   *lme = ctx->lme;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -705,7 +705,7 @@ PetscErrorCode EPSLyapIIGetLME(EPS eps,LME *lme)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(lme,2);
   PetscUseMethod(eps,"EPSLyapIIGetLME_C",(EPS,LME*),(eps,lme));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_LyapII(EPS eps,PetscViewer viewer)
@@ -722,7 +722,7 @@ PetscErrorCode EPSView_LyapII(EPS eps,PetscViewer viewer)
     PetscCall(LMEView(ctx->lme,viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_LyapII(EPS eps)
@@ -731,7 +731,7 @@ PetscErrorCode EPSReset_LyapII(EPS eps)
 
   PetscFunctionBegin;
   if (!ctx->lme) PetscCall(LMEReset(ctx->lme));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_LyapII(EPS eps)
@@ -746,14 +746,14 @@ PetscErrorCode EPSDestroy_LyapII(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetLME_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetRanks_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetRanks_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetDefaultST_LyapII(EPS eps)
 {
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) PetscCall(STSetType(eps->st,STSINVERT));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
@@ -781,5 +781,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetLME_C",EPSLyapIIGetLME_LyapII));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetRanks_C",EPSLyapIISetRanks_LyapII));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetRanks_C",EPSLyapIIGetRanks_LyapII));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -35,7 +35,7 @@ PetscErrorCode PrintFirstRow(BV X)
     PetscCall(PetscPrintf(PetscObjectComm((PetscObject)X),"\n"));
     PetscCall(BVRestoreArrayRead(X,&pX));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

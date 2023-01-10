@@ -20,7 +20,7 @@ PetscErrorCode SVDConvergedAbsolute(SVD svd,PetscReal sigma,PetscReal res,PetscR
 {
   PetscFunctionBegin;
   *errest = res;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -30,7 +30,7 @@ PetscErrorCode SVDConvergedRelative(SVD svd,PetscReal sigma,PetscReal res,PetscR
 {
   PetscFunctionBegin;
   *errest = res/sigma;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -40,7 +40,7 @@ PetscErrorCode SVDConvergedNorm(SVD svd,PetscReal sigma,PetscReal res,PetscReal 
 {
   PetscFunctionBegin;
   *errest = res/PetscMax(svd->nrma,svd->nrmb);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -50,7 +50,7 @@ PetscErrorCode SVDConvergedMaxIt(SVD svd,PetscReal sigma,PetscReal res,PetscReal
 {
   PetscFunctionBegin;
   *errest = PETSC_MAX_REAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -99,7 +99,7 @@ PetscErrorCode SVDStoppingBasic(SVD svd,PetscInt its,PetscInt max_it,PetscInt nc
       PetscCall(PetscInfo(svd,"Singular value solver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -146,5 +146,5 @@ PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
     PetscCall(VecDuplicateVecs(t,nright,&svd->workr));
     PetscCall(VecDestroy(&t));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

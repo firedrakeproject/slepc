@@ -76,7 +76,7 @@ PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()"
   PetscCall(STGetOperator(st,&Op));
   PetscCall(MatComputeOperator(Op,MATAIJ,A));
   PetscCall(STRestoreOperator(st,&Op));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode STApply(ST,Vec,Vec);

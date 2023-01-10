@@ -279,7 +279,7 @@ static inline PetscErrorCode EPS_SetInnerProduct(EPS eps)
     PetscCall(BVSetMatrix(eps->V,B,PetscNot(eps->ispositive)));
     PetscCall(MatDestroy(&B));
   } else PetscCall(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -299,7 +299,7 @@ static inline PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
     PetscCall(BVRestoreColumn(eps->V,i,&z));
   }
   PetscCall(VecDestroy(&v));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -318,7 +318,7 @@ static inline PetscErrorCode EPS_KSPSetOperators(KSP ksp,Mat A,Mat B)
     PetscCall(KSPGetOptionsPrefix(ksp,&prefix));
     PetscCall(MatSetOptionsPrefix(B,prefix));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);

@@ -28,7 +28,7 @@ PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
   for (i=0;i<=ctx->d;i++) PetscCall(DSAllocateMat_Private(ds,DSMatExtra[i]));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld*ctx->d,&ds->perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
@@ -39,14 +39,14 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
-  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
+  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(PETSC_SUCCESS);
   if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     PetscCall(PetscViewerASCIIPrintf(viewer,"polynomial degree: %" PetscInt_FMT "\n",ctx->d));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   for (i=0;i<=ctx->d;i++) PetscCall(DSViewMat(ds,viewer,DSMatExtra[i]));
   if (ds->state>DS_STATE_INTERMEDIATE) PetscCall(DSViewMat(ds,viewer,DS_MAT_X));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
@@ -61,7 +61,7 @@ PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *kout)
@@ -71,7 +71,7 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  if (!ds->sc) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(PETSC_SUCCESS);
   n = ds->n*ctx->d;
   perm = ds->perm;
   for (i=0;i<n;i++) perm[i] = i;
@@ -87,7 +87,7 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   for (i=0;i<n;i++) wi[i] = A[i];
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(DSPermuteColumnsTwo_Private(ds,0,n,ds->n,DS_MAT_X,DS_MAT_Y,perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -236,7 +236,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Y],&Y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
@@ -285,7 +285,7 @@ PetscErrorCode DSSynchronize_PEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Y],&Y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -297,7 +297,7 @@ static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
   PetscCheck(d>=0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The degree must be a non-negative integer");
   PetscCheck(d<DS_NUM_EXTRA,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for polynomials of degree at most %d",DS_NUM_EXTRA-1);
   ctx->d = d;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -319,7 +319,7 @@ PetscErrorCode DSPEPSetDegree(DS ds,PetscInt d)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,d,2);
   PetscTryMethod(ds,"DSPEPSetDegree_C",(DS,PetscInt),(ds,d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSPEPGetDegree_PEP(DS ds,PetscInt *d)
@@ -328,7 +328,7 @@ static PetscErrorCode DSPEPGetDegree_PEP(DS ds,PetscInt *d)
 
   PetscFunctionBegin;
   *d = ctx->d;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -352,7 +352,7 @@ PetscErrorCode DSPEPGetDegree(DS ds,PetscInt *d)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(d,2);
   PetscUseMethod(ds,"DSPEPGetDegree_C",(DS,PetscInt*),(ds,d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
@@ -366,7 +366,7 @@ static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
   PetscCall(PetscMalloc1(3*(ctx->d+1),&ctx->pbc));
   for (i=0;i<3*(ctx->d+1);i++) ctx->pbc[i] = pbc[i];
   ds->state = DS_STATE_RAW;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -400,7 +400,7 @@ PetscErrorCode DSPEPSetCoefficients(DS ds,PetscReal *pbc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscTryMethod(ds,"DSPEPSetCoefficients_C",(DS,PetscReal*),(ds,pbc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSPEPGetCoefficients_PEP(DS ds,PetscReal **pbc)
@@ -413,7 +413,7 @@ static PetscErrorCode DSPEPGetCoefficients_PEP(DS ds,PetscReal **pbc)
   PetscCall(PetscCalloc1(3*(ctx->d+1),pbc));
   if (ctx->pbc) for (i=0;i<3*(ctx->d+1);i++) (*pbc)[i] = ctx->pbc[i];
   else for (i=0;i<ctx->d+1;i++) (*pbc)[i] = 1.0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -447,7 +447,7 @@ PetscErrorCode DSPEPGetCoefficients(DS ds,PetscReal **pbc)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(pbc,2);
   PetscUseMethod(ds,"DSPEPGetCoefficients_C",(DS,PetscReal**),(ds,pbc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSDestroy_PEP(DS ds)
@@ -461,7 +461,7 @@ PetscErrorCode DSDestroy_PEP(DS ds)
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetCoefficients_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetCoefficients_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSMatGetSize_PEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
@@ -474,7 +474,7 @@ PetscErrorCode DSMatGetSize_PEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   if (t==DS_MAT_A || t==DS_MAT_B || t==DS_MAT_W || t==DS_MAT_U) *rows *= ctx->d;
   *cols = ds->n;
   if (t==DS_MAT_A || t==DS_MAT_B || t==DS_MAT_W || t==DS_MAT_U || t==DS_MAT_X || t==DS_MAT_Y) *cols *= ctx->d;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*MC
@@ -530,5 +530,5 @@ SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",DSPEPGetDegree_PEP));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetCoefficients_C",DSPEPSetCoefficients_PEP));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetCoefficients_C",DSPEPGetCoefficients_PEP));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

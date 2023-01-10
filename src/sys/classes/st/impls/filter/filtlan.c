@@ -61,7 +61,7 @@ static inline PetscErrorCode FILTLAN_NewtonPolynomial(PetscInt n,PetscReal *x,Pe
     }
     sa[j] = sf[j];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -173,7 +173,7 @@ static PetscErrorCode FILTLAN_HermiteBaseFilterInChebyshevBasis(PetscReal *baseF
     }
   }
   PetscCall(PetscFree5(px,py,pp,qq,work));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ////////////////////////////////////////////////////////////////////////////
@@ -449,7 +449,7 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
 
   filterInfo->totalNumIter = numIter;
   PetscCall(PetscFree2(polyFilter,baseFilter));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ////////////////////////////////////////////////////////////////////////////
@@ -517,7 +517,7 @@ static inline PetscErrorCode FILTLAN_ExpandNewtonPolynomialInChebyshevBasis(Pets
     while (mm--) *sq++ = *sq2++;
     *q += (*--sa);      /* q[0] = q[0] + p[n-m-1] */
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -717,7 +717,7 @@ static inline PetscErrorCode FILTLAN_PiecewisePolynomialInChebyshevBasisMultiply
       *(sq2++) += tmp;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ////////////////////////////////////////////////////////////////////////////
@@ -741,7 +741,7 @@ static inline PetscErrorCode Mat_AXPY_BLAS(PetscInt n,PetscInt k,PetscReal alpha
     for (j=0;j<k;j++) for (i=0;i<n;i++) B[i+j*ldb] = alpha*A[i+j*lda] + beta*B[i+j*ldb];
     PetscCall(PetscLogFlops(3.0*n*k));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -830,7 +830,7 @@ static PetscErrorCode FILTLAN_FilteredConjugateResidualPolynomial(PetscReal *cpo
     PetscCall(Mat_AXPY_BLAS(sappol,nintv,1.0,arpol,ld,bet,appol,ld));
   }
   PetscCall(PetscFree4(ppol,rpol,appol,arpol));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -949,7 +949,7 @@ static PetscErrorCode FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorPro
     PetscCall(VecAYPX(ap,alpha,w));
   }
   PetscCall(PetscFree5(ppol,rpol,cpol,appol,arpol));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -968,7 +968,7 @@ PetscErrorCode MatMult_FILTLAN(Mat A,Vec x,Vec y)
   PetscCall(FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProduct(ctx->T,x,y,ctx->baseFilter,2*ctx->baseDegree+2,ctx->intervals,npoints-1,ctx->opts->intervalWeights,ctx->polyDegree,st->work));
   PetscCall(VecCopy(y,st->work[0]));
   PetscCall(MatMult(ctx->T,st->work[0],y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Block version of FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProduct */
@@ -1043,7 +1043,7 @@ static PetscErrorCode FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorPro
     PetscCall(MatAYPX(AP,alpha,W,SAME_NONZERO_PATTERN));
   }
   PetscCall(PetscFree5(ppol,rpol,cpol,appol,arpol));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1074,7 +1074,7 @@ PetscErrorCode MatMatMult_FILTLAN(Mat A,Mat B,Mat C,void *pctx)
   }
   PetscCall(FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProductBlock(ctx->T,B,ctx->W[0],ctx->baseFilter,2*ctx->baseDegree+2,ctx->intervals,npoints-1,ctx->opts->intervalWeights,ctx->polyDegree,st->work,C,ctx->W[1],ctx->W[2],ctx->W[3]));
   PetscCall(MatMatMult(ctx->T,ctx->W[0],MAT_REUSE_MATRIX,PETSC_DEFAULT,&C));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1147,5 +1147,5 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
     PetscCall(MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSE,MATDENSE));
     PetscCall(MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSECUDA,MATDENSECUDA));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -18,7 +18,7 @@ PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_Q));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
@@ -27,12 +27,12 @@ PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
-  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(DSViewMat(ds,viewer,DS_MAT_A));
   if (ds->state>DS_STATE_INTERMEDIATE) PetscCall(DSViewMat(ds,viewer,DS_MAT_Q));
   if (ds->omat[DS_MAT_X]) PetscCall(DSViewMat(ds,viewer,DS_MAT_X));
   if (ds->omat[DS_MAT_Y]) PetscCall(DSViewMat(ds,viewer,DS_MAT_Y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
@@ -86,7 +86,7 @@ static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *r
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_Q],&Q));
   PetscCall(MatDenseRestoreArray(ds->omat[left?DS_MAT_Y:DS_MAT_X],&X));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_W],&W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
@@ -95,7 +95,7 @@ static PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
 
   PetscFunctionBegin;
   for (i=0;i<ds->n;i++) PetscCall(DSVectors_NHEP_Refined_Some(ds,&i,NULL,left));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
@@ -162,7 +162,7 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
     else *rnorm = PetscAbsScalar(Y[n-1]);
   }
   PetscCall(MatDenseRestoreArray(ds->omat[left?DS_MAT_Y:DS_MAT_X],&X));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
@@ -222,7 +222,7 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   }
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArray(ds->omat[left?DS_MAT_Y:DS_MAT_X],&Z));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
@@ -250,7 +250,7 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
@@ -297,7 +297,7 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
   *k = mout;
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&T));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
@@ -305,14 +305,14 @@ PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscFunctionBegin;
   if (!rr || wr == rr) PetscCall(DSSort_NHEP_Total(ds,DS_MAT_A,DS_MAT_Q,wr,wi));
   else PetscCall(DSSort_NHEP_Arbitrary(ds,wr,wi,rr,ri,k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSSortWithPermutation_NHEP(DS ds,PetscInt *perm,PetscScalar *wr,PetscScalar *wi)
 {
   PetscFunctionBegin;
   PetscCall(DSSortWithPermutation_NHEP_Private(ds,perm,DS_MAT_A,DS_MAT_Q,wr,wi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
@@ -336,7 +336,7 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_Q],&Q));
   ds->k = n;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -346,7 +346,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscValidScalarPointer(wi,3);
 #endif
   PetscCall(DSSolve_NHEP_Private(ds,DS_MAT_A,DS_MAT_Q,wr,wi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
@@ -387,7 +387,7 @@ PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   if (ds->state>DS_STATE_RAW) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -421,7 +421,7 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n,PetscBool trim)
     ds->n = n;
   }
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
@@ -460,7 +460,7 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&A));
 
   *cond = hn*hin;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gammaout)
@@ -533,7 +533,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     for (j=ds->l;j<ds->l+ds->k;j++) A[ds->n+j*ld] *= gamma;
   }
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*MC
@@ -579,5 +579,5 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
   ds->ops->update          = DSUpdateExtraRow_NHEP;
   ds->ops->cond            = DSCond_NHEP;
   ds->ops->transharm       = DSTranslateHarmonic_NHEP;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

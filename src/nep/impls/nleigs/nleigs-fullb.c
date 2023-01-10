@@ -99,7 +99,7 @@ static PetscErrorCode MatMult_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
   PetscCall(PetscFree(t));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
@@ -192,7 +192,7 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
   PetscCall(PetscFree(t));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BackTransform_FullBasis(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
@@ -202,7 +202,7 @@ static PetscErrorCode BackTransform_FullBasis(ST st,PetscInt n,PetscScalar *eigr
   PetscFunctionBegin;
   PetscCall(STShellGetContext(st,&nep));
   PetscCall(NEPNLEIGSBackTransform((PetscObject)nep,n,eigr,eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode Apply_FullBasis(ST st,Vec x,Vec y)
@@ -214,7 +214,7 @@ static PetscErrorCode Apply_FullBasis(ST st,Vec x,Vec y)
   PetscCall(STShellGetContext(st,&nep));
   ctx = (NEP_NLEIGS*)nep->data;
   PetscCall(MatMult(ctx->A,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode ApplyTranspose_FullBasis(ST st,Vec x,Vec y)
@@ -226,7 +226,7 @@ static PetscErrorCode ApplyTranspose_FullBasis(ST st,Vec x,Vec y)
   PetscCall(STShellGetContext(st,&nep));
   ctx = (NEP_NLEIGS*)nep->data;
   PetscCall(MatMultTranspose(ctx->A,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
@@ -311,7 +311,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   PetscCall(EPSGetDimensions(ctx->eps,NULL,&nep->ncv,&nep->mpd));
   PetscCall(EPSGetTolerances(ctx->eps,NULL,&nep->max_it));
   PetscCall(NEPAllocateSolution(nep,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -378,7 +378,7 @@ static PetscErrorCode NEPNLEIGSExtract_None(NEP nep,EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
   PetscCall(VecDestroy(&xxi));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSolve_NLEIGS_FullBasis(NEP nep)
@@ -401,7 +401,7 @@ PetscErrorCode NEPSolve_NLEIGS_FullBasis(NEP nep)
 #endif
   }
   PetscCall(NEPNLEIGSExtract_None(nep,ctx->eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPNLEIGSSetEPS_NLEIGS(NEP nep,EPS eps)
@@ -413,7 +413,7 @@ PetscErrorCode NEPNLEIGSSetEPS_NLEIGS(NEP nep,EPS eps)
   PetscCall(EPSDestroy(&ctx->eps));
   ctx->eps = eps;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -436,7 +436,7 @@ PetscErrorCode NEPNLEIGSSetEPS(NEP nep,EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(nep,1,eps,2);
   PetscTryMethod(nep,"NEPNLEIGSSetEPS_C",(NEP,EPS),(nep,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSMonitor_NLEIGS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
@@ -452,7 +452,7 @@ static PetscErrorCode EPSMonitor_NLEIGS(EPS eps,PetscInt its,PetscInt nconv,Pets
   }
   PetscCall(NEPNLEIGSBackTransform((PetscObject)nep,nv,nep->eigr,nep->eigi));
   PetscCall(NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPNLEIGSGetEPS_NLEIGS(NEP nep,EPS *eps)
@@ -469,7 +469,7 @@ PetscErrorCode NEPNLEIGSGetEPS_NLEIGS(NEP nep,EPS *eps)
     PetscCall(EPSMonitorSet(ctx->eps,EPSMonitor_NLEIGS,nep,NULL));
   }
   *eps = ctx->eps;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -494,5 +494,5 @@ PetscErrorCode NEPNLEIGSGetEPS(NEP nep,EPS *eps)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(eps,2);
   PetscUseMethod(nep,"NEPNLEIGSGetEPS_C",(NEP,EPS*),(nep,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

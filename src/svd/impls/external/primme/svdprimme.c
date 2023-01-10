@@ -222,7 +222,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 
   /* Prepare auxiliary vectors */
   if (!ops->x) PetscCall(MatCreateVecsEmpty(svd->A,&ops->x,&ops->y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_PRIMME(SVD svd)
@@ -280,7 +280,7 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
         PetscCheck(ierrprimme>=-39,PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": runtime error; check PRIMME's manual",ierrprimme);
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDReset_PRIMME(SVD svd)
@@ -291,7 +291,7 @@ PetscErrorCode SVDReset_PRIMME(SVD svd)
   primme_svds_free(&ops->primme);
   PetscCall(VecDestroy(&ops->x));
   PetscCall(VecDestroy(&ops->y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDDestroy_PRIMME(SVD svd)
@@ -302,7 +302,7 @@ PetscErrorCode SVDDestroy_PRIMME(SVD svd)
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDPRIMMEGetBlockSize_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDPRIMMESetMethod_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDPRIMMEGetMethod_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
@@ -321,7 +321,7 @@ PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
     PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&rank));
     if (!rank) primme_svds_display_params(ctx->primme);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSetFromOptions_PRIMME(SVD svd,PetscOptionItems *PetscOptionsObject)
@@ -341,7 +341,7 @@ PetscErrorCode SVDSetFromOptions_PRIMME(SVD svd,PetscOptionItems *PetscOptionsOb
     if (flg) PetscCall(SVDPRIMMESetMethod(svd,meth));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDPRIMMESetBlockSize_PRIMME(SVD svd,PetscInt bs)
@@ -354,7 +354,7 @@ static PetscErrorCode SVDPRIMMESetBlockSize_PRIMME(SVD svd,PetscInt bs)
     PetscCheck(bs>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
     ops->bs = bs;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -388,7 +388,7 @@ PetscErrorCode SVDPRIMMESetBlockSize(SVD svd,PetscInt bs)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,bs,2);
   PetscTryMethod(svd,"SVDPRIMMESetBlockSize_C",(SVD,PetscInt),(svd,bs));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDPRIMMEGetBlockSize_PRIMME(SVD svd,PetscInt *bs)
@@ -397,7 +397,7 @@ static PetscErrorCode SVDPRIMMEGetBlockSize_PRIMME(SVD svd,PetscInt *bs)
 
   PetscFunctionBegin;
   *bs = ops->bs;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -421,7 +421,7 @@ PetscErrorCode SVDPRIMMEGetBlockSize(SVD svd,PetscInt *bs)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidIntPointer(bs,2);
   PetscUseMethod(svd,"SVDPRIMMEGetBlockSize_C",(SVD,PetscInt*),(svd,bs));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDPRIMMESetMethod_PRIMME(SVD svd,SVDPRIMMEMethod method)
@@ -430,7 +430,7 @@ static PetscErrorCode SVDPRIMMESetMethod_PRIMME(SVD svd,SVDPRIMMEMethod method)
 
   PetscFunctionBegin;
   ops->method = (primme_svds_preset_method)method;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -458,7 +458,7 @@ PetscErrorCode SVDPRIMMESetMethod(SVD svd,SVDPRIMMEMethod method)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveEnum(svd,method,2);
   PetscTryMethod(svd,"SVDPRIMMESetMethod_C",(SVD,SVDPRIMMEMethod),(svd,method));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDPRIMMEGetMethod_PRIMME(SVD svd,SVDPRIMMEMethod *method)
@@ -467,7 +467,7 @@ static PetscErrorCode SVDPRIMMEGetMethod_PRIMME(SVD svd,SVDPRIMMEMethod *method)
 
   PetscFunctionBegin;
   *method = (SVDPRIMMEMethod)ops->method;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -491,7 +491,7 @@ PetscErrorCode SVDPRIMMEGetMethod(SVD svd,SVDPRIMMEMethod *method)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(method,2);
   PetscUseMethod(svd,"SVDPRIMMEGetMethod_C",(SVD,SVDPRIMMEMethod*),(svd,method));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD svd)
@@ -518,5 +518,5 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD svd)
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDPRIMMEGetBlockSize_C",SVDPRIMMEGetBlockSize_PRIMME));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDPRIMMESetMethod_C",SVDPRIMMESetMethod_PRIMME));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDPRIMMEGetMethod_C",SVDPRIMMEGetMethod_PRIMME));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

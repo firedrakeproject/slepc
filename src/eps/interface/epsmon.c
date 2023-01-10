@@ -30,7 +30,7 @@ PetscErrorCode EPSMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscCall(PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric));
   PetscCall(PetscDrawDestroy(&draw));
   *lgctx = lg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -42,7 +42,7 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) PetscCall((*eps->monitor[i])(eps,it,nconv,eigr,eigi,errest,nest,eps->monitorcontext[i]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -100,7 +100,7 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS eps,PetscInt 
   eps->monitor[eps->numbermonitors]           = monitor;
   eps->monitorcontext[eps->numbermonitors]    = (void*)mctx;
   eps->monitordestroy[eps->numbermonitors++]  = monitordestroy;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -130,7 +130,7 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
     if (eps->monitordestroy[i]) PetscCall((*eps->monitordestroy[i])(&eps->monitorcontext[i]));
   }
   eps->numbermonitors = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -154,7 +154,7 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void *ctx)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   *(void**)ctx = eps->monitorcontext[0];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -207,7 +207,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
     PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel));
     PetscCall(PetscViewerPopFormat(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -262,7 +262,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
   PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel));
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -322,7 +322,7 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
     PetscCall(PetscViewerPopFormat(viewer));
     ctx->oldnconv = nconv;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
@@ -334,18 +334,18 @@ PetscErrorCode EPSMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat fo
   PetscCall(PetscNew(&mctx));
   mctx->ctx = ctx;
   (*vf)->data = (void*)mctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSMonitorConvergedDestroy(PetscViewerAndFormat **vf)
 {
   PetscFunctionBegin;
-  if (!*vf) PetscFunctionReturn(0);
+  if (!*vf) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscFree((*vf)->data));
   PetscCall(PetscViewerDestroy(&(*vf)->viewer));
   PetscCall(PetscDrawLGDestroy(&(*vf)->lg));
   PetscCall(PetscFree(*vf));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -398,7 +398,7 @@ PetscErrorCode EPSMonitorFirstDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscSc
     }
   }
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -424,7 +424,7 @@ PetscErrorCode EPSMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
   PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
   PetscCall(EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"First Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -480,7 +480,7 @@ PetscErrorCode EPSMonitorAllDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   }
   PetscCall(PetscFree2(x,y));
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -506,7 +506,7 @@ PetscErrorCode EPSMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
   PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
   PetscCall(EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"All Error Estimates","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -556,7 +556,7 @@ PetscErrorCode EPSMonitorConvergedDrawLG(EPS eps,PetscInt its,PetscInt nconv,Pet
     PetscCall(PetscDrawLGSave(lg));
   }
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -586,5 +586,5 @@ PetscErrorCode EPSMonitorConvergedDrawLGCreate(PetscViewer viewer,PetscViewerFor
   mctx->ctx = ctx;
   (*vf)->data = (void*)mctx;
   PetscCall(EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Convergence History","Number Converged",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

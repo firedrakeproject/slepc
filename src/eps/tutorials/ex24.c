@@ -203,7 +203,7 @@ PetscErrorCode MatMult_Fold(Mat M,Vec x,Vec y)
   PetscCall(VecAXPY(ctx->w,sigma,x));
   PetscCall(MatMult(ctx->A,ctx->w,y));
   PetscCall(VecAXPY(y,sigma,ctx->w));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -219,7 +219,7 @@ PetscErrorCode RayleighQuotient(Mat A,Vec x,PetscScalar *r)
   PetscCall(MatMult(A,x,Ax));
   PetscCall(VecDot(Ax,x,r));
   PetscCall(VecDestroy(&Ax));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -235,7 +235,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscScalar lambda,Vec x,PetscReal *r)
   PetscCall(VecAXPY(Ax,-lambda,x));
   PetscCall(VecNorm(Ax,NORM_2,r));
   PetscCall(VecDestroy(&Ax));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

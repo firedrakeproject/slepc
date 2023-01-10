@@ -74,7 +74,7 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
 
   PetscCall(EPSAllocateSolution(eps,0));
   PetscCall(EPSSetWorkVecs(eps,2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_FEAST(EPS eps)
@@ -193,7 +193,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   PetscCall(VecDestroy(&x));
   PetscCall(VecDestroy(&y));
   PetscCall(PetscFree(evals));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_FEAST(EPS eps)
@@ -202,7 +202,7 @@ PetscErrorCode EPSReset_FEAST(EPS eps)
 
   PetscFunctionBegin;
   PetscCall(PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_FEAST(EPS eps)
@@ -211,7 +211,7 @@ PetscErrorCode EPSDestroy_FEAST(EPS eps)
   PetscCall(PetscFree(eps->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetFromOptions_FEAST(EPS eps,PetscOptionItems *PetscOptionsObject)
@@ -228,7 +228,7 @@ PetscErrorCode EPSSetFromOptions_FEAST(EPS eps,PetscOptionItems *PetscOptionsObj
     if (flg) PetscCall(EPSFEASTSetNumPoints(eps,n));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
@@ -239,14 +239,14 @@ PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) PetscCall(PetscViewerASCIIPrintf(viewer,"  number of contour integration points=%" PetscInt_FMT "\n",ctx->npoints));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
 {
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) PetscCall(STSetType(eps->st,STSINVERT));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
@@ -256,7 +256,7 @@ static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
   PetscFunctionBegin;
   if (npoints == PETSC_DEFAULT) ctx->npoints = 8;
   else ctx->npoints = npoints;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -282,7 +282,7 @@ PetscErrorCode EPSFEASTSetNumPoints(EPS eps,PetscInt npoints)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,npoints,2);
   PetscTryMethod(eps,"EPSFEASTSetNumPoints_C",(EPS,PetscInt),(eps,npoints));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSFEASTGetNumPoints_FEAST(EPS eps,PetscInt *npoints)
@@ -291,7 +291,7 @@ static PetscErrorCode EPSFEASTGetNumPoints_FEAST(EPS eps,PetscInt *npoints)
 
   PetscFunctionBegin;
   *npoints = ctx->npoints;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -316,7 +316,7 @@ PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(npoints,2);
   PetscUseMethod(eps,"EPSFEASTGetNumPoints_C",(EPS,PetscInt*),(eps,npoints));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
@@ -340,5 +340,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
 
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",EPSFEASTSetNumPoints_FEAST));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",EPSFEASTGetNumPoints_FEAST));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

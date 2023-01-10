@@ -90,7 +90,7 @@ static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
 
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
@@ -203,7 +203,7 @@ static PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
 
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BackTransform_Linear(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
@@ -215,7 +215,7 @@ static PetscErrorCode BackTransform_Linear(ST st,PetscInt n,PetscScalar *eigr,Pe
   PetscCall(STShellGetContext(st,&ctx));
   PetscCall(PEPGetST(ctx->pep,&stctx));
   PetscCall(STBackTransform(stctx,n,eigr,eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -224,7 +224,7 @@ static PetscErrorCode BackTransform_Linear(ST st,PetscInt n,PetscScalar *eigr,Pe
 static PetscErrorCode BackTransform_Skip(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscFunctionBegin;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode Apply_Linear(ST st,Vec x,Vec y)
@@ -234,7 +234,7 @@ static PetscErrorCode Apply_Linear(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   PetscCall(STShellGetContext(st,&ctx));
   PetscCall(MatMult(ctx->A,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetUp_Linear(PEP pep)
@@ -413,7 +413,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PetscCall(EPSGetDimensions(ctx->eps,NULL,&pep->ncv,&pep->mpd));
   PetscCall(EPSGetTolerances(ctx->eps,NULL,&pep->max_it));
   PetscCall(PEPAllocateSolution(pep,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -510,7 +510,7 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
   PetscCall(VecDestroy(&wi));
   PetscCall(VecDestroy(&xi));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -564,7 +564,7 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
   PetscCall(VecDestroy(&xi));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -626,7 +626,7 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
   PetscCall(VecDestroy(&xi));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPExtractVectors_Linear(PEP pep)
@@ -647,7 +647,7 @@ PetscErrorCode PEPExtractVectors_Linear(PEP pep)
   case PEP_EXTRACT_STRUCTURED:
     SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSolve_Linear(PEP pep)
@@ -685,7 +685,7 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
     if (!flg && !ctx->explicitmatrix) PetscCall(STScaleShift(pep->st,pep->sfactor));
   }
   if (ctx->explicitmatrix || !flg) PetscCall(RGPopScale(pep->rg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
@@ -694,7 +694,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
 
   PetscFunctionBegin;
   PetscCall(PEPMonitor(pep,its,nconv,eigr,eigi,errest,nest));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetFromOptions_Linear(PEP pep,PetscOptionItems *PetscOptionsObject)
@@ -719,7 +719,7 @@ PetscErrorCode PEPSetFromOptions_Linear(PEP pep,PetscOptionItems *PetscOptionsOb
 
   if (!ctx->eps) PetscCall(PEPLinearGetEPS(pep,&ctx->eps));
   PetscCall(EPSSetFromOptions(ctx->eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPLinearSetLinearization_Linear(PEP pep,PetscReal alpha,PetscReal beta)
@@ -730,7 +730,7 @@ static PetscErrorCode PEPLinearSetLinearization_Linear(PEP pep,PetscReal alpha,P
   PetscCheck(beta!=0.0 || alpha!=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
   ctx->alpha = alpha;
   ctx->beta  = beta;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -762,7 +762,7 @@ PetscErrorCode PEPLinearSetLinearization(PEP pep,PetscReal alpha,PetscReal beta)
   PetscValidLogicalCollectiveReal(pep,alpha,2);
   PetscValidLogicalCollectiveReal(pep,beta,3);
   PetscTryMethod(pep,"PEPLinearSetLinearization_C",(PEP,PetscReal,PetscReal),(pep,alpha,beta));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPLinearGetLinearization_Linear(PEP pep,PetscReal *alpha,PetscReal *beta)
@@ -772,7 +772,7 @@ static PetscErrorCode PEPLinearGetLinearization_Linear(PEP pep,PetscReal *alpha,
   PetscFunctionBegin;
   if (alpha) *alpha = ctx->alpha;
   if (beta)  *beta  = ctx->beta;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -797,7 +797,7 @@ PetscErrorCode PEPLinearGetLinearization(PEP pep,PetscReal *alpha,PetscReal *bet
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscUseMethod(pep,"PEPLinearGetLinearization_C",(PEP,PetscReal*,PetscReal*),(pep,alpha,beta));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPLinearSetExplicitMatrix_Linear(PEP pep,PetscBool explicitmatrix)
@@ -809,7 +809,7 @@ static PetscErrorCode PEPLinearSetExplicitMatrix_Linear(PEP pep,PetscBool explic
     ctx->explicitmatrix = explicitmatrix;
     pep->state = PEP_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -835,7 +835,7 @@ PetscErrorCode PEPLinearSetExplicitMatrix(PEP pep,PetscBool explicitmat)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,explicitmat,2);
   PetscTryMethod(pep,"PEPLinearSetExplicitMatrix_C",(PEP,PetscBool),(pep,explicitmat));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPLinearGetExplicitMatrix_Linear(PEP pep,PetscBool *explicitmat)
@@ -844,7 +844,7 @@ static PetscErrorCode PEPLinearGetExplicitMatrix_Linear(PEP pep,PetscBool *expli
 
   PetscFunctionBegin;
   *explicitmat = ctx->explicitmatrix;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -869,7 +869,7 @@ PetscErrorCode PEPLinearGetExplicitMatrix(PEP pep,PetscBool *explicitmat)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(explicitmat,2);
   PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmat));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
@@ -882,7 +882,7 @@ static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
   ctx->eps     = eps;
   ctx->usereps = PETSC_TRUE;
   pep->state   = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -906,7 +906,7 @@ PetscErrorCode PEPLinearSetEPS(PEP pep,EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(pep,1,eps,2);
   PetscTryMethod(pep,"PEPLinearSetEPS_C",(PEP,EPS),(pep,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPLinearGetEPS_Linear(PEP pep,EPS *eps)
@@ -923,7 +923,7 @@ static PetscErrorCode PEPLinearGetEPS_Linear(PEP pep,EPS *eps)
     PetscCall(EPSMonitorSet(ctx->eps,EPSMonitor_Linear,pep,NULL));
   }
   *eps = ctx->eps;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -948,7 +948,7 @@ PetscErrorCode PEPLinearGetEPS(PEP pep,EPS *eps)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(eps,2);
   PetscUseMethod(pep,"PEPLinearGetEPS_C",(PEP,EPS*),(pep,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
@@ -966,7 +966,7 @@ PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
     PetscCall(EPSView(ctx->eps,viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPReset_Linear(PEP pep)
@@ -983,7 +983,7 @@ PetscErrorCode PEPReset_Linear(PEP pep)
   PetscCall(VecDestroy(&ctx->w[3]));
   PetscCall(VecDestroy(&ctx->w[4]));
   PetscCall(VecDestroy(&ctx->w[5]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPDestroy_Linear(PEP pep)
@@ -999,7 +999,7 @@ PetscErrorCode PEPDestroy_Linear(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetEPS_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetExplicitMatrix_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetExplicitMatrix_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
@@ -1031,5 +1031,5 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetEPS_C",PEPLinearGetEPS_Linear));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetExplicitMatrix_C",PEPLinearSetExplicitMatrix_Linear));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetExplicitMatrix_C",PEPLinearGetExplicitMatrix_Linear));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

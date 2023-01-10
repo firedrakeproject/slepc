@@ -21,5 +21,5 @@ PetscErrorCode SlepcMagmaInit(void)
     SlepcBeganMagma = PETSC_TRUE;
     PetscCall(PetscRegisterFinalize(magma_finalize));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

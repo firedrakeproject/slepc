@@ -25,7 +25,7 @@ PetscErrorCode LookUp(PetscInt N,PetscInt start,PetscInt end,PetscReal y,PetscIn
   if (y<(start+j)*h) PetscCall(LookUp(N,start,start+j,y,i));
   else if (y<(start+j+1)*h) *i = start+j;
   else PetscCall(LookUp(N,start+j,end,y,i));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -74,7 +74,7 @@ PetscErrorCode PermuteMatrices(Mat *A,Mat *B)
   *B = out;
   PetscCall(ISDestroy(&id));
   PetscCall(ISDestroy(&is));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

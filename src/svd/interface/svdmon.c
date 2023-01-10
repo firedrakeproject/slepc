@@ -30,7 +30,7 @@ PetscErrorCode SVDMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscCall(PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric));
   PetscCall(PetscDrawDestroy(&draw));
   *lgctx = lg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -42,7 +42,7 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) PetscCall((*svd->monitor[i])(svd,it,nconv,sigma,errest,nest,svd->monitorcontext[i]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -100,7 +100,7 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD svd,PetscInt 
   svd->monitor[svd->numbermonitors]           = monitor;
   svd->monitorcontext[svd->numbermonitors]    = (void*)mctx;
   svd->monitordestroy[svd->numbermonitors++]  = monitordestroy;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -130,7 +130,7 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
     if (svd->monitordestroy[i]) PetscCall((*svd->monitordestroy[i])(&svd->monitorcontext[i]));
   }
   svd->numbermonitors = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -154,7 +154,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void *ctx)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   *(void**)ctx = svd->monitorcontext[0];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -197,7 +197,7 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
     PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
     PetscCall(PetscViewerPopFormat(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -240,7 +240,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
   PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
   PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -290,7 +290,7 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
     PetscCall(PetscViewerPopFormat(viewer));
     ctx->oldnconv = nconv;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
@@ -302,18 +302,18 @@ PetscErrorCode SVDMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat fo
   PetscCall(PetscNew(&mctx));
   mctx->ctx = ctx;
   (*vf)->data = (void*)mctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDMonitorConvergedDestroy(PetscViewerAndFormat **vf)
 {
   PetscFunctionBegin;
-  if (!*vf) PetscFunctionReturn(0);
+  if (!*vf) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscFree((*vf)->data));
   PetscCall(PetscViewerDestroy(&(*vf)->viewer));
   PetscCall(PetscDrawLGDestroy(&(*vf)->lg));
   PetscCall(PetscFree(*vf));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -365,7 +365,7 @@ PetscErrorCode SVDMonitorFirstDrawLG(SVD svd,PetscInt its,PetscInt nconv,PetscRe
     }
   }
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -391,7 +391,7 @@ PetscErrorCode SVDMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
   PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
   PetscCall(SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"First Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -446,7 +446,7 @@ PetscErrorCode SVDMonitorAllDrawLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal
   }
   PetscCall(PetscFree2(x,y));
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -472,7 +472,7 @@ PetscErrorCode SVDMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
   PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
   PetscCall(SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"All Error Estimates","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -521,7 +521,7 @@ PetscErrorCode SVDMonitorConvergedDrawLG(SVD svd,PetscInt its,PetscInt nconv,Pet
     PetscCall(PetscDrawLGSave(lg));
   }
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -551,7 +551,7 @@ PetscErrorCode SVDMonitorConvergedDrawLGCreate(PetscViewer viewer,PetscViewerFor
   mctx->ctx = ctx;
   (*vf)->data = (void*)mctx;
   PetscCall(SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Convergence History","Number Converged",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -590,7 +590,7 @@ PetscErrorCode SVDMonitorConditioning(SVD svd,PetscInt its,PetscInt nconv,PetscR
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   PetscCall(PetscObjectTypeCompare((PetscObject)svd->ds,DSGSVD,&isgsvd));
-  if (!isgsvd) PetscFunctionReturn(0);
+  if (!isgsvd) PetscFunctionReturn(PETSC_SUCCESS);
   if (its==1 && ((PetscObject)svd)->prefix) PetscCall(PetscViewerASCIIPrintf(viewer,"  Condition number of bidiagonal matrices for %s solve.\n",((PetscObject)svd)->prefix));
   PetscCall(PetscViewerPushFormat(viewer,vf->format));
   PetscCall(PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel));
@@ -598,5 +598,5 @@ PetscErrorCode SVDMonitorConditioning(SVD svd,PetscInt its,PetscInt nconv,PetscR
   PetscCall(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " SVD condition number = %g\n",its,(double)cond));
   PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

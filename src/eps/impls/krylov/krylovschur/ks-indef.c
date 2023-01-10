@@ -113,5 +113,5 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     PetscCall(EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv));
   }
   PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

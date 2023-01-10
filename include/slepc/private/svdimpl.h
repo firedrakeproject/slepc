@@ -192,7 +192,7 @@ static inline PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
     PetscCall(KSPGetOptionsPrefix(ksp,&prefix));
     PetscCall(MatSetOptionsPrefix(B,prefix));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -219,7 +219,7 @@ static inline PetscErrorCode SVDCreateLeftTemplate(SVD svd,Vec *t)
   PetscCall(VecSetUp(*t));
   PetscCall(VecDestroy(&v1));
   PetscCall(VecDestroy(&v2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_INTERN PetscErrorCode SVDKrylovConvergence(SVD,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);

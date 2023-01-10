@@ -149,7 +149,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   }
   PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -169,7 +169,7 @@ PetscErrorCode MyStoppingTest(EPS eps,PetscInt its,PetscInt max_it,PetscInt ncon
     PetscCall(PetscTime(&now));
     if (now>deadline) *reason = EPS_CONVERGED_USER;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

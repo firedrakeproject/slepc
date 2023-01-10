@@ -46,7 +46,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name
 
   PetscFunctionBegin;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,opt,&viewer,&format,&flg));
-  if (!flg) PetscFunctionReturn(0);
+  if (!flg) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetType(viewer,&vtype));
   PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
@@ -61,7 +61,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name
   PetscCall(PetscObjectDereference((PetscObject)viewer));
   PetscCall(NEPMonitorSet(nep,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   if (trackall) PetscCall(NEPSetTrackAll(nep,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -208,7 +208,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   if (!nep->refineksp) PetscCall(NEPRefineGetKSP(nep,&nep->refineksp));
   PetscCall(KSPSetFromOptions(nep->refineksp));
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) for (i=0;i<nep->nt;i++) PetscCall(FNSetFromOptions(nep->f[i]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -237,7 +237,7 @@ PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *tol,PetscInt *maxits)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (tol)    *tol    = nep->tol;
   if (maxits) *maxits = nep->max_it;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -282,7 +282,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal tol,PetscInt maxits)
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     nep->max_it = maxits;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -313,7 +313,7 @@ PetscErrorCode NEPGetDimensions(NEP nep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
   if (nev) *nev = nep->nev;
   if (ncv) *ncv = nep->ncv;
   if (mpd) *mpd = nep->mpd;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -372,7 +372,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     nep->mpd = mpd;
   }
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -457,7 +457,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -485,7 +485,7 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(which,2);
   *which = nep->which;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -525,7 +525,7 @@ PetscErrorCode NEPSetEigenvalueComparison(NEP nep,PetscErrorCode (*func)(PetscSc
   nep->sc->comparison    = func;
   nep->sc->comparisonctx = ctx;
   nep->which             = NEP_WHICH_USER;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -563,7 +563,7 @@ PetscErrorCode NEPSetProblemType(NEP nep,NEPProblemType type)
     nep->problem_type = type;
     nep->state = NEP_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -587,7 +587,7 @@ PetscErrorCode NEPGetProblemType(NEP nep,NEPProblemType *type)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(type,2);
   *type = nep->problem_type;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -624,7 +624,7 @@ PetscErrorCode NEPSetTwoSided(NEP nep,PetscBool twosided)
     nep->twosided = twosided;
     nep->state    = NEP_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -649,7 +649,7 @@ PetscErrorCode NEPGetTwoSided(NEP nep,PetscBool *twosided)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(twosided,2);
   *twosided = nep->twosided;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -696,7 +696,7 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP 
     nep->conv      = NEP_CONV_USER;
     nep->converged = nep->convergeduser;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -742,7 +742,7 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,NEPConv conv)
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }
   nep->conv = conv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -767,7 +767,7 @@ PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(conv,2);
   *conv = nep->conv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -815,7 +815,7 @@ PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP nep
     nep->stop     = NEP_STOP_USER;
     nep->stopping = nep->stoppinguser;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -856,7 +856,7 @@ PetscErrorCode NEPSetStoppingTest(NEP nep,NEPStop stop)
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
   }
   nep->stop = stop;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -881,7 +881,7 @@ PetscErrorCode NEPGetStoppingTest(NEP nep,NEPStop *stop)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(stop,2);
   *stop = nep->stop;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -912,7 +912,7 @@ PetscErrorCode NEPSetTrackAll(NEP nep,PetscBool trackall)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(nep,trackall,2);
   nep->trackall = trackall;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -937,7 +937,7 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(trackall,2);
   *trackall = nep->trackall;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1027,7 +1027,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
     nep->scheme = scheme;
   }
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1062,7 +1062,7 @@ PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal 
   if (tol)    *tol    = nep->rtol;
   if (its)    *its    = nep->rits;
   if (scheme) *scheme = nep->scheme;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1102,7 +1102,7 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   if (!nep->rg) PetscCall(NEPGetRG(nep,&nep->rg));
   PetscCall(RGSetOptionsPrefix(nep->rg,prefix));
   PetscCall(PetscObjectSetOptionsPrefix((PetscObject)nep,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1134,7 +1134,7 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
   if (!nep->rg) PetscCall(NEPGetRG(nep,&nep->rg));
   PetscCall(RGAppendOptionsPrefix(nep->rg,prefix));
   PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)nep,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1163,5 +1163,5 @@ PetscErrorCode NEPGetOptionsPrefix(NEP nep,const char *prefix[])
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)nep,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

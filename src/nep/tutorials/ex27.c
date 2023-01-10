@@ -205,7 +205,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
     PetscCall(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY));
     PetscCall(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -221,7 +221,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   PetscCall(VecSet(d,0.5/PetscSqrtScalar(lambda)));
   PetscCall(MatDiagonalSet(jac,d,INSERT_VALUES));
   PetscCall(VecDestroy(&d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -240,7 +240,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
   h = 11.0/(*maxnp-1);
   xi[0] = -1e-5; xi[*maxnp-1] = -1e+6;
   for (i=1;i<*maxnp-1;i++) xi[i] = -PetscPowReal(10,-5+h*i);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

@@ -29,7 +29,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST);
 PetscErrorCode STRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (STRegisterAllCalled) PetscFunctionReturn(0);
+  if (STRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   STRegisterAllCalled = PETSC_TRUE;
   PetscCall(STRegister(STSHELL,STCreate_Shell));
   PetscCall(STRegister(STSHIFT,STCreate_Shift));
@@ -37,5 +37,5 @@ PetscErrorCode STRegisterAll(void)
   PetscCall(STRegister(STCAYLEY,STCreate_Cayley));
   PetscCall(STRegister(STPRECOND,STCreate_Precond));
   PetscCall(STRegister(STFILTER,STCreate_Filter));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

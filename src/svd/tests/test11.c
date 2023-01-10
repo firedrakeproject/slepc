@@ -39,7 +39,7 @@ PetscErrorCode MyConvergedRel(SVD svd,PetscReal sigma,PetscReal res,PetscReal *e
 
   PetscFunctionBegin;
   *errest = res/norm;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

@@ -226,7 +226,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
     *norm = SlepcAbsEigenvalue(nr,ni);
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

@@ -47,7 +47,7 @@ PetscErrorCode TestPhiFunction(FN fn,PetscScalar x,Mat A,PetscBool verbose)
   }
   PetscCall(VecDestroy(&v));
   PetscCall(VecDestroy(&f));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

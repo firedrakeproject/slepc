@@ -39,8 +39,8 @@
 
 PetscErrorCode SlepcInitializeFortran(void)
 {
-  PetscInitializeFortran();
-  return 0;
+  PetscCall(PetscInitializeFortran());
+  return PETSC_SUCCESS;
 }
 
 SLEPC_EXTERN void slepcinitializefortran_(PetscErrorCode *info)

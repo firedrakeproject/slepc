@@ -68,7 +68,7 @@ static PetscErrorCode PEPQSliceResetSR(PEP pep)
     PetscCall(PetscFree(sr));
   }
   ctx->sr = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPReset_STOAR_QSlice(PEP pep)
@@ -79,7 +79,7 @@ PetscErrorCode PEPReset_STOAR_QSlice(PEP pep)
   PetscCall(PEPQSliceResetSR(pep));
   PetscCall(PetscFree(ctx->inertias));
   PetscCall(PetscFree(ctx->shifts));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -117,7 +117,7 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
   sr->ld = k;
   PetscCall(PetscFree(sr->S));
   PetscCall(PetscMalloc1((k+1)*sr->ld*(pep->nmat-1),&sr->S));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Convergence test to compute positive Ritz values */
@@ -125,7 +125,7 @@ static PetscErrorCode ConvergedPositive(EPS eps,PetscScalar eigr,PetscScalar eig
 {
   PetscFunctionBegin;
   *errest = (PetscRealPart(eigr)>0.0)?0.0:res;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPQSliceMatGetInertia(PEP pep,PetscReal shift,PetscInt *inertia,PetscInt *zeros)
@@ -150,7 +150,7 @@ static PetscErrorCode PEPQSliceMatGetInertia(PEP pep,PetscReal shift,PetscInt *i
   }
   PetscCall(PCFactorGetMatrix(pc,&F));
   PetscCall(MatGetInertia(F,inertia,zeros,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *inertia,PetscInt *zeros,PetscInt correction)
@@ -211,7 +211,7 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
       }
     }
   } else if (correction<0) *inertia = 2*pep->n-*inertia;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -266,7 +266,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
     pep2->st = st;
     PetscCall(PEPDestroy(&pep2));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode PEPQSliceDiscriminant(PEP pep,Vec u,Vec w,PetscReal *d,PetscReal *smas,PetscReal *smenos)
@@ -298,7 +298,7 @@ static inline PetscErrorCode PEPQSliceDiscriminant(PEP pep,Vec u,Vec w,PetscReal
     }
   }
   if (d) *d = dis;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode PEPQSliceEvaluateQEP(PEP pep,PetscScalar x,Mat M,MatStructure str)
@@ -307,7 +307,7 @@ static inline PetscErrorCode PEPQSliceEvaluateQEP(PEP pep,PetscScalar x,Mat M,Ma
   PetscCall(MatCopy(pep->A[0],M,SAME_NONZERO_PATTERN));
   PetscCall(MatAXPY(M,x,pep->A[1],str));
   PetscCall(MatAXPY(M,x*x,pep->A[2],str));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -460,7 +460,7 @@ PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt 
   PetscCall(VecDestroy(&w));
   PetscCall(EPSDestroy(&eps));
   PetscCall(STSetTransform(pep->st,transform));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -469,7 +469,7 @@ PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt 
 static PetscErrorCode PEPBackTransform_Skip(PEP pep)
 {
   PetscFunctionBegin;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
@@ -575,7 +575,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
     sc->map           = NULL;
     sc->mapobj        = NULL;
   } else {pep->ncv = 0; pep->nev = 0; pep->mpd = 0;}
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -612,7 +612,7 @@ static PetscErrorCode PEPCreateShift(PEP pep,PetscReal val,PEP_shift neighb0,PEP
     sr->pending = pending2;
   }
   sr->pending[sr->nPend++]=s;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Provides next shift to be computed */
@@ -659,7 +659,7 @@ static PetscErrorCode PEPExtractShift(PEP pep)
     pep->reason = PEP_CONVERGED_ITERATING;
     pep->its = 0;
   } else sr->sPres = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -741,7 +741,7 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
     /* End of interval can not be surpassed */
     if ((sr->dir)*(sr->int1 - *newS) < 0) *newS = sr->int1;
   }/* of neighb[side]==null */
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -762,7 +762,7 @@ static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Stores the pairs obtained since the last shift in the global arrays */
@@ -927,7 +927,7 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
   sPres->comp[1] = PetscNot(sPres->nconv[1] < sPres->nsch[1]);
   PetscCheck(sPres->nconv[0]<=sPres->nsch[0] && sPres->nconv[1]<=sPres->nsch[1],PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia");
   if (divide) PetscCall(BVDestroy(&tV));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPLookForDeflation(PEP pep)
@@ -978,7 +978,7 @@ static PetscErrorCode PEPLookForDeflation(PEP pep)
   sr->ndef0 = count0;
   for (i=0;i<count1;i++) sr->idxDef1[i] = sr->perm[ini+count0+i];
   sr->ndef1 = count1;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1067,7 +1067,7 @@ static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,Petsc
   PetscCall(BVSetActiveColumns(pep->V,lock,nqt));
   PetscCall(BVSetActiveColumns(ctx->V,0,*M));
   PetscCall(PetscFree(y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
@@ -1308,7 +1308,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
 
   PetscCall(DSTruncate(pep->ds,pep->nconv,PETSC_TRUE));
   PetscCall(PetscFree(back));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
@@ -1364,7 +1364,7 @@ static PetscErrorCode PEPQSliceGetInertias(PEP pep,PetscInt *n,PetscReal **shift
       }
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
@@ -1382,7 +1382,7 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   /* Only with eigenvalues present in the interval ...*/
   if (sr->numEigs==0) {
     pep->reason = PEP_CONVERGED_TOL;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   /* Inner product matrix */
@@ -1463,5 +1463,5 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   PetscCall(PetscFree(ctx->shifts));
   PetscCall(MatDestroy(&B));
   PetscCall(PEPQSliceGetInertias(pep,&ctx->nshifts,&ctx->shifts,&ctx->inertias));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

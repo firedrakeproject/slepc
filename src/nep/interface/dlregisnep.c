@@ -37,7 +37,7 @@ PetscErrorCode NEPFinalizePackage(void)
   NEPPackageInitialized       = PETSC_FALSE;
   NEPRegisterAllCalled        = PETSC_FALSE;
   NEPMonitorRegisterAllCalled = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -56,7 +56,7 @@ PetscErrorCode NEPInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (NEPPackageInitialized) PetscFunctionReturn(0);
+  if (NEPPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   NEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("NEP Solver",&NEP_CLASSID));
@@ -83,7 +83,7 @@ PetscErrorCode NEPInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(NEPFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
@@ -98,6 +98,6 @@ SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcnep(void)
 {
   PetscFunctionBegin;
   PetscCall(NEPInitializePackage());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

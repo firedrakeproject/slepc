@@ -40,7 +40,7 @@ PetscErrorCode NEPComputeVectors(NEP nep)
   NEPCheckSolved(nep,1);
   if (nep->state==NEP_STATE_SOLVED) PetscTryTypeMethod(nep,computevectors);
   nep->state = NEP_STATE_EIGENVECTORS;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -77,7 +77,7 @@ PetscErrorCode NEPSolve(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nep->state>=NEP_STATE_SOLVED) PetscFunctionReturn(0);
+  if (nep->state>=NEP_STATE_SOLVED) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscCitationsRegister(citation,&cited));
   PetscCall(PetscLogEventBegin(NEP_Solve,nep,0,0,0));
 
@@ -125,7 +125,7 @@ PetscErrorCode NEPSolve(NEP nep)
 
   /* Reset resolvent information */
   PetscCall(MatDestroy(&nep->resolvent));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -169,7 +169,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
     PetscCall(BVMatProject(nep->V,nep->A[k],nep->V,G));
     PetscCall(DSRestoreMat(nep->ds,DSMatExtra[k],&G));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -225,7 +225,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
     PetscCall(NEPComputeFunction(nep,lambda,A,A));
     PetscCall(MatMult(A,x,y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -280,7 +280,7 @@ PetscErrorCode NEPApplyAdjoint(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat 
   }
   PetscCall(VecDestroy(&w));
   PetscCall(VecConjugate(y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -334,7 +334,7 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
     PetscCall(NEPComputeJacobian(nep,lambda,A));
     PetscCall(MatMult(A,x,y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -367,7 +367,7 @@ PetscErrorCode NEPGetIterationNumber(NEP nep,PetscInt *its)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(its,2);
   *its = nep->its;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -395,7 +395,7 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
   PetscValidIntPointer(nconv,2);
   NEPCheckSolved(nep,1);
   *nconv = nep->nconv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -436,7 +436,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
   PetscValidPointer(reason,2);
   NEPCheckSolved(nep,1);
   *reason = nep->reason;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -501,7 +501,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
 
   /* eigenvector */
   PetscCall(BV_GetEigenvector(nep->V,k,nep->eigi[k],Vr,Vi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -553,7 +553,7 @@ PetscErrorCode NEPGetLeftEigenvector(NEP nep,PetscInt i,Vec Wr,Vec Wi)
   PetscCall(NEPComputeVectors(nep));
   k = nep->perm[i];
   PetscCall(BV_GetEigenvector(nep->W,k,nep->eigi[k],Wr,Wi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -586,7 +586,7 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
   PetscCheck(i>=0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<nep->nconv,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see NEPGetConverged()");
   *errest = nep->errest[nep->perm[i]];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -609,7 +609,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscBool adj,PetscScalar 
   if (adj) PetscCall(NEPApplyAdjoint(nep,lambda,x,z,y,NULL,NULL));
   else PetscCall(NEPApplyFunction(nep,lambda,x,z,y,NULL,NULL));
   PetscCall(VecNorm(y,NORM_2,norm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -714,7 +714,7 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -765,7 +765,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
     }
     break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -812,5 +812,5 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
     }
     break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

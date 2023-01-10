@@ -30,7 +30,7 @@ static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
   PetscCall(MatShellSetOperation(*M,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell));
   PetscCall(MatShellSetOperation(*M,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Shell));
   PetscCall(MatShellSetOperation(*M,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Shell));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)
@@ -143,7 +143,7 @@ static PetscErrorCode MatMult_Shell(Mat S,Vec x,Vec y)
   PetscFunctionBeginUser;
   PetscCall(MatShellGetContext(S,&A));
   PetscCall(MatMult(*A,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y)
@@ -153,7 +153,7 @@ static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y)
   PetscFunctionBeginUser;
   PetscCall(MatShellGetContext(S,&A));
   PetscCall(MatMultTranspose(*A,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag)
@@ -163,7 +163,7 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag)
   PetscFunctionBeginUser;
   PetscCall(MatShellGetContext(S,&A));
   PetscCall(MatGetDiagonal(*A,diag));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M)
@@ -173,7 +173,7 @@ static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M)
   PetscFunctionBeginUser;
   PetscCall(MatShellGetContext(S,&A));
   PetscCall(MyShellMatCreate(A,M));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

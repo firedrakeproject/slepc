@@ -44,7 +44,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
   aa = PetscAbsReal(SlepcAbsEigenvalue(ar,ai)-PetscRealConstant(1.0));
   ab = PetscAbsReal(SlepcAbsEigenvalue(br,bi)-PetscRealConstant(1.0));
   *r = aa > ab ? 1 : (aa < ab ? -1 : 0);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

@@ -36,7 +36,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
   rea = ar; reb = br;
 #endif
   *r = rea<0.0? 1: (reb<0.0? -1: PetscSign(SlepcAbsEigenvalue(br,bi)-SlepcAbsEigenvalue(ar,ai)));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

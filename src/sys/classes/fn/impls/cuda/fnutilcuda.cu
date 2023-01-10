@@ -34,7 +34,7 @@ __host__ PetscErrorCode set_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,Pe
     set_diagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
     PetscCallCUDA(cudaGetLastError());
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 __global__ void set_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscReal vr,PetscReal vi,PetscInt xcount)
@@ -58,7 +58,7 @@ __host__ PetscErrorCode set_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,
     set_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,vr,vi,i);
     PetscCallCUDA(cudaGetLastError());
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 __global__ void shift_diagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v,PetscInt xcount)
@@ -82,7 +82,7 @@ __host__ PetscErrorCode shift_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,
     shift_diagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
     PetscCallCUDA(cudaGetLastError());
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 __global__ void shift_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscReal vr,PetscReal vi,PetscInt xcount)
@@ -106,7 +106,7 @@ __host__ PetscErrorCode shift_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt l
     shift_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,vr,vi,i);
     PetscCallCUDA(cudaGetLastError());
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 __global__ void copy_array2D_S2C_kernel(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscScalar *d_pb,PetscInt ldb,PetscInt xcount,PetscInt ycount)
@@ -135,7 +135,7 @@ __host__ PetscErrorCode copy_array2D_S2C(PetscInt m,PetscInt n,PetscComplex *d_p
       PetscCallCUDA(cudaGetLastError());
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 __global__ void copy_array2D_C2S_kernel(PetscInt m,PetscInt n,PetscScalar *d_pa,PetscInt lda,PetscComplex *d_pb,PetscInt ldb,PetscInt xcount,PetscInt ycount)
@@ -164,7 +164,7 @@ __host__ PetscErrorCode copy_array2D_C2S(PetscInt m,PetscInt n,PetscScalar *d_pa
       PetscCallCUDA(cudaGetLastError());
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 __global__ void add_array2D_Conj_kernel(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscInt xcount,PetscInt ycount)
@@ -193,7 +193,7 @@ __host__ PetscErrorCode add_array2D_Conj(PetscInt m,PetscInt n,PetscComplex *d_p
       PetscCallCUDA(cudaGetLastError());
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 __global__ void getisreal_array2D_kernel(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscBool *d_result,PetscInt xcount,PetscInt ycount)
@@ -226,7 +226,7 @@ __host__ PetscErrorCode getisreal_array2D(PetscInt m,PetscInt n,PetscComplex *d_
       PetscCallCUDA(cudaGetLastError());
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 __global__ void mult_diagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar *d_v,PetscInt xcount)
@@ -274,5 +274,5 @@ __host__ PetscErrorCode mult_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,P
   }
   PetscCallCUDA(cudaFree(d_part));
   PetscCall(PetscFree(part));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

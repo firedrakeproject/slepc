@@ -43,7 +43,7 @@ static PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   d->npreconv = 0;
   d->V_tra_s = d->V_tra_e = d->V_new_s = d->V_new_e = 0;
   d->size_D = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
@@ -59,7 +59,7 @@ static PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
   /* Check old isRestarting function */
   if (PetscUnlikely(!restart && data->old_isRestarting)) PetscCall(data->old_isRestarting(d,&restart));
   *r = restart;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
@@ -76,7 +76,7 @@ static PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
   PetscCall(PetscFree(d->real_nR));
   PetscCall(PetscFree(d->real_nX));
   PetscCall(PetscFree(data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
@@ -103,7 +103,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   PetscCall(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&t));
   if (t && d->nconv+npreconv<d->nev) npreconv = 0;
   /* Quick exit */
-  if (npreconv == 0) PetscFunctionReturn(0);
+  if (npreconv == 0) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   nV  = kV - lV;
@@ -145,7 +145,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   data->size_oldU = 0;
 
   d->npreconv-= npreconv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
@@ -220,7 +220,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 
   /* Remove npreconv */
   d->npreconv = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,PetscInt *nConv)
@@ -257,7 +257,7 @@ static PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt p
   }
 #endif
   for (i=pre;i<e;i++) d->errest[i] = d->nR[i] = 1.0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
@@ -271,14 +271,14 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   nV = kV - lV;
   size_D = PetscMin(PetscMin(PetscMin(d->bs,nV),d->eps->ncv-nV),nV);
-  if (size_D == 0) PetscFunctionReturn(0);
+  if (size_D == 0) PetscFunctionReturn(PETSC_SUCCESS);
 
   /* Fill V with D */
   PetscCall(d->improveX(d,d->npreconv,d->npreconv+size_D,&size_D));
 
   /* If D is empty, exit */
   d->size_D = size_D;
-  if (size_D == 0) PetscFunctionReturn(0);
+  if (size_D == 0) PetscFunctionReturn(PETSC_SUCCESS);
 
   /* Get the residual of all pairs */
 #if !defined(PETSC_USE_COMPLEX)
@@ -316,7 +316,7 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
       PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
@@ -338,7 +338,7 @@ static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
     /* If no vector were converged, exit */
     /* For GHEP without B-ortho, converge all of the requested pairs at once */
     PetscCall(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&t));
-    if (d->nconv+d->npreconv < d->nev && (t || d->npreconv == 0)) PetscFunctionReturn(0);
+    if (d->nconv+d->npreconv < d->nev && (t || d->npreconv == 0)) PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   /* If some eigenpairs were converged, lock them  */
@@ -347,12 +347,12 @@ static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
     PetscCall(dvd_updateV_conv_gen(d));
 
     /* If some eigenpair was locked, exit */
-    if (i > d->npreconv) PetscFunctionReturn(0);
+    if (i > d->npreconv) PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   /* Else, a restarting is performed */
   PetscCall(dvd_updateV_restart_gen(d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt bs,PetscInt mpd,PetscInt min_size_V,PetscInt plusk,PetscBool harm,PetscBool allResiduals)
@@ -407,5 +407,5 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
     PetscCall(EPSDavidsonFLAdd(&d->startList,dvd_updateV_start));
     PetscCall(EPSDavidsonFLAdd(&d->destroyList,dvd_managementV_basic_d));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

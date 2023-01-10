@@ -45,7 +45,7 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char opt[],const char name
 
   PetscFunctionBegin;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)lme),((PetscObject)lme)->options,((PetscObject)lme)->prefix,opt,&viewer,&format,&flg));
-  if (!flg) PetscFunctionReturn(0);
+  if (!flg) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetType(viewer,&vtype));
   PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
@@ -59,7 +59,7 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char opt[],const char name
   PetscCall((*cfunc)(viewer,format,ctx,&vf));
   PetscCall(PetscObjectDereference((PetscObject)viewer));
   PetscCall(LMEMonitorSet(lme,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -136,7 +136,7 @@ PetscErrorCode LMESetFromOptions(LME lme)
 
   if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
   PetscCall(BVSetFromOptions(lme->V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -188,7 +188,7 @@ PetscErrorCode LMESetProblemType(LME lme,LMEProblemType type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidLogicalCollectiveEnum(lme,type,2);
-  if (type == lme->problem_type) PetscFunctionReturn(0);
+  if (type == lme->problem_type) PetscFunctionReturn(PETSC_SUCCESS);
   switch (type) {
     case LME_LYAPUNOV:
     case LME_SYLVESTER:
@@ -202,7 +202,7 @@ PetscErrorCode LMESetProblemType(LME lme,LMEProblemType type)
   }
   lme->problem_type = type;
   lme->setupcalled  = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -226,7 +226,7 @@ PetscErrorCode LMEGetProblemType(LME lme,LMEProblemType *type)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidPointer(type,2);
   *type = lme->problem_type;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -255,7 +255,7 @@ PetscErrorCode LMEGetTolerances(LME lme,PetscReal *tol,PetscInt *maxits)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   if (tol)    *tol    = lme->tol;
   if (maxits) *maxits = lme->max_it;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -300,7 +300,7 @@ PetscErrorCode LMESetTolerances(LME lme,PetscReal tol,PetscInt maxits)
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     lme->max_it = maxits;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -324,7 +324,7 @@ PetscErrorCode LMEGetDimensions(LME lme,PetscInt *ncv)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidIntPointer(ncv,2);
   *ncv = lme->ncv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -359,7 +359,7 @@ PetscErrorCode LMESetDimensions(LME lme,PetscInt ncv)
     lme->ncv = ncv;
   }
   lme->setupcalled = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -389,7 +389,7 @@ PetscErrorCode LMESetErrorIfNotConverged(LME lme,PetscBool flg)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidLogicalCollectiveBool(lme,flg,2);
   lme->errorifnotconverged = flg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -414,7 +414,7 @@ PetscErrorCode LMEGetErrorIfNotConverged(LME lme,PetscBool *flag)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidBoolPointer(flag,2);
   *flag = lme->errorifnotconverged;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -450,7 +450,7 @@ PetscErrorCode LMESetOptionsPrefix(LME lme,const char *prefix)
   if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
   PetscCall(BVSetOptionsPrefix(lme->V,prefix));
   PetscCall(PetscObjectSetOptionsPrefix((PetscObject)lme,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -478,7 +478,7 @@ PetscErrorCode LMEAppendOptionsPrefix(LME lme,const char *prefix)
   if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
   PetscCall(BVAppendOptionsPrefix(lme->V,prefix));
   PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)lme,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -507,5 +507,5 @@ PetscErrorCode LMEGetOptionsPrefix(LME lme,const char *prefix[])
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)lme,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

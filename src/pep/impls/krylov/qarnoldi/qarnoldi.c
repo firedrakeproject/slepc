@@ -61,7 +61,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   PetscCall(DSSetExtraRow(pep->ds,PETSC_TRUE));
   PetscCall(DSAllocate(pep->ds,pep->ncv+1));
 
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
@@ -70,7 +70,7 @@ PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
   Mat            X,X0;
 
   PetscFunctionBegin;
-  if (pep->nconv==0) PetscFunctionReturn(0);
+  if (pep->nconv==0) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(DSVectors(pep->ds,DS_MAT_X,NULL,NULL));
 
   /* update vectors V = V*X */
@@ -79,7 +79,7 @@ PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
   PetscCall(BVMultInPlace(pep->V,X0,0,k));
   PetscCall(MatDenseRestoreSubMatrix(X,&X0));
   PetscCall(DSRestoreMat(pep->ds,DS_MAT_X,&X));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -120,7 +120,7 @@ static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,Pet
     PetscCall(VecNorm(w,NORM_2,&y));
     *norm = SlepcAbs(x,y);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -190,7 +190,7 @@ static PetscErrorCode PEPQArnoldi(PEP pep,Mat A,PetscInt k,PetscInt *M,Vec v,Vec
   }
   *beta = norm;
   PetscCall(MatDenseRestoreArray(A,&H));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSolve_QArnoldi(PEP pep)
@@ -291,7 +291,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 
   PetscCall(DSTruncate(pep->ds,pep->nconv,PETSC_TRUE));
   PetscCall(PetscFree(work));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPQArnoldiSetRestart_QArnoldi(PEP pep,PetscReal keep)
@@ -304,7 +304,7 @@ static PetscErrorCode PEPQArnoldiSetRestart_QArnoldi(PEP pep,PetscReal keep)
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -334,7 +334,7 @@ PetscErrorCode PEPQArnoldiSetRestart(PEP pep,PetscReal keep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,keep,2);
   PetscTryMethod(pep,"PEPQArnoldiSetRestart_C",(PEP,PetscReal),(pep,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPQArnoldiGetRestart_QArnoldi(PEP pep,PetscReal *keep)
@@ -343,7 +343,7 @@ static PetscErrorCode PEPQArnoldiGetRestart_QArnoldi(PEP pep,PetscReal *keep)
 
   PetscFunctionBegin;
   *keep = ctx->keep;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -367,7 +367,7 @@ PetscErrorCode PEPQArnoldiGetRestart(PEP pep,PetscReal *keep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidRealPointer(keep,2);
   PetscUseMethod(pep,"PEPQArnoldiGetRestart_C",(PEP,PetscReal*),(pep,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPQArnoldiSetLocking_QArnoldi(PEP pep,PetscBool lock)
@@ -376,7 +376,7 @@ static PetscErrorCode PEPQArnoldiSetLocking_QArnoldi(PEP pep,PetscBool lock)
 
   PetscFunctionBegin;
   ctx->lock = lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -408,7 +408,7 @@ PetscErrorCode PEPQArnoldiSetLocking(PEP pep,PetscBool lock)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,lock,2);
   PetscTryMethod(pep,"PEPQArnoldiSetLocking_C",(PEP,PetscBool),(pep,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPQArnoldiGetLocking_QArnoldi(PEP pep,PetscBool *lock)
@@ -417,7 +417,7 @@ static PetscErrorCode PEPQArnoldiGetLocking_QArnoldi(PEP pep,PetscBool *lock)
 
   PetscFunctionBegin;
   *lock = ctx->lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -441,7 +441,7 @@ PetscErrorCode PEPQArnoldiGetLocking(PEP pep,PetscBool *lock)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(lock,2);
   PetscUseMethod(pep,"PEPQArnoldiGetLocking_C",(PEP,PetscBool*),(pep,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetFromOptions_QArnoldi(PEP pep,PetscOptionItems *PetscOptionsObject)
@@ -459,7 +459,7 @@ PetscErrorCode PEPSetFromOptions_QArnoldi(PEP pep,PetscOptionItems *PetscOptions
     if (flg) PetscCall(PEPQArnoldiSetLocking(pep,lock));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
@@ -473,7 +473,7 @@ PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
     PetscCall(PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep)));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-"));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
@@ -484,7 +484,7 @@ PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetLocking_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
@@ -512,5 +512,5 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",PEPQArnoldiGetRestart_QArnoldi));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",PEPQArnoldiSetLocking_QArnoldi));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetLocking_C",PEPQArnoldiGetLocking_QArnoldi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

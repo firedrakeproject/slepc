@@ -208,7 +208,7 @@ PetscErrorCode MatMult_Brussel(Mat A,Vec x,Vec y)
   PetscCall(VecResetArray(ctx->x2));
   PetscCall(VecResetArray(ctx->y1));
   PetscCall(VecResetArray(ctx->y2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
@@ -233,7 +233,7 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
   PetscCall(VecDestroy(&d1));
   PetscCall(VecDestroy(&d2));
   PetscCall(VecRestoreArray(diag,&pd));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -262,7 +262,7 @@ PetscErrorCode MyStoppingTest(EPS eps,PetscInt its,PetscInt max_it,PetscInt ncon
     /* check if no eigenvalues converged in last 10 restarts */
     if (nconv && ctx->nreps>10) *reason = EPS_CONVERGED_USER;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

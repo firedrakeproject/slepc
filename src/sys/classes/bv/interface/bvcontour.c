@@ -62,7 +62,7 @@ PetscErrorCode BVScatter(BV Vin,BV Vout,VecScatter scat,Vec xdup)
     PetscCall(VecResetArray(Vout->t));
     PetscCall(VecRestoreArrayRead(xdup,&array));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -141,7 +141,7 @@ PetscErrorCode BVSumQuadrature(BV S,BV Y,PetscInt M,PetscInt L,PetscInt L_max,Pe
   }
   PetscCall(PetscFree(ppk));
   PetscCall(VecDestroy(&v));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -231,7 +231,7 @@ PetscErrorCode BVDotQuadrature(BV Y,BV V,PetscScalar *Mu,PetscInt M,PetscInt L,P
   PetscCall(MPIU_Allreduce(temp2,Mu,count,MPIU_SCALAR,MPIU_SUM,parent));
   PetscCall(PetscFree3(temp,temp2,ppk));
   PetscCall(MatDestroy(&H));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -302,7 +302,7 @@ PetscErrorCode BVTraceQuadrature(BV Y,BV V,PetscInt L,PetscInt L_max,PetscScalar
   *est_eig = PetscAbsScalar(sum)/(PetscReal)L;
   PetscCall(VecDestroy(&y));
   PetscCall(VecDestroy(&yall));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *pA,PetscReal *sigma,PetscInt *rank)
@@ -392,7 +392,7 @@ PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *pA,PetscRea
 #if defined(PETSC_USE_COMPLEX)
   PetscCall(PetscFree(rwork));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVSVDAndRank_QR(BV S,PetscReal delta,PetscScalar *pA,PetscReal *sigma,PetscInt *rank)
@@ -440,7 +440,7 @@ PetscErrorCode BVSVDAndRank_QR(BV S,PetscReal delta,PetscScalar *pA,PetscReal *s
   PetscCall(BVMultInPlace(S,A,0,*rank));
   PetscCall(PetscFree2(work,rwork));
   PetscCall(MatDestroy(&A));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVSVDAndRank_QR_CAA(BV S,PetscInt M,PetscInt L,PetscReal delta,PetscScalar *pA,PetscReal *sigma,PetscInt *rank)
@@ -491,7 +491,7 @@ PetscErrorCode BVSVDAndRank_QR_CAA(BV S,PetscInt M,PetscInt L,PetscReal delta,Pe
   PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&k_,&k_,&m,&sone,U,&m,T,&m,&zero,pA,&k_));
   for (j=0;j<k_;j++) for (i=0;i<k_;i++) pA[j*k_+i] /= sigma[j];
   PetscCall(PetscFree5(T,R,U,work,rwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -559,7 +559,7 @@ PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,BVSVDMeth
       break;
   }
   PetscCall(PetscLogEventEnd(BV_SVDAndRank,S,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -600,5 +600,5 @@ PetscErrorCode BVCISSResizeBases(BV S,BV V,BV Y,PetscInt Lold,PetscInt Lnew,Pets
   for (i=npoints-1;i>=0;i--) {
     for (j=Lold-1;j>=0;j--) PetscCall(BVCopyColumn(Y,i*Lold+j,i*Lnew+j));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

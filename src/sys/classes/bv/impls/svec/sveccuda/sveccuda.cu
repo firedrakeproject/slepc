@@ -42,7 +42,7 @@ static PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar
   PetscCallCUBLAS(cublasXaxpy(cublasv2handle,m,&alpha,d_A,one,d_B,one));
   PetscCall(PetscLogGpuTimeEnd());
   PetscCall(PetscLogGpuFlops(2.0*m));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -59,7 +59,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   PetscBool         matiscuda;
 
   PetscFunctionBegin;
-  if (!Y->n) PetscFunctionReturn(0);
+  if (!Y->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(VecCUDAGetArrayRead(x->v,&d_px));
   if (beta==(PetscScalar)0.0) PetscCall(VecCUDAGetArrayWrite(y->v,&d_py));
   else PetscCall(VecCUDAGetArray(y->v,&d_py));
@@ -94,7 +94,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   } else PetscCall(BVAXPY_BLAS_CUDA(Y,Y->n,Y->k-Y->l,alpha,d_A,beta,d_C));
   PetscCall(VecCUDARestoreArrayRead(x->v,&d_px));
   PetscCall(VecCUDARestoreArrayWrite(y->v,&d_py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -133,7 +133,7 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   if (!q) PetscCall(VecCUDARestoreArray(X->buffer,&d_q));
   else PetscCallCUDA(cudaFree(d_q));
   PetscCall(PetscLogGpuFlops(2.0*n*k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -151,7 +151,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscBool         matiscuda;
 
   PetscFunctionBegin;
-  if (!V->n) PetscFunctionReturn(0);
+  if (!V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscCuBLASIntCast(V->n,&m));
   PetscCall(PetscCuBLASIntCast(e-s,&n));
   PetscCall(PetscCuBLASIntCast(V->k-V->l,&k));
@@ -203,7 +203,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCallCUDA(cudaFree(d_work));
   PetscCall(VecCUDARestoreArray(ctx->v,&d_pv));
   PetscCall(PetscLogGpuFlops(2.0*m*n*k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -220,7 +220,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,P
   PetscBool         matiscuda;
 
   PetscFunctionBegin;
-  if (!V->n) PetscFunctionReturn(0);
+  if (!V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscCuBLASIntCast(V->n,&m));
   PetscCall(PetscCuBLASIntCast(e-s,&n));
   PetscCall(PetscCuBLASIntCast(V->k-V->l,&k));
@@ -252,7 +252,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,P
   PetscCallCUDA(cudaFree(d_work));
   PetscCall(VecCUDARestoreArray(ctx->v,&d_pv));
   PetscCall(PetscLogGpuFlops(2.0*m*n*k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -324,7 +324,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
   PetscCall(VecCUDARestoreArrayRead(x->v,&d_px));
   PetscCall(VecCUDARestoreArrayRead(y->v,&d_py));
   PetscCall(PetscLogGpuFlops(2.0*m*n*k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_USE_COMPLEX)
@@ -348,7 +348,7 @@ PetscErrorCode ConjugateCudaArray(PetscScalar *a, PetscInt n)
   } catch (char *ex) {
     SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Thrust error: %s", ex);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -421,7 +421,7 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
   PetscCall(VecCUDARestoreArrayRead(z,&d_py));
   PetscCall(VecCUDARestoreArrayRead(x->v,&d_px));
   PetscCall(PetscLogGpuFlops(2.0*n*k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -465,7 +465,7 @@ PetscErrorCode BVDotVec_Local_Svec_CUDA(BV X,Vec y,PetscScalar *m)
   PetscCall(VecCUDARestoreArrayRead(z,&d_py));
   PetscCall(VecCUDARestoreArrayRead(x->v,&d_px));
   PetscCall(PetscLogGpuFlops(2.0*n*k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -496,7 +496,7 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
     PetscCall(PetscLogGpuFlops(1.0*n));
   }
   PetscCall(VecCUDARestoreArray(ctx->v,&d_array));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVMatMult_Svec_CUDA(BV V,Mat A,BV W)
@@ -532,7 +532,7 @@ PetscErrorCode BVMatMult_Svec_CUDA(BV V,Mat A,BV W)
     PetscCall(VecCUDARestoreArrayRead(v->v,&d_pv));
     PetscCall(VecCUDARestoreArrayWrite(w->v,&d_pw));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVCopy_Svec_CUDA(BV V,BV W)
@@ -549,7 +549,7 @@ PetscErrorCode BVCopy_Svec_CUDA(BV V,BV W)
   PetscCallCUDA(cudaMemcpy(d_pwc,d_pvc,(V->k-V->l)*V->n*sizeof(PetscScalar),cudaMemcpyDeviceToDevice));
   PetscCall(VecCUDARestoreArrayRead(v->v,&d_pv));
   PetscCall(VecCUDARestoreArrayWrite(w->v,&d_pw));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVCopyColumn_Svec_CUDA(BV V,PetscInt j,PetscInt i)
@@ -561,7 +561,7 @@ PetscErrorCode BVCopyColumn_Svec_CUDA(BV V,PetscInt j,PetscInt i)
   PetscCall(VecCUDAGetArray(v->v,&d_pv));
   PetscCallCUDA(cudaMemcpy(d_pv+(V->nc+i)*V->n,d_pv+(V->nc+j)*V->n,V->n*sizeof(PetscScalar),cudaMemcpyDeviceToDevice));
   PetscCall(VecCUDARestoreArray(v->v,&d_pv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
@@ -592,7 +592,7 @@ PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
   }
   PetscCall(VecDestroy(&ctx->v));
   ctx->v = vnew;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVGetColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
@@ -605,7 +605,7 @@ PetscErrorCode BVGetColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
   l = BVAvailableVec;
   PetscCall(VecCUDAGetArray(ctx->v,&d_pv));
   PetscCall(VecCUDAPlaceArray(bv->cv[l],d_pv+(bv->nc+j)*bv->n));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVRestoreColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
@@ -617,7 +617,7 @@ PetscErrorCode BVRestoreColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
   l = (j==bv->ci[0])? 0: 1;
   PetscCall(VecCUDAResetArray(bv->cv[l]));
   PetscCall(VecCUDARestoreArray(ctx->v,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVRestoreSplit_Svec_CUDA(BV bv,BV *L,BV *R)
@@ -652,7 +652,7 @@ PetscErrorCode BVRestoreSplit_Svec_CUDA(BV bv,BV *L,BV *R)
     PetscCall(VecCUDAGetArray(v,(PetscScalar **)&d_pv));
     PetscCall(VecCUDARestoreArray(v,(PetscScalar **)&d_pv));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVGetMat_Svec_CUDA(BV bv,Mat *A)
@@ -681,7 +681,7 @@ PetscErrorCode BVGetMat_Svec_CUDA(BV bv,Mat *A)
   }
   PetscCall(MatDenseCUDAPlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n));  /* set the actual pointer */
   *A = bv->Aget;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVRestoreMat_Svec_CUDA(BV bv,Mat *A)
@@ -695,5 +695,5 @@ PetscErrorCode BVRestoreMat_Svec_CUDA(BV bv,Mat *A)
   PetscCall(MatDenseCUDAResetArray(bv->Aget));
   PetscCall(VecCUDARestoreArray(ctx->v,&vv));
   *A = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

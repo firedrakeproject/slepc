@@ -21,7 +21,7 @@ PetscErrorCode FNEvaluateFunction_Log(FN fn,PetscScalar x,PetscScalar *y)
   PetscCheck(x>=0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
 #endif
   *y = PetscLogScalar(x);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateDerivative_Log(FN fn,PetscScalar x,PetscScalar *y)
@@ -32,7 +32,7 @@ PetscErrorCode FNEvaluateDerivative_Log(FN fn,PetscScalar x,PetscScalar *y)
   PetscCheck(x>0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
 #endif
   *y = 1.0/x;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -50,10 +50,10 @@ static PetscErrorCode qtri_struct(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
 #if defined(PETSC_USE_COMPLEX)
   for (j=0;j<n-1;j++) structure[j] = 1;
 #else
-  if (n==1) PetscFunctionReturn(0);
+  if (n==1) PetscFunctionReturn(PETSC_SUCCESS);
   else if (n==2) {
     structure[0] = (T[1]==0.0)? 1: 2;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   j = 0;
   while (j<n-2) {
@@ -72,7 +72,7 @@ static PetscErrorCode qtri_struct(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
     structure[n-2] = 1;
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -180,7 +180,7 @@ static PetscErrorCode FNlogm_params(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
     *s = *s + 1;
   }
   PetscCall(PetscRandomDestroy(&rand));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -249,7 +249,7 @@ static PetscErrorCode sqrtm_tbt(PetscScalar *T)
     T[2] = t12/(r11+r22);
     T[3] = r22;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_USE_COMPLEX)
@@ -375,7 +375,7 @@ static PetscErrorCode recompute_diag_blocks_sqrt(PetscBLASInt n,PetscScalar *Tro
     Troot[n-1+(n-1)*ld] = sqrt_obo(a,s);
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -431,7 +431,7 @@ static PetscErrorCode gauss_legendre(PetscBLASInt n,PetscScalar *x,PetscScalar *
   PetscCall(PetscFree2(eig,work));
 #endif
   PetscCall(PetscLogFlops(9.0*n*n*n+2.0*n*n*n));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -463,7 +463,7 @@ static PetscErrorCode pade_approx(PetscBLASInt n,PetscScalar *T,PetscScalar *L,P
     PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,K,&n,ipiv,W,&n,&info));
     for (i=0;i<n;i++) for (j=0;j<n;j++) L[i+j*ld] += wts[k]*W[i+j*ld];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -530,7 +530,7 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
     }
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 /*
  * Matrix logarithm implementation based on algorithm and matlab code by N. Higham and co-authors
@@ -605,7 +605,7 @@ static PetscErrorCode FNLogmPade(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASIn
 #else
   PetscCall(PetscFree(rwork));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 #endif
 }
 
@@ -622,7 +622,7 @@ PetscErrorCode FNEvaluateFunctionMat_Log_Higham(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNLogmPade(fn,n,T,n,PETSC_FALSE));
   PetscCall(MatDenseRestoreArray(B,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Log_Higham(FN fn,Mat A,Vec v)
@@ -641,7 +641,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Log_Higham(FN fn,Mat A,Vec v)
   PetscCall(MatDenseRestoreArray(B,&T));
   PetscCall(MatGetColumnVector(B,v,0));
   PetscCall(FN_FreeWorkMat(fn,&B));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNView_Log(FN fn,PetscViewer viewer)
@@ -675,7 +675,7 @@ PetscErrorCode FNView_Log(FN fn,PetscViewer viewer)
     }
     if (fn->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Log(FN fn)
@@ -686,5 +686,5 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Log(FN fn)
   fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Log_Higham;
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Log_Higham;
   fn->ops->view                      = FNView_Log;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

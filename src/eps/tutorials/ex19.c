@@ -41,7 +41,7 @@ PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nco
   PetscCall(PetscSortReal(n*n*n,evals));
   for (i=0;i<nconv;i++) exact[i] = evals[i];
   PetscCall(PetscFree(evals));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FillMatrix(DM da,Mat A)
@@ -73,7 +73,7 @@ PetscErrorCode FillMatrix(DM da,Mat A)
   }
   PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

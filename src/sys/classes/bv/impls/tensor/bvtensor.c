@@ -39,7 +39,7 @@ PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCall(BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_FALSE));
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
   PetscCall(MatDenseRestoreArray(ctx->S,&pS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVMultInPlaceHermitianTranspose_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
@@ -56,7 +56,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Tensor(BV V,Mat Q,PetscInt s,Pets
   PetscCall(BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_TRUE));
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
   PetscCall(MatDenseRestoreArray(ctx->S,&pS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
@@ -77,7 +77,7 @@ PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
   PetscCall(MatDenseRestoreArray(M,&m));
   PetscCall(MatDenseRestoreArrayRead(x->S,&px));
   PetscCall(MatDenseRestoreArrayRead(y->S,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
@@ -91,7 +91,7 @@ PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
   if (PetscUnlikely(j<0)) PetscCall(BVScale_BLAS_Private(bv,(bv->k-bv->l)*lds,pS+(bv->nc+bv->l)*lds,alpha));
   else PetscCall(BVScale_BLAS_Private(bv,lds,pS+(bv->nc+j)*lds,alpha));
   PetscCall(MatDenseRestoreArray(ctx->S,&pS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVNorm_Tensor(BV bv,PetscInt j,NormType type,PetscReal *val)
@@ -105,7 +105,7 @@ PetscErrorCode BVNorm_Tensor(BV bv,PetscInt j,NormType type,PetscReal *val)
   if (j<0) PetscCall(BVNorm_LAPACK_Private(bv,lds,bv->k-bv->l,pS+(bv->nc+bv->l)*lds,type,val,PETSC_FALSE));
   else PetscCall(BVNorm_LAPACK_Private(bv,lds,1,pS+(bv->nc+j)*lds,type,val,PETSC_FALSE));
   PetscCall(MatDenseRestoreArrayRead(ctx->S,&pS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVCopyColumn_Tensor(BV V,PetscInt j,PetscInt i)
@@ -118,7 +118,7 @@ PetscErrorCode BVCopyColumn_Tensor(BV V,PetscInt j,PetscInt i)
   PetscCall(MatDenseGetArray(ctx->S,&pS));
   PetscCall(PetscArraycpy(pS+(V->nc+i)*lds,pS+(V->nc+j)*lds,lds));
   PetscCall(MatDenseRestoreArray(ctx->S,&pS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
@@ -156,7 +156,7 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
     }
   }
   PetscCall(MatDenseRestoreArrayRead(ctx->S,&S));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which,PetscScalar *h,PetscScalar *c,PetscReal *onorm,PetscReal *norm)
@@ -214,7 +214,7 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
   PetscCall(BV_AddCoefficients(bv,k,h,cc));
   PetscCall(MatDenseRestoreArray(ctx->S,&pS));
   PetscCall(VecRestoreArray(bv->buffer,&cc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
@@ -231,7 +231,7 @@ PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
       PetscCall(PetscViewerASCIIPrintf(viewer,"number of tensor blocks (degree): %" PetscInt_FMT "\n",ctx->d));
       PetscCall(PetscViewerASCIIPrintf(viewer,"number of columns of U factor: %" PetscInt_FMT "\n",ctx->ld));
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     }
     PetscCall(BVView(ctx->U,viewer));
     PetscCall(MatView(ctx->S,viewer));
@@ -245,7 +245,7 @@ PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
     PetscCall(BVView(ctx->U,viewer));
     PetscCall(MatView(ctx->S,viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BVTensorUpdateMatrix(BV V,PetscInt ini,PetscInt end)
@@ -257,7 +257,7 @@ static PetscErrorCode BVTensorUpdateMatrix(BV V,PetscInt ini,PetscInt end)
   Mat            A;
 
   PetscFunctionBegin;
-  if (!V->matrix) PetscFunctionReturn(0);
+  if (!V->matrix) PetscFunctionReturn(PETSC_SUCCESS);
   l = ctx->U->l; k = ctx->U->k;
   /* update inner product matrix */
   if (!ctx->qB) {
@@ -290,7 +290,7 @@ static PetscErrorCode BVTensorUpdateMatrix(BV V,PetscInt ini,PetscInt end)
     }
   }
   ctx->U->l = l; ctx->U->k = k;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
@@ -327,7 +327,7 @@ static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
   /* set active columns */
   ctx->U->l = 0;
   ctx->U->k = nq;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -359,7 +359,7 @@ PetscErrorCode BVTensorBuildFirstColumn(BV V,PetscInt k)
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,k,2);
   PetscUseMethod(V,"BVTensorBuildFirstColumn_C",(BV,PetscInt),(V,k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
@@ -373,7 +373,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   Mat            Q,A;
 
   PetscFunctionBegin;
-  if (!cs1) PetscFunctionReturn(0);
+  if (!cs1) PetscFunctionReturn(PETSC_SUCCESS);
   lwa = 6*ctx->ld*lds+2*cs1;
   n = PetscMin(rs1,deg*cs1);
   lock = ctx->U->l;
@@ -532,7 +532,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   /* set active columns */
   if (newc) ctx->U->l += newc;
   ctx->U->k = rk;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -567,7 +567,7 @@ PetscErrorCode BVTensorCompress(BV V,PetscInt newc)
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,newc,2);
   PetscUseMethod(V,"BVTensorCompress_C",(BV,PetscInt),(V,newc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BVTensorGetDegree_Tensor(BV bv,PetscInt *d)
@@ -576,7 +576,7 @@ static PetscErrorCode BVTensorGetDegree_Tensor(BV bv,PetscInt *d)
 
   PetscFunctionBegin;
   *d = ctx->d;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -600,7 +600,7 @@ PetscErrorCode BVTensorGetDegree(BV bv,PetscInt *d)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidIntPointer(d,2);
   PetscUseMethod(bv,"BVTensorGetDegree_C",(BV,PetscInt*),(bv,d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BVTensorGetFactors_Tensor(BV V,BV *U,Mat *S)
@@ -612,7 +612,7 @@ static PetscErrorCode BVTensorGetFactors_Tensor(BV V,BV *U,Mat *S)
   ctx->puk = ctx->U->k;
   if (U) *U = ctx->U;
   if (S) *S = ctx->S;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -648,7 +648,7 @@ PetscErrorCode BVTensorGetFactors(BV V,BV *U,Mat *S)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscUseMethod(V,"BVTensorGetFactors_C",(BV,BV*,Mat*),(V,U,S));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BVTensorRestoreFactors_Tensor(BV V,BV *U,Mat *S)
@@ -661,7 +661,7 @@ static PetscErrorCode BVTensorRestoreFactors_Tensor(BV V,BV *U,Mat *S)
   if (S) *S = NULL;
   PetscCall(BVTensorUpdateMatrix(V,ctx->puk,ctx->U->k));
   ctx->puk = -1;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -689,7 +689,7 @@ PetscErrorCode BVTensorRestoreFactors(BV V,BV *U,Mat *S)
   if (U) PetscValidHeaderSpecific(*U,BV_CLASSID,2);
   if (S) PetscValidHeaderSpecific(*S,MAT_CLASSID,3);
   PetscUseMethod(V,"BVTensorRestoreFactors_C",(BV,BV*,Mat*),(V,U,S));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDestroy_Tensor(BV bv)
@@ -709,7 +709,7 @@ PetscErrorCode BVDestroy_Tensor(BV bv)
   PetscCall(PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetDegree_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetFactors_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)bv,"BVTensorRestoreFactors_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
@@ -736,7 +736,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   PetscCall(PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetDegree_C",BVTensorGetDegree_Tensor));
   PetscCall(PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetFactors_C",BVTensorGetFactors_Tensor));
   PetscCall(PetscObjectComposeFunction((PetscObject)bv,"BVTensorRestoreFactors_C",BVTensorRestoreFactors_Tensor));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -808,5 +808,5 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
   (*V)->orthog_block = U->orthog_block;
   (*V)->vmm          = U->vmm;
   (*V)->rrandom      = U->rrandom;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

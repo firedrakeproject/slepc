@@ -27,7 +27,7 @@ static inline PetscErrorCode LMESetUp_Lyapunov(LME lme)
     PetscCheck(X1==X2,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov matrix equation requires symmetric solution X");
     PetscCheck(!dx,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov solvers currently assume a positive-definite solution X");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -58,7 +58,7 @@ PetscErrorCode LMESetUp(LME lme)
   /* reset the convergence flag from the previous solves */
   lme->reason = LME_CONVERGED_ITERATING;
 
-  if (lme->setupcalled) PetscFunctionReturn(0);
+  if (lme->setupcalled) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscLogEventBegin(LME_SetUp,lme,0,0,0));
 
   /* Set default solver type (LMESetFromOptions was not called) */
@@ -101,7 +101,7 @@ PetscErrorCode LMESetUp(LME lme)
 
   PetscCall(PetscLogEventEnd(LME_SetUp,lme,0,0,0));
   lme->setupcalled = 1;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode LMESetCoefficients_Private(LME lme,Mat A,Mat *lmeA)
@@ -114,7 +114,7 @@ static inline PetscErrorCode LMESetCoefficients_Private(LME lme,Mat A,Mat *lmeA)
   if (!lme->setupcalled) PetscCall(MatDestroy(lmeA));
   PetscCall(PetscObjectReference((PetscObject)A));
   *lmeA = A;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -175,7 +175,7 @@ PetscErrorCode LMESetCoefficients(LME lme,Mat A,Mat B,Mat D,Mat E)
   else if (!lme->setupcalled) PetscCall(MatDestroy(&lme->E));
 
   lme->setupcalled = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -204,7 +204,7 @@ PetscErrorCode LMEGetCoefficients(LME lme,Mat *A,Mat *B,Mat *D,Mat *E)
   if (B) *B = lme->B;
   if (D) *D = lme->D;
   if (E) *E = lme->E;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -247,7 +247,7 @@ PetscErrorCode LMESetRHS(LME lme,Mat C)
   PetscCall(PetscObjectReference((PetscObject)C));
   PetscCall(MatDestroy(&lme->C));
   lme->C = C;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -271,7 +271,7 @@ PetscErrorCode LMEGetRHS(LME lme,Mat *C)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidPointer(C,2);
   *C = lme->C;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -318,7 +318,7 @@ PetscErrorCode LMESetSolution(LME lme,Mat X)
   }
   PetscCall(MatDestroy(&lme->X));
   lme->X = X;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -342,7 +342,7 @@ PetscErrorCode LMEGetSolution(LME lme,Mat *X)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidPointer(X,2);
   *X = lme->X;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -383,5 +383,5 @@ PetscErrorCode LMEAllocateSolution(LME lme,PetscInt extra)
     PetscCall(BVSetSizesFromVec(lme->V,t,requested));
     PetscCall(VecDestroy(&t));
   } else PetscCall(BVResize(lme->V,requested,PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

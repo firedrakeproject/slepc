@@ -42,7 +42,7 @@ PetscErrorCode BVSetType(BV bv,BVType type)
   PetscValidCharPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)bv,type,&match));
-  if (match) PetscFunctionReturn(0);
+  if (match) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscStrcmp(type,BVTENSOR,&match));
   PetscCheck(!match,PetscObjectComm((PetscObject)bv),PETSC_ERR_ORDER,"Use BVCreateTensor() to create a BV of type tensor");
 
@@ -60,7 +60,7 @@ PetscErrorCode BVSetType(BV bv,BVType type)
     PetscCall((*r)(bv));
     PetscCall(PetscLogEventEnd(BV_Create,bv,0,0,0));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -84,7 +84,7 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)bv)->type_name;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -141,7 +141,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
     bv->ops->create = NULL;
     bv->defersfo = PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -185,7 +185,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
     bv->ops->create = NULL;
     bv->defersfo = PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -217,7 +217,7 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
   PetscFunctionBegin;
   if (!bv) {
     if (m && !n && !N) *m = 0;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (n || N) BVCheckSizes(bv,1);
@@ -225,7 +225,7 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
   if (N) *N = bv->N;
   if (m) *m = bv->m;
   if (m && !n && !N && !((PetscObject)bv)->type_name) *m = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -263,7 +263,7 @@ PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
   PetscCheck(V->ci[0]==-V->nc-1 && V->ci[1]==-V->nc-1,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVSetNumConstraints after BVGetColumn");
 
   diff = nc-V->nc;
-  if (!diff) PetscFunctionReturn(0);
+  if (!diff) PetscFunctionReturn(PETSC_SUCCESS);
   total = V->nc+V->m;
   PetscCheck(total-nc>0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Not enough columns for the given nc value");
   if (diff<0) {  /* lessen constraints, shift contents of BV */
@@ -282,7 +282,7 @@ PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
   V->l = PetscMin(V->l,V->m);
   V->k = PetscMin(V->k,V->m);
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -306,7 +306,7 @@ PetscErrorCode BVGetNumConstraints(BV bv,PetscInt *nc)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidIntPointer(nc,2);
   *nc = bv->nc;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -340,7 +340,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   PetscValidType(bv,1);
   PetscCheck(m>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
   PetscCheck(!bv->nc || bv->issplit,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot resize a BV with constraints");
-  if (bv->m == m) PetscFunctionReturn(0);
+  if (bv->m == m) PetscFunctionReturn(PETSC_SUCCESS);
   BVCheckOp(bv,1,resize);
 
   PetscCall(PetscLogEventBegin(BV_Create,bv,0,0,0));
@@ -371,7 +371,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   bv->l = PetscMin(bv->l,m);
   PetscCall(PetscLogEventEnd(BV_Create,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -420,7 +420,7 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
     PetscCheck(l>=0 && l<=bv->k,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l (%" PetscInt_FMT "). Must be between 0 and k (%" PetscInt_FMT ")",l,bv->k);
     bv->l = l;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -445,7 +445,7 @@ PetscErrorCode BVGetActiveColumns(BV bv,PetscInt *l,PetscInt *k)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (l) *l = bv->l;
   if (k) *k = bv->k;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -499,7 +499,7 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
     if (bv->Bx) PetscCall(PetscObjectStateIncrease((PetscObject)bv->Bx));
     if (bv->cached) PetscCall(PetscObjectStateIncrease((PetscObject)bv->cached));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -524,7 +524,7 @@ PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (B)     *B     = bv->matrix;
   if (indef) *indef = bv->indef;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -557,7 +557,7 @@ PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
     PetscCall(BV_IPMatMult(bv,x));
     PetscCall(VecCopy(bv->Bx,y));
   } else PetscCall(VecCopy(x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -592,7 +592,7 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
     if (X->matrix) PetscCall(BVMatMult(X,X->matrix,Y));
     else PetscCall(BVCopy(X,Y));
   } else PetscCall(BV_IPMatMultBV(X));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -634,7 +634,7 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
     PetscCall(VecRestoreArrayRead(omega,&pomega));
   } else PetscCall(PetscInfo(bv,"Ignoring signature because BV is not indefinite\n"));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -676,7 +676,7 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
     PetscCall(VecRestoreArrayRead(bv->omega,&intern));
     PetscCall(VecRestoreArray(omega,&pomega));
   } else PetscCall(VecSet(omega,1.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -718,7 +718,7 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
   PetscCall(PetscObjectReference((PetscObject)buffer));
   PetscCall(VecDestroy(&bv->buffer));
   bv->buffer = buffer;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -770,7 +770,7 @@ PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
     PetscCall(VecSetType(bv->buffer,((PetscObject)bv->t)->type_name));
   }
   *buffer = bv->buffer;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -796,7 +796,7 @@ PetscErrorCode BVSetRandomContext(BV bv,PetscRandom rand)
   PetscCall(PetscObjectReference((PetscObject)rand));
   PetscCall(PetscRandomDestroy(&bv->rand));
   bv->rand = rand;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -829,7 +829,7 @@ PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
     }
   }
   *rand = bv->rand;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -884,7 +884,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)bv,PetscOptionsObject));
   PetscOptionsEnd();
   bv->sfocalled = PETSC_TRUE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -966,7 +966,7 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
     default:
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown block orthogonalization type");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -995,7 +995,7 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
   if (refine) *refine = bv->orthog_ref;
   if (eta)    *eta    = bv->orthog_eta;
   if (block)  *block  = bv->orthog_block;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1039,7 +1039,7 @@ PetscErrorCode BVSetMatMultMethod(BV bv,BVMatMultType method)
     default:
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown matmult method");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1063,7 +1063,7 @@ PetscErrorCode BVGetMatMultMethod(BV bv,BVMatMultType *method)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidPointer(method,2);
   *method = bv->vmm;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1115,7 +1115,7 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   PetscCall(PetscObjectStateGet((PetscObject)bv->cv[l],&bv->st[l]));
   PetscCall(PetscObjectGetId((PetscObject)bv->cv[l],&bv->id[l]));
   *v = bv->cv[l];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1161,7 +1161,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   bv->st[l] = -1;
   bv->id[l] = 0;
   *v = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1196,7 +1196,7 @@ PetscErrorCode BVGetArray(BV bv,PetscScalar **a)
   BVCheckSizes(bv,1);
   BVCheckOp(bv,1,getarray);
   PetscUseTypeMethod(bv,getarray,a);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1225,7 +1225,7 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
   PetscTryTypeMethod(bv,restorearray,a);
   if (a) *a = NULL;
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1260,7 +1260,7 @@ PetscErrorCode BVGetArrayRead(BV bv,const PetscScalar **a)
   BVCheckSizes(bv,1);
   BVCheckOp(bv,1,getarrayread);
   PetscUseTypeMethod(bv,getarrayread,a);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1285,7 +1285,7 @@ PetscErrorCode BVRestoreArrayRead(BV bv,const PetscScalar **a)
   BVCheckSizes(bv,1);
   PetscTryTypeMethod(bv,restorearrayread,a);
   if (a) *a = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1314,7 +1314,7 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
   BVCheckSizes(bv,1);
   PetscValidPointer(v,2);
   PetscCall(VecDuplicate(bv->t,v));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1354,7 +1354,7 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   PetscCall(PetscArraycpy(aa,vv,bv->m*bv->n));
   PetscCall(BVRestoreArrayRead(bv,&vv));
   PetscCall(MatDenseRestoreArrayWrite(*A,&aa));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
@@ -1382,7 +1382,7 @@ PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
   }
   PetscCall(MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n));  /* set the actual pointer */
   *A = bv->Aget;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1416,7 +1416,7 @@ PetscErrorCode BVGetMat(BV bv,Mat *A)
   BVCheckSizes(bv,1);
   PetscValidPointer(A,2);
   PetscUseTypeMethod(bv,getmat,A);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVRestoreMat_Default(BV bv,Mat *A)
@@ -1429,7 +1429,7 @@ PetscErrorCode BVRestoreMat_Default(BV bv,Mat *A)
   PetscCall(MatDenseResetArray(bv->Aget));
   PetscCall(BVRestoreArray(bv,&vv));
   *A = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1459,7 +1459,7 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
   PetscCheck(bv->Aget,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVRestoreMat must match a previous call to BVGetMat");
   PetscCheck(bv->Aget==*A,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with BVGetMat");
   PetscUseTypeMethod(bv,restoremat,A);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1484,7 +1484,7 @@ static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
   W->sfocalled    = V->sfocalled;
   PetscTryTypeMethod(V,duplicate,W);
   PetscCall(PetscObjectStateIncrease((PetscObject)W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1521,7 +1521,7 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
   PetscCall(BVCreate(PetscObjectComm((PetscObject)V),W));
   PetscCall(BVSetSizesFromVec(*W,V->t,V->m));
   PetscCall(BVDuplicate_Private(V,*W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1556,7 +1556,7 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
   PetscCall(BVCreate(PetscObjectComm((PetscObject)V),W));
   PetscCall(BVSetSizesFromVec(*W,V->t,m));
   PetscCall(BVDuplicate_Private(V,*W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1590,7 +1590,7 @@ PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
     PetscCall(BVDuplicate_Private(bv,bv->cached));
   }
   *cached = bv->cached;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1630,7 +1630,7 @@ PetscErrorCode BVCopy(BV V,BV W)
   PetscCheckSameTypeAndComm(V,1,W,2);
   PetscCheck(V->n==W->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %" PetscInt_FMT ", W %" PetscInt_FMT,V->n,W->n);
   PetscCheck(V->k-V->l<=W->m-W->l,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"W has %" PetscInt_FMT " non-leading columns, not enough to store %" PetscInt_FMT " columns",W->m-W->l,V->k-V->l);
-  if (V==W || !V->n) PetscFunctionReturn(0);
+  if (V==W || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_Copy,V,W,0,0));
   if (V->indef && V->matrix && V->indef==W->indef && V->matrix==W->matrix) {
@@ -1645,7 +1645,7 @@ PetscErrorCode BVCopy(BV V,BV W)
   PetscUseTypeMethod(V,copy,W);
   PetscCall(PetscLogEventEnd(BV_Copy,V,W,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1689,7 +1689,7 @@ PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
   PetscCall(VecCopy(z,w));
   PetscCall(BVRestoreColumn(V,j,&z));
   PetscCall(PetscLogEventEnd(BV_Copy,V,w,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1716,7 +1716,7 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
   BVCheckSizes(V,1);
   PetscValidLogicalCollectiveInt(V,j,2);
   PetscValidLogicalCollectiveInt(V,i,3);
-  if (j==i) PetscFunctionReturn(0);
+  if (j==i) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_Copy,V,0,0,0));
   if (V->omega) {
@@ -1727,7 +1727,7 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
   PetscUseTypeMethod(V,copycolumn,j,i);
   PetscCall(PetscLogEventEnd(BV_Copy,V,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
@@ -1754,7 +1754,7 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
   }
   if (left) PetscCall(PetscObjectStateGet((PetscObject)*split,&bv->lstate));
   else PetscCall(PetscObjectStateGet((PetscObject)*split,&bv->rstate));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1802,7 +1802,7 @@ PetscErrorCode BVGetSplit(BV bv,BV *L,BV *R)
   PetscCall(BVGetSplit_Private(bv,PETSC_FALSE,&bv->R));
   if (L) *L = bv->L;
   if (R) *R = bv->R;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1838,7 +1838,7 @@ PetscErrorCode BVRestoreSplit(BV bv,BV *L,BV *R)
   bv->lsplit = 0;
   if (L) *L = NULL;
   if (R) *R = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1880,7 +1880,7 @@ PetscErrorCode BVSetDefiniteTolerance(BV bv,PetscReal deftol)
     PetscCheck(deftol>0.0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of deftol. Must be > 0");
     bv->deftol = deftol;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1905,5 +1905,5 @@ PetscErrorCode BVGetDefiniteTolerance(BV bv,PetscReal *deftol)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidRealPointer(deftol,2);
   *deftol = bv->deftol;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

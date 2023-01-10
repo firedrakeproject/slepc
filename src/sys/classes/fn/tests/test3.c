@@ -88,7 +88,7 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   PetscCall(MatDestroy(&F));
   PetscCall(VecDestroy(&v));
   PetscCall(VecDestroy(&f0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

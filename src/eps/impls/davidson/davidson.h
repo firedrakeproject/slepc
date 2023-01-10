@@ -193,7 +193,7 @@ static inline PetscErrorCode EPSDavidsonFLAdd(dvdFunctionList **fl,dvdCallback f
   l->f = f;
   l->next = *fl;
   *fl = l;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode EPSDavidsonFLCall(dvdFunctionList *fl,dvdDashboard *d)
@@ -202,7 +202,7 @@ static inline PetscErrorCode EPSDavidsonFLCall(dvdFunctionList *fl,dvdDashboard 
 
   PetscFunctionBegin;
   for (l=fl;l;l=l->next) PetscCall((l->f)(d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode EPSDavidsonFLDestroy(dvdFunctionList **fl)
@@ -215,7 +215,7 @@ static inline PetscErrorCode EPSDavidsonFLDestroy(dvdFunctionList **fl)
     PetscCall(PetscFree(l));
   }
   *fl = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*

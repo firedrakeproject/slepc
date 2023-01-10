@@ -37,7 +37,7 @@ PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)
   PetscCall(VecCUDAResetArray(ctx->y2));
   PetscCall(VecCUDARestoreArrayRead(x,&d_px));
   PetscCall(VecCUDARestoreArrayWrite(y,&d_py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatMult_ECross_CUDA(Mat B,Vec x,Vec y)
@@ -67,5 +67,5 @@ PetscErrorCode MatMult_ECross_CUDA(Mat B,Vec x,Vec y)
   PetscCall(VecCUDAResetArray(ctx->y2));
   PetscCall(VecCUDARestoreArrayRead(x,&d_px));
   PetscCall(VecCUDARestoreArrayWrite(y,&d_py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -22,7 +22,7 @@ static inline PetscErrorCode BV_NormVecOrColumn(BV bv,PetscInt j,Vec v,PetscReal
   PetscFunctionBegin;
   if (v) PetscCall(BVNormVec(bv,v,NORM_2,nrm));
   else PetscCall(BVNormColumn(bv,j,NORM_2,nrm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -43,7 +43,7 @@ static inline PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q)
   PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
   PetscCall(PetscLogEventEnd(BV_DotVec,X,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -81,7 +81,7 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   if (!v) PetscCall(BVRestoreColumn(bv,j,&w));
   PetscCall(BV_AddCoefficients(bv,j,h,c));
   if (indef) PetscCall(VecRestoreArrayRead(bv->omega,&omega));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -128,7 +128,7 @@ static PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
     }
   }
   PetscCall(BV_AddCoefficients(bv,j,h,c));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define BVOrthogonalizeGS1(a,b,c,d,e,f,g,h) ((bv->ops->gramschmidt)?(*bv->ops->gramschmidt):(mgs?BVOrthogonalizeMGS1:BVOrthogonalizeCGS1))(a,b,c,d,e,f,g,h)
@@ -213,7 +213,7 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
       else PetscCall(BV_SetValue(bv,k,k,h,nrm));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -269,7 +269,7 @@ PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,Pet
   bv->l = lsave;
   if (H) PetscCall(BV_StoreCoefficients(bv,bv->k,bv->h,H));
   PetscCall(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -336,7 +336,7 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
   if (H) PetscCall(BV_StoreCoefficients(bv,j,NULL,H));
   PetscCall(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -423,7 +423,7 @@ PetscErrorCode BVOrthonormalizeColumn(BV bv,PetscInt j,PetscBool replace,PetscRe
   if (norm) *norm = nrm;
   if (lindep) *lindep = lndep;
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -483,7 +483,7 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
   if (H) PetscCall(BV_StoreCoefficients(bv,j,NULL,H));
   PetscCall(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -498,7 +498,7 @@ static PetscErrorCode BVOrthogonalize_BlockGS(BV V,Mat R)
   PetscCall(BVDot(V,V1,R));
   PetscCall(BVMult(V,-1.0,1.0,V1,R));
   PetscCall(BVRestoreSplit(V,&V1,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -545,7 +545,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
     PetscCall(BVScaleColumn(V,j,1.0/norm));
   }
   if (R) PetscCall(MatDenseRestoreArray(R,&r));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -564,7 +564,7 @@ static inline PetscErrorCode BV_GetBufferMat(BV bv)
     PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ld,bv->m,array,&bv->Abuffer));
     PetscCall(VecRestoreArray(bv->buffer,&array));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -586,7 +586,7 @@ static inline PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R,PetscBool t
   for (j=bv->l;j<bv->k;j++) PetscCall(PetscArraycpy(rr+j*ldr,bb+j*ldb,(tri?(j+1):bv->k)+bv->nc));
   PetscCall(VecRestoreArrayRead(bv->buffer,&bb));
   PetscCall(MatDenseRestoreArray(R,&rr));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -606,7 +606,7 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
   PetscCall(BVMatCholInv_LAPACK_Private(V,R,S));
   PetscCall(BVMultInPlace(V,S,V->l,V->k));
   if (Rin) PetscCall(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -629,7 +629,7 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
   PetscCall(BVRestoreArray(V,&pv));
   PetscCall(MatDenseRestoreArray(R,&r));
   if (Rin) PetscCall(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -656,7 +656,7 @@ static PetscErrorCode BVOrthogonalize_TSQRCHOL(BV V,Mat Rin)
   PetscCall(BVMatTriInv_LAPACK_Private(V,R,S));
   PetscCall(BVMultInPlace(V,S,V->l,V->k));
   if (Rin) PetscCall(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -676,7 +676,7 @@ static PetscErrorCode BVOrthogonalize_SVQB(BV V,Mat Rin)
   PetscCall(BVMatSVQB_LAPACK_Private(V,R,S));
   PetscCall(BVMultInPlace(V,S,V->l,V->k));
   if (Rin) PetscCall(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -763,5 +763,5 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   }
   PetscCall(PetscLogEventEnd(BV_Orthogonalize,V,R,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

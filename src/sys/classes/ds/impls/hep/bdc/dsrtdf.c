@@ -191,7 +191,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
 
   /* Quick return if possible */
 
-  if (n == 0) PetscFunctionReturn(0);
+  if (n == 0) PetscFunctionReturn(PETSC_SUCCESS);
 
 /* **************************************************************************** */
 
@@ -276,7 +276,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
     }
     for (j=0;j<n;j++) for (i=0;i<n;i++) q[i+j*ldq] = q2[i+j*n];
     PetscCallBLAS("BLAScopy",BLAScopy_(&n, dlamda, &one, d, &one));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   /* If there are multiple eigenvalues then the problem deflates.  Here */
@@ -487,6 +487,6 @@ L100:
   /* Copy CTOT into COLTYP for referencing in DLAED3M. */
 
   for (j = 0; j < 4; ++j) coltyp[j] = ctot[j];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 

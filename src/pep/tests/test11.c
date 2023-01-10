@@ -186,7 +186,7 @@ PetscErrorCode MyStoppingTest(PEP pep,PetscInt its,PetscInt max_it,PetscInt ncon
     /* check if no eigenvalues converged in last 10 restarts */
     if (nconv && ctx->nreps>10) *reason = PEP_CONVERGED_USER;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

@@ -45,7 +45,7 @@ static PetscErrorCode MFNSolve_Private(MFN mfn,Vec b,Vec x)
   PetscCall(MatViewFromOptions(mfn->A,(PetscObject)mfn,"-mfn_view_mat"));
   PetscCall(VecViewFromOptions(b,(PetscObject)mfn,"-mfn_view_rhs"));
   PetscCall(VecViewFromOptions(x,(PetscObject)mfn,"-mfn_view_solution"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -88,7 +88,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   if (b!=x) PetscCheckSameComm(mfn,1,x,3);
   mfn->transpose_solve = PETSC_FALSE;
   PetscCall(MFNSolve_Private(mfn,b,x));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -123,7 +123,7 @@ PetscErrorCode MFNSolveTranspose(MFN mfn,Vec b,Vec x)
   mfn->transpose_solve = PETSC_TRUE;
   if (!mfn->AT) PetscCall(MatCreateTranspose(mfn->A,&mfn->AT));
   PetscCall(MFNSolve_Private(mfn,b,x));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -156,7 +156,7 @@ PetscErrorCode MFNGetIterationNumber(MFN mfn,PetscInt *its)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidIntPointer(its,2);
   *its = mfn->its;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -197,5 +197,5 @@ PetscErrorCode MFNGetConvergedReason(MFN mfn,MFNConvergedReason *reason)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidIntPointer(reason,2);
   *reason = mfn->reason;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

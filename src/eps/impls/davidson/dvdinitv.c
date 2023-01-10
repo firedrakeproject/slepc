@@ -37,7 +37,7 @@ static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 
   /* After that the user vectors will be destroyed */
   data->user = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
@@ -84,7 +84,7 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 
   /* After that the user vectors will be destroyed */
   data->user = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_initV_d(dvdDashboard *d)
@@ -97,7 +97,7 @@ static PetscErrorCode dvd_initV_d(dvdDashboard *d)
 
   /* Free local data */
   PetscCall(PetscFree(data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt user, PetscBool krylov)
@@ -119,7 +119,7 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
     else d->initV = dvd_initV_classic_0;
     PetscCall(EPSDavidsonFLAdd(&d->destroyList,dvd_initV_d));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e)
@@ -128,5 +128,5 @@ PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e)
 
   PetscFunctionBegin;
   for (i=V_new_s;i<V_new_e;i++) PetscCall(BVOrthonormalizeColumn(V,i,PETSC_TRUE,NULL,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

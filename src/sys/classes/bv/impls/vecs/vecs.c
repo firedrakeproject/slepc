@@ -50,7 +50,7 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
       PetscCall(VecAXPY(y->V[Y->nc+Y->l+j],alpha,x->V[X->nc+X->l+j]));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
@@ -72,7 +72,7 @@ PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
   } else s = qq;
   PetscCall(VecMAXPY(y,X->k-X->l,s,x->V+X->nc+X->l));
   if (!q) PetscCall(VecRestoreArray(X->buffer,&qq));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -101,7 +101,7 @@ PetscErrorCode BVMultInPlace_Vecs_ME(BV V,Mat Q,PetscInt s,PetscInt e)
     if (V->k>e) PetscCall(VecMAXPY(ctx->V[V->nc+i],V->k-e,q+i*ldq+e,ctx->V+V->nc+e));
   }
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -124,7 +124,7 @@ PetscErrorCode BVMultInPlace_Vecs_Alloc(BV V,Mat Q,PetscInt s,PetscInt e)
   for (i=s;i<e;i++) PetscCall(VecCopy(W[i-s],ctx->V[V->nc+i]));
   PetscCall(VecDestroyVecs(e-s,&W));
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -148,7 +148,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscI
     for (j=e;j<n;j++) PetscCall(VecAXPY(ctx->V[V->nc+i],q[i+j*ldq],ctx->V[V->nc+j]));
   }
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
@@ -162,7 +162,7 @@ PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
   PetscCall(MatDenseGetArray(M,&m));
   for (j=X->l;j<X->k;j++) PetscCall(VecMDot(x->V[X->nc+j],Y->k-Y->l,y->V+Y->nc+Y->l,m+j*ldm+Y->l));
   PetscCall(MatDenseRestoreArray(M,&m));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *q)
@@ -179,7 +179,7 @@ PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *q)
   if (!q) PetscCall(VecGetArray(X->buffer,&qq));
   PetscCall(VecMDot(z,X->k-X->l,x->V+X->nc+X->l,qq));
   if (!q) PetscCall(VecRestoreArray(X->buffer,&qq));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDotVec_Begin_Vecs(BV X,Vec y,PetscScalar *m)
@@ -193,7 +193,7 @@ PetscErrorCode BVDotVec_Begin_Vecs(BV X,Vec y,PetscScalar *m)
     z = X->Bx;
   }
   PetscCall(VecMDotBegin(z,X->k-X->l,x->V+X->nc+X->l,m));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDotVec_End_Vecs(BV X,Vec y,PetscScalar *m)
@@ -202,7 +202,7 @@ PetscErrorCode BVDotVec_End_Vecs(BV X,Vec y,PetscScalar *m)
 
   PetscFunctionBegin;
   PetscCall(VecMDotEnd(y,X->k-X->l,x->V+X->nc+X->l,m));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVScale_Vecs(BV bv,PetscInt j,PetscScalar alpha)
@@ -214,7 +214,7 @@ PetscErrorCode BVScale_Vecs(BV bv,PetscInt j,PetscScalar alpha)
   if (PetscUnlikely(j<0)) {
     for (i=bv->l;i<bv->k;i++) PetscCall(VecScale(ctx->V[bv->nc+i],alpha));
   } else PetscCall(VecScale(ctx->V[bv->nc+j],alpha));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
@@ -233,7 +233,7 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
     }
     *val = PetscSqrtReal(*val);
   } else PetscCall(VecNorm(ctx->V[bv->nc+j],type,val));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVNorm_Begin_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
@@ -243,7 +243,7 @@ PetscErrorCode BVNorm_Begin_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionBegin;
   PetscCheck(j>=0,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
   PetscCall(VecNormBegin(ctx->V[bv->nc+j],type,val));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVNorm_End_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
@@ -253,7 +253,7 @@ PetscErrorCode BVNorm_End_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionBegin;
   PetscCheck(j>=0,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
   PetscCall(VecNormEnd(ctx->V[bv->nc+j],type,val));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVNormalize_Vecs(BV bv,PetscScalar *eigi)
@@ -273,7 +273,7 @@ PetscErrorCode BVNormalize_Vecs(BV bv,PetscScalar *eigi)
       PetscCall(VecNormalize(ctx->V[bv->nc+i],NULL));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
@@ -297,7 +297,7 @@ PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
   } else {
     for (j=0;j<V->k-V->l;j++) PetscCall(MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVCopy_Vecs(BV V,BV W)
@@ -307,7 +307,7 @@ PetscErrorCode BVCopy_Vecs(BV V,BV W)
 
   PetscFunctionBegin;
   for (j=0;j<V->k-V->l;j++) PetscCall(VecCopy(v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVCopyColumn_Vecs(BV V,PetscInt j,PetscInt i)
@@ -316,7 +316,7 @@ PetscErrorCode BVCopyColumn_Vecs(BV V,PetscInt j,PetscInt i)
 
   PetscFunctionBegin;
   PetscCall(VecCopy(v->V[V->nc+j],v->V[V->nc+i]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
@@ -339,7 +339,7 @@ PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
   }
   PetscCall(VecDestroyVecs(bv->m,&ctx->V));
   ctx->V = newV;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
@@ -350,7 +350,7 @@ PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
   PetscFunctionBegin;
   l = BVAvailableVec;
   bv->cv[l] = ctx->V[bv->nc+j];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVRestoreColumn_Vecs(BV bv,PetscInt j,Vec *v)
@@ -360,7 +360,7 @@ PetscErrorCode BVRestoreColumn_Vecs(BV bv,PetscInt j,Vec *v)
   PetscFunctionBegin;
   l = (j==bv->ci[0])? 0: 1;
   bv->cv[l] = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
@@ -376,7 +376,7 @@ PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
     PetscCall(PetscArraycpy(*a+j*bv->n,p,bv->n));
     PetscCall(VecRestoreArrayRead(ctx->V[j],&p));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVRestoreArray_Vecs(BV bv,PetscScalar **a)
@@ -392,7 +392,7 @@ PetscErrorCode BVRestoreArray_Vecs(BV bv,PetscScalar **a)
     PetscCall(VecRestoreArray(ctx->V[j],&p));
   }
   PetscCall(PetscFree(*a));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVGetArrayRead_Vecs(BV bv,const PetscScalar **a)
@@ -408,14 +408,14 @@ PetscErrorCode BVGetArrayRead_Vecs(BV bv,const PetscScalar **a)
     PetscCall(PetscArraycpy((PetscScalar*)*a+j*bv->n,p,bv->n));
     PetscCall(VecRestoreArrayRead(ctx->V[j],&p));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVRestoreArrayRead_Vecs(BV bv,const PetscScalar **a)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(*a));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -430,7 +430,7 @@ static inline PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
   PetscFunctionBegin;
   ctx->vmip            = vmip;
   bv->ops->multinplace = multinplace[vmip];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVSetFromOptions_Vecs(BV bv,PetscOptionItems *PetscOptionsObject)
@@ -444,7 +444,7 @@ PetscErrorCode BVSetFromOptions_Vecs(BV bv,PetscOptionItems *PetscOptionsObject)
     PetscCall(BVVecsSetVmip(bv,ctx->vmip));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
@@ -459,7 +459,7 @@ PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     PetscCall(PetscViewerGetFormat(viewer,&format));
-    if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+    if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(PETSC_SUCCESS);
     if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
   }
   if (ismatlab) {
@@ -473,7 +473,7 @@ PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
       PetscCall(PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",bvname,bvname,name,name));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDestroy_Vecs(BV bv)
@@ -483,7 +483,7 @@ PetscErrorCode BVDestroy_Vecs(BV bv)
   PetscFunctionBegin;
   if (!bv->issplit) PetscCall(VecDestroyVecs(bv->nc+bv->m,&ctx->V));
   PetscCall(PetscFree(bv->data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDuplicate_Vecs(BV V,BV W)
@@ -492,7 +492,7 @@ PetscErrorCode BVDuplicate_Vecs(BV V,BV W)
 
   PetscFunctionBegin;
   PetscCall(BVVecsSetVmip(W,ctx->vmip));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
@@ -573,5 +573,5 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->duplicate        = BVDuplicate_Vecs;
   bv->ops->setfromoptions   = BVSetFromOptions_Vecs;
   bv->ops->view             = BVView_Vecs;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

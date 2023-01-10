@@ -31,7 +31,7 @@ PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
   PetscCall(MatShellGetContext(A,&ctx));
   ctx->alpha = alpha;
   PetscCall(PetscObjectStateIncrease((PetscObject)A));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -59,7 +59,7 @@ static PetscErrorCode MatMult_Shell(Mat A,Vec x,Vec y)
     }
     if (ctx->nmat==1) PetscCall(VecAXPY(y,ctx->alpha,x)); /* y = (A + alpha*I) x */
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
@@ -83,7 +83,7 @@ static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
     }
     if (ctx->nmat==1) PetscCall(VecAXPY(y,ctx->alpha,x)); /* y = (A + alpha*I) x */
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
@@ -112,7 +112,7 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
       PetscCall(VecDestroy(&diagb));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_Shell(Mat A)
@@ -125,7 +125,7 @@ static PetscErrorCode MatDestroy_Shell(Mat A)
   PetscCall(PetscFree(ctx->matIdx));
   PetscCall(PetscFree(ctx->coeffs));
   PetscCall(PetscFree(ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *matIdx,PetscScalar *coeffs,Mat *mat)
@@ -167,5 +167,5 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
     }
   }
   if ((hasA && st->nmat==1) || has) PetscCall(MatShellSetOperation(*mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Shell));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

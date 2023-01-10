@@ -163,7 +163,7 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
 
   /* Quick return if possible */
 
-  if (k == 0) PetscFunctionReturn(0);
+  if (k == 0) PetscFunctionReturn(PETSC_SUCCESS);
 
   /* Modify values DLAMDA(i) to make sure all DLAMDA(i)-DLAMDA(j) can */
   /* be computed with high relative accuracy (barring over/underflow). */
@@ -312,6 +312,6 @@ L110:
       for (j=0;j<k;j++) for (i=0;i<n1;i++) q[i+j*ldq] = 0.0;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 

@@ -75,7 +75,7 @@ PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
   svd->OP   = A;
   svd->OPb  = B;
   svd->state = SVD_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -100,7 +100,7 @@ PetscErrorCode SVDGetOperators(SVD svd,Mat *A,Mat *B)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (A) *A = svd->OP;
   if (B) *B = svd->OPb;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -144,7 +144,7 @@ PetscErrorCode SVDSetSignature(SVD svd,Vec omega)
   PetscCall(VecDestroy(&svd->omega));
   svd->omega = omega;
   svd->state = SVD_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -168,7 +168,7 @@ PetscErrorCode SVDGetSignature(SVD svd,Vec *omega)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(omega,2);
   *omega = svd->omega;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -193,7 +193,7 @@ PetscErrorCode SVDSetDSType(SVD svd)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscTryTypeMethod(svd,setdstype);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -224,7 +224,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (svd->state) PetscFunctionReturn(0);
+  if (svd->state) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscLogEventBegin(SVD_SetUp,svd,0,0,0));
 
   /* reset the convergence flag from the previous solves */
@@ -371,7 +371,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   PetscCall(PetscLogEventEnd(SVD_SetUp,svd,0,0,0));
   svd->state = SVD_STATE_SETUP;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -427,7 +427,7 @@ PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec isr[],PetscInt nl,Vec
   PetscCall(SlepcBasisReference_Private(nr,isr,&svd->nini,&svd->IS));
   PetscCall(SlepcBasisReference_Private(nl,isl,&svd->ninil,&svd->ISL));
   if (nr>0 || nl>0) svd->state = SVD_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -457,7 +457,7 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
     }
   }
   if (svd->mpd==PETSC_DEFAULT) svd->mpd = svd->ncv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -525,5 +525,5 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
       PetscCall(VecDestroy(&tl));
     } else PetscCall(BVResize(svd->U,requested,PETSC_FALSE));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

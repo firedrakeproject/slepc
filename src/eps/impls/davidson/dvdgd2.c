@@ -26,7 +26,7 @@ static PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
   PetscFunctionBegin;
   /* Free local data and objects */
   PetscCall(PetscFree(data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
@@ -48,7 +48,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   /* Quick exit */
   if (max_size_D == 0 || r_e-r_s <= 0 || n == 0) {
    *size_D = 0;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   PetscCall(BVDuplicateResize(d->eps->V,4,&X));
@@ -173,7 +173,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   PetscCall(SlepcVecPoolRestoreVecs(d->auxV,n,&Ax));
   PetscCall(BVDestroy(&X));
   PetscCall(MatDestroy(&M));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs)
@@ -211,5 +211,5 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
 
     PetscCall(EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_gd2_d));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

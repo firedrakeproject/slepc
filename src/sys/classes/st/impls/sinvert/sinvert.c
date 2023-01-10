@@ -35,7 +35,7 @@ PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscS
     eigr[j] = 1.0 / eigr[j] + st->sigma;
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STPostSolve_Sinvert(ST st)
@@ -48,7 +48,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
     st->state   = ST_STATE_INITIAL;
     st->opready = PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -73,7 +73,7 @@ PetscErrorCode STComputeOperator_Sinvert(ST st)
   if (st->Psplit) {  /* build custom preconditioner from the split matrices */
     PetscCall(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STSetUp_Sinvert(ST st)
@@ -114,7 +114,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     }
   }
   if (st->P) PetscCall(KSPSetUp(st->ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
@@ -145,7 +145,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
     PetscCall(ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P));
     PetscCall(KSPSetUp(st->ksp));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode STCreate_Sinvert(ST st)
@@ -163,5 +163,5 @@ SLEPC_EXTERN PetscErrorCode STCreate_Sinvert(ST st)
   st->ops->postsolve       = STPostSolve_Sinvert;
   st->ops->checknullspace  = STCheckNullSpace_Default;
   st->ops->setdefaultksp   = STSetDefaultKSP_Default;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

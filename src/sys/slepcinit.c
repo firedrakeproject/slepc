@@ -39,7 +39,7 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
 #else
   PetscCall(PetscSNPrintf(version,len,"SLEPc Development GIT revision: %s  GIT Date: %s",SLEPC_VERSION_GIT,SLEPC_VERSION_DATE_GIT));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -72,7 +72,7 @@ PetscErrorCode SlepcGetVersionNumber(PetscInt *major,PetscInt *minor,PetscInt *s
   if (minor)    *minor    = SLEPC_VERSION_MINOR;
   if (subminor) *subminor = SLEPC_VERSION_SUBMINOR;
   if (release)  *release  = SLEPC_VERSION_RELEASE;
-  return 0;
+  return PETSC_SUCCESS;
 }
 
 /*
@@ -90,7 +90,7 @@ static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
   PetscCall((*PetscHelpPrintf)(comm,SLEPC_AUTHOR_INFO));
   PetscCall((*PetscHelpPrintf)(comm,"See docs/manual.html for help.\n"));
   PetscCall((*PetscHelpPrintf)(comm,"SLEPc libraries linked from %s\n",SLEPC_LIB_DIR));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -104,7 +104,7 @@ static PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
   PetscCall((*PetscHelpPrintf)(comm,"SLEPc help information includes that for the PETSc libraries, which provide\n"));
   PetscCall((*PetscHelpPrintf)(comm,"low-level system infrastructure and linear algebra tools.\n"));
   PetscCall((*PetscHelpPrintf)(comm,"----------------------------------------\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------Nasty global variables -------------------------------*/
@@ -127,7 +127,7 @@ static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
   PetscCall(PetscStrlcat(libs,name,sizeof(libs)));
   PetscCall(PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,sizeof(dlib),found));
   if (*found) PetscCall(PetscDLLibraryAppend(PETSC_COMM_WORLD,&PetscDLLibrariesLoaded,dlib));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -205,7 +205,7 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   PetscCall(KSPRegister(KSPHPDDM,KSPCreate_HPDDM));
   PetscCall(PCRegister(PCHPDDM,PCCreate_HPDDM));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SlepcCitationsInitialize(void)
@@ -228,7 +228,7 @@ PetscErrorCode SlepcCitationsInitialize(void)
     "   institution = \"D. Sistemes Inform\\`atics i Computaci\\'o, Universitat Polit\\`ecnica de Val\\`encia\",\n"
     "   year = \"2022\"\n"
     "}\n",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -257,7 +257,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   PetscBool      flg;
 
   PetscFunctionBegin;
-  if (SlepcInitializeCalled) PetscFunctionReturn(0);
+  if (SlepcInitializeCalled) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion));
   PetscCall(PetscInitialized(&flg));
   if (!flg) {
@@ -273,7 +273,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   SlepcInitializeCalled = PETSC_TRUE;
   SlepcFinalizeCalled   = PETSC_FALSE;
   PetscCall(PetscInfo(0,"SLEPc successfully started\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -301,9 +301,7 @@ PetscErrorCode SlepcFinalize(void)
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
-  /* To match PetscFunctionBegin() at the beginning of this function */
-  PetscStackClearTop;
-  return 0;
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -323,7 +321,7 @@ PetscErrorCode SlepcInitializeNoArguments(void)
 
   PetscFunctionBegin;
   PetscCall(SlepcInitialize(&argc,&args,NULL,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -340,7 +338,7 @@ PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
 {
   PetscFunctionBegin;
   *isInitialized = SlepcInitializeCalled;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -357,7 +355,7 @@ PetscErrorCode SlepcFinalized(PetscBool *isFinalized)
 {
   PetscFunctionBegin;
   *isFinalized = SlepcFinalizeCalled;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PETSC_EXTERN PetscBool PetscBeganMPI;
@@ -388,5 +386,5 @@ PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *file,c
   PetscCall(SlepcInitialize(&myargc,&myargs,file,help));
   PetscCall(PetscPopSignalHandler());
   PetscBeganMPI = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

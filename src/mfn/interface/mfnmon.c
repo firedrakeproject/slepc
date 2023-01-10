@@ -30,7 +30,7 @@ PetscErrorCode MFNMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscCall(PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric));
   PetscCall(PetscDrawDestroy(&draw));
   *lgctx = lg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -42,7 +42,7 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) PetscCall((*mfn->monitor[i])(mfn,it,errest,mfn->monitorcontext[i]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -89,7 +89,7 @@ PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN mfn,PetscInt 
   mfn->monitor[mfn->numbermonitors]           = monitor;
   mfn->monitorcontext[mfn->numbermonitors]    = (void*)mctx;
   mfn->monitordestroy[mfn->numbermonitors++]  = monitordestroy;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -119,7 +119,7 @@ PetscErrorCode MFNMonitorCancel(MFN mfn)
     if (mfn->monitordestroy[i]) PetscCall((*mfn->monitordestroy[i])(&mfn->monitorcontext[i]));
   }
   mfn->numbermonitors = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -143,7 +143,7 @@ PetscErrorCode MFNGetMonitorContext(MFN mfn,void *ctx)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   *(void**)ctx = mfn->monitorcontext[0];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -178,7 +178,7 @@ PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,PetscView
   PetscCall(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " MFN Error estimate %14.12e\n",its,(double)errest));
   PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel));
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -225,7 +225,7 @@ PetscErrorCode MFNMonitorDefaultDrawLG(MFN mfn,PetscInt its,PetscReal errest,Pet
     PetscCall(PetscDrawLGSave(lg));
   }
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -251,5 +251,5 @@ PetscErrorCode MFNMonitorDefaultDrawLGCreate(PetscViewer viewer,PetscViewerForma
   PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
   PetscCall(MFNMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

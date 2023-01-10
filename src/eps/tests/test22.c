@@ -223,7 +223,7 @@ PetscErrorCode MatMult_Brussel(Mat A,Vec x,Vec y)
   PetscCall(VecResetArray(ctx->x2));
   PetscCall(VecResetArray(ctx->y1));
   PetscCall(VecResetArray(ctx->y2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
@@ -248,7 +248,7 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
   PetscCall(VecDestroy(&d1));
   PetscCall(VecDestroy(&d2));
   PetscCall(VecRestoreArray(diag,&pd));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

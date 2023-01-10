@@ -65,7 +65,7 @@ static PetscErrorCode EPSSliceResetSR(EPS eps)
     PetscCall(PetscFree(sr));
   }
   ctx->sr = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
@@ -73,14 +73,14 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
-  if (!ctx->global) PetscFunctionReturn(0);
+  if (!ctx->global) PetscFunctionReturn(PETSC_SUCCESS);
   /* Reset auxiliary EPS */
   PetscCall(EPSSliceResetSR(ctx->eps));
   PetscCall(EPSReset(ctx->eps));
   PetscCall(EPSSliceResetSR(eps));
   PetscCall(PetscFree(ctx->inertias));
   PetscCall(PetscFree(ctx->shifts));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_KrylovSchur_Slice(EPS eps)
@@ -88,7 +88,7 @@ PetscErrorCode EPSDestroy_KrylovSchur_Slice(EPS eps)
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
-  if (!ctx->global) PetscFunctionReturn(0);
+  if (!ctx->global) PetscFunctionReturn(PETSC_SUCCESS);
   /* Destroy auxiliary EPS */
   PetscCall(EPSReset_KrylovSchur_Slice(eps));
   PetscCall(EPSDestroy(&ctx->eps));
@@ -105,7 +105,7 @@ PetscErrorCode EPSDestroy_KrylovSchur_Slice(EPS eps)
   }
   PetscCall(PetscFree(ctx->subintervals));
   PetscCall(PetscFree(ctx->nconv_loc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -149,7 +149,7 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   PetscCall(BVSetMatrix(sr->V,matrix,PETSC_FALSE));
   PetscCall(BVGetOrthogonalization(eps->V,&orthog_type,&orthog_ref,&eta,&ob_type));
   PetscCall(BVSetOrthogonalization(sr->V,orthog_type,orthog_ref,eta,ob_type));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSSliceGetEPS(EPS eps)
@@ -221,7 +221,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ctx->eps->eigi[i]   = 0.0;
     ctx->eps->errest[i] = 0.0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inertia,PetscInt *zeros)
@@ -255,7 +255,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
     PetscCall(MatGetInertia(F,inertia,zeros,NULL));
   }
   if (inertia) PetscCall(PetscInfo(eps,"Computed inertia at shift %g: %" PetscInt_FMT "\n",(double)nzshift,*inertia));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -264,7 +264,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
 static PetscErrorCode EPSBackTransform_Skip(EPS eps)
 {
   PetscFunctionBegin;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
@@ -475,7 +475,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     ctx->Bstate=0;
     ctx->Bid=0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSSliceGatherEigenVectors(EPS eps)
@@ -536,7 +536,7 @@ static PetscErrorCode EPSSliceGatherEigenVectors(EPS eps)
   }
   PetscCall(PetscFree2(idx1,idx2));
   PetscCall(VecDestroy(&vg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -551,7 +551,7 @@ PetscErrorCode EPSComputeVectors_Slice(EPS eps)
     PetscCall(EPSComputeVectors(ctx->eps));
     PetscCall(EPSSliceGatherEigenVectors(eps));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
@@ -606,7 +606,7 @@ static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts
       }
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSSliceGatherSolution(EPS eps)
@@ -695,7 +695,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
   PetscCall(PetscFree(disp));
   PetscCall(PetscFree(shifts_loc));
   PetscCall(PetscFree(inertias_loc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -712,7 +712,7 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS
   sr = ctx->sr;
   if ((neighb0 && val==neighb0->value) || (neighb1 && val==neighb1->value)) {
     sr->nPend++;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   PetscCall(PetscNew(&s));
   s->value = val;
@@ -736,7 +736,7 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS
     sr->pending = pending2;
   }
   sr->pending[sr->nPend++]=s;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Prepare for Rational Krylov update */
@@ -779,7 +779,7 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
   PetscCall(BVGetColumn(sr->Vnext,sr->nS,&v));
   PetscCall(BVCopyVec(eps->V,sr->nv,v));
   PetscCall(BVRestoreColumn(sr->Vnext,sr->nS,&v));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Provides next shift to be computed */
@@ -799,7 +799,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
       eps->its = 0;
       sr->nPend--;
       sr->sPres->rep = PETSC_TRUE;
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     }
     sr->sPrev = sr->sPres;
     sr->sPres = sr->pending[--sr->nPend];
@@ -820,7 +820,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
     eps->reason = EPS_CONVERGED_ITERATING;
     eps->its = 0;
   } else sr->sPres = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -994,7 +994,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   PetscCall(PetscInfo(eps,"Lanczos: %" PetscInt_FMT " evals in [%g,%g]%s and %" PetscInt_FMT " evals in [%g,%g]%s\n",count0,(double)(sr->dir==1?sPres->ext[0]:sPres->value),(double)(sr->dir==1?sPres->value:sPres->ext[0]),sPres->comp[0]?"*":"",count1,(double)(sr->dir==1?sPres->value:sPres->ext[1]),(double)(sr->dir==1?sPres->ext[1]:sPres->value),sPres->comp[1]?"*":""));
   PetscCheck(count0<=sPres->nsch[0] && count1<=sPres->nsch[1],PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",ctx->detect?"":", consider using EPSKrylovSchurSetDetectZeros()");
   PetscCall(PetscFree(iwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1067,7 +1067,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
     /* End of interval can not be surpassed */
     if ((sr->dir)*(sr->int1 - *newS) < 0) *newS = sr->int1;
   }/* of neighb[side]==null */
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1088,7 +1088,7 @@ static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Stores the pairs obtained since the last shift in the global arrays */
@@ -1137,7 +1137,7 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
   sr->indexEig = count;
   /* Global ordering array updating */
   PetscCall(sortRealEigenvalues(sr->eigr,sr->perm,count,PETSC_TRUE,sr->dir));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLookForDeflation(EPS eps)
@@ -1204,7 +1204,7 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   PetscCall(BVDestroy(&eps->V));
   eps->V = sr->Vnext;
   sr->Vnext = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
@@ -1253,7 +1253,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     /* Only with eigenvalues present in the interval ...*/
     if (sr->numEigs==0) {
       eps->reason = EPS_CONVERGED_TOL;
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     }
     /* Array of pending shifts */
     sr->maxPend = 100; /* Initial size */
@@ -1321,5 +1321,5 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       }
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

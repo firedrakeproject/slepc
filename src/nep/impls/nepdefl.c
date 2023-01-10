@@ -17,7 +17,7 @@ PetscErrorCode NEPDeflationGetInvariantPair(NEP_EXT_OP extop,BV *X,Mat *H)
   PetscFunctionBegin;
   if (X) *X = extop->X;
   if (H) PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,extop->szd+1,extop->szd+1,extop->H,H));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationExtendInvariantPair(NEP_EXT_OP extop,Vec u,PetscScalar lambda,PetscInt k)
@@ -37,7 +37,7 @@ PetscErrorCode NEPDeflationExtendInvariantPair(NEP_EXT_OP extop,Vec u,PetscScala
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)u),&np));
   for (i=0;i<k;i++) extop->H[k*ld+i] *= PetscSqrtReal(np)/norm;
   extop->H[k*(ld+1)] = lambda;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationExtractEigenpair(NEP_EXT_OP extop,PetscInt k,Vec u,PetscScalar lambda,DS ds)
@@ -70,7 +70,7 @@ PetscErrorCode NEPDeflationExtractEigenpair(NEP_EXT_OP extop,PetscInt k,Vec u,Pe
   PetscCall(NEPDeflationCopyToExtendedVec(extop,x,t,u,PETSC_FALSE));
   PetscCall(BVRestoreColumn(extop->X,k,&x));
   PetscCall(PetscFree3(eigr,eigi,t));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP extop,Vec v,PetscScalar *a,Vec vex,PetscBool back)
@@ -109,7 +109,7 @@ PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP extop,Vec v,PetscScalar 
     if (back) PetscCall(VecCopy(vex,v));
     else PetscCall(VecCopy(v,vex));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationCreateVec(NEP_EXT_OP extop,Vec *v)
@@ -129,7 +129,7 @@ PetscErrorCode NEPDeflationCreateVec(NEP_EXT_OP extop,Vec *v)
     nloc += extop->szd;
     PetscCall(VecSetSizes(*v,nloc,PETSC_DECIDE));
   } else PetscCall(BVCreateVec(extop->nep->V,v));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationCreateBV(NEP_EXT_OP extop,PetscInt sz,BV *V)
@@ -153,7 +153,7 @@ PetscErrorCode NEPDeflationCreateBV(NEP_EXT_OP extop,PetscInt sz,BV *V)
     PetscCall(BVSetOrthogonalization(*V,otype,oref,oeta,oblock));
     PetscCall(PetscObjectStateIncrease((PetscObject)*V));
   } else PetscCall(BVDuplicateResize(nep->V,sz,V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP extop,Vec v)
@@ -177,7 +177,7 @@ PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP extop,Vec v)
     PetscCallMPI(MPI_Bcast(array+n,nn,MPIU_SCALAR,0,PetscObjectComm((PetscObject)v)));
     PetscCall(VecRestoreArray(v,&array));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationEvaluateBasisMat(NEP_EXT_OP extop,PetscInt idx,PetscBool hat,PetscScalar *bval,PetscScalar *Hj,PetscScalar *Hjprev)
@@ -210,7 +210,7 @@ static PetscErrorCode NEPDeflationEvaluateBasisMat(NEP_EXT_OP extop,PetscInt idx
       if (hat) for (i=0;i<n;i++) Hj[i*(ldhj+1)] += bval[k-1];
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationLocking(NEP_EXT_OP extop,Vec u,PetscScalar lambda)
@@ -233,7 +233,7 @@ PetscErrorCode NEPDeflationLocking(NEP_EXT_OP extop,Vec u,PetscScalar lambda)
     /* evaluate the polynomial basis in H */
     PetscCall(NEPDeflationEvaluateBasisMat(extop,-extop->midx,PETSC_FALSE,NULL,extop->Hj,NULL));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationEvaluateHatFunction(NEP_EXT_OP extop, PetscInt idx,PetscScalar lambda,PetscScalar *y,PetscScalar *hfj,PetscScalar *hfjp,PetscInt ld)
@@ -290,7 +290,7 @@ static PetscErrorCode NEPDeflationEvaluateHatFunction(NEP_EXT_OP extop, PetscInt
   }
   PetscCall(MatDestroy(&A));
   PetscCall(MatDestroy(&B));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_NEPDeflation(Mat M,Vec x,Vec y)
@@ -333,7 +333,7 @@ static PetscErrorCode MatMult_NEPDeflation(Mat M,Vec x,Vec y)
     PetscCall(VecResetArray(y1));
     PetscCall(VecRestoreArray(y,&yy));
   } else PetscCall(MatMult(matctx->T,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatCreateVecs_NEPDeflation(Mat M,Vec *right,Vec *left)
@@ -344,7 +344,7 @@ static PetscErrorCode MatCreateVecs_NEPDeflation(Mat M,Vec *right,Vec *left)
   PetscCall(MatShellGetContext(M,&matctx));
   if (right) PetscCall(VecDuplicate(matctx->w[0],right));
   if (left) PetscCall(VecDuplicate(matctx->w[0],left));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_NEPDeflation(Mat M)
@@ -363,7 +363,7 @@ static PetscErrorCode MatDestroy_NEPDeflation(Mat M)
   if (matctx->P != matctx->T) PetscCall(MatDestroy(&matctx->P));
   PetscCall(MatDestroy(&matctx->T));
   PetscCall(PetscFree(matctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationEvaluateBasis(NEP_EXT_OP extop,PetscScalar lambda,PetscInt n,PetscScalar *val,PetscBool jacobian)
@@ -383,7 +383,7 @@ static PetscErrorCode NEPDeflationEvaluateBasis(NEP_EXT_OP extop,PetscScalar lam
       p *= (lambda-extop->bc[i-1]);
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar lambda,PetscBool jacobian,Mat *M)
@@ -516,7 +516,7 @@ static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar l
     matctx->theta = lambda;
     matctx->n = extop->n;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationComputeFunction(NEP_EXT_OP extop,PetscScalar lambda,Mat *F)
@@ -524,7 +524,7 @@ PetscErrorCode NEPDeflationComputeFunction(NEP_EXT_OP extop,PetscScalar lambda,M
   PetscFunctionBegin;
   PetscCall(NEPDeflationComputeShellMat(extop,lambda,PETSC_FALSE,NULL));
   if (F) *F = extop->MF;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationComputeJacobian(NEP_EXT_OP extop,PetscScalar lambda,Mat *J)
@@ -532,7 +532,7 @@ PetscErrorCode NEPDeflationComputeJacobian(NEP_EXT_OP extop,PetscScalar lambda,M
   PetscFunctionBegin;
   PetscCall(NEPDeflationComputeShellMat(extop,lambda,PETSC_TRUE,NULL));
   if (J) *J = extop->MJ;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP extop,PetscScalar lambda)
@@ -590,7 +590,7 @@ PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP extop,PetscScalar lambda)
     solve->theta = lambda;
     solve->n = n;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
@@ -647,14 +647,14 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
     PetscCall(VecRestoreArray(b,&bb));
     if (!extop->ref && extop->n) PetscCall(PetscFree2(b2,x2));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationSetRefine(NEP_EXT_OP extop,PetscBool ref)
 {
   PetscFunctionBegin;
   extop->ref = ref;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationReset(NEP_EXT_OP extop)
@@ -663,7 +663,7 @@ PetscErrorCode NEPDeflationReset(NEP_EXT_OP extop)
   NEP_DEF_FUN_SOLVE solve;
 
   PetscFunctionBegin;
-  if (!extop) PetscFunctionReturn(0);
+  if (!extop) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscFree(extop->H));
   PetscCall(BVDestroy(&extop->X));
   if (extop->szd) {
@@ -695,7 +695,7 @@ PetscErrorCode NEPDeflationReset(NEP_EXT_OP extop)
     PetscCall(PetscFree(extop->proj));
   }
   PetscCall(PetscFree(extop));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscBool sincfun,PetscInt sz,NEP_EXT_OP *extop)
@@ -744,7 +744,7 @@ PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscBool sincfun,Pet
       PetscCall(VecDuplicate(solve->w[0],&solve->w[1]));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
@@ -851,7 +851,7 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
     PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&nv_,&nv_,&n_,&sone,proj->V2,&szd_,w,&szd_,&sone,T,&ldds_));
     PetscCall(DSRestoreArray(ds,mat,&T));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDeflationProjectOperator(NEP_EXT_OP extop,BV Vext,DS ds,PetscInt j0,PetscInt j1)
@@ -915,5 +915,5 @@ PetscErrorCode NEPDeflationProjectOperator(NEP_EXT_OP extop,BV Vext,DS ds,PetscI
       PetscCall(BVDot(V1,extop->X,proj->XpV1));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

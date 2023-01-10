@@ -186,7 +186,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   PetscFunctionBeginUser;
   PetscCall(MatShellGetContext(fun,&ctxF));
   ctxF->lambda = lambda;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -208,7 +208,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   PetscFunctionBeginUser;
   PetscCall(MatShellGetContext(jac,&ctxJ));
   ctxJ->lambda = lambda;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -244,7 +244,7 @@ PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -266,7 +266,7 @@ PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
   PetscCall(VecGetArray(diag,&pd));
   pd[n-1] = d-ctx->lambda*h/3.0+ctx->lambda*c;
   PetscCall(VecRestoreArray(diag,&pd));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -277,7 +277,7 @@ PetscErrorCode MatDestroy_Fun(Mat A)
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(A,&ctx));
   PetscCall(PetscFree(ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -305,7 +305,7 @@ PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   PetscCall(MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun));
   PetscCall(MatShellSetOperation(*B,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun));
   PetscCall(MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Fun));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -339,7 +339,7 @@ PetscErrorCode MatMult_Jac(Mat A,Vec x,Vec y)
 
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -359,7 +359,7 @@ PetscErrorCode MatGetDiagonal_Jac(Mat A,Vec diag)
   PetscCall(VecGetArray(diag,&pd));
   pd[n-1] = -h/3.0-c*c;
   PetscCall(VecRestoreArray(diag,&pd));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -370,7 +370,7 @@ PetscErrorCode MatDestroy_Jac(Mat A)
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(A,&ctx));
   PetscCall(PetscFree(ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

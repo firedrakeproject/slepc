@@ -70,7 +70,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps,PetscOptionItems *PetscOptionsObject
     if (flg) PetscCall(EPSJDSetConstCorrectionTol(eps,op));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetDefaultST_JD(EPS eps)
@@ -87,7 +87,7 @@ PetscErrorCode EPSSetDefaultST_JD(EPS eps)
     PetscCall(KSPSetType(ksp,KSPBCGSL));
     PetscCall(KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetUp_JD(EPS eps)
@@ -103,7 +103,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   PetscCall(STGetKSP(eps->st,&ksp));
   PetscCall(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t));
   PetscCheck(!t,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSJD does not work with KSPPREONLY");
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
@@ -133,7 +133,7 @@ PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
     PetscCall(EPSJDGetConstCorrectionTol_JD(eps,&opb));
     if (!opb) PetscCall(PetscViewerASCIIPrintf(viewer,"  using dynamic tolerance for the correction equation\n"));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_JD(EPS eps)
@@ -154,7 +154,7 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -181,7 +181,7 @@ PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,krylovstart,2);
   PetscTryMethod(eps,"EPSJDSetKrylovStart_C",(EPS,PetscBool),(eps,krylovstart));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -207,7 +207,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(krylovstart,2);
   PetscUseMethod(eps,"EPSJDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -233,7 +233,7 @@ PetscErrorCode EPSJDSetBlockSize(EPS eps,PetscInt blocksize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,blocksize,2);
   PetscTryMethod(eps,"EPSJDSetBlockSize_C",(EPS,PetscInt),(eps,blocksize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -258,7 +258,7 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(blocksize,2);
   PetscUseMethod(eps,"EPSJDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -287,7 +287,7 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscValidLogicalCollectiveInt(eps,minv,2);
   PetscValidLogicalCollectiveInt(eps,plusk,3);
   PetscTryMethod(eps,"EPSJDSetRestart_C",(EPS,PetscInt,PetscInt),(eps,minv,plusk));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -312,7 +312,7 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscUseMethod(eps,"EPSJDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -345,7 +345,7 @@ PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,initialsize,2);
   PetscTryMethod(eps,"EPSJDSetInitialSize_C",(EPS,PetscInt),(eps,initialsize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -377,7 +377,7 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(initialsize,2);
   PetscUseMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
@@ -388,7 +388,7 @@ PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
   if (fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
   PetscCheck(fix>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value, must be >0");
   data->fix = fix;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -419,7 +419,7 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,fix,2);
   PetscTryMethod(eps,"EPSJDSetFix_C",(EPS,PetscReal),(eps,fix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSJDGetFix_JD(EPS eps,PetscReal *fix)
@@ -428,7 +428,7 @@ PetscErrorCode EPSJDGetFix_JD(EPS eps,PetscReal *fix)
 
   PetscFunctionBegin;
   *fix = data->fix;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -458,7 +458,7 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidRealPointer(fix,2);
   PetscUseMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
@@ -467,7 +467,7 @@ PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
 
   PetscFunctionBegin;
   data->dynamic = PetscNot(constant);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -494,7 +494,7 @@ PetscErrorCode EPSJDSetConstCorrectionTol(EPS eps,PetscBool constant)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,constant,2);
   PetscTryMethod(eps,"EPSJDSetConstCorrectionTol_C",(EPS,PetscBool),(eps,constant));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
@@ -503,7 +503,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
 
   PetscFunctionBegin;
   *constant = PetscNot(data->dynamic);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -532,7 +532,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(constant,2);
   PetscUseMethod(eps,"EPSJDGetConstCorrectionTol_C",(EPS,PetscBool*),(eps,constant));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -558,7 +558,7 @@ PetscErrorCode EPSJDSetBOrth(EPS eps,PetscBool borth)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,borth,2);
   PetscTryMethod(eps,"EPSJDSetBOrth_C",(EPS,PetscBool),(eps,borth));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -583,7 +583,7 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(borth,2);
   PetscUseMethod(eps,"EPSJDGetBOrth_C",(EPS,PetscBool*),(eps,borth));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
@@ -631,5 +631,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",EPSJDGetConstCorrectionTol_JD));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",EPSXDSetBOrth_XD));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",EPSXDGetBOrth_XD));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

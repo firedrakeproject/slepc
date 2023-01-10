@@ -148,7 +148,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
   h = 11.0/(*maxnp-1);
   xi[0] = -1e-5; xi[*maxnp-1] = -1e+6;
   for (i=1;i<*maxnp-1;i++) xi[i] = -PetscPowReal(10,-5+h*i);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

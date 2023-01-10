@@ -262,7 +262,7 @@ static PetscErrorCode QEPDefiniteTransformMap_Initial(PetscBool hyperbolic,Petsc
     else if (val[i] == -d/c) val[i] = PETSC_MAX_REAL;
     else val[i] = (a*val[i]+b)/(c*val[i]+d);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -283,7 +283,7 @@ PetscErrorCode QEPDefiniteTransformMap(PetscBool hyperbolic,PetscReal xi,PetscRe
     xit = PetscRealPart(alpha);
   }
   PetscCall(QEPDefiniteTransformMap_Initial(hyperbolic,xit,mu,n,val,backtransform));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -314,7 +314,7 @@ PetscErrorCode TransformMatricesMoebius(Mat A[3],MatStructure str,PetscReal a,Pe
     PetscCall(MatScale(B[k],cf[k*3+2]));
     for (i=0;i<2;i++) PetscCall(MatAXPY(B[k],cf[3*k+i],A[i],str));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -349,7 +349,7 @@ PetscErrorCode QEPDefiniteTransformGetMatrices(PEP pep,PetscBool hyperbolic,Pets
   PetscCall(PEPGetST(pep,&st));
   PetscCall(STGetMatStructure(st,&str));
   PetscCall(TransformMatricesMoebius(A,str,a,b,c,d,T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -415,7 +415,7 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
     *norm = SlepcAbsEigenvalue(*norm,ni);
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -464,7 +464,7 @@ PetscErrorCode QEPDefiniteCheckError(Mat *A,PEP pep,PetscBool hyperbolic,PetscRe
   for (i=0;i<4;i++) PetscCall(VecDestroy(w+i));
   PetscCall(VecDestroy(&vi));
   PetscCall(VecDestroy(&vr));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

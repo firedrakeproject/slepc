@@ -41,7 +41,7 @@ PetscErrorCode PEPFinalizePackage(void)
   PEPPackageInitialized       = PETSC_FALSE;
   PEPRegisterAllCalled        = PETSC_FALSE;
   PEPMonitorRegisterAllCalled = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -60,7 +60,7 @@ PetscErrorCode PEPInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (PEPPackageInitialized) PetscFunctionReturn(0);
+  if (PEPPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   PEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("PEP Solver",&PEP_CLASSID));
@@ -84,7 +84,7 @@ PetscErrorCode PEPInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(PEPFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
@@ -99,6 +99,6 @@ SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcpep(void)
 {
   PetscFunctionBegin;
   PetscCall(PEPInitializePackage());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

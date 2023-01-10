@@ -56,7 +56,7 @@ static PetscErrorCode EPSSetUp_Subspace_Filter(EPS eps)
   if (eps->ncv==PETSC_DEFAULT && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
   PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
   PetscCheck(eps->ncv<=eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetUp_Subspace(EPS eps)
@@ -83,7 +83,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   if (eps->ishermitian) PetscCall(DSSetType(eps->ds,DSHEP));
   else PetscCall(DSSetType(eps->ds,DSNHEP));
   PetscCall(DSAllocate(eps->ds,eps->ncv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetUpSort_Subspace(EPS eps)
@@ -100,7 +100,7 @@ PetscErrorCode EPSSetUpSort_Subspace(EPS eps)
     sc->map           = NULL;
     sc->mapobj        = NULL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -147,7 +147,7 @@ static PetscErrorCode EPSSubspaceFindGroup(PetscInt l,PetscInt m,PetscScalar *wr
     *ae = *ae / *ngrp;
     *arsd = PetscSqrtReal(*arsd / *ngrp);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -172,7 +172,7 @@ static PetscErrorCode EPSSubspaceResidualNorms(BV R,BV V,Mat T,PetscInt l,PetscI
     }
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_Subspace(EPS eps)
@@ -332,14 +332,14 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   PetscCall(BVDestroy(&R));
   PetscCall(STRestoreOperator(eps->st,&S));
   PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_Subspace(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
@@ -359,5 +359,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
   eps->ops->destroy        = EPSDestroy_Subspace;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

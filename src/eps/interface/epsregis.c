@@ -62,7 +62,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS);
 PetscErrorCode EPSRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (EPSRegisterAllCalled) PetscFunctionReturn(0);
+  if (EPSRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   EPSRegisterAllCalled = PETSC_TRUE;
   PetscCall(EPSRegister(EPSPOWER,EPSCreate_Power));
   PetscCall(EPSRegister(EPSSUBSPACE,EPSCreate_Subspace));
@@ -103,7 +103,7 @@ PetscErrorCode EPSRegisterAll(void)
 #if defined(SLEPC_HAVE_EVSL)
   PetscCall(EPSRegister(EPSEVSL,EPSCreate_EVSL));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -118,7 +118,7 @@ PetscErrorCode EPSRegisterAll(void)
 PetscErrorCode EPSMonitorRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (EPSMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  if (EPSMonitorRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   EPSMonitorRegisterAllCalled = PETSC_TRUE;
 
   PetscCall(EPSMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorFirst,NULL,NULL));
@@ -127,5 +127,5 @@ PetscErrorCode EPSMonitorRegisterAll(void)
   PetscCall(EPSMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorAllDrawLG,EPSMonitorAllDrawLGCreate,NULL));
   PetscCall(EPSMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorConverged,EPSMonitorConvergedCreate,EPSMonitorConvergedDestroy));
   PetscCall(EPSMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorConvergedDrawLG,EPSMonitorConvergedDrawLGCreate,EPSMonitorConvergedDestroy));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

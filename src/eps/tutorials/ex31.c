@@ -139,7 +139,7 @@ PetscErrorCode dq2ri(PetscScalar Fd,PetscScalar Fq,PetscScalar delta,PetscScalar
   PetscFunctionBegin;
   *Fr =  Fd*PetscSinScalar(delta) + Fq*PetscCosScalar(delta);
   *Fi = -Fd*PetscCosScalar(delta) + Fq*PetscSinScalar(delta);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Converts from network frame ([phase a real,imag) to machine (dq) reference frame */
@@ -148,7 +148,7 @@ PetscErrorCode ri2dq(PetscScalar Fr,PetscScalar Fi,PetscScalar delta,PetscScalar
   PetscFunctionBegin;
   *Fd =  Fr*PetscSinScalar(delta) - Fi*PetscCosScalar(delta);
   *Fq =  Fr*PetscCosScalar(delta) + Fi*PetscSinScalar(delta);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SetInitialGuess(Vec X,Userctx *user)
@@ -232,7 +232,7 @@ PetscErrorCode SetInitialGuess(Vec X,Userctx *user)
   /* PetscCall(VecView(Xgen,0)); */
   PetscCall(DMCompositeGather(user->dmpgrid,INSERT_VALUES,X,Xgen,Xnet));
   PetscCall(DMCompositeRestoreLocalVectors(user->dmpgrid,&Xgen,&Xnet));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PreallocateJacobian(Mat J,Userctx *user)
@@ -276,7 +276,7 @@ PetscErrorCode PreallocateJacobian(Mat J,Userctx *user)
   PetscCall(MatSeqAIJSetPreallocation(J,0,d_nnz));
 
   PetscCall(PetscFree(d_nnz));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -507,7 +507,7 @@ PetscErrorCode ResidualJacobian(Vec X,Mat J,void *ctx)
 
   PetscCall(MatAssemblyBegin(J,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(J,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

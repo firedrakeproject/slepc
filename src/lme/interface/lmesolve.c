@@ -66,7 +66,7 @@ PetscErrorCode LMESolve(LME lme)
   PetscCall(MatViewFromOptions(lme->A,(PetscObject)lme,"-lme_view_mat"));
   PetscCall(MatViewFromOptions(lme->C,(PetscObject)lme,"-lme_view_rhs"));
   PetscCall(MatViewFromOptions(lme->X,(PetscObject)lme,"-lme_view_solution"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -99,7 +99,7 @@ PetscErrorCode LMEGetIterationNumber(LME lme,PetscInt *its)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidIntPointer(its,2);
   *its = lme->its;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -133,7 +133,7 @@ PetscErrorCode LMEGetConvergedReason(LME lme,LMEConvergedReason *reason)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidIntPointer(reason,2);
   *reason = lme->reason;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -162,7 +162,7 @@ PetscErrorCode LMEGetErrorEstimate(LME lme,PetscReal *errest)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidRealPointer(errest,2);
   *errest = lme->errest;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -272,7 +272,7 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   PetscCall(MatDestroy(&R));
   PetscCall(BVDestroy(&C1));
   PetscCall(BVDestroy(&X1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -315,5 +315,5 @@ PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
   /* compute error */
   /* currently we only support absolute error, so just return the norm */
   PetscCall(PetscLogEventEnd(LME_ComputeError,lme,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

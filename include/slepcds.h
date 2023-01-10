@@ -203,7 +203,7 @@ PETSC_DEPRECATED_FUNCTION("Use DSGetMat()+MatDenseGetSubMatrix()+MatCopy()") sta
   PetscCall(MatDenseRestoreSubMatrix(M,&M0));
   PetscCall(MatDenseRestoreSubMatrix(A,&A0));
   PetscCall(DSRestoreMat(ds,m,&M));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 SLEPC_EXTERN PetscErrorCode DSMatGetSize(DS,DSMatType,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSMatIsHermitian(DS,DSMatType,PetscBool*);

@@ -184,7 +184,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     } else PetscCall(KSPView(pep->refineksp,viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -206,7 +206,7 @@ PetscErrorCode PEPViewFromOptions(PEP pep,PetscObject obj,const char name[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscCall(PetscObjectViewFromOptions((PetscObject)pep,obj,name));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -246,7 +246,7 @@ PetscErrorCode PEPConvergedReasonView(PEP pep,PetscViewer viewer)
     else if (pep->reason <= 0) PetscCall(PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its));
     PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)pep)->tablevel));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -270,7 +270,7 @@ PetscErrorCode PEPConvergedReasonViewFromOptions(PEP pep)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
+  if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_converged_reason",&viewer,&format,&flg));
   if (flg) {
@@ -280,7 +280,7 @@ PetscErrorCode PEPConvergedReasonViewFromOptions(PEP pep)
     PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPErrorView_ASCII(PEP pep,PEPErrorType etype,PetscViewer viewer)
@@ -292,17 +292,17 @@ static PetscErrorCode PEPErrorView_ASCII(PEP pep,PEPErrorType etype,PetscViewer 
   nvals = (pep->which==PEP_ALL)? pep->nconv: pep->nev;
   if (pep->which!=PEP_ALL && pep->nconv<pep->nev) {
     PetscCall(PetscViewerASCIIPrintf(viewer," Problem: less than %" PetscInt_FMT " eigenvalues converged\n\n",pep->nev));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   if (pep->which==PEP_ALL && !nvals) {
     PetscCall(PetscViewerASCIIPrintf(viewer," No eigenvalues have been found\n\n"));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   for (i=0;i<nvals;i++) {
     PetscCall(PEPComputeError(pep,i,etype,&error));
     if (error>=5.0*pep->tol) {
       PetscCall(PetscViewerASCIIPrintf(viewer," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nvals));
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     }
   }
   if (pep->which==PEP_ALL) PetscCall(PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals));
@@ -316,7 +316,7 @@ static PetscErrorCode PEPErrorView_ASCII(PEP pep,PEPErrorType etype,PetscViewer 
     }
   }
   PetscCall(PetscViewerASCIIPrintf(viewer,"\n\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPErrorView_DETAIL(PEP pep,PEPErrorType etype,PetscViewer viewer)
@@ -327,7 +327,7 @@ static PetscErrorCode PEPErrorView_DETAIL(PEP pep,PEPErrorType etype,PetscViewer
   char           ex[30],sep[]=" ---------------------- --------------------\n";
 
   PetscFunctionBegin;
-  if (!pep->nconv) PetscFunctionReturn(0);
+  if (!pep->nconv) PetscFunctionReturn(PETSC_SUCCESS);
   switch (etype) {
     case PEP_ERROR_ABSOLUTE:
       PetscCall(PetscSNPrintf(ex,sizeof(ex),"   ||P(k)x||"));
@@ -354,7 +354,7 @@ static PetscErrorCode PEPErrorView_DETAIL(PEP pep,PEPErrorType etype,PetscViewer
     else PetscCall(PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error));
   }
   PetscCall(PetscViewerASCIIPrintf(viewer,"%s",sep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPErrorView_MATLAB(PEP pep,PEPErrorType etype,PetscViewer viewer)
@@ -371,7 +371,7 @@ static PetscErrorCode PEPErrorView_MATLAB(PEP pep,PEPErrorType etype,PetscViewer
     PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)error));
   }
   PetscCall(PetscViewerASCIIPrintf(viewer,"];\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -412,7 +412,7 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
   PetscCheckSameComm(pep,1,viewer,3);
   PEPCheckSolved(pep,1);
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (!isascii) PetscFunctionReturn(0);
+  if (!isascii) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetFormat(viewer,&format));
   switch (format) {
@@ -429,7 +429,7 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
     default:
       PetscCall(PetscInfo(pep,"Unsupported viewer format %s\n",PetscViewerFormats[format]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -453,7 +453,7 @@ PetscErrorCode PEPErrorViewFromOptions(PEP pep)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
+  if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_error_absolute",&viewer,&format,&flg));
   if (flg) {
@@ -477,7 +477,7 @@ PetscErrorCode PEPErrorViewFromOptions(PEP pep)
     PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPValuesView_DRAW(PEP pep,PetscViewer viewer)
@@ -488,7 +488,7 @@ static PetscErrorCode PEPValuesView_DRAW(PEP pep,PetscViewer viewer)
   PetscInt       i,k;
 
   PetscFunctionBegin;
-  if (!pep->nconv) PetscFunctionReturn(0);
+  if (!pep->nconv) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscViewerDrawGetDraw(viewer,0,&draw));
   PetscCall(PetscDrawSetTitle(draw,"Computed Eigenvalues"));
   PetscCall(PetscDrawSPCreate(draw,1,&drawsp));
@@ -506,7 +506,7 @@ static PetscErrorCode PEPValuesView_DRAW(PEP pep,PetscViewer viewer)
   PetscCall(PetscDrawSPDraw(drawsp,PETSC_TRUE));
   PetscCall(PetscDrawSPSave(drawsp));
   PetscCall(PetscDrawSPDestroy(&drawsp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPValuesView_BINARY(PEP pep,PetscViewer viewer)
@@ -530,7 +530,7 @@ static PetscErrorCode PEPValuesView_BINARY(PEP pep,PetscViewer viewer)
   PetscCall(PetscViewerBinaryWrite(viewer,ev,pep->nconv,PETSC_COMPLEX));
   PetscCall(PetscFree(ev));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_HDF5)
@@ -575,7 +575,7 @@ static PetscErrorCode PEPValuesView_HDF5(PEP pep,PetscViewer viewer)
   PetscCall(VecView(v,viewer));
 #endif
   PetscCall(VecDestroy(&v));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -592,7 +592,7 @@ static PetscErrorCode PEPValuesView_ASCII(PEP pep,PetscViewer viewer)
     PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
   }
   PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPValuesView_MATLAB(PEP pep,PetscViewer viewer)
@@ -617,7 +617,7 @@ static PetscErrorCode PEPValuesView_MATLAB(PEP pep,PetscViewer viewer)
     else PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)re));
   }
   PetscCall(PetscViewerASCIIPrintf(viewer,"];\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -676,7 +676,7 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
         PetscCall(PetscInfo(pep,"Unsupported viewer format %s\n",PetscViewerFormats[format]));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -700,7 +700,7 @@ PetscErrorCode PEPValuesViewFromOptions(PEP pep)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
+  if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_view_values",&viewer,&format,&flg));
   if (flg) {
@@ -710,7 +710,7 @@ PetscErrorCode PEPValuesViewFromOptions(PEP pep)
     PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -761,7 +761,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
     PetscCall(VecDestroy(&xi));
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -785,7 +785,7 @@ PetscErrorCode PEPVectorsViewFromOptions(PEP pep)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
+  if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_view_vectors",&viewer,&format,&flg));
   if (flg) {
@@ -795,5 +795,5 @@ PetscErrorCode PEPVectorsViewFromOptions(PEP pep)
     PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

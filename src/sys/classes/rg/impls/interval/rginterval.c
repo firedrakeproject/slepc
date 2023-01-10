@@ -37,7 +37,7 @@ static PetscErrorCode RGIntervalSetEndpoints_Interval(RG rg,PetscReal a,PetscRea
   ctx->b = b;
   ctx->c = c;
   ctx->d = d;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -76,7 +76,7 @@ PetscErrorCode RGIntervalSetEndpoints(RG rg,PetscReal a,PetscReal b,PetscReal c,
   PetscValidLogicalCollectiveReal(rg,c,4);
   PetscValidLogicalCollectiveReal(rg,d,5);
   PetscTryMethod(rg,"RGIntervalSetEndpoints_C",(RG,PetscReal,PetscReal,PetscReal,PetscReal),(rg,a,b,c,d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode RGIntervalGetEndpoints_Interval(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
@@ -88,7 +88,7 @@ static PetscErrorCode RGIntervalGetEndpoints_Interval(RG rg,PetscReal *a,PetscRe
   if (b) *b = ctx->b;
   if (c) *c = ctx->c;
   if (d) *d = ctx->d;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -114,7 +114,7 @@ PetscErrorCode RGIntervalGetEndpoints(RG rg,PetscReal *a,PetscReal *b,PetscReal 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscUseMethod(rg,"RGIntervalGetEndpoints_C",(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,a,b,c,d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
@@ -155,7 +155,7 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
     PetscCall(PetscDrawSave(draw));
     PetscCall(PetscDrawPause(draw));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
@@ -165,7 +165,7 @@ PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
   PetscFunctionBegin;
   if (rg->complement) *trivial = (ctx->a==ctx->b && ctx->c==ctx->d)? PETSC_TRUE: PETSC_FALSE;
   else *trivial = (ctx->a<=-PETSC_MAX_REAL && ctx->b>=PETSC_MAX_REAL && ctx->c<=-PETSC_MAX_REAL && ctx->d>=PETSC_MAX_REAL)? PETSC_TRUE: PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
@@ -229,7 +229,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
 #endif
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGComputeBoundingBox_Interval(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
@@ -241,7 +241,7 @@ PetscErrorCode RGComputeBoundingBox_Interval(RG rg,PetscReal *a,PetscReal *b,Pet
   if (b) *b = ctx->b;
   if (c) *c = ctx->c;
   if (d) *d = ctx->d;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGComputeQuadrature_Interval(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
@@ -286,7 +286,7 @@ PetscErrorCode RGComputeQuadrature_Interval(RG rg,RGQuadRule quad,PetscInt n,Pet
     }
     for (i=0;i<n;i++) w[i] /= (PetscScalar)max_w;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *inside)
@@ -302,7 +302,7 @@ PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *
     else if (dy==ctx->c || dy==ctx->d) *inside = 0;
     else *inside = -1;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGIsAxisymmetric_Interval(RG rg,PetscBool vertical,PetscBool *symm)
@@ -312,7 +312,7 @@ PetscErrorCode RGIsAxisymmetric_Interval(RG rg,PetscBool vertical,PetscBool *sym
   PetscFunctionBegin;
   if (vertical) *symm = (ctx->a == -ctx->b)? PETSC_TRUE: PETSC_FALSE;
   else *symm = (ctx->c == -ctx->d)? PETSC_TRUE: PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGSetFromOptions_Interval(RG rg,PetscOptionItems *PetscOptionsObject)
@@ -332,7 +332,7 @@ PetscErrorCode RGSetFromOptions_Interval(RG rg,PetscOptionItems *PetscOptionsObj
     }
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGDestroy_Interval(RG rg)
@@ -341,7 +341,7 @@ PetscErrorCode RGDestroy_Interval(RG rg)
   PetscCall(PetscFree(rg->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalSetEndpoints_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalGetEndpoints_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
@@ -367,5 +367,5 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
   rg->ops->destroy           = RGDestroy_Interval;
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalSetEndpoints_C",RGIntervalSetEndpoints_Interval));
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalGetEndpoints_C",RGIntervalGetEndpoints_Interval));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

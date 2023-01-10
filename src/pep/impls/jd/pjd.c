@@ -118,7 +118,7 @@ static PetscErrorCode PEPJDDuplicateBasis(PEP pep,BV *basis)
     PetscCall(BVSetOrthogonalization(*basis,otype,oref,oeta,oblock));
     PetscCall(PetscObjectStateIncrease((PetscObject)*basis));
   } else PetscCall(BVDuplicate(pep->V,basis));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetUp_JD(PEP pep)
@@ -169,7 +169,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PetscCall(DSPEPSetDegree(pep->ds,pep->nmat-1));
   if (pep->basis!=PEP_BASIS_MONOMIAL) PetscCall(DSPEPSetCoefficients(pep->ds,pep->pbc));
   PetscCall(DSAllocate(pep->ds,pep->ncv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -266,7 +266,7 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
   }
   if (nconv) PetscCall(MatDestroy(&T));
   PetscCall(PetscFree5(x2,xx,pT,N,Np));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -320,7 +320,7 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
   SlepcCheckLapackInfo("orgqr",info);
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscFree4(p,tau,work,rwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -387,7 +387,7 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
   PetscCall(VecResetArray(ty));
   PetscCall(VecRestoreArrayRead(x,&array1));
   PetscCall(VecRestoreArray(y,&array2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -438,7 +438,7 @@ static PetscErrorCode PCShellApply_PEPJD(PC pc,Vec x,Vec y)
     PetscCall(VecAXPY(ys[1],-eta,ctx->Bp[0]));
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPJDCopyToExtendedVec(PEP pep,Vec v,PetscScalar *a,PetscInt na,PetscInt off,Vec vex,PetscBool back)
@@ -472,7 +472,7 @@ static PetscErrorCode PEPJDCopyToExtendedVec(PEP pep,Vec v,PetscScalar *a,PetscI
     }
     PetscCall(VecRestoreArray(vex,&array2));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Computes Phi^hat(lambda) times a vector or its derivative (depends on beval)
@@ -514,7 +514,7 @@ static PetscErrorCode PEPJDEvaluateHatBasis(PEP pep,PetscInt n,PetscScalar *H,Pe
       }
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPJDComputeResidual(PEP pep,PetscBool derivative,PetscInt sz,Vec *u,PetscScalar *theta,Vec *p,Vec *work)
@@ -654,7 +654,7 @@ static PetscErrorCode PEPJDComputeResidual(PEP pep,PetscBool derivative,PetscInt
     PetscCall(VecRestoreArray(p[1],&arrayi2));
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
@@ -687,7 +687,7 @@ static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
     PetscCall(BVScaleColumn(pjd->W,0,1.0/norm));
   }
   PetscCall(PetscFree(tt));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_PEPJD(Mat P,Vec x,Vec y)
@@ -820,7 +820,7 @@ static PetscErrorCode MatMult_PEPJD(Mat P,Vec x,Vec y)
     PetscCall(VecRestoreArray(ys[1],&arrayi2));
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatCreateVecs_PEPJD(Mat A,Vec *right,Vec *left)
@@ -840,7 +840,7 @@ static PetscErrorCode MatCreateVecs_PEPJD(Mat A,Vec *right,Vec *left)
   if (right) PetscCall(VecCreateCompWithVecs(v,kspsf,pjd->vtempl,right));
   if (left) PetscCall(VecCreateCompWithVecs(v,kspsf,pjd->vtempl,left));
   for (i=0;i<kspsf;i++) PetscCall(VecDestroy(&v[i]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
@@ -913,7 +913,7 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
     if (pjd->midx==1) PetscCall(PetscFree2(work,p));
     else PetscCall(PetscFree7(U,S,sg,work,rwork,p,val));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPJDMatSetUp(PEP pep,PetscInt sz,PetscScalar *theta)
@@ -932,7 +932,7 @@ static PetscErrorCode PEPJDMatSetUp(PEP pep,PetscInt sz,PetscScalar *theta)
   PetscCall(MatShellGetContext(pjd->Pshell,&matctx));
   PetscCall(PCShellGetContext(pjd->pcshell,&pcctx));
   if (matctx->Pr && matctx->theta[0]==theta[0] && ((!matctx->Pi && sz==1) || (sz==2 && matctx->theta[1]==theta[1]))) {
-    if (pcctx->n == pjd->nlock) PetscFunctionReturn(0);
+    if (pcctx->n == pjd->nlock) PetscFunctionReturn(PETSC_SUCCESS);
     skipmat = PETSC_TRUE;
   }
   if (!skipmat) {
@@ -967,7 +967,7 @@ static PetscErrorCode PEPJDMatSetUp(PEP pep,PetscInt sz,PetscScalar *theta)
     }
     PetscCall(PEPJDUpdateExtendedPC(pep,theta[0]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPJDCreateShellPC(PEP pep,Vec *ww)
@@ -1037,7 +1037,7 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep,Vec *ww)
   }
   matctx->work = ww;
   pcctx->work  = ww;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPJDEigenvectors(PEP pep)
@@ -1074,7 +1074,7 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
 #else
   PetscCall(PetscFree3(Z,wr,w));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
@@ -1158,7 +1158,7 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
   }
   *nv = rk;
   PetscCall(PetscFree3(P,R,r));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDSystemSetUp(PEP pep,PetscInt sz,PetscScalar *theta,Vec *u,Vec *p,Vec *ww)
@@ -1190,7 +1190,7 @@ PetscErrorCode PEPJDSystemSetUp(PEP pep,PetscInt sz,PetscScalar *theta,Vec *u,Ve
     PetscCall(VecZeroEntries(pcctx->Bp[1]));
     pcctx->gamma[1] = 0.0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSolve_JD(PEP pep)
@@ -1459,7 +1459,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   PetscCall(PCDestroy(&pjd->pcshell));
   PetscCall(PetscFree3(eig,eigi,res));
   PetscCall(VecDestroy(&pjd->vtempl));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
@@ -1472,7 +1472,7 @@ PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     pjd->keep = keep;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1502,7 +1502,7 @@ PetscErrorCode PEPJDSetRestart(PEP pep,PetscReal keep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,keep,2);
   PetscTryMethod(pep,"PEPJDSetRestart_C",(PEP,PetscReal),(pep,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDGetRestart_JD(PEP pep,PetscReal *keep)
@@ -1511,7 +1511,7 @@ PetscErrorCode PEPJDGetRestart_JD(PEP pep,PetscReal *keep)
 
   PetscFunctionBegin;
   *keep = pjd->keep;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1535,7 +1535,7 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidRealPointer(keep,2);
   PetscUseMethod(pep,"PEPJDGetRestart_C",(PEP,PetscReal*),(pep,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDSetFix_JD(PEP pep,PetscReal fix)
@@ -1548,7 +1548,7 @@ PetscErrorCode PEPJDSetFix_JD(PEP pep,PetscReal fix)
     PetscCheck(fix>=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value, must be >0");
     pjd->fix = fix;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1579,7 +1579,7 @@ PetscErrorCode PEPJDSetFix(PEP pep,PetscReal fix)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,fix,2);
   PetscTryMethod(pep,"PEPJDSetFix_C",(PEP,PetscReal),(pep,fix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDGetFix_JD(PEP pep,PetscReal *fix)
@@ -1588,7 +1588,7 @@ PetscErrorCode PEPJDGetFix_JD(PEP pep,PetscReal *fix)
 
   PetscFunctionBegin;
   *fix = pjd->fix;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1618,7 +1618,7 @@ PetscErrorCode PEPJDGetFix(PEP pep,PetscReal *fix)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidRealPointer(fix,2);
   PetscUseMethod(pep,"PEPJDGetFix_C",(PEP,PetscReal*),(pep,fix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDSetReusePreconditioner_JD(PEP pep,PetscBool reusepc)
@@ -1627,7 +1627,7 @@ PetscErrorCode PEPJDSetReusePreconditioner_JD(PEP pep,PetscBool reusepc)
 
   PetscFunctionBegin;
   pjd->reusepc = reusepc;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1658,7 +1658,7 @@ PetscErrorCode PEPJDSetReusePreconditioner(PEP pep,PetscBool reusepc)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,reusepc,2);
   PetscTryMethod(pep,"PEPJDSetReusePreconditioner_C",(PEP,PetscBool),(pep,reusepc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDGetReusePreconditioner_JD(PEP pep,PetscBool *reusepc)
@@ -1667,7 +1667,7 @@ PetscErrorCode PEPJDGetReusePreconditioner_JD(PEP pep,PetscBool *reusepc)
 
   PetscFunctionBegin;
   *reusepc = pjd->reusepc;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1691,7 +1691,7 @@ PetscErrorCode PEPJDGetReusePreconditioner(PEP pep,PetscBool *reusepc)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(reusepc,2);
   PetscUseMethod(pep,"PEPJDGetReusePreconditioner_C",(PEP,PetscBool*),(pep,reusepc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
@@ -1707,7 +1707,7 @@ PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
     if (pjd->mmidx != mmidx) pep->state = PEP_STATE_INITIAL;
     pjd->mmidx = mmidx;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1736,7 +1736,7 @@ PetscErrorCode PEPJDSetMinimalityIndex(PEP pep,PetscInt mmidx)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,mmidx,2);
   PetscTryMethod(pep,"PEPJDSetMinimalityIndex_C",(PEP,PetscInt),(pep,mmidx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDGetMinimalityIndex_JD(PEP pep,PetscInt *mmidx)
@@ -1745,7 +1745,7 @@ PetscErrorCode PEPJDGetMinimalityIndex_JD(PEP pep,PetscInt *mmidx)
 
   PetscFunctionBegin;
   *mmidx = pjd->mmidx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1770,7 +1770,7 @@ PetscErrorCode PEPJDGetMinimalityIndex(PEP pep,PetscInt *mmidx)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidIntPointer(mmidx,2);
   PetscUseMethod(pep,"PEPJDGetMinimalityIndex_C",(PEP,PetscInt*),(pep,mmidx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDSetProjection_JD(PEP pep,PEPJDProjection proj)
@@ -1789,7 +1789,7 @@ PetscErrorCode PEPJDSetProjection_JD(PEP pep,PEPJDProjection proj)
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'proj' value");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1814,7 +1814,7 @@ PetscErrorCode PEPJDSetProjection(PEP pep,PEPJDProjection proj)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,proj,2);
   PetscTryMethod(pep,"PEPJDSetProjection_C",(PEP,PEPJDProjection),(pep,proj));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPJDGetProjection_JD(PEP pep,PEPJDProjection *proj)
@@ -1823,7 +1823,7 @@ PetscErrorCode PEPJDGetProjection_JD(PEP pep,PEPJDProjection *proj)
 
   PetscFunctionBegin;
   *proj = pjd->proj;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1847,7 +1847,7 @@ PetscErrorCode PEPJDGetProjection(PEP pep,PEPJDProjection *proj)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(proj,2);
   PetscUseMethod(pep,"PEPJDGetProjection_C",(PEP,PEPJDProjection*),(pep,proj));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetFromOptions_JD(PEP pep,PetscOptionItems *PetscOptionsObject)
@@ -1876,7 +1876,7 @@ PetscErrorCode PEPSetFromOptions_JD(PEP pep,PetscOptionItems *PetscOptionsObject
     if (flg) PetscCall(PEPJDSetProjection(pep,proj));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
@@ -1893,7 +1893,7 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
     PetscCall(PetscViewerASCIIPrintf(viewer,"  maximum allowed minimality index: %" PetscInt_FMT "\n",pjd->mmidx));
     if (pjd->reusepc) PetscCall(PetscViewerASCIIPrintf(viewer,"  reusing the preconditioner\n"));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetDefaultST_JD(PEP pep)
@@ -1911,7 +1911,7 @@ PetscErrorCode PEPSetDefaultST_JD(PEP pep)
     PetscCall(KSPSetType(ksp,KSPBCGSL));
     PetscCall(KSPSetTolerances(ksp,1e-5,PETSC_DEFAULT,PETSC_DEFAULT,100));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPReset_JD(PEP pep)
@@ -1930,7 +1930,7 @@ PetscErrorCode PEPReset_JD(PEP pep)
     PetscCall(PetscFree3(pjd->XpX,pjd->T,pjd->Tj));
   }
   PetscCall(PetscFree2(pjd->TV,pjd->AX));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPDestroy_JD(PEP pep)
@@ -1947,7 +1947,7 @@ PetscErrorCode PEPDestroy_JD(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetMinimalityIndex_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetProjection_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetProjection_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
@@ -1980,5 +1980,5 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetMinimalityIndex_C",PEPJDGetMinimalityIndex_JD));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetProjection_C",PEPJDSetProjection_JD));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetProjection_C",PEPJDGetProjection_JD));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

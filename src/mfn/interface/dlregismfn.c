@@ -33,7 +33,7 @@ PetscErrorCode MFNFinalizePackage(void)
   MFNPackageInitialized       = PETSC_FALSE;
   MFNRegisterAllCalled        = PETSC_FALSE;
   MFNMonitorRegisterAllCalled = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -52,7 +52,7 @@ PetscErrorCode MFNInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (MFNPackageInitialized) PetscFunctionReturn(0);
+  if (MFNPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   MFNPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("Matrix Function",&MFN_CLASSID));
@@ -74,7 +74,7 @@ PetscErrorCode MFNInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(MFNFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
@@ -89,6 +89,6 @@ SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void)
 {
   PetscFunctionBegin;
   PetscCall(MFNInitializePackage());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

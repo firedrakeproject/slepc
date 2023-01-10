@@ -90,7 +90,7 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
   for (i=0;i<cV;i++) PetscCall(BVMultVec(data->KZ,-1.0,1.0,V[i],&h[ldh*i]));
   PetscCall(BVSetActiveColumns(data->KZ,l,k));
   PetscCall(PetscFree(h));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -139,7 +139,7 @@ static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscI
   for (i=0;i<cV;i++) PetscCall(BVMultVec(data->U,-1.0,1.0,V[i],&h[ldh*i]));
   PetscCall(BVSetActiveColumns(data->U,l,k));
   PetscCall(PetscFree(h));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
@@ -154,7 +154,7 @@ static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
     PetscCall(KSPSetPC(data->ksp, data->old_pc));
     PetscCall(PCDestroy(&data->old_pc));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
@@ -169,7 +169,7 @@ static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
   PetscCall(BVDestroy(&data->KZ));
   PetscCall(BVDestroy(&data->U));
   PetscCall(PetscFree(data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -212,7 +212,7 @@ static inline PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,c
     }
   }
   PetscCall(SlepcVecPoolRestoreVecs(data->d->auxV,2,&auxV));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -254,7 +254,7 @@ static inline PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec
     }
   }
   PetscCall(SlepcVecPoolRestoreVecs(data->d->auxV,2,&auxV));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
@@ -304,7 +304,7 @@ static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
   /* out <- out - v*(u'*out) */
   PetscCall(dvd_improvex_apply_proj(data->d,(Vec*)outx,n));
   PetscCall(SlepcVecPoolRestoreVecs(data->d->auxV,n,&auxV));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
@@ -324,7 +324,7 @@ static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
   for (i=0;i<n;i++) PetscCall(data->d->improvex_precond(data->d,data->r_s+i,inx[i],outx[i]));
   /* out <- out - v*(u'*out) */
   PetscCall(dvd_improvex_apply_proj(data->d,(Vec*)outx,n));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
@@ -349,7 +349,7 @@ static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
   /* out <- K' * aux */
   for (i=0;i<n;i++) PetscCall(PCApplyTranspose(data->old_pc,auxV[i],outx[i]));
   PetscCall(SlepcVecPoolRestoreVecs(data->d->auxV,n,&auxV));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
@@ -371,7 +371,7 @@ static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
     /* out <- out - v*(u'*out) */
     PetscCall(dvd_improvex_apply_proj(data->d,(Vec*)outx,n));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
@@ -399,7 +399,7 @@ static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
   /* out <- theta[1]A*r - theta[0]*B*r */
   PetscCall(dvd_aux_matmulttrans(data,r,outx));
   if (side == PC_RIGHT) PetscCall(SlepcVecPoolRestoreVecs(data->d->auxV,n,&auxV));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left)
@@ -425,7 +425,7 @@ static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left)
 
   if (right) PetscCall(PetscFree(r));
   if (left) PetscCall(PetscFree(l));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
@@ -494,7 +494,7 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   }
   PetscCall(BVSetActiveColumns(data->KZ,0,0));
   PetscCall(BVSetActiveColumns(data->U,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -573,7 +573,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   PetscCallBLAS("LAPACKgetrf",LAPACKgetrf_(&s,&s,data->iXKZ,&ldXKZ,data->iXKZPivots,&info));
   PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("getrf",info);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
@@ -591,7 +591,7 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
   /* Quick exit */
   if ((max_size_D == 0) || r_e-r_s <= 0) {
    *size_D = 0;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   n = PetscMin(PetscMin(data->size_X, max_size_D), r_e-r_s);
@@ -696,7 +696,7 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
   }
   *size_D = i;
   if (data->dynamic) data->lastTol = PetscMax(data->lastTol/2.0,PETSC_MACHINE_EPSILON*10.0);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscBool dynamic)
@@ -757,7 +757,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
     PetscCall(EPSDavidsonFLAdd(&d->endList,dvd_improvex_jd_end));
     PetscCall(EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_jd_d));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -792,7 +792,7 @@ static inline PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,Vec Axr
   b7 = b4*b4 + b6*b6; /* k */
   *eigr = (b0*b4 + b2*b6) / b7; /* eig_r */
   *eigi = (b2*b4 - b0*b6) / b7; /* eig_i */
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -820,7 +820,7 @@ static inline PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,PetscScala
       if (PetscAbsScalar(eigr[i_s+i]-b0)/PetscAbsScalar(eigr[i_s+i]) > 1e-10) PetscCall(PetscInfo(u[0],"The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n",(double)PetscRealPart(eigr[i_s+i]),(double)PetscImaginaryPart(eigr[i_s+i]),(double)PetscRealPart(b0),(double)PetscImaginaryPart(b0)));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -925,7 +925,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
   PetscCall(d->calcpairs_proj_res(d,i_s,i_e,kr));
   PetscCall(BVDestroy(&X));
   PetscCall(MatDestroy(&M));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,PetscScalar* theta,PetscScalar* thetai,PetscInt *maxits,PetscReal *tol)
@@ -955,7 +955,7 @@ static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,Pet
 #endif
   *maxits = data->maxits;
   *tol = data->tol;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscInt maxits,PetscReal tol,PetscReal fix)
@@ -970,7 +970,7 @@ PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscI
     data->fix = fix;
     d->improvex_jd_lit = dvd_improvex_jd_lit_const_0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b)
@@ -980,7 +980,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b)
   if (b->state >= DVD_STATE_CONF) {
     d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KZX;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u_,PetscScalar *pX,PetscInt ld)
@@ -1010,5 +1010,5 @@ PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,
     for (i=0;i<n;i++) d->nX[i_s+i] = 1.0;
   }
   if (d->correctXnorm && !u_) PetscCall(SlepcVecPoolRestoreVecs(d->auxV,i_e-i_s,&u));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

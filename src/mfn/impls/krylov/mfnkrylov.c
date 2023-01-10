@@ -36,7 +36,7 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   if (mfn->ncv==PETSC_DEFAULT) mfn->ncv = PetscMin(30,N);
   if (mfn->max_it==PETSC_DEFAULT) mfn->max_it = 100;
   PetscCall(MFNAllocateSolution(mfn,1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
@@ -123,7 +123,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscCall(VecDestroy(&F));
   PetscCall(MatDenseRestoreArray(M,&marray));
   PetscCall(MatDestroy(&M));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN mfn)
@@ -131,5 +131,5 @@ SLEPC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN mfn)
   PetscFunctionBegin;
   mfn->ops->solve          = MFNSolve_Krylov;
   mfn->ops->setup          = MFNSetUp_Krylov;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

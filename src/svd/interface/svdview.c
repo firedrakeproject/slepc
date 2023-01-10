@@ -105,7 +105,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     PetscCall(DSView(svd->ds,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -127,7 +127,7 @@ PetscErrorCode SVDViewFromOptions(SVD svd,PetscObject obj,const char name[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscCall(PetscObjectViewFromOptions((PetscObject)svd,obj,name));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -167,7 +167,7 @@ PetscErrorCode SVDConvergedReasonView(SVD svd,PetscViewer viewer)
     else if (svd->reason <= 0) PetscCall(PetscViewerASCIIPrintf(viewer,"%s SVD solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its));
     PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -191,7 +191,7 @@ PetscErrorCode SVDConvergedReasonViewFromOptions(SVD svd)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
+  if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,"-svd_converged_reason",&viewer,&format,&flg));
   if (flg) {
@@ -201,7 +201,7 @@ PetscErrorCode SVDConvergedReasonViewFromOptions(SVD svd)
     PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer viewer)
@@ -212,13 +212,13 @@ static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer 
   PetscFunctionBegin;
   if (svd->nconv<svd->nsv) {
     PetscCall(PetscViewerASCIIPrintf(viewer," Problem: less than %" PetscInt_FMT " singular values converged\n\n",svd->nsv));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   for (i=0;i<svd->nsv;i++) {
     PetscCall(SVDComputeError(svd,i,etype,&error));
     if (error>=5.0*svd->tol) {
       PetscCall(PetscViewerASCIIPrintf(viewer," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",svd->nsv));
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     }
   }
   PetscCall(PetscViewerASCIIPrintf(viewer," All requested %ssingular values computed up to the required tolerance:",svd->isgeneralized?"generalized ":""));
@@ -231,7 +231,7 @@ static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer 
     }
   }
   PetscCall(PetscViewerASCIIPrintf(viewer,"\n\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDErrorView_DETAIL(SVD svd,SVDErrorType etype,PetscViewer viewer)
@@ -241,7 +241,7 @@ static PetscErrorCode SVDErrorView_DETAIL(SVD svd,SVDErrorType etype,PetscViewer
   char           ex[30],sep[]=" ---------------------- --------------------\n";
 
   PetscFunctionBegin;
-  if (!svd->nconv) PetscFunctionReturn(0);
+  if (!svd->nconv) PetscFunctionReturn(PETSC_SUCCESS);
   switch (etype) {
     case SVD_ERROR_ABSOLUTE:
       PetscCall(PetscSNPrintf(ex,sizeof(ex)," absolute error"));
@@ -261,7 +261,7 @@ static PetscErrorCode SVDErrorView_DETAIL(SVD svd,SVDErrorType etype,PetscViewer
     PetscCall(PetscViewerASCIIPrintf(viewer,"       % 6f          %12g\n",(double)sigma,(double)error));
   }
   PetscCall(PetscViewerASCIIPrintf(viewer,"%s",sep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer viewer)
@@ -278,7 +278,7 @@ static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer
     PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)error));
   }
   PetscCall(PetscViewerASCIIPrintf(viewer,"];\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -319,7 +319,7 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
   PetscCheckSameComm(svd,1,viewer,3);
   SVDCheckSolved(svd,1);
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (!isascii) PetscFunctionReturn(0);
+  if (!isascii) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetFormat(viewer,&format));
   switch (format) {
@@ -336,7 +336,7 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
     default:
       PetscCall(PetscInfo(svd,"Unsupported viewer format %s\n",PetscViewerFormats[format]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -360,7 +360,7 @@ PetscErrorCode SVDErrorViewFromOptions(SVD svd)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
+  if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,"-svd_error_absolute",&viewer,&format,&flg));
   if (flg) {
@@ -384,7 +384,7 @@ PetscErrorCode SVDErrorViewFromOptions(SVD svd)
     PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDValuesView_DRAW(SVD svd,PetscViewer viewer)
@@ -395,7 +395,7 @@ static PetscErrorCode SVDValuesView_DRAW(SVD svd,PetscViewer viewer)
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!svd->nconv) PetscFunctionReturn(0);
+  if (!svd->nconv) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscViewerDrawGetDraw(viewer,0,&draw));
   PetscCall(PetscDrawSetTitle(draw,"Computed singular values"));
   PetscCall(PetscDrawSPCreate(draw,1,&drawsp));
@@ -406,7 +406,7 @@ static PetscErrorCode SVDValuesView_DRAW(SVD svd,PetscViewer viewer)
   PetscCall(PetscDrawSPDraw(drawsp,PETSC_TRUE));
   PetscCall(PetscDrawSPSave(drawsp));
   PetscCall(PetscDrawSPDestroy(&drawsp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDValuesView_BINARY(SVD svd,PetscViewer viewer)
@@ -422,7 +422,7 @@ static PetscErrorCode SVDValuesView_BINARY(SVD svd,PetscViewer viewer)
   }
   PetscCall(PetscViewerBinaryWrite(viewer,sv,svd->nconv,PETSC_REAL));
   PetscCall(PetscFree(sv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_HDF5)
@@ -453,7 +453,7 @@ static PetscErrorCode SVDValuesView_HDF5(SVD svd,PetscViewer viewer)
   PetscCall(VecAssemblyEnd(v));
   PetscCall(VecView(v,viewer));
   PetscCall(VecDestroy(&v));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -465,7 +465,7 @@ static PetscErrorCode SVDValuesView_ASCII(SVD svd,PetscViewer viewer)
   PetscCall(PetscViewerASCIIPrintf(viewer,"Singular values = \n"));
   for (i=0;i<svd->nconv;i++) PetscCall(PetscViewerASCIIPrintf(viewer,"   %.5f\n",(double)svd->sigma[svd->perm[i]]));
   PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
@@ -478,7 +478,7 @@ static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
   PetscCall(PetscViewerASCIIPrintf(viewer,"Sigma_%s = [\n",name));
   for (i=0;i<svd->nconv;i++) PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)svd->sigma[svd->perm[i]]));
   PetscCall(PetscViewerASCIIPrintf(viewer,"];\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -537,7 +537,7 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
         PetscCall(PetscInfo(svd,"Unsupported viewer format %s\n",PetscViewerFormats[format]));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -561,7 +561,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
+  if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,"-svd_view_values",&viewer,&format,&flg));
   if (flg) {
@@ -571,7 +571,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
     PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -624,7 +624,7 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
       PetscCall(BVRestoreColumn(svd->U,k,&x));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -648,7 +648,7 @@ PetscErrorCode SVDVectorsViewFromOptions(SVD svd)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
+  if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,"-svd_view_vectors",&viewer,&format,&flg));
   if (flg) {
@@ -658,5 +658,5 @@ PetscErrorCode SVDVectorsViewFromOptions(SVD svd)
     PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -27,7 +27,7 @@ PetscErrorCode CheckPoint(RG rg,PetscReal re,PetscReal im)
 #endif
   PetscCall(RGCheckInside(rg,1,&ar,&ai,&inside));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

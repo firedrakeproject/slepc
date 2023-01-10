@@ -42,7 +42,7 @@ PetscErrorCode EPSFinalizePackage(void)
   EPSPackageInitialized       = PETSC_FALSE;
   EPSRegisterAllCalled        = PETSC_FALSE;
   EPSMonitorRegisterAllCalled = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -61,7 +61,7 @@ PetscErrorCode EPSInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (EPSPackageInitialized) PetscFunctionReturn(0);
+  if (EPSPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   EPSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("EPS Solver",&EPS_CLASSID));
@@ -84,7 +84,7 @@ PetscErrorCode EPSInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(EPSFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
@@ -99,6 +99,6 @@ SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepceps(void)
 {
   PetscFunctionBegin;
   PetscCall(EPSInitializePackage());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

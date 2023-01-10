@@ -33,7 +33,7 @@ PetscErrorCode STFinalizePackage(void)
   PetscCall(PetscFunctionListDestroy(&STList));
   STPackageInitialized = PETSC_FALSE;
   STRegisterAllCalled  = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -52,7 +52,7 @@ PetscErrorCode STInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (STPackageInitialized) PetscFunctionReturn(0);
+  if (STPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   STPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("Spectral Transform",&ST_CLASSID));
@@ -79,7 +79,7 @@ PetscErrorCode STInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(STFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -99,7 +99,7 @@ PetscErrorCode STReset(ST st)
 {
   PetscFunctionBegin;
   if (st) PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!st) PetscFunctionReturn(0);
+  if (!st) PetscFunctionReturn(PETSC_SUCCESS);
   STCheckNotSeized(st,1);
   PetscTryTypeMethod(st,reset);
   if (st->ksp) PetscCall(KSPReset(st->ksp));
@@ -119,7 +119,7 @@ PetscErrorCode STReset(ST st)
   PetscCall(VecDestroy(&st->D));
   st->state   = ST_STATE_INITIAL;
   st->opready = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -137,14 +137,14 @@ PetscErrorCode STReset(ST st)
 PetscErrorCode STDestroy(ST *st)
 {
   PetscFunctionBegin;
-  if (!*st) PetscFunctionReturn(0);
+  if (!*st) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*st,ST_CLASSID,1);
-  if (--((PetscObject)(*st))->refct > 0) { *st = NULL; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*st))->refct > 0) { *st = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(STReset(*st));
   PetscTryTypeMethod(*st,destroy);
   PetscCall(KSPDestroy(&(*st)->ksp));
   PetscCall(PetscHeaderDestroy(st));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -206,7 +206,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->data         = NULL;
 
   *newst = st;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -240,7 +240,7 @@ static inline PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm,PetscBo
 #else
   *herm = *symm;
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -305,7 +305,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   PetscCheck(!same || !st->Psplit,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Support for changing the matrices while using a split preconditioner is not implemented yet");
   st->opready = PETSC_FALSE;
   if (!same) PetscCall(STMatIsSymmetricKnown(st,&st->asymm,&st->aherm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -334,7 +334,7 @@ PetscErrorCode STGetMatrix(ST st,PetscInt k,Mat *A)
   PetscCheck(k>=0 && k<st->nmat,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
   PetscCheck(((PetscObject)st->A[k])->state==st->Astate[k],PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot retrieve original matrices (have been modified)");
   *A = st->A[k];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -363,7 +363,7 @@ PetscErrorCode STGetMatrixTransformed(ST st,PetscInt k,Mat *T)
   PetscCheck(k>=0 && k<st->nmat,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
   PetscCheck(st->T,PetscObjectComm((PetscObject)st),PETSC_ERR_POINTER,"There are no transformed matrices");
   *T = st->T[k];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -387,7 +387,7 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidIntPointer(n,2);
   *n = st->nmat;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -415,7 +415,7 @@ PetscErrorCode STResetMatrixState(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   for (i=0;i<st->nmat;i++) st->Astate[i] = ((PetscObject)st->A[i])->state;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -469,7 +469,7 @@ PetscErrorCode STSetPreconditionerMat(ST st,Mat mat)
   st->Pmat_set = mat? PETSC_TRUE: PETSC_FALSE;
   st->state    = ST_STATE_INITIAL;
   st->opready  = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -494,7 +494,7 @@ PetscErrorCode STGetPreconditionerMat(ST st,Mat *mat)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mat,2);
   *mat = st->Pmat_set? st->Pmat: NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -569,7 +569,7 @@ PetscErrorCode STSetSplitPreconditioner(ST st,PetscInt n,Mat Psplit[],MatStructu
   st->nsplit = n;
   st->strp   = strp;
   st->state  = ST_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -598,7 +598,7 @@ PetscErrorCode STGetSplitPreconditionerTerm(ST st,PetscInt k,Mat *Psplit)
   PetscCheck(k>=0 && k<st->nsplit,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nsplit-1);
   PetscCheck(st->Psplit,PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"You have not called STSetSplitPreconditioner()");
   *Psplit = st->Psplit[k];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -624,7 +624,7 @@ PetscErrorCode STGetSplitPreconditionerInfo(ST st,PetscInt *n,MatStructure *strp
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (n)    *n    = st->nsplit;
   if (strp) *strp = st->strp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -659,7 +659,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
     st->sigma = shift;
   }
   st->sigma_set = PETSC_TRUE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -683,7 +683,7 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidScalarPointer(shift,2);
   *shift = st->sigma;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -710,7 +710,7 @@ PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
     st->state    = ST_STATE_INITIAL;
     st->opready  = PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -736,7 +736,7 @@ PetscErrorCode STScaleShift(ST st,PetscScalar factor)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,factor,2);
   st->sigma *= factor;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -763,7 +763,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (st->D == D) PetscFunctionReturn(0);
+  if (st->D == D) PetscFunctionReturn(PETSC_SUCCESS);
   STCheckNotSeized(st,1);
   if (D) {
     PetscValidHeaderSpecific(D,VEC_CLASSID,2);
@@ -774,7 +774,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   st->D = D;
   st->state   = ST_STATE_INITIAL;
   st->opready = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -801,7 +801,7 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(D,2);
   *D = st->D;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -825,7 +825,7 @@ PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
   PetscFunctionBegin;
   STCheckMatrices(st,1);
   PetscCall(MatCreateVecs(st->A[0],right,left));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -850,7 +850,7 @@ PetscErrorCode STMatCreateVecsEmpty(ST st,Vec *right,Vec *left)
   PetscFunctionBegin;
   STCheckMatrices(st,1);
   PetscCall(MatCreateVecsEmpty(st->A[0],right,left));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -874,7 +874,7 @@ PetscErrorCode STMatGetSize(ST st,PetscInt *m,PetscInt *n)
   PetscFunctionBegin;
   STCheckMatrices(st,1);
   PetscCall(MatGetSize(st->A[0],m,n));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -898,7 +898,7 @@ PetscErrorCode STMatGetLocalSize(ST st,PetscInt *m,PetscInt *n)
   PetscFunctionBegin;
   STCheckMatrices(st,1);
   PetscCall(MatGetLocalSize(st->A[0],m,n));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -928,7 +928,7 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
   PetscCall(KSPSetOptionsPrefix(st->ksp,prefix));
   PetscCall(KSPAppendOptionsPrefix(st->ksp,"st_"));
   PetscCall(PetscObjectSetOptionsPrefix((PetscObject)st,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -958,7 +958,7 @@ PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
   if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
   PetscCall(KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix));
   PetscCall(KSPAppendOptionsPrefix(st->ksp,"st_"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -987,7 +987,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)st,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1060,7 +1060,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     PetscCall(KSPView(st->ksp,viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1082,7 +1082,7 @@ PetscErrorCode STViewFromOptions(ST st,PetscObject obj,const char name[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscCall(PetscObjectViewFromOptions((PetscObject)st,obj,name));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1117,5 +1117,5 @@ PetscErrorCode STRegister(const char *name,PetscErrorCode (*function)(ST))
   PetscFunctionBegin;
   PetscCall(STInitializePackage());
   PetscCall(PetscFunctionListAdd(&STList,name,function));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

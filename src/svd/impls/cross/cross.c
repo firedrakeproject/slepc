@@ -37,7 +37,7 @@ static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
   PetscCall(MatMult(ctx->A,x,ctx->w));
   if (ctx->omega && !ctx->swapped) PetscCall(VecPointwiseMult(ctx->w,ctx->w,ctx->omega));
   PetscCall(MatMult(ctx->AT,ctx->w,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
@@ -81,7 +81,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
     PetscCall(PetscFree2(work1,work2));
   }
   PetscCall(VecCopy(ctx->diag,d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_Cross(Mat B)
@@ -93,7 +93,7 @@ static PetscErrorCode MatDestroy_Cross(Mat B)
   PetscCall(VecDestroy(&ctx->w));
   PetscCall(VecDestroy(&ctx->diag));
   PetscCall(PetscFree(ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
@@ -146,7 +146,7 @@ static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
     PetscCall(MatGetVecType(A,&vtype));
     PetscCall(MatSetVecType(*C,vtype));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Convergence test relative to the norm of R (used in GSVD only) */
@@ -156,7 +156,7 @@ static PetscErrorCode EPSConv_Cross(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
 
   PetscFunctionBegin;
   *errest = res/PetscMax(svd->nrma,svd->nrmb);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSetUp_Cross(SVD svd)
@@ -250,7 +250,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
 
   svd->leftbasis = PETSC_FALSE;
   PetscCall(SVDAllocateSolution(svd,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_Cross(SVD svd)
@@ -278,7 +278,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
       svd->sigma[i] = PetscSqrtReal(sigma);
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDComputeVectors_Cross(SVD svd)
@@ -351,7 +351,7 @@ PetscErrorCode SVDComputeVectors_Cross(SVD svd)
     }
     PetscCall(SVDComputeVectors_Left(svd));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
@@ -370,7 +370,7 @@ static PetscErrorCode EPSMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
     svd->errest[i] = errest[i];
   }
   PetscCall(SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSetFromOptions_Cross(SVD svd,PetscOptionItems *PetscOptionsObject)
@@ -394,7 +394,7 @@ PetscErrorCode SVDSetFromOptions_Cross(SVD svd,PetscOptionItems *PetscOptionsObj
     PetscCall(STSetMatMode(st,ST_MATMODE_SHELL));
   }
   PetscCall(EPSSetFromOptions(cross->eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDCrossSetExplicitMatrix_Cross(SVD svd,PetscBool explicitmatrix)
@@ -406,7 +406,7 @@ static PetscErrorCode SVDCrossSetExplicitMatrix_Cross(SVD svd,PetscBool explicit
     cross->explicitmatrix = explicitmatrix;
     svd->state = SVD_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -432,7 +432,7 @@ PetscErrorCode SVDCrossSetExplicitMatrix(SVD svd,PetscBool explicitmat)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveBool(svd,explicitmat,2);
   PetscTryMethod(svd,"SVDCrossSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmat));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDCrossGetExplicitMatrix_Cross(SVD svd,PetscBool *explicitmat)
@@ -441,7 +441,7 @@ static PetscErrorCode SVDCrossGetExplicitMatrix_Cross(SVD svd,PetscBool *explici
 
   PetscFunctionBegin;
   *explicitmat = cross->explicitmatrix;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -465,7 +465,7 @@ PetscErrorCode SVDCrossGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(explicitmat,2);
   PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
@@ -478,7 +478,7 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   cross->eps     = eps;
   cross->usereps = PETSC_TRUE;
   svd->state     = SVD_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -502,7 +502,7 @@ PetscErrorCode SVDCrossSetEPS(SVD svd,EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(svd,1,eps,2);
   PetscTryMethod(svd,"SVDCrossSetEPS_C",(SVD,EPS),(svd,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
@@ -520,7 +520,7 @@ static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
     PetscCall(EPSMonitorSet(cross->eps,EPSMonitor_Cross,svd,NULL));
   }
   *eps = cross->eps;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -545,7 +545,7 @@ PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(eps,2);
   PetscUseMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
@@ -562,7 +562,7 @@ PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
     PetscCall(EPSView(cross->eps,viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDReset_Cross(SVD svd)
@@ -573,7 +573,7 @@ PetscErrorCode SVDReset_Cross(SVD svd)
   PetscCall(EPSReset(cross->eps));
   PetscCall(MatDestroy(&cross->C));
   PetscCall(MatDestroy(&cross->D));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDDestroy_Cross(SVD svd)
@@ -587,7 +587,7 @@ PetscErrorCode SVDDestroy_Cross(SVD svd)
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetExplicitMatrix_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetExplicitMatrix_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
@@ -611,5 +611,5 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C",SVDCrossGetEPS_Cross));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetExplicitMatrix_C",SVDCrossSetExplicitMatrix_Cross));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetExplicitMatrix_C",SVDCrossGetExplicitMatrix_Cross));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

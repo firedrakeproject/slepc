@@ -202,7 +202,7 @@ PetscErrorCode STBackTransform_Exp(ST st,PetscInt n,PetscScalar *eigr,PetscScala
     eigi[j] = PetscImaginaryPartComplex(lambda);
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 #else
   return 0;
 #endif
@@ -225,7 +225,7 @@ PetscErrorCode STApply_Exp(ST st,Vec x,Vec y)
   PetscFunctionBeginUser;
   PetscCall(STShellGetContext(st,&mfn));
   PetscCall(MFNSolve(mfn,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

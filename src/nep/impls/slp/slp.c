@@ -73,7 +73,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
     nep->ops->computevectors = NEPComputeVectors_Schur;
   }
   PetscCall(NEPAllocateSolution(nep,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_SLP(Mat M,Vec x,Vec y)
@@ -84,7 +84,7 @@ static PetscErrorCode MatMult_SLP(Mat M,Vec x,Vec y)
   PetscCall(MatShellGetContext(M,&ctx));
   PetscCall(MatMult(ctx->extop->MJ,x,ctx->w));
   PetscCall(NEPDeflationFunctionSolve(ctx->extop,ctx->w,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_SLP(Mat M)
@@ -95,7 +95,7 @@ static PetscErrorCode MatDestroy_SLP(Mat M)
   PetscCall(MatShellGetContext(M,&ctx));
   PetscCall(VecDestroy(&ctx->w));
   PetscCall(PetscFree(ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_CUDA)
@@ -107,7 +107,7 @@ static PetscErrorCode MatCreateVecs_SLP(Mat M,Vec *left,Vec *right)
   PetscCall(MatShellGetContext(M,&ctx));
   if (right) PetscCall(VecDuplicate(ctx->w,right));
   if (left) PetscCall(VecDuplicate(ctx->w,left));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -138,7 +138,7 @@ static PetscErrorCode NEPSLPSetUpLinearEP(NEP nep,NEP_EXT_OP extop,PetscScalar l
   PetscCall(NEPDeflationSolveSetUp(extop,lambda));
   PetscCall(NEPDeflationComputeJacobian(extop,lambda,NULL));
   PetscCall(EPSSetInitialSpace(slpctx->eps,1,&u));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSolve_SLP(NEP nep)
@@ -242,7 +242,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscCall(NEPDeflationReset(extop));
   PetscCall(VecDestroy(&u));
   PetscCall(VecDestroy(&r));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSetFromOptions_SLP(NEP nep,PetscOptionItems *PetscOptionsObject)
@@ -268,7 +268,7 @@ PetscErrorCode NEPSetFromOptions_SLP(NEP nep,PetscOptionItems *PetscOptionsObjec
   }
   if (!ctx->ksp) PetscCall(NEPSLPGetKSP(nep,&ctx->ksp));
   PetscCall(KSPSetFromOptions(ctx->ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSLPSetDeflationThreshold_SLP(NEP nep,PetscReal deftol)
@@ -283,7 +283,7 @@ static PetscErrorCode NEPSLPSetDeflationThreshold_SLP(NEP nep,PetscReal deftol)
     PetscCheck(deftol>0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of deftol. Must be > 0");
     ctx->deftol = deftol;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -317,7 +317,7 @@ PetscErrorCode NEPSLPSetDeflationThreshold(NEP nep,PetscReal deftol)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,deftol,2);
   PetscTryMethod(nep,"NEPSLPSetDeflationThreshold_C",(NEP,PetscReal),(nep,deftol));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSLPGetDeflationThreshold_SLP(NEP nep,PetscReal *deftol)
@@ -326,7 +326,7 @@ static PetscErrorCode NEPSLPGetDeflationThreshold_SLP(NEP nep,PetscReal *deftol)
 
   PetscFunctionBegin;
   *deftol = ctx->deftol;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -350,7 +350,7 @@ PetscErrorCode NEPSLPGetDeflationThreshold(NEP nep,PetscReal *deftol)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidRealPointer(deftol,2);
   PetscUseMethod(nep,"NEPSLPGetDeflationThreshold_C",(NEP,PetscReal*),(nep,deftol));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSLPSetEPS_SLP(NEP nep,EPS eps)
@@ -362,7 +362,7 @@ static PetscErrorCode NEPSLPSetEPS_SLP(NEP nep,EPS eps)
   PetscCall(EPSDestroy(&ctx->eps));
   ctx->eps = eps;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -386,7 +386,7 @@ PetscErrorCode NEPSLPSetEPS(NEP nep,EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(nep,1,eps,2);
   PetscTryMethod(nep,"NEPSLPSetEPS_C",(NEP,EPS),(nep,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
@@ -402,7 +402,7 @@ static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->eps,((PetscObject)nep)->options));
   }
   *eps = ctx->eps;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -427,7 +427,7 @@ PetscErrorCode NEPSLPGetEPS(NEP nep,EPS *eps)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(eps,2);
   PetscUseMethod(nep,"NEPSLPGetEPS_C",(NEP,EPS*),(nep,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSLPSetEPSLeft_SLP(NEP nep,EPS eps)
@@ -439,7 +439,7 @@ static PetscErrorCode NEPSLPSetEPSLeft_SLP(NEP nep,EPS eps)
   PetscCall(EPSDestroy(&ctx->epsts));
   ctx->epsts = eps;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -464,7 +464,7 @@ PetscErrorCode NEPSLPSetEPSLeft(NEP nep,EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(nep,1,eps,2);
   PetscTryMethod(nep,"NEPSLPSetEPSLeft_C",(NEP,EPS),(nep,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSLPGetEPSLeft_SLP(NEP nep,EPS *eps)
@@ -480,7 +480,7 @@ static PetscErrorCode NEPSLPGetEPSLeft_SLP(NEP nep,EPS *eps)
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->epsts,((PetscObject)nep)->options));
   }
   *eps = ctx->epsts;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -506,7 +506,7 @@ PetscErrorCode NEPSLPGetEPSLeft(NEP nep,EPS *eps)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(eps,2);
   PetscUseMethod(nep,"NEPSLPGetEPSLeft_C",(NEP,EPS*),(nep,eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSLPSetKSP_SLP(NEP nep,KSP ksp)
@@ -518,7 +518,7 @@ static PetscErrorCode NEPSLPSetKSP_SLP(NEP nep,KSP ksp)
   PetscCall(KSPDestroy(&ctx->ksp));
   ctx->ksp   = ksp;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -542,7 +542,7 @@ PetscErrorCode NEPSLPSetKSP(NEP nep,KSP ksp)
   PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(nep,1,ksp,2);
   PetscTryMethod(nep,"NEPSLPSetKSP_C",(NEP,KSP),(nep,ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPSLPGetKSP_SLP(NEP nep,KSP *ksp)
@@ -560,7 +560,7 @@ static PetscErrorCode NEPSLPGetKSP_SLP(NEP nep,KSP *ksp)
     PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = ctx->ksp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -585,7 +585,7 @@ PetscErrorCode NEPSLPGetKSP(NEP nep,KSP *ksp)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(ksp,2);
   PetscUseMethod(nep,"NEPSLPGetKSP_C",(NEP,KSP*),(nep,ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
@@ -608,7 +608,7 @@ PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
     PetscCall(KSPView(ctx->ksp,viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPReset_SLP(NEP nep)
@@ -619,7 +619,7 @@ PetscErrorCode NEPReset_SLP(NEP nep)
   PetscCall(EPSReset(ctx->eps));
   if (nep->twosided) PetscCall(EPSReset(ctx->epsts));
   PetscCall(KSPReset(ctx->ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDestroy_SLP(NEP nep)
@@ -639,7 +639,7 @@ PetscErrorCode NEPDestroy_SLP(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPSLeft_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetKSP_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetKSP_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
@@ -669,5 +669,5 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPSLeft_C",NEPSLPGetEPSLeft_SLP));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetKSP_C",NEPSLPSetKSP_SLP));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetKSP_C",NEPSLPGetKSP_SLP));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

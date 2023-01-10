@@ -16,7 +16,7 @@
 
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
-  PetscErrorCode ierra,ierrb;
+  int            ierra,ierrb;
   PetscBool      isshift,flg,denseok=PETSC_FALSE;
   Mat            A,B,OP,shell,Ar,Br,Adense=NULL,Bdense=NULL,Ads,Bds;
   PetscScalar    shift;
@@ -41,21 +41,21 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     PetscCall(STGetMatrix(eps->st,0,&A));
     PetscCall(MatHasOperation(A,MATOP_CREATE_SUBMATRICES,&flg));
     if (flg) {
-      PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
+      PetscCall(PetscPushErrorHandler(PetscReturnErrorHandler,NULL));
       ierra  = MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);
       if (!ierra) ierra |= MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&Adense);
       ierra |= MatDestroy(&Ar);
-      PetscPopErrorHandler();
+      PetscCall(PetscPopErrorHandler());
     } else ierra = 1;
     if (nmat>1) {
       PetscCall(STGetMatrix(eps->st,1,&B));
       PetscCall(MatHasOperation(B,MATOP_CREATE_SUBMATRICES,&flg));
       if (flg) {
-        PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
+        PetscCall(PetscPushErrorHandler(PetscReturnErrorHandler,NULL));
         ierrb  = MatCreateRedundantMatrix(B,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Br);
         if (!ierrb) ierrb |= MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&Bdense);
         ierrb |= MatDestroy(&Br);
-        PetscPopErrorHandler();
+        PetscCall(PetscPopErrorHandler());
       } else ierrb = 1;
     } else ierrb = 0;
     denseok = PetscNot(ierra || ierrb);
@@ -109,7 +109,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
   PetscCall(MatDestroy(&Adense));
   PetscCall(MatDestroy(&Bdense));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_LAPACK(EPS eps)
@@ -154,7 +154,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   eps->nconv  = eps->ncv;
   eps->its    = 1;
   eps->reason = EPS_CONVERGED_TOL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
@@ -167,5 +167,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
   eps->ops->setup          = EPSSetUp_LAPACK;
   eps->ops->setupsort      = EPSSetUpSort_Default;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

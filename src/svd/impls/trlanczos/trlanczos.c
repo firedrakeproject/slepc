@@ -86,7 +86,7 @@ static PetscErrorCode MatZCreateContext(SVD svd,MatZData **zdata)
   PetscCall(MatCreateVecsEmpty(svd->B,NULL,&(*zdata)->y2));
   PetscCall(VecGetLocalSize((*zdata)->y1,&(*zdata)->m));
   PetscCall(BVCreateVec(svd->U,&(*zdata)->y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Update scale factor for B in Z=[A;B]
@@ -129,7 +129,7 @@ static PetscErrorCode MatZUpdateScale(SVD svd)
   PetscCall(SVD_KSPSetOperators(lanczos->ksp,lanczos->Z,normal));
   PetscCall(KSPSetUp(lanczos->ksp));
   PetscCall(MatDestroy(&normal));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_Z(Mat Z)
@@ -142,7 +142,7 @@ static PetscErrorCode MatDestroy_Z(Mat Z)
   PetscCall(VecDestroy(&zdata->y2));
   PetscCall(VecDestroy(&zdata->y));
   PetscCall(PetscFree(zdata));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_Z(Mat Z,Vec x,Vec y)
@@ -163,7 +163,7 @@ static PetscErrorCode MatMult_Z(Mat Z,Vec x,Vec y)
   PetscCall(VecResetArray(zdata->y1));
   PetscCall(VecResetArray(zdata->y2));
   PetscCall(VecRestoreArray(y,&y_elems));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMultTranspose_Z(Mat Z,Vec y,Vec x)
@@ -184,7 +184,7 @@ static PetscErrorCode MatMultTranspose_Z(Mat Z,Vec y,Vec x)
   PetscCall(VecResetArray(zdata->y1));
   PetscCall(VecResetArray(zdata->y2));
   PetscCall(VecRestoreArrayRead(y,&y_elems));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatCreateVecs_Z(Mat Z,Vec *right,Vec *left)
@@ -195,7 +195,7 @@ static PetscErrorCode MatCreateVecs_Z(Mat Z,Vec *right,Vec *left)
   PetscCall(MatShellGetContext(Z,&zdata));
   if (right) PetscCall(MatCreateVecs(zdata->A,right,NULL));
   if (left) PetscCall(VecDuplicate(zdata->y,left));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
@@ -257,7 +257,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscCall(DSSetCompact(svd->ds,PETSC_TRUE));
   PetscCall(DSSetExtraRow(svd->ds,PETSC_TRUE));
   PetscCall(DSAllocate(svd->ds,svd->ncv+1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,BV U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work)
@@ -310,7 +310,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   PetscCall(BVRestoreColumn(U,n-1,&ui1));
   PetscCall(BVOrthogonalizeColumn(V,n,NULL,&b,NULL));
   beta[n-1] = b;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -351,7 +351,7 @@ static PetscErrorCode SVDOrthogonalizeCGS(BV V,PetscInt i,PetscScalar* h,PetscRe
     }
     break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,BV U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work)
@@ -444,7 +444,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   PetscCall(BVSetActiveColumns(V,nconv,n));
   alpha[n-1] = a;
   beta[n-1] = b;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_TRLanczos(SVD svd)
@@ -547,7 +547,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscCall(PetscFree(w));
   if (swork) PetscCall(PetscFree(swork));
   PetscCall(DSTruncate(svd->ds,svd->nconv,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDLanczosHSVD(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *omega,Mat A,Mat AT,BV V,BV U,PetscInt k,PetscInt *n,PetscBool *breakdown)
@@ -586,7 +586,7 @@ PetscErrorCode SVDLanczosHSVD(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal
   }
 
   if (breakdown) *breakdown = lindep;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_TRLanczos_HSVD(SVD svd)
@@ -708,7 +708,7 @@ PetscErrorCode SVDSolve_TRLanczos_HSVD(SVD svd)
   /* free working space */
   PetscCall(PetscFree(w));
   PetscCall(DSTruncate(svd->ds,svd->nconv,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Given n computed generalized singular values in sigmain, backtransform them
@@ -738,7 +738,7 @@ static PetscErrorCode SVDLanczosBackTransform(SVD svd,PetscInt n,PetscReal *sigm
       if (svd->swapped) sigmain[i] = 1.0/sigmain[i];
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta,Mat Z,BV V,BV U,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
@@ -775,7 +775,7 @@ static PetscErrorCode SVDLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta
   if (PetscUnlikely(lindep)) {
     *n = k;
     if (breakdown) *breakdown = lindep;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   for (i=k+1; i<*n; i++) {
@@ -843,7 +843,7 @@ static PetscErrorCode SVDLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta
   }
   if (breakdown) *breakdown = lindep;
   PetscCall(VecDestroy(&v1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* solve generalized problem with single bidiagonalization of Q_A */
@@ -947,7 +947,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
   }
 
   PetscCall(PetscFree2(w,sigma));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Move generalized left singular vectors (0..nconv) from U1 and U2 to its final destination svd->U (single variant) */
@@ -988,7 +988,7 @@ static inline PetscErrorCode SVDLeftSingularVectors_Single(SVD svd,BV U1,BV U2)
     PetscCall(BVRestoreColumn(U2,i,&u2));
     PetscCall(BVRestoreColumn(svd->U,i,&u));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
@@ -1080,7 +1080,7 @@ static PetscErrorCode SVDLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,
   }
   if (breakdown) *breakdown = lindep;
   PetscCall(VecDestroy(&v1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* generate random initial vector in column k for joint upper-upper bidiagonalization */
@@ -1110,7 +1110,7 @@ static inline PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,PetscInt 
   PetscCall(BVRestoreColumn(V,k,&v));
   if (breakdown) PetscCall(BVOrthonormalizeColumn(V,k,PETSC_FALSE,NULL,breakdown));
   else PetscCall(BVOrthonormalizeColumn(V,k,PETSC_TRUE,NULL,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* solve generalized problem with joint upper-upper bidiagonalization */
@@ -1218,7 +1218,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
   }
 
   PetscCall(PetscFree2(w,sigma));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Move generalized left singular vectors (0..nconv) from U1 and U2 to its final destination svd->U (upper and lower variants) */
@@ -1250,7 +1250,7 @@ static inline PetscErrorCode SVDLeftSingularVectors(SVD svd,BV U1,BV U2)
     PetscCall(BVRestoreColumn(U2,i,&u2));
     PetscCall(BVRestoreColumn(svd->U,i,&u));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDLanczosGLower(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
@@ -1344,7 +1344,7 @@ static PetscErrorCode SVDLanczosGLower(SVD svd,PetscReal *alpha,PetscReal *beta,
   }
   if (breakdown) *breakdown = lindep;
   PetscCall(VecDestroy(&v1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* generate random initial vector in column k for joint lower-upper bidiagonalization */
@@ -1405,7 +1405,7 @@ static inline PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,BV U2,Pet
     else PetscCall(BVOrthonormalizeColumn(V,k,PETSC_TRUE,alpha+k,NULL));
     PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* solve generalized problem with joint lower-upper bidiagonalization */
@@ -1517,7 +1517,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
   }
 
   PetscCall(PetscFree2(w,sigma));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
@@ -1611,7 +1611,7 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscCall(BVDestroy(&U2));
   PetscCall(DSTruncate(svd->ds,svd->nconv,PETSC_TRUE));
   if (convchg) svd->converged = SVDConvergedNorm;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd,PetscOptionItems *PetscOptionsObject)
@@ -1649,7 +1649,7 @@ PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd,PetscOptionItems *PetscOption
     if (!lanczos->ksp) PetscCall(SVDTRLanczosGetKSP(svd,&lanczos->ksp));
     PetscCall(KSPSetFromOptions(lanczos->ksp));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosSetOneSide_TRLanczos(SVD svd,PetscBool oneside)
@@ -1661,7 +1661,7 @@ static PetscErrorCode SVDTRLanczosSetOneSide_TRLanczos(SVD svd,PetscBool oneside
     lanczos->oneside = oneside;
     svd->state = SVD_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1695,7 +1695,7 @@ PetscErrorCode SVDTRLanczosSetOneSide(SVD svd,PetscBool oneside)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveBool(svd,oneside,2);
   PetscTryMethod(svd,"SVDTRLanczosSetOneSide_C",(SVD,PetscBool),(svd,oneside));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosGetOneSide_TRLanczos(SVD svd,PetscBool *oneside)
@@ -1704,7 +1704,7 @@ static PetscErrorCode SVDTRLanczosGetOneSide_TRLanczos(SVD svd,PetscBool *onesid
 
   PetscFunctionBegin;
   *oneside = lanczos->oneside;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1729,7 +1729,7 @@ PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscBool *oneside)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(oneside,2);
   PetscUseMethod(svd,"SVDTRLanczosGetOneSide_C",(SVD,PetscBool*),(svd,oneside));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosSetGBidiag_TRLanczos(SVD svd,SVDTRLanczosGBidiag bidiag)
@@ -1749,7 +1749,7 @@ static PetscErrorCode SVDTRLanczosSetGBidiag_TRLanczos(SVD svd,SVDTRLanczosGBidi
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid bidiagonalization choice");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1776,7 +1776,7 @@ PetscErrorCode SVDTRLanczosSetGBidiag(SVD svd,SVDTRLanczosGBidiag bidiag)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveEnum(svd,bidiag,2);
   PetscTryMethod(svd,"SVDTRLanczosSetGBidiag_C",(SVD,SVDTRLanczosGBidiag),(svd,bidiag));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosGetGBidiag_TRLanczos(SVD svd,SVDTRLanczosGBidiag *bidiag)
@@ -1785,7 +1785,7 @@ static PetscErrorCode SVDTRLanczosGetGBidiag_TRLanczos(SVD svd,SVDTRLanczosGBidi
 
   PetscFunctionBegin;
   *bidiag = lanczos->bidiag;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1810,7 +1810,7 @@ PetscErrorCode SVDTRLanczosGetGBidiag(SVD svd,SVDTRLanczosGBidiag *bidiag)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(bidiag,2);
   PetscUseMethod(svd,"SVDTRLanczosGetGBidiag_C",(SVD,SVDTRLanczosGBidiag*),(svd,bidiag));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosSetKSP_TRLanczos(SVD svd,KSP ksp)
@@ -1822,7 +1822,7 @@ static PetscErrorCode SVDTRLanczosSetKSP_TRLanczos(SVD svd,KSP ksp)
   PetscCall(KSPDestroy(&ctx->ksp));
   ctx->ksp   = ksp;
   svd->state = SVD_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1848,7 +1848,7 @@ PetscErrorCode SVDTRLanczosSetKSP(SVD svd,KSP ksp)
   PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(svd,1,ksp,2);
   PetscTryMethod(svd,"SVDTRLanczosSetKSP_C",(SVD,KSP),(svd,ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosGetKSP_TRLanczos(SVD svd,KSP *ksp)
@@ -1871,7 +1871,7 @@ static PetscErrorCode SVDTRLanczosGetKSP_TRLanczos(SVD svd,KSP *ksp)
     PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(svd->tol)/10.0,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = ctx->ksp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1896,7 +1896,7 @@ PetscErrorCode SVDTRLanczosGetKSP(SVD svd,KSP *ksp)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(ksp,2);
   PetscUseMethod(svd,"SVDTRLanczosGetKSP_C",(SVD,KSP*),(svd,ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosSetRestart_TRLanczos(SVD svd,PetscReal keep)
@@ -1909,7 +1909,7 @@ static PetscErrorCode SVDTRLanczosSetRestart_TRLanczos(SVD svd,PetscReal keep)
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",(double)keep);
     ctx->keep = keep;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1939,7 +1939,7 @@ PetscErrorCode SVDTRLanczosSetRestart(SVD svd,PetscReal keep)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveReal(svd,keep,2);
   PetscTryMethod(svd,"SVDTRLanczosSetRestart_C",(SVD,PetscReal),(svd,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosGetRestart_TRLanczos(SVD svd,PetscReal *keep)
@@ -1948,7 +1948,7 @@ static PetscErrorCode SVDTRLanczosGetRestart_TRLanczos(SVD svd,PetscReal *keep)
 
   PetscFunctionBegin;
   *keep = ctx->keep;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1973,7 +1973,7 @@ PetscErrorCode SVDTRLanczosGetRestart(SVD svd,PetscReal *keep)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidRealPointer(keep,2);
   PetscUseMethod(svd,"SVDTRLanczosGetRestart_C",(SVD,PetscReal*),(svd,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosSetLocking_TRLanczos(SVD svd,PetscBool lock)
@@ -1982,7 +1982,7 @@ static PetscErrorCode SVDTRLanczosSetLocking_TRLanczos(SVD svd,PetscBool lock)
 
   PetscFunctionBegin;
   ctx->lock = lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -2014,7 +2014,7 @@ PetscErrorCode SVDTRLanczosSetLocking(SVD svd,PetscBool lock)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveBool(svd,lock,2);
   PetscTryMethod(svd,"SVDTRLanczosSetLocking_C",(SVD,PetscBool),(svd,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosGetLocking_TRLanczos(SVD svd,PetscBool *lock)
@@ -2023,7 +2023,7 @@ static PetscErrorCode SVDTRLanczosGetLocking_TRLanczos(SVD svd,PetscBool *lock)
 
   PetscFunctionBegin;
   *lock = ctx->lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -2048,7 +2048,7 @@ PetscErrorCode SVDTRLanczosGetLocking(SVD svd,PetscBool *lock)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(lock,2);
   PetscUseMethod(svd,"SVDTRLanczosGetLocking_C",(SVD,PetscBool*),(svd,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosSetExplicitMatrix_TRLanczos(SVD svd,PetscBool explicitmat)
@@ -2060,7 +2060,7 @@ static PetscErrorCode SVDTRLanczosSetExplicitMatrix_TRLanczos(SVD svd,PetscBool 
     lanczos->explicitmatrix = explicitmat;
     svd->state = SVD_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -2090,7 +2090,7 @@ PetscErrorCode SVDTRLanczosSetExplicitMatrix(SVD svd,PetscBool explicitmat)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveBool(svd,explicitmat,2);
   PetscTryMethod(svd,"SVDTRLanczosSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmat));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosGetExplicitMatrix_TRLanczos(SVD svd,PetscBool *explicitmat)
@@ -2099,7 +2099,7 @@ static PetscErrorCode SVDTRLanczosGetExplicitMatrix_TRLanczos(SVD svd,PetscBool 
 
   PetscFunctionBegin;
   *explicitmat = lanczos->explicitmatrix;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -2123,7 +2123,7 @@ PetscErrorCode SVDTRLanczosGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(explicitmat,2);
   PetscUseMethod(svd,"SVDTRLanczosGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosSetScale_TRLanczos(SVD svd,PetscReal scale)
@@ -2138,7 +2138,7 @@ static PetscErrorCode SVDTRLanczosSetScale_TRLanczos(SVD svd,PetscReal scale)
     ctx->scalef  = scale;
     ctx->scaleth = 0.0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -2172,7 +2172,7 @@ PetscErrorCode SVDTRLanczosSetScale(SVD svd,PetscReal scale)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveReal(svd,scale,2);
   PetscTryMethod(svd,"SVDTRLanczosSetScale_C",(SVD,PetscReal),(svd,scale));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDTRLanczosGetScale_TRLanczos(SVD svd,PetscReal *scale)
@@ -2182,7 +2182,7 @@ static PetscErrorCode SVDTRLanczosGetScale_TRLanczos(SVD svd,PetscReal *scale)
   PetscFunctionBegin;
   if (ctx->scaleth==0) *scale = ctx->scalef;
   else                 *scale = -ctx->scaleth;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -2211,7 +2211,7 @@ PetscErrorCode SVDTRLanczosGetScale(SVD svd,PetscReal *scale)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidRealPointer(scale,2);
   PetscUseMethod(svd,"SVDTRLanczosGetScale_C",(SVD,PetscReal*),(svd,scale));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDReset_TRLanczos(SVD svd)
@@ -2223,7 +2223,7 @@ PetscErrorCode SVDReset_TRLanczos(SVD svd)
     PetscCall(KSPReset(lanczos->ksp));
     PetscCall(MatDestroy(&lanczos->Z));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
@@ -2247,7 +2247,7 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetExplicitMatrix_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetScale_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetScale_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
@@ -2278,7 +2278,7 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
       PetscCall(PetscViewerASCIIPopTab(viewer));
     } else PetscCall(PetscViewerASCIIPrintf(viewer,"  %s-sided reorthogonalization\n",lanczos->oneside? "one": "two"));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSetDSType_TRLanczos(SVD svd)
@@ -2290,7 +2290,7 @@ PetscErrorCode SVDSetDSType_TRLanczos(SVD svd)
   dstype = svd->ishyperbolic? DSHSVD: DSSVD;
   if (svd->OPb && (lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_UPPER || lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_LOWER)) dstype = DSGSVD;
   PetscCall(DSSetType(svd->ds,dstype));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
@@ -2329,5 +2329,5 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetExplicitMatrix_C",SVDTRLanczosGetExplicitMatrix_TRLanczos));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetScale_C",SVDTRLanczosSetScale_TRLanczos));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetScale_C",SVDTRLanczosGetScale_TRLanczos));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

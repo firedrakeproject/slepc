@@ -54,7 +54,7 @@ PetscErrorCode EPSSetUp_Elemental(EPS eps)
     if (nmat>1) PetscCall(MatAXPY(ctx->Ae,-shift,ctx->Be,SAME_NONZERO_PATTERN));
     else PetscCall(MatShift(ctx->Ae,-shift));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_Elemental(EPS eps)
@@ -87,14 +87,14 @@ PetscErrorCode EPSSolve_Elemental(EPS eps)
   eps->nconv  = eps->ncv;
   eps->its    = 1;
   eps->reason = EPS_CONVERGED_TOL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_Elemental(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_Elemental(EPS eps)
@@ -104,7 +104,7 @@ PetscErrorCode EPSReset_Elemental(EPS eps)
   PetscFunctionBegin;
   PetscCall(MatDestroy(&ctx->Ae));
   PetscCall(MatDestroy(&ctx->Be));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_Elemental(EPS eps)
@@ -124,5 +124,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Elemental(EPS eps)
   eps->ops->reset          = EPSReset_Elemental;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->setdefaultst   = EPSSetDefaultST_NoFactor;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

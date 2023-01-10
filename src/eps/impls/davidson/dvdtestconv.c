@@ -30,5 +30,5 @@ PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
     PetscCall(PetscFree(d->testConv_data));
     d->testConv = dvd_testconv_slepc_0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

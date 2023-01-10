@@ -45,7 +45,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) PetscCall(DSSetRefined(eps->ds,PETSC_TRUE));
   PetscCall(DSSetExtraRow(eps->ds,PETSC_TRUE));
   PetscCall(DSAllocate(eps->ds,eps->ncv+1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_Arnoldi(EPS eps)
@@ -126,7 +126,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     PetscCall(EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv));
   }
   PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps,PetscOptionItems *PetscOptionsObject)
@@ -141,7 +141,7 @@ PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps,PetscOptionItems *PetscOptionsO
     if (set) PetscCall(EPSArnoldiSetDelayed(eps,val));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSArnoldiSetDelayed_Arnoldi(EPS eps,PetscBool delayed)
@@ -150,7 +150,7 @@ static PetscErrorCode EPSArnoldiSetDelayed_Arnoldi(EPS eps,PetscBool delayed)
 
   PetscFunctionBegin;
   arnoldi->delayed = delayed;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -181,7 +181,7 @@ PetscErrorCode EPSArnoldiSetDelayed(EPS eps,PetscBool delayed)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,delayed,2);
   PetscTryMethod(eps,"EPSArnoldiSetDelayed_C",(EPS,PetscBool),(eps,delayed));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
@@ -190,7 +190,7 @@ static PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
 
   PetscFunctionBegin;
   *delayed = arnoldi->delayed;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -215,7 +215,7 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(delayed,2);
   PetscUseMethod(eps,"EPSArnoldiGetDelayed_C",(EPS,PetscBool*),(eps,delayed));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
@@ -224,7 +224,7 @@ PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
   PetscCall(PetscFree(eps->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
@@ -235,7 +235,7 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii && arnoldi->delayed) PetscCall(PetscViewerASCIIPrintf(viewer,"  using delayed reorthogonalization\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
@@ -259,5 +259,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
 
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C",EPSArnoldiSetDelayed_Arnoldi));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C",EPSArnoldiGetDelayed_Arnoldi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

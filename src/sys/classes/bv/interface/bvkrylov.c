@@ -109,7 +109,7 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
   }
 
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -222,5 +222,5 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,Mat T,PetscInt k,PetscInt *m,PetscReal *b
   }
 
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
