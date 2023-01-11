@@ -29,7 +29,7 @@ __host__ PetscErrorCode set_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,Pe
   dim3        blocks3d,threads3d;
 
   PetscFunctionBegin;
-  SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
+  PetscCall(SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount));
   for (i=0;i<dimGrid_xcount;i++) {
     set_diagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
     PetscCallCUDA(cudaGetLastError());
@@ -53,7 +53,7 @@ __host__ PetscErrorCode set_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,
   dim3        blocks3d,threads3d;
 
   PetscFunctionBegin;
-  SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
+  PetscCall(SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount));
   for (i=0;i<dimGrid_xcount;i++) {
     set_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,vr,vi,i);
     PetscCallCUDA(cudaGetLastError());
@@ -77,7 +77,7 @@ __host__ PetscErrorCode shift_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,
   dim3        blocks3d,threads3d;
 
   PetscFunctionBegin;
-  SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
+  PetscCall(SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount));
   for (i=0;i<dimGrid_xcount;i++) {
     shift_diagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
     PetscCallCUDA(cudaGetLastError());
@@ -101,7 +101,7 @@ __host__ PetscErrorCode shift_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt l
   dim3        blocks3d,threads3d;
 
   PetscFunctionBegin;
-  SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
+  PetscCall(SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount));
   for (i=0;i<dimGrid_xcount;i++) {
     shift_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,vr,vi,i);
     PetscCallCUDA(cudaGetLastError());
@@ -128,7 +128,7 @@ __host__ PetscErrorCode copy_array2D_S2C(PetscInt m,PetscInt n,PetscComplex *d_p
   dim3        blocks3d,threads3d;
 
   PetscFunctionBegin;
-  SlepcKernelSetGrid2DTiles(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
+  PetscCall(SlepcKernelSetGrid2DTiles(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount));
   for (i=0;i<dimGrid_xcount;i++) {
     for (j=0;j<dimGrid_ycount;j++) {
       copy_array2D_S2C_kernel<<<blocks3d,threads3d>>>(m,n,d_pa,lda,d_pb,ldb,i,j);
@@ -157,7 +157,7 @@ __host__ PetscErrorCode copy_array2D_C2S(PetscInt m,PetscInt n,PetscScalar *d_pa
   dim3        blocks3d,threads3d;
 
   PetscFunctionBegin;
-  SlepcKernelSetGrid2DTiles(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
+  PetscCall(SlepcKernelSetGrid2DTiles(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount));
   for (i=0;i<dimGrid_xcount;i++) {
     for (j=0;j<dimGrid_ycount;j++) {
       copy_array2D_C2S_kernel<<<blocks3d,threads3d>>>(m,n,d_pa,lda,d_pb,ldb,i,j);
@@ -186,7 +186,7 @@ __host__ PetscErrorCode add_array2D_Conj(PetscInt m,PetscInt n,PetscComplex *d_p
   dim3        blocks3d,threads3d;
 
   PetscFunctionBegin;
-  SlepcKernelSetGrid2DTiles(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
+  PetscCall(SlepcKernelSetGrid2DTiles(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount));
   for (i=0;i<dimGrid_xcount;i++) {
     for (j=0;j<dimGrid_ycount;j++) {
       add_array2D_Conj_kernel<<<blocks3d,threads3d>>>(m,n,d_pa,lda,i,j);
@@ -219,7 +219,7 @@ __host__ PetscErrorCode getisreal_array2D(PetscInt m,PetscInt n,PetscComplex *d_
 
   PetscFunctionBegin;
   PetscCallCUDA(cudaMemcpy(d_result,&result,sizeof(PetscBool),cudaMemcpyHostToDevice));
-  SlepcKernelSetGrid2DTiles(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
+  PetscCall(SlepcKernelSetGrid2DTiles(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount));
   for (i=0;i<dimGrid_xcount;i++) {
     for (j=0;j<dimGrid_ycount;j++) {
       getisreal_array2D_kernel<<<blocks3d,threads3d>>>(m,n,d_pa,lda,d_result,i,j);
@@ -259,7 +259,7 @@ __host__ PetscErrorCode mult_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,P
   dim3        blocks3d,threads3d;
 
   PetscFunctionBegin;
-  SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
+  PetscCall(SlepcKernelSetGrid1D(n,&blocks3d,&threads3d,&dimGrid_xcount));
   PetscCallCUDA(cudaMalloc((void **)&d_part,sizeof(PetscScalar)*blocks3d.x));
   PetscCall(PetscMalloc1(blocks3d.x,&part));
   for (i=0;i<dimGrid_xcount;i++) {
