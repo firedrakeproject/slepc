@@ -58,8 +58,7 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Calling Sequence of monitor:
-$   monitor(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *mctx)
+   Input Parameters of monitor:
 
 +  svd    - singular value solver context obtained from SVDCreate()
 .  its    - iteration number
@@ -93,7 +92,7 @@ $   monitor(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *erre
 
 .seealso: SVDMonitorFirst(), SVDMonitorAll(), SVDMonitorConditioning(), SVDMonitorCancel()
 @*/
-PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
+PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *mctx),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -326,7 +325,6 @@ PetscErrorCode SVDMonitorConvergedDestroy(PetscViewerAndFormat **vf)
    Input Parameters:
 +  svd    - singular value solver context
 .  its    - iteration number
-.  its    - iteration number
 .  nconv  - number of converged singular triplets so far
 .  sigma  - singular values
 .  errest - error estimates
@@ -404,7 +402,6 @@ PetscErrorCode SVDMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
 
    Input Parameters:
 +  svd    - singular value solver context
-.  its    - iteration number
 .  its    - iteration number
 .  nconv  - number of converged singular triplets so far
 .  sigma  - singular values
@@ -486,7 +483,6 @@ PetscErrorCode SVDMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
 
    Input Parameters:
 +  svd    - singular value solver context
-.  its    - iteration number
 .  its    - iteration number
 .  nconv  - number of converged singular triplets so far
 .  sigma  - singular values

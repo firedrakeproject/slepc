@@ -385,7 +385,19 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 +   nep   - eigensolver context obtained from NEPCreate()
 -   which - the portion of the spectrum to be sought
 
-    Possible values:
+    Options Database Keys:
++   -nep_largest_magnitude - Sets largest eigenvalues in magnitude
+.   -nep_smallest_magnitude - Sets smallest eigenvalues in magnitude
+.   -nep_largest_real - Sets largest real parts
+.   -nep_smallest_real - Sets smallest real parts
+.   -nep_largest_imaginary - Sets largest imaginary parts
+.   -nep_smallest_imaginary - Sets smallest imaginary parts
+.   -nep_target_magnitude - Sets eigenvalues closest to target
+.   -nep_target_real - Sets real parts closest to target
+.   -nep_target_imaginary - Sets imaginary parts closest to target
+-   -nep_all - Sets all eigenvalues in a region
+
+    Notes:
     The parameter 'which' can have one of these values
 
 +     NEP_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
@@ -400,19 +412,6 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     NEP_ALL - all eigenvalues contained in a given region
 -     NEP_WHICH_USER - user defined ordering set with NEPSetEigenvalueComparison()
 
-    Options Database Keys:
-+   -nep_largest_magnitude - Sets largest eigenvalues in magnitude
-.   -nep_smallest_magnitude - Sets smallest eigenvalues in magnitude
-.   -nep_largest_real - Sets largest real parts
-.   -nep_smallest_real - Sets smallest real parts
-.   -nep_largest_imaginary - Sets largest imaginary parts
-.   -nep_smallest_imaginary - Sets smallest imaginary parts
-.   -nep_target_magnitude - Sets eigenvalues closest to target
-.   -nep_target_real - Sets real parts closest to target
-.   -nep_target_imaginary - Sets imaginary parts closest to target
--   -nep_all - Sets all eigenvalues in a region
-
-    Notes:
     Not all eigensolvers implemented in NEP account for all the possible values
     stated above. If SLEPc is compiled for real numbers NEP_LARGEST_IMAGINARY
     and NEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
@@ -500,8 +499,7 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
 .  func - a pointer to the comparison function
 -  ctx  - a context pointer (the last parameter to the comparison function)
 
-   Calling Sequence of func:
-$   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+   Input Parameters of func:
 
 +   ar     - real part of the 1st eigenvalue
 .   ai     - imaginary part of the 1st eigenvalue
@@ -520,7 +518,7 @@ $   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r
 
 .seealso: NEPSetWhichEigenpairs(), NEPWhich
 @*/
-PetscErrorCode NEPSetEigenvalueComparison(NEP nep,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+PetscErrorCode NEPSetEigenvalueComparison(NEP nep,PetscErrorCode (*func)(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -666,8 +664,7 @@ PetscErrorCode NEPGetTwoSided(NEP nep,PetscBool *twosided)
 .  ctx     - context for private data for the convergence routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Calling Sequence of func:
-$   func(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+   Input Parameters of func:
 
 +   nep    - nonlinear eigensolver context obtained from NEPCreate()
 .   eigr   - real part of the eigenvalue
@@ -684,7 +681,7 @@ $   func(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 
 .seealso: NEPSetConvergenceTest(), NEPSetTolerances()
 @*/
-PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -785,12 +782,11 @@ PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
 .  ctx     - context for private data for the stopping routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Calling Sequence of func:
-$   func(NEP nep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx)
+   Input Parameters of func:
 
 +   nep    - nonlinear eigensolver context obtained from NEPCreate()
 .   its    - current number of iterations
-.   max_it - maximum number of iterations
+.   max_its - maximum number of iterations
 .   nconv  - number of currently converged eigenpairs
 .   nev    - number of requested eigenpairs
 .   reason - (output) result of the stopping test
@@ -806,7 +802,7 @@ $   func(NEP nep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,NEPCon
 
 .seealso: NEPSetStoppingTest(), NEPStoppingBasic()
 @*/
-PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP nep,PetscInt its,PetscInt max_its,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);

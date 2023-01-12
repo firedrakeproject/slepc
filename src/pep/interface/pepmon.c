@@ -58,8 +58,7 @@ PetscErrorCode PEPMonitor(PEP pep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Calling Sequence of monitor:
-$   monitor(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal* errest,PetscInt nest,void *mctx)
+   Input Parameters of monitor:
 
 +  pep    - polynomial eigensolver context obtained from PEPCreate()
 .  its    - iteration number
@@ -93,7 +92,7 @@ $   monitor(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *e
 
 .seealso: PEPMonitorFirst(), PEPMonitorAll(), PEPMonitorCancel()
 @*/
-PetscErrorCode PEPMonitorSet(PEP pep,PetscErrorCode (*monitor)(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
+PetscErrorCode PEPMonitorSet(PEP pep,PetscErrorCode (*monitor)(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *mctx),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -379,7 +378,6 @@ PetscErrorCode PEPMonitorConvergedDestroy(PetscViewerAndFormat **vf)
    Input Parameters:
 +  pep    - polynomial eigensolver context
 .  its    - iteration number
-.  its    - iteration number
 .  nconv  - number of converged eigenpairs so far
 .  eigr   - real part of the eigenvalues
 .  eigi   - imaginary part of the eigenvalues
@@ -458,7 +456,6 @@ PetscErrorCode PEPMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
 
    Input Parameters:
 +  pep    - polynomial eigensolver context
-.  its    - iteration number
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs so far
 .  eigr   - real part of the eigenvalues
@@ -541,7 +538,6 @@ PetscErrorCode PEPMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
 
    Input Parameters:
 +  pep    - polynomial eigensolver context
-.  its    - iteration number
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs so far
 .  eigr   - real part of the eigenvalues

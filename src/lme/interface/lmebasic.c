@@ -330,7 +330,7 @@ PetscErrorCode LMEGetType(LME lme,LMEType *type)
    Notes:
    LMERegister() may be called multiple times to add several user-defined solvers.
 
-   Sample usage:
+   Example Usage:
 .vb
     LMERegister("my_solver",MySolverCreate);
 .ve
@@ -368,7 +368,7 @@ PetscErrorCode LMERegister(const char *name,PetscErrorCode (*function)(LME))
    Notes:
    LMEMonitorRegister() may be called multiple times to add several user-defined monitors.
 
-   Sample usage:
+   Example Usage:
 .vb
    LMEMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
 .ve

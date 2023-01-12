@@ -1056,8 +1056,7 @@ static inline PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marray,Pets
    Input Parameters:
 +  X - basis vectors
 .  A - (optional) matrix to be projected
-.  Y - left basis vectors, can be equal to X
--  M - Mat object where the result must be placed
+-  Y - left basis vectors, can be equal to X
 
    Output Parameter:
 .  M - the resulting matrix

@@ -254,15 +254,15 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
     Output Parameter:
 .   which - which singular triplets are to be sought
 
-    Possible values:
+    Options Database Keys:
++   -svd_largest  - Sets largest singular values
+-   -svd_smallest - Sets smallest singular values
+
+    Notes:
     The parameter 'which' can have one of these values
 
 +     SVD_LARGEST  - largest singular values
 -     SVD_SMALLEST - smallest singular values
-
-    Options Database Keys:
-+   -svd_largest  - Sets largest singular values
--   -svd_smallest - Sets smallest singular values
 
     Level: intermediate
 
@@ -327,8 +327,7 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 .  ctx     - context for private data for the convergence routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Calling Sequence of func:
-$   func(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
+   Input Parameters of func:
 
 +   svd    - singular value solver context obtained from SVDCreate()
 .   sigma  - computed singular value
@@ -344,7 +343,7 @@ $   func(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
 
 .seealso: SVDSetConvergenceTest(), SVDSetTolerances()
 @*/
-PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,PetscReal,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -452,8 +451,7 @@ PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
 .  ctx     - context for private data for the stopping routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Calling Sequence of func:
-$   func(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx)
+   Input Parameters of func:
 
 +   svd    - singular value solver context obtained from SVDCreate()
 .   its    - current number of iterations
@@ -473,7 +471,7 @@ $   func(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDCon
 
 .seealso: SVDSetStoppingTest(), SVDStoppingBasic()
 @*/
-PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);

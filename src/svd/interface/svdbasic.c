@@ -275,7 +275,7 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
    Notes:
    SVDRegister() may be called multiple times to add several user-defined solvers.
 
-   Sample usage:
+   Example Usage:
 .vb
     SVDRegister("my_solver",MySolverCreate);
 .ve
@@ -313,7 +313,7 @@ PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
    Notes:
    SVDMonitorRegister() may be called multiple times to add several user-defined monitors.
 
-   Sample usage:
+   Example Usage:
 .vb
    SVDMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
 .ve

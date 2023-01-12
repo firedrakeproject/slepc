@@ -414,7 +414,19 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 +  pep   - eigensolver context obtained from PEPCreate()
 -  which - the portion of the spectrum to be sought
 
-   Possible values:
+   Options Database Keys:
++   -pep_largest_magnitude - Sets largest eigenvalues in magnitude
+.   -pep_smallest_magnitude - Sets smallest eigenvalues in magnitude
+.   -pep_largest_real - Sets largest real parts
+.   -pep_smallest_real - Sets smallest real parts
+.   -pep_largest_imaginary - Sets largest imaginary parts
+.   -pep_smallest_imaginary - Sets smallest imaginary parts
+.   -pep_target_magnitude - Sets eigenvalues closest to target
+.   -pep_target_real - Sets real parts closest to target
+.   -pep_target_imaginary - Sets imaginary parts closest to target
+-   -pep_all - Sets all eigenvalues in an interval or region
+
+   Notes:
    The parameter 'which' can have one of these values
 
 +     PEP_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
@@ -429,19 +441,6 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     PEP_ALL - all eigenvalues contained in a given interval or region
 -     PEP_WHICH_USER - user defined ordering set with PEPSetEigenvalueComparison()
 
-   Options Database Keys:
-+   -pep_largest_magnitude - Sets largest eigenvalues in magnitude
-.   -pep_smallest_magnitude - Sets smallest eigenvalues in magnitude
-.   -pep_largest_real - Sets largest real parts
-.   -pep_smallest_real - Sets smallest real parts
-.   -pep_largest_imaginary - Sets largest imaginary parts
-.   -pep_smallest_imaginary - Sets smallest imaginary parts
-.   -pep_target_magnitude - Sets eigenvalues closest to target
-.   -pep_target_real - Sets real parts closest to target
-.   -pep_target_imaginary - Sets imaginary parts closest to target
--   -pep_all - Sets all eigenvalues in an interval or region
-
-   Notes:
    Not all eigensolvers implemented in PEP account for all the possible values
    stated above. If SLEPc is compiled for real numbers PEP_LARGEST_IMAGINARY
    and PEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
@@ -536,8 +535,7 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
 .  func - a pointer to the comparison function
 -  ctx  - a context pointer (the last parameter to the comparison function)
 
-   Calling Sequence of func:
-$   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+   Input Parameters of func:
 
 +   ar     - real part of the 1st eigenvalue
 .   ai     - imaginary part of the 1st eigenvalue
@@ -556,7 +554,7 @@ $   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r
 
 .seealso: PEPSetWhichEigenpairs(), PEPWhich
 @*/
-PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -760,8 +758,7 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
 .  ctx     - context for private data for the convergence routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Calling Sequence of func:
-$   func(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+   Input Parameters of func:
 
 +   pep    - eigensolver context obtained from PEPCreate()
 .   eigr   - real part of the eigenvalue
@@ -778,7 +775,7 @@ $   func(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 
 .seealso: PEPSetConvergenceTest(), PEPSetTolerances()
 @*/
-PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -880,8 +877,7 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
 .  ctx     - context for private data for the stopping routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Calling Sequence of func:
-$   func(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx)
+   Input Parameters of func:
 
 +   pep    - eigensolver context obtained from PEPCreate()
 .   its    - current number of iterations
@@ -901,7 +897,7 @@ $   func(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPCon
 
 .seealso: PEPSetStoppingTest(), PEPStoppingBasic()
 @*/
-PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*func)(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*func)(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);

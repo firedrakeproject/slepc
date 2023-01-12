@@ -215,7 +215,7 @@ PetscErrorCode PEPGetType(PEP pep,PEPType *type)
    Notes:
    PEPRegister() may be called multiple times to add several user-defined solvers.
 
-   Sample usage:
+   Example Usage:
 .vb
     PEPRegister("my_solver",MySolverCreate);
 .ve
@@ -253,7 +253,7 @@ PetscErrorCode PEPRegister(const char *name,PetscErrorCode (*function)(PEP))
    Notes:
    PEPMonitorRegister() may be called multiple times to add several user-defined monitors.
 
-   Sample usage:
+   Example Usage:
 .vb
    PEPMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
 .ve

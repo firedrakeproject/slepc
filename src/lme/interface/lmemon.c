@@ -58,7 +58,7 @@ PetscErrorCode LMEMonitor(LME lme,PetscInt it,PetscReal errest)
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Parameters of monitor:
+   Input Parameters of monitor:
 
 +  lme    - linear matrix equation solver context obtained from LMECreate()
 .  its    - iteration number

@@ -416,7 +416,19 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 +  eps   - eigensolver context obtained from EPSCreate()
 -  which - the portion of the spectrum to be sought
 
-   Possible values:
+   Options Database Keys:
++   -eps_largest_magnitude - Sets largest eigenvalues in magnitude
+.   -eps_smallest_magnitude - Sets smallest eigenvalues in magnitude
+.   -eps_largest_real - Sets largest real parts
+.   -eps_smallest_real - Sets smallest real parts
+.   -eps_largest_imaginary - Sets largest imaginary parts
+.   -eps_smallest_imaginary - Sets smallest imaginary parts
+.   -eps_target_magnitude - Sets eigenvalues closest to target
+.   -eps_target_real - Sets real parts closest to target
+.   -eps_target_imaginary - Sets imaginary parts closest to target
+-   -eps_all - Sets all eigenvalues in an interval or region
+
+   Notes:
    The parameter 'which' can have one of these values
 
 +     EPS_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
@@ -431,19 +443,6 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     EPS_ALL - all eigenvalues contained in a given interval or region
 -     EPS_WHICH_USER - user defined ordering set with EPSSetEigenvalueComparison()
 
-   Options Database Keys:
-+   -eps_largest_magnitude - Sets largest eigenvalues in magnitude
-.   -eps_smallest_magnitude - Sets smallest eigenvalues in magnitude
-.   -eps_largest_real - Sets largest real parts
-.   -eps_smallest_real - Sets smallest real parts
-.   -eps_largest_imaginary - Sets largest imaginary parts
-.   -eps_smallest_imaginary - Sets smallest imaginary parts
-.   -eps_target_magnitude - Sets eigenvalues closest to target
-.   -eps_target_real - Sets real parts closest to target
-.   -eps_target_imaginary - Sets imaginary parts closest to target
--   -eps_all - Sets all eigenvalues in an interval or region
-
-   Notes:
    Not all eigensolvers implemented in EPS account for all the possible values
    stated above. Also, some values make sense only for certain types of
    problems. If SLEPc is compiled for real numbers EPS_LARGEST_IMAGINARY
@@ -539,8 +538,7 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 .  func - a pointer to the comparison function
 -  ctx  - a context pointer (the last parameter to the comparison function)
 
-   Calling Sequence of func:
-$   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+   Input Parameters of func:
 
 +   ar     - real part of the 1st eigenvalue
 .   ai     - imaginary part of the 1st eigenvalue
@@ -559,7 +557,7 @@ $   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r
 
 .seealso: EPSSetWhichEigenpairs(), EPSWhich
 @*/
-PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -581,8 +579,7 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscSc
 .  func - a pointer to the evaluation function
 -  ctx  - a context pointer (the last parameter to the evaluation function)
 
-   Calling Sequence of func:
-$   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar *ri,void *ctx)
+   Input Parameters of func:
 
 +   er     - real part of the current eigenvalue approximation
 .   ei     - imaginary part of the current eigenvalue approximation
@@ -616,7 +613,7 @@ $   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar
 
 .seealso: EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*),void* ctx)
+PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar *ri,void *ctx),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -638,8 +635,7 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
 .  ctx     - context for private data for the convergence routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Calling Sequence of func:
-$   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+   Input Parameters of func:
 
 +   eps    - eigensolver context obtained from EPSCreate()
 .   eigr   - real part of the eigenvalue
@@ -656,7 +652,7 @@ $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 
 .seealso: EPSSetConvergenceTest(), EPSSetTolerances()
 @*/
-PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -758,8 +754,7 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
 .  ctx     - context for private data for the stopping routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Calling Sequence of func:
-$   func(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
+   Input Parameters of func:
 
 +   eps    - eigensolver context obtained from EPSCreate()
 .   its    - current number of iterations
@@ -779,7 +774,7 @@ $   func(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSCon
 
 .seealso: EPSSetStoppingTest(), EPSStoppingBasic()
 @*/
-PetscErrorCode EPSSetStoppingTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode EPSSetStoppingTestFunction(EPS eps,PetscErrorCode (*func)(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);

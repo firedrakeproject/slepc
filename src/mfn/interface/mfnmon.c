@@ -58,8 +58,7 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Calling Sequence of monitor:
-$   monitor(MFN mfn,PetscInt its,PetscReal errest,void *mctx)
+   Input Parameters of monitor:
 
 +  mfn    - matrix function context obtained from MFNCreate()
 .  its    - iteration number
@@ -82,7 +81,7 @@ $   monitor(MFN mfn,PetscInt its,PetscReal errest,void *mctx)
 
 .seealso: MFNMonitorCancel()
 @*/
-PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN,PetscInt,PetscReal,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
+PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN mfn,PetscInt its,PetscReal errest,void *mctx),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);

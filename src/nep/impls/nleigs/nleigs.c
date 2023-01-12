@@ -1304,8 +1304,7 @@ static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErro
 -  ctx - [optional] user-defined context for private data for the function
          (may be NULL, in which case NEP retains any previously set value)
 
-   Calling Sequence of fun:
-$   fun(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *ctx)
+   Input Parameters of fun:
 
 +   nep   - the NEP context
 .   maxnp - on input number of requested points in the discretization (can be set)
@@ -1324,7 +1323,7 @@ $   fun(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *ctx)
 
 .seealso: NEPNLEIGSGetSingularitiesFunction(), NEPSetProblemType()
 @*/
-PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt*,PetscScalar*,void*),void *ctx)
+PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *ctx),void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);

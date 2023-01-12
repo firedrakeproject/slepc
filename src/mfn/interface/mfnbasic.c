@@ -319,7 +319,7 @@ PetscErrorCode MFNGetType(MFN mfn,MFNType *type)
    Notes:
    MFNRegister() may be called multiple times to add several user-defined solvers.
 
-   Sample usage:
+   Example Usage:
 .vb
     MFNRegister("my_solver",MySolverCreate);
 .ve
@@ -357,7 +357,7 @@ PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
    Notes:
    MFNMonitorRegister() may be called multiple times to add several user-defined monitors.
 
-   Sample usage:
+   Example Usage:
 .vb
    MFNMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
 .ve
