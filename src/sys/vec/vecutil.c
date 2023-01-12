@@ -255,9 +255,6 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
 .  w1   - first work vector (can be NULL)
 -  w2   - second work vector (can be NULL)
 
-   Output Parameter:
-.  v    - the vector
-
    Notes:
    Fills the two work vectors with uniformly distributed random values (VecSetRandom)
    and then applies the Box-Muller transform to get normally distributed values on v.

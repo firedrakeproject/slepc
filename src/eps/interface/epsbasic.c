@@ -216,7 +216,7 @@ PetscErrorCode EPSGetType(EPS eps,EPSType *type)
    Notes:
    EPSRegister() may be called multiple times to add several user-defined solvers.
 
-   Sample usage:
+   Example Usage:
 .vb
     EPSRegister("my_solver",MySolverCreate);
 .ve
@@ -254,7 +254,7 @@ PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
    Notes:
    EPSMonitorRegister() may be called multiple times to add several user-defined monitors.
 
-   Sample usage:
+   Example Usage:
 .vb
    EPSMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
 .ve

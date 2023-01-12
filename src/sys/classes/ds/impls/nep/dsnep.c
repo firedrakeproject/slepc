@@ -1036,8 +1036,7 @@ static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*f
 .  fun - a pointer to the user function
 -  ctx - a context pointer (the last parameter to the user function)
 
-   Calling Sequence of fun:
-$   fun(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
+   Input Parameters of fun:
 
 +   ds     - the direct solver object
 .   lambda - point where T(lambda) or T'(lambda) must be evaluated
@@ -1053,7 +1052,7 @@ $   fun(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
 
 .seealso: DSNEPGetComputeMatrixFunction()
 @*/
-PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx)
+PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx),void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);

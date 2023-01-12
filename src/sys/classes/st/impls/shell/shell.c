@@ -166,8 +166,7 @@ static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec
 +  st    - the spectral transformation context
 -  apply - the application-provided transformation routine
 
-   Calling sequence of apply:
-$  PetscErrorCode apply(ST st,Vec xin,Vec xout)
+   Input Parameters of apply:
 
 +  st   - the spectral transformation context
 .  xin  - input vector
@@ -177,7 +176,7 @@ $  PetscErrorCode apply(ST st,Vec xin,Vec xout)
 
 .seealso: STShellSetBackTransform(), STShellSetApplyTranspose()
 @*/
-PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
+PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST st,Vec xin,Vec xout))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -204,8 +203,7 @@ static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*appl
 +  st    - the spectral transformation context
 -  applytrans - the application-provided transformation routine
 
-   Calling sequence of applytrans:
-$  PetscErrorCode applytrans(ST st,Vec xin,Vec xout)
+   Input Parameters of applytrans:
 
 +  st   - the spectral transformation context
 .  xin  - input vector
@@ -215,7 +213,7 @@ $  PetscErrorCode applytrans(ST st,Vec xin,Vec xout)
 
 .seealso: STShellSetApply(), STShellSetBackTransform()
 @*/
-PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
+PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST st,Vec xin,Vec xout))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -243,8 +241,7 @@ static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backt
 +  st     - the spectral transformation context
 -  backtr - the application-provided backtransform routine
 
-   Calling sequence of backtr:
-$  PetscErrorCode backtr(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
+   Input Parameters of backtr:
 
 +  st   - the spectral transformation context
 .  n    - number of eigenvalues to be backtransformed
@@ -255,7 +252,7 @@ $  PetscErrorCode backtr(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 
 .seealso: STShellSetApply(), STShellSetApplyTranspose()
 @*/
-PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
+PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);

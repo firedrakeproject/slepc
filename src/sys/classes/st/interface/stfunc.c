@@ -1098,7 +1098,7 @@ PetscErrorCode STViewFromOptions(ST st,PetscObject obj,const char name[])
    STRegister() may be called multiple times to add several user-defined
    spectral transformations.
 
-   Sample usage:
+   Example Usage:
 .vb
     STRegister("my_transform",MyTransformCreate);
 .ve

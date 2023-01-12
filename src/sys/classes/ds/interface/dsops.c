@@ -349,11 +349,10 @@ PetscErrorCode DSGetTruncateSize_Default(DS ds,PetscInt l,PetscInt n,PetscInt *k
    Input Parameters:
 +  ds - the direct solver context
 .  l  - the size of the locked part (set to 0 to use ds->l)
-.  n  - the total matrix size (set to 0 to use ds->n)
--  k  - the wanted truncation size
+-  n  - the total matrix size (set to 0 to use ds->n)
 
    Output Parameter:
-.  k  - the possibly modified value of the truncation size
+.  k  - the wanted truncation size (possibly modified)
 
    Notes:
    This should be called before DSTruncate() to make sure that the truncation

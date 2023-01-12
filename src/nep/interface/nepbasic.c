@@ -211,7 +211,7 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
    Notes:
    NEPRegister() may be called multiple times to add several user-defined solvers.
 
-   Sample usage:
+   Example Usage:
 .vb
     NEPRegister("my_solver",MySolverCreate);
 .ve
@@ -249,7 +249,7 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
    Notes:
    NEPMonitorRegister() may be called multiple times to add several user-defined monitors.
 
-   Sample usage:
+   Example Usage:
 .vb
    NEPMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
 .ve
@@ -659,8 +659,7 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
 
-   Calling Sequence of fun:
-$   fun(NEP nep,PetscScalar lambda,Mat T,Mat P,void *ctx)
+   Input Parameters of fun:
 
 +  nep    - the NEP context
 .  lambda - the scalar argument where T(.) must be evaluated
@@ -672,7 +671,7 @@ $   fun(NEP nep,PetscScalar lambda,Mat T,Mat P,void *ctx)
 
 .seealso: NEPGetFunction(), NEPSetJacobian()
 @*/
-PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,PetscScalar,Mat,Mat,void*),void *ctx)
+PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP nep,PetscScalar lambda,Mat T,Mat P,void *ctx),void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -747,8 +746,7 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
 
-   Calling Sequence of jac:
-$   jac(NEP nep,PetscScalar lambda,Mat J,void *ctx)
+   Input Parameters of jac:
 
 +  nep    - the NEP context
 .  lambda - the scalar argument where T'(.) must be evaluated
@@ -759,7 +757,7 @@ $   jac(NEP nep,PetscScalar lambda,Mat J,void *ctx)
 
 .seealso: NEPSetFunction(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScalar,Mat,void*),void *ctx)
+PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP nep,PetscScalar lambda,Mat J,void *ctx),void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
