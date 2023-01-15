@@ -181,9 +181,9 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->rrandom      = PETSC_FALSE;
   bv->deftol       = 10*PETSC_MACHINE_EPSILON;
 
-  bv->Bx           = NULL;
   bv->buffer       = NULL;
   bv->Abuffer      = NULL;
+  bv->Bx           = NULL;
   bv->xid          = 0;
   bv->xstate       = 0;
   bv->cv[0]        = NULL;
@@ -208,7 +208,6 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->issplit      = 0;
   bv->splitparent  = NULL;
   bv->rand         = NULL;
-  bv->rrandom      = PETSC_FALSE;
   bv->Acreate      = NULL;
   bv->Aget         = NULL;
   bv->cuda         = PETSC_FALSE;
