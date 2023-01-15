@@ -249,7 +249,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     }
     /* Explicit matrix is created here, when updating the scale */
     PetscCall(MatZUpdateScale(svd));
-    
+
   } else if (svd->ishyperbolic) {
     PetscCall(BV_SetMatrixDiagonal(svd->swapped?svd->V:svd->U,svd->omega,svd->OP));
     PetscCall(SVDSetWorkVecs(svd,1,0));
