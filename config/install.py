@@ -319,7 +319,7 @@ for dir in dirs:
 
   def installConf(self):
     self.copies.extend(self.copytree(self.rootConfDir, self.destConfDir, exclude = ['install.py','bfort-base.txt','bfort-mpi.txt','bfort-petsc.txt','bfort-slepc.txt']))
-    self.copies.extend(self.copytree(self.archConfDir, self.destConfDir, exclude = ['configure.log','error.log','files','gmake.log','make.log','test.log']))
+    self.copies.extend(self.copytree(self.archConfDir, self.destConfDir, exclude = ['configure.log','error.log','files','gmake.log','make.log','test.log','memoryerror.log']))
     return
 
   def installBin(self):
