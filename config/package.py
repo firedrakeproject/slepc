@@ -379,11 +379,12 @@ Downloaded package %s from: %s is not a tarball.
         code += 'int '+ c + '() { return 0; } \n'
 
       code += 'int main() {\n'
-      code += 'Vec v; Mat m; KSP k;\n'
-      code += 'PetscInitializeNoArguments();\n'
-      code += 'VecCreate(PETSC_COMM_WORLD,&v);\n'
-      code += 'MatCreate(PETSC_COMM_WORLD,&m);\n'
-      code += 'KSPCreate(PETSC_COMM_WORLD,&k);\n'
+      code += 'PetscErrorCode ierr; Vec v; Mat m; KSP k;\n'
+      code += 'ierr = PetscInitializeNoArguments();\n'
+      code += 'ierr = VecCreate(PETSC_COMM_WORLD,&v);\n'
+      code += 'ierr = MatCreate(PETSC_COMM_WORLD,&m);\n'
+      code += 'ierr = KSPCreate(PETSC_COMM_WORLD,&k);\n'
+      code += '(void)ierr;\n'
       for f in functions:
         code += f + '();\n'
       code += 'return 0;\n}\n'
