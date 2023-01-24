@@ -67,7 +67,7 @@ Options for all PETSc programs:
 PetscDevice Options:
   -device_enable <now lazy : formerly lazy> How (or whether) to initialize PetscDevices (choose one of) none lazy eager (PetscDeviceInitialize())
   -default_device_type <now host : formerly host> Set the PetscDeviceType returned by PETSC_DEVICE_DEFAULT() (choose one of) host cuda hip sycl (PetscDeviceSetDefaultDeviceType())
-  -device_select <now -1 : formerly -1>: Which device to use. Pass -1 to have PETSc decide or (given they exist) [0-128) for a specific device (PetscDeviceCreate())
+  -device_select <now -1 : formerly -1>: Which device to use. Pass PETSC_DECIDE to have PETSc decide or (given they exist) [0-128) for a specific device (PetscDeviceCreate())
   -device_view: <FALSE : FALSE> Display device information and assignments (forces eager initialization) (PetscDeviceView())
 ----------------------------------------
 PetscDevice host Options:
