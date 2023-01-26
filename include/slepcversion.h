@@ -14,7 +14,7 @@
 #define SLEPC_VERSION_RELEASE    0
 #define SLEPC_VERSION_MAJOR      3
 #define SLEPC_VERSION_MINOR      18
-#define SLEPC_VERSION_SUBMINOR   1
+#define SLEPC_VERSION_SUBMINOR   2
 #define SLEPC_RELEASE_DATE       "October 1, 2022"
 #define SLEPC_VERSION_DATE       "unknown"
 
