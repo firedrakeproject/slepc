@@ -210,7 +210,7 @@ static PetscErrorCode ournepfunction(NEP nep,PetscScalar lambda,Mat T,Mat P,void
 {
 #if defined(PETSC_HAVE_F90_2PTR_ARG)
   void* ptr;
-  PetscObjectGetFortranCallback((PetscObject)nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.function_pgiptr,NULL,&ptr);
+  PetscCall(PetscObjectGetFortranCallback((PetscObject)nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.function_pgiptr,NULL,&ptr));
 #endif
   PetscObjectUseFortranCallback(nep,_cb.function,(NEP*,PetscScalar*,Mat*,Mat*,void*,PetscErrorCode* PETSC_F90_2PTR_PROTO_NOVAR),(&nep,&lambda,&T,&P,_ctx,&ierr PETSC_F90_2PTR_PARAM(ptr)));
 }
@@ -219,7 +219,7 @@ static PetscErrorCode ournepjacobian(NEP nep,PetscScalar lambda,Mat J,void *ctx)
 {
 #if defined(PETSC_HAVE_F90_2PTR_ARG)
   void* ptr;
-  PetscObjectGetFortranCallback((PetscObject)nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.jacobian_pgiptr,NULL,&ptr);
+  PetscCall(PetscObjectGetFortranCallback((PetscObject)nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.jacobian_pgiptr,NULL,&ptr));
 #endif
   PetscObjectUseFortranCallback(nep,_cb.jacobian,(NEP*,PetscScalar*,Mat*,void*,PetscErrorCode* PETSC_F90_2PTR_PROTO_NOVAR),(&nep,&lambda,&J,_ctx,&ierr PETSC_F90_2PTR_PARAM(ptr)));
 }
