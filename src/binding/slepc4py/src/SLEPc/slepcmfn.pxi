@@ -11,46 +11,46 @@ cdef extern from * nogil:
         MFN_DIVERGED_BREAKDOWN
         MFN_CONVERGED_ITERATING
 
-    ctypedef int (*SlepcMFNCtxDel)(void*)
-    ctypedef int (*SlepcMFNMonitorFunction)(SlepcMFN,
+    ctypedef PetscErrorCode (*SlepcMFNCtxDel)(void*)
+    ctypedef PetscErrorCode (*SlepcMFNMonitorFunction)(SlepcMFN,
                                             PetscInt,
                                             PetscReal,
                                             void*) except PETSC_ERR_PYTHON
 
-    int MFNCreate(MPI_Comm,SlepcMFN*)
-    int MFNDestroy(SlepcMFN*)
-    int MFNReset(SlepcMFN)
-    int MFNView(SlepcMFN,PetscViewer)
+    PetscErrorCode MFNCreate(MPI_Comm,SlepcMFN*)
+    PetscErrorCode MFNDestroy(SlepcMFN*)
+    PetscErrorCode MFNReset(SlepcMFN)
+    PetscErrorCode MFNView(SlepcMFN,PetscViewer)
 
-    int MFNSetType(SlepcMFN,SlepcMFNType)
-    int MFNGetType(SlepcMFN,SlepcMFNType*)
-    int MFNSetOperator(SlepcMFN,PetscMat)
-    int MFNGetOperator(SlepcMFN,PetscMat*)
-    int MFNSetOptionsPrefix(SlepcMFN,char*)
-    int MFNGetOptionsPrefix(SlepcMFN,char*[])
-    int MFNSetFromOptions(SlepcMFN)
-    int MFNAppendOptionsPrefix(SlepcMFN,char*)
-    int MFNSetUp(SlepcMFN)
-    int MFNSolve(SlepcMFN,PetscVec,PetscVec)
-    int MFNSolveTranspose(SlepcMFN,PetscVec,PetscVec)
+    PetscErrorCode MFNSetType(SlepcMFN,SlepcMFNType)
+    PetscErrorCode MFNGetType(SlepcMFN,SlepcMFNType*)
+    PetscErrorCode MFNSetOperator(SlepcMFN,PetscMat)
+    PetscErrorCode MFNGetOperator(SlepcMFN,PetscMat*)
+    PetscErrorCode MFNSetOptionsPrefix(SlepcMFN,char*)
+    PetscErrorCode MFNGetOptionsPrefix(SlepcMFN,char*[])
+    PetscErrorCode MFNSetFromOptions(SlepcMFN)
+    PetscErrorCode MFNAppendOptionsPrefix(SlepcMFN,char*)
+    PetscErrorCode MFNSetUp(SlepcMFN)
+    PetscErrorCode MFNSolve(SlepcMFN,PetscVec,PetscVec)
+    PetscErrorCode MFNSolveTranspose(SlepcMFN,PetscVec,PetscVec)
 
-    int MFNSetBV(SlepcMFN,SlepcBV)
-    int MFNGetBV(SlepcMFN,SlepcBV*)
-    int MFNSetFN(SlepcMFN,SlepcFN)
-    int MFNGetFN(SlepcMFN,SlepcFN*)
-    int MFNSetTolerances(SlepcMFN,PetscReal,PetscInt)
-    int MFNGetTolerances(SlepcMFN,PetscReal*,PetscInt*)
-    int MFNSetDimensions(SlepcMFN,PetscInt)
-    int MFNGetDimensions(SlepcMFN,PetscInt*)
+    PetscErrorCode MFNSetBV(SlepcMFN,SlepcBV)
+    PetscErrorCode MFNGetBV(SlepcMFN,SlepcBV*)
+    PetscErrorCode MFNSetFN(SlepcMFN,SlepcFN)
+    PetscErrorCode MFNGetFN(SlepcMFN,SlepcFN*)
+    PetscErrorCode MFNSetTolerances(SlepcMFN,PetscReal,PetscInt)
+    PetscErrorCode MFNGetTolerances(SlepcMFN,PetscReal*,PetscInt*)
+    PetscErrorCode MFNSetDimensions(SlepcMFN,PetscInt)
+    PetscErrorCode MFNGetDimensions(SlepcMFN,PetscInt*)
 
-    int MFNSetErrorIfNotConverged(SlepcMFN,PetscBool)
-    int MFNGetErrorIfNotConverged(SlepcMFN,PetscBool*)
+    PetscErrorCode MFNSetErrorIfNotConverged(SlepcMFN,PetscBool)
+    PetscErrorCode MFNGetErrorIfNotConverged(SlepcMFN,PetscBool*)
 
-    int MFNMonitorSet(SlepcMFN,SlepcMFNMonitorFunction,void*,SlepcMFNCtxDel)
-    int MFNMonitorCancel(SlepcMFN)
-    int MFNGetIterationNumber(SlepcMFN,PetscInt*)
+    PetscErrorCode MFNMonitorSet(SlepcMFN,SlepcMFNMonitorFunction,void*,SlepcMFNCtxDel)
+    PetscErrorCode MFNMonitorCancel(SlepcMFN)
+    PetscErrorCode MFNGetIterationNumber(SlepcMFN,PetscInt*)
 
-    int MFNGetConvergedReason(SlepcMFN,SlepcMFNConvergedReason*)
+    PetscErrorCode MFNGetConvergedReason(SlepcMFN,SlepcMFNConvergedReason*)
 
 # -----------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ cdef inline MFN ref_MFN(SlepcMFN mfn):
 
 # -----------------------------------------------------------------------------
 
-cdef int MFN_Monitor(
+cdef PetscErrorCode MFN_Monitor(
     SlepcMFN    mfn,
     PetscInt    it,
     PetscReal   errest,
@@ -70,9 +70,9 @@ cdef int MFN_Monitor(
     ) except PETSC_ERR_PYTHON with gil:
     cdef MFN Mfn = ref_MFN(mfn)
     cdef object monitorlist = Mfn.get_attr('__monitor__')
-    if monitorlist is None: return 0
+    if monitorlist is None: return PETSC_SUCCESS
     for (monitor, args, kargs) in monitorlist:
         monitor(Mfn, toInt(it), toReal(errest), *args, **kargs)
-    return 0
+    return PETSC_SUCCESS
 
 # -----------------------------------------------------------------------------

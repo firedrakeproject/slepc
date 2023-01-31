@@ -82,15 +82,15 @@ cdef extern from * nogil:
         EPS_DIVERGED_SYMMETRY_LOST
         EPS_CONVERGED_ITERATING
 
-    ctypedef int (*SlepcEPSCtxDel)(void*)
-    ctypedef int (*SlepcEPSStoppingFunction)(SlepcEPS,
+    ctypedef PetscErrorCode (*SlepcEPSCtxDel)(void*)
+    ctypedef PetscErrorCode (*SlepcEPSStoppingFunction)(SlepcEPS,
                                              PetscInt,
                                              PetscInt,
                                              PetscInt,
                                              PetscInt,
                                              SlepcEPSConvergedReason*,
                                              void*) except PETSC_ERR_PYTHON
-    ctypedef int (*SlepcEPSMonitorFunction)(SlepcEPS,
+    ctypedef PetscErrorCode (*SlepcEPSMonitorFunction)(SlepcEPS,
                                             PetscInt,
                                             PetscInt,
                                             PetscScalar*,
@@ -98,136 +98,136 @@ cdef extern from * nogil:
                                             PetscReal*,
                                             PetscInt,
                                             void*) except PETSC_ERR_PYTHON
-    ctypedef int (*SlepcEPSArbitraryFunction)(PetscScalar,
+    ctypedef PetscErrorCode (*SlepcEPSArbitraryFunction)(PetscScalar,
                                              PetscScalar,
                                              PetscVec,
                                              PetscVec,
                                              PetscScalar*,
                                              PetscScalar*,
                                              void*) except PETSC_ERR_PYTHON
-    ctypedef int (*SlepcEPSComparisonFunction)(PetscScalar,
+    ctypedef PetscErrorCode (*SlepcEPSComparisonFunction)(PetscScalar,
                                                PetscScalar,
                                                PetscScalar,
                                                PetscScalar,
                                                PetscInt*,
                                                void*) except PETSC_ERR_PYTHON
 
-    int EPSView(SlepcEPS,PetscViewer)
-    int EPSDestroy(SlepcEPS*)
-    int EPSReset(SlepcEPS)
-    int EPSCreate(MPI_Comm,SlepcEPS*)
-    int EPSSetType(SlepcEPS,SlepcEPSType)
-    int EPSGetType(SlepcEPS,SlepcEPSType*)
-    int EPSSetOptionsPrefix(SlepcEPS,char[])
-    int EPSAppendOptionsPrefix(SlepcEPS,char [])
-    int EPSGetOptionsPrefix(SlepcEPS,char*[])
-    int EPSSetFromOptions(SlepcEPS)
+    PetscErrorCode EPSView(SlepcEPS,PetscViewer)
+    PetscErrorCode EPSDestroy(SlepcEPS*)
+    PetscErrorCode EPSReset(SlepcEPS)
+    PetscErrorCode EPSCreate(MPI_Comm,SlepcEPS*)
+    PetscErrorCode EPSSetType(SlepcEPS,SlepcEPSType)
+    PetscErrorCode EPSGetType(SlepcEPS,SlepcEPSType*)
+    PetscErrorCode EPSSetOptionsPrefix(SlepcEPS,char[])
+    PetscErrorCode EPSAppendOptionsPrefix(SlepcEPS,char [])
+    PetscErrorCode EPSGetOptionsPrefix(SlepcEPS,char*[])
+    PetscErrorCode EPSSetFromOptions(SlepcEPS)
 
-    int EPSSetProblemType(SlepcEPS,SlepcEPSProblemType)
-    int EPSGetProblemType(SlepcEPS,SlepcEPSProblemType*)
-    int EPSIsGeneralized(SlepcEPS,PetscBool*)
-    int EPSIsHermitian(SlepcEPS,PetscBool*)
-    int EPSIsPositive(SlepcEPS,PetscBool*)
-    int EPSSetExtraction(SlepcEPS,SlepcEPSExtraction)
-    int EPSGetExtraction(SlepcEPS,SlepcEPSExtraction*)
-    int EPSSetBalance(SlepcEPS,SlepcEPSBalance,PetscInt,PetscReal)
-    int EPSGetBalance(SlepcEPS,SlepcEPSBalance*,PetscInt*,PetscReal*)
-    int EPSSetWhichEigenpairs(SlepcEPS,SlepcEPSWhich)
-    int EPSGetWhichEigenpairs(SlepcEPS,SlepcEPSWhich*)
-    int EPSSetTarget(SlepcEPS,PetscScalar)
-    int EPSGetTarget(SlepcEPS,PetscScalar*)
-    int EPSSetInterval(SlepcEPS,PetscReal,PetscReal)
-    int EPSGetInterval(SlepcEPS,PetscReal*,PetscReal*)
-    int EPSSetTolerances(SlepcEPS,PetscReal,PetscInt)
-    int EPSGetTolerances(SlepcEPS,PetscReal*,PetscInt*)
-    int EPSSetDimensions(SlepcEPS,PetscInt,PetscInt,PetscInt)
-    int EPSGetDimensions(SlepcEPS,PetscInt*,PetscInt*,PetscInt*)
+    PetscErrorCode EPSSetProblemType(SlepcEPS,SlepcEPSProblemType)
+    PetscErrorCode EPSGetProblemType(SlepcEPS,SlepcEPSProblemType*)
+    PetscErrorCode EPSIsGeneralized(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSIsHermitian(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSIsPositive(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSSetExtraction(SlepcEPS,SlepcEPSExtraction)
+    PetscErrorCode EPSGetExtraction(SlepcEPS,SlepcEPSExtraction*)
+    PetscErrorCode EPSSetBalance(SlepcEPS,SlepcEPSBalance,PetscInt,PetscReal)
+    PetscErrorCode EPSGetBalance(SlepcEPS,SlepcEPSBalance*,PetscInt*,PetscReal*)
+    PetscErrorCode EPSSetWhichEigenpairs(SlepcEPS,SlepcEPSWhich)
+    PetscErrorCode EPSGetWhichEigenpairs(SlepcEPS,SlepcEPSWhich*)
+    PetscErrorCode EPSSetTarget(SlepcEPS,PetscScalar)
+    PetscErrorCode EPSGetTarget(SlepcEPS,PetscScalar*)
+    PetscErrorCode EPSSetInterval(SlepcEPS,PetscReal,PetscReal)
+    PetscErrorCode EPSGetInterval(SlepcEPS,PetscReal*,PetscReal*)
+    PetscErrorCode EPSSetTolerances(SlepcEPS,PetscReal,PetscInt)
+    PetscErrorCode EPSGetTolerances(SlepcEPS,PetscReal*,PetscInt*)
+    PetscErrorCode EPSSetDimensions(SlepcEPS,PetscInt,PetscInt,PetscInt)
+    PetscErrorCode EPSGetDimensions(SlepcEPS,PetscInt*,PetscInt*,PetscInt*)
 
-    int EPSSetBV(SlepcEPS,SlepcBV)
-    int EPSGetBV(SlepcEPS,SlepcBV*)
-    int EPSSetDS(SlepcEPS,SlepcDS)
-    int EPSGetDS(SlepcEPS,SlepcDS*)
-    int EPSSetST(SlepcEPS,SlepcST)
-    int EPSGetST(SlepcEPS,SlepcST*)
-    int EPSSetRG(SlepcEPS,SlepcRG)
-    int EPSGetRG(SlepcEPS,SlepcRG*)
+    PetscErrorCode EPSSetBV(SlepcEPS,SlepcBV)
+    PetscErrorCode EPSGetBV(SlepcEPS,SlepcBV*)
+    PetscErrorCode EPSSetDS(SlepcEPS,SlepcDS)
+    PetscErrorCode EPSGetDS(SlepcEPS,SlepcDS*)
+    PetscErrorCode EPSSetST(SlepcEPS,SlepcST)
+    PetscErrorCode EPSGetST(SlepcEPS,SlepcST*)
+    PetscErrorCode EPSSetRG(SlepcEPS,SlepcRG)
+    PetscErrorCode EPSGetRG(SlepcEPS,SlepcRG*)
 
-    int EPSSetOperators(SlepcEPS,PetscMat,PetscMat)
-    int EPSGetOperators(SlepcEPS,PetscMat*,PetscMat*)
+    PetscErrorCode EPSSetOperators(SlepcEPS,PetscMat,PetscMat)
+    PetscErrorCode EPSGetOperators(SlepcEPS,PetscMat*,PetscMat*)
 
-    int EPSSetTwoSided(SlepcEPS,PetscBool)
-    int EPSGetTwoSided(SlepcEPS,PetscBool*)
-    int EPSSetPurify(SlepcEPS,PetscBool)
-    int EPSGetPurify(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSSetTwoSided(SlepcEPS,PetscBool)
+    PetscErrorCode EPSGetTwoSided(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSSetPurify(SlepcEPS,PetscBool)
+    PetscErrorCode EPSGetPurify(SlepcEPS,PetscBool*)
 
-    int EPSSetConvergenceTest(SlepcEPS,SlepcEPSConv)
-    int EPSGetConvergenceTest(SlepcEPS,SlepcEPSConv*)
+    PetscErrorCode EPSSetConvergenceTest(SlepcEPS,SlepcEPSConv)
+    PetscErrorCode EPSGetConvergenceTest(SlepcEPS,SlepcEPSConv*)
 
-    int EPSSetTrueResidual(SlepcEPS,PetscBool)
-    int EPSGetTrueResidual(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSSetTrueResidual(SlepcEPS,PetscBool)
+    PetscErrorCode EPSGetTrueResidual(SlepcEPS,PetscBool*)
 
-    int EPSSetTrackAll(SlepcEPS,PetscBool)
-    int EPSGetTrackAll(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSSetTrackAll(SlepcEPS,PetscBool)
+    PetscErrorCode EPSGetTrackAll(SlepcEPS,PetscBool*)
 
-    int EPSSetDeflationSpace(SlepcEPS,PetscInt,PetscVec*)
-    int EPSSetInitialSpace(SlepcEPS,PetscInt,PetscVec*)
-    int EPSSetLeftInitialSpace(SlepcEPS,PetscInt,PetscVec*)
+    PetscErrorCode EPSSetDeflationSpace(SlepcEPS,PetscInt,PetscVec*)
+    PetscErrorCode EPSSetInitialSpace(SlepcEPS,PetscInt,PetscVec*)
+    PetscErrorCode EPSSetLeftInitialSpace(SlepcEPS,PetscInt,PetscVec*)
 
-    int EPSSetUp(SlepcEPS)
-    int EPSSolve(SlepcEPS)
+    PetscErrorCode EPSSetUp(SlepcEPS)
+    PetscErrorCode EPSSolve(SlepcEPS)
 
-    int EPSGetIterationNumber(SlepcEPS,PetscInt*)
-    int EPSGetConvergedReason(SlepcEPS,SlepcEPSConvergedReason*)
-    int EPSGetConverged(SlepcEPS,PetscInt*)
-    int EPSGetEigenvalue(SlepcEPS,PetscInt,PetscScalar*,PetscScalar*)
-    int EPSGetEigenvector(SlepcEPS,PetscInt,PetscVec,PetscVec)
-    int EPSGetLeftEigenvector(SlepcEPS,PetscInt,PetscVec,PetscVec)
-    int EPSGetEigenpair(SlepcEPS,PetscInt,PetscScalar*,PetscScalar*,PetscVec,PetscVec)
-    int EPSGetInvariantSubspace(SlepcEPS,PetscVec*)
+    PetscErrorCode EPSGetIterationNumber(SlepcEPS,PetscInt*)
+    PetscErrorCode EPSGetConvergedReason(SlepcEPS,SlepcEPSConvergedReason*)
+    PetscErrorCode EPSGetConverged(SlepcEPS,PetscInt*)
+    PetscErrorCode EPSGetEigenvalue(SlepcEPS,PetscInt,PetscScalar*,PetscScalar*)
+    PetscErrorCode EPSGetEigenvector(SlepcEPS,PetscInt,PetscVec,PetscVec)
+    PetscErrorCode EPSGetLeftEigenvector(SlepcEPS,PetscInt,PetscVec,PetscVec)
+    PetscErrorCode EPSGetEigenpair(SlepcEPS,PetscInt,PetscScalar*,PetscScalar*,PetscVec,PetscVec)
+    PetscErrorCode EPSGetInvariantSubspace(SlepcEPS,PetscVec*)
 
-    int EPSSetStoppingTestFunction(SlepcEPS,SlepcEPSStoppingFunction,void*,SlepcEPSCtxDel)
-    int EPSStoppingBasic(SlepcEPS,PetscInt,PetscInt,PetscInt,PetscInt,SlepcEPSConvergedReason*,void*) except PETSC_ERR_PYTHON
+    PetscErrorCode EPSSetStoppingTestFunction(SlepcEPS,SlepcEPSStoppingFunction,void*,SlepcEPSCtxDel)
+    PetscErrorCode EPSStoppingBasic(SlepcEPS,PetscInt,PetscInt,PetscInt,PetscInt,SlepcEPSConvergedReason*,void*) except PETSC_ERR_PYTHON
 
-    int EPSSetArbitrarySelection(SlepcEPS,SlepcEPSArbitraryFunction,void*);
-    int EPSSetEigenvalueComparison(SlepcEPS,SlepcEPSComparisonFunction,void*);
+    PetscErrorCode EPSSetArbitrarySelection(SlepcEPS,SlepcEPSArbitraryFunction,void*);
+    PetscErrorCode EPSSetEigenvalueComparison(SlepcEPS,SlepcEPSComparisonFunction,void*);
 
-    int EPSGetErrorEstimate(SlepcEPS,PetscInt,PetscReal*)
-    int EPSComputeError(SlepcEPS,PetscInt,SlepcEPSErrorType,PetscReal*)
-    int EPSErrorView(SlepcEPS,SlepcEPSErrorType,PetscViewer)
-    int EPSValuesView(SlepcEPS,PetscViewer)
-    int EPSVectorsView(SlepcEPS,PetscViewer)
+    PetscErrorCode EPSGetErrorEstimate(SlepcEPS,PetscInt,PetscReal*)
+    PetscErrorCode EPSComputeError(SlepcEPS,PetscInt,SlepcEPSErrorType,PetscReal*)
+    PetscErrorCode EPSErrorView(SlepcEPS,SlepcEPSErrorType,PetscViewer)
+    PetscErrorCode EPSValuesView(SlepcEPS,PetscViewer)
+    PetscErrorCode EPSVectorsView(SlepcEPS,PetscViewer)
 
-    int EPSMonitorSet(SlepcEPS,SlepcEPSMonitorFunction,void*,SlepcEPSCtxDel)
-    int EPSMonitorCancel(SlepcEPS)
+    PetscErrorCode EPSMonitorSet(SlepcEPS,SlepcEPSMonitorFunction,void*,SlepcEPSCtxDel)
+    PetscErrorCode EPSMonitorCancel(SlepcEPS)
 
     ctypedef enum SlepcEPSPowerShiftType "EPSPowerShiftType":
         EPS_POWER_SHIFT_CONSTANT
         EPS_POWER_SHIFT_RAYLEIGH
         EPS_POWER_SHIFT_WILKINSON
-    int EPSPowerSetShiftType(SlepcEPS,SlepcEPSPowerShiftType)
-    int EPSPowerGetShiftType(SlepcEPS,SlepcEPSPowerShiftType*)
+    PetscErrorCode EPSPowerSetShiftType(SlepcEPS,SlepcEPSPowerShiftType)
+    PetscErrorCode EPSPowerGetShiftType(SlepcEPS,SlepcEPSPowerShiftType*)
 
-    int EPSArnoldiSetDelayed(SlepcEPS,PetscBool)
-    int EPSArnoldiGetDelayed(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSArnoldiSetDelayed(SlepcEPS,PetscBool)
+    PetscErrorCode EPSArnoldiGetDelayed(SlepcEPS,PetscBool*)
 
-    int EPSKrylovSchurSetRestart(SlepcEPS,PetscReal)
-    int EPSKrylovSchurGetRestart(SlepcEPS,PetscReal*)
-    int EPSKrylovSchurSetLocking(SlepcEPS,PetscBool)
-    int EPSKrylovSchurGetLocking(SlepcEPS,PetscBool*)
-    int EPSKrylovSchurSetPartitions(SlepcEPS,PetscInt)
-    int EPSKrylovSchurGetPartitions(SlepcEPS,PetscInt*)
-    int EPSKrylovSchurSetDetectZeros(SlepcEPS,PetscBool)
-    int EPSKrylovSchurGetDetectZeros(SlepcEPS,PetscBool*)
-    int EPSKrylovSchurSetDimensions(SlepcEPS,PetscInt,PetscInt,PetscInt)
-    int EPSKrylovSchurGetDimensions(SlepcEPS,PetscInt*,PetscInt*,PetscInt*)
-    int EPSKrylovSchurGetSubcommInfo(SlepcEPS,PetscInt*,PetscInt*,PetscVec*)
-    int EPSKrylovSchurGetSubcommPairs(SlepcEPS,PetscInt,PetscScalar*,PetscVec)
-    int EPSKrylovSchurGetSubcommMats(SlepcEPS,PetscMat*,PetscMat*)
-    int EPSKrylovSchurUpdateSubcommMats(SlepcEPS,PetscScalar,PetscScalar,PetscMat,PetscScalar,PetscScalar,PetscMat,PetscMatStructure,PetscBool)
-    int EPSKrylovSchurSetSubintervals(SlepcEPS,PetscReal*)
-    int EPSKrylovSchurGetSubintervals(SlepcEPS,PetscReal**)
-    int EPSKrylovSchurGetInertias(SlepcEPS,PetscInt*,PetscReal**,PetscInt**)
-    int EPSKrylovSchurGetKSP(SlepcEPS,PetscKSP*)
+    PetscErrorCode EPSKrylovSchurSetRestart(SlepcEPS,PetscReal)
+    PetscErrorCode EPSKrylovSchurGetRestart(SlepcEPS,PetscReal*)
+    PetscErrorCode EPSKrylovSchurSetLocking(SlepcEPS,PetscBool)
+    PetscErrorCode EPSKrylovSchurGetLocking(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSKrylovSchurSetPartitions(SlepcEPS,PetscInt)
+    PetscErrorCode EPSKrylovSchurGetPartitions(SlepcEPS,PetscInt*)
+    PetscErrorCode EPSKrylovSchurSetDetectZeros(SlepcEPS,PetscBool)
+    PetscErrorCode EPSKrylovSchurGetDetectZeros(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSKrylovSchurSetDimensions(SlepcEPS,PetscInt,PetscInt,PetscInt)
+    PetscErrorCode EPSKrylovSchurGetDimensions(SlepcEPS,PetscInt*,PetscInt*,PetscInt*)
+    PetscErrorCode EPSKrylovSchurGetSubcommInfo(SlepcEPS,PetscInt*,PetscInt*,PetscVec*)
+    PetscErrorCode EPSKrylovSchurGetSubcommPairs(SlepcEPS,PetscInt,PetscScalar*,PetscVec)
+    PetscErrorCode EPSKrylovSchurGetSubcommMats(SlepcEPS,PetscMat*,PetscMat*)
+    PetscErrorCode EPSKrylovSchurUpdateSubcommMats(SlepcEPS,PetscScalar,PetscScalar,PetscMat,PetscScalar,PetscScalar,PetscMat,PetscMatStructure,PetscBool)
+    PetscErrorCode EPSKrylovSchurSetSubintervals(SlepcEPS,PetscReal*)
+    PetscErrorCode EPSKrylovSchurGetSubintervals(SlepcEPS,PetscReal**)
+    PetscErrorCode EPSKrylovSchurGetInertias(SlepcEPS,PetscInt*,PetscReal**,PetscInt**)
+    PetscErrorCode EPSKrylovSchurGetKSP(SlepcEPS,PetscKSP*)
 
     ctypedef enum SlepcEPSLanczosReorthogType "EPSLanczosReorthogType":
         EPS_LANCZOS_REORTHOG_LOCAL
@@ -236,49 +236,49 @@ cdef extern from * nogil:
         EPS_LANCZOS_REORTHOG_PERIODIC
         EPS_LANCZOS_REORTHOG_PARTIAL
         EPS_LANCZOS_REORTHOG_DELAYED
-    int EPSLanczosSetReorthog(SlepcEPS,SlepcEPSLanczosReorthogType)
-    int EPSLanczosGetReorthog(SlepcEPS,SlepcEPSLanczosReorthogType*)
+    PetscErrorCode EPSLanczosSetReorthog(SlepcEPS,SlepcEPSLanczosReorthogType)
+    PetscErrorCode EPSLanczosGetReorthog(SlepcEPS,SlepcEPSLanczosReorthogType*)
 
-    int EPSGDSetKrylovStart(SlepcEPS,PetscBool)
-    int EPSGDGetKrylovStart(SlepcEPS,PetscBool*)
-    int EPSGDSetBlockSize(SlepcEPS,PetscInt)
-    int EPSGDGetBlockSize(SlepcEPS,PetscInt*)
-    int EPSGDSetRestart(SlepcEPS,PetscInt,PetscInt)
-    int EPSGDGetRestart(SlepcEPS,PetscInt*,PetscInt*)
-    int EPSGDSetInitialSize(SlepcEPS,PetscInt)
-    int EPSGDGetInitialSize(SlepcEPS,PetscInt*)
-    int EPSGDSetBOrth(SlepcEPS,PetscBool)
-    int EPSGDGetBOrth(SlepcEPS,PetscBool*)
-    int EPSGDSetDoubleExpansion(SlepcEPS,PetscBool)
-    int EPSGDGetDoubleExpansion(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSGDSetKrylovStart(SlepcEPS,PetscBool)
+    PetscErrorCode EPSGDGetKrylovStart(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSGDSetBlockSize(SlepcEPS,PetscInt)
+    PetscErrorCode EPSGDGetBlockSize(SlepcEPS,PetscInt*)
+    PetscErrorCode EPSGDSetRestart(SlepcEPS,PetscInt,PetscInt)
+    PetscErrorCode EPSGDGetRestart(SlepcEPS,PetscInt*,PetscInt*)
+    PetscErrorCode EPSGDSetInitialSize(SlepcEPS,PetscInt)
+    PetscErrorCode EPSGDGetInitialSize(SlepcEPS,PetscInt*)
+    PetscErrorCode EPSGDSetBOrth(SlepcEPS,PetscBool)
+    PetscErrorCode EPSGDGetBOrth(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSGDSetDoubleExpansion(SlepcEPS,PetscBool)
+    PetscErrorCode EPSGDGetDoubleExpansion(SlepcEPS,PetscBool*)
 
-    int EPSJDSetKrylovStart(SlepcEPS,PetscBool)
-    int EPSJDGetKrylovStart(SlepcEPS,PetscBool*)
-    int EPSJDSetBlockSize(SlepcEPS,PetscInt)
-    int EPSJDGetBlockSize(SlepcEPS,PetscInt*)
-    int EPSJDSetRestart(SlepcEPS,PetscInt,PetscInt)
-    int EPSJDGetRestart(SlepcEPS,PetscInt*,PetscInt*)
-    int EPSJDSetInitialSize(SlepcEPS,PetscInt)
-    int EPSJDGetInitialSize(SlepcEPS,PetscInt*)
-    int EPSJDSetFix(SlepcEPS,PetscReal)
-    int EPSJDGetFix(SlepcEPS,PetscReal*)
-    int EPSJDSetConstCorrectionTol(SlepcEPS,PetscBool)
-    int EPSJDGetConstCorrectionTol(SlepcEPS,PetscBool*)
-    int EPSJDSetBOrth(SlepcEPS,PetscBool)
-    int EPSJDGetBOrth(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSJDSetKrylovStart(SlepcEPS,PetscBool)
+    PetscErrorCode EPSJDGetKrylovStart(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSJDSetBlockSize(SlepcEPS,PetscInt)
+    PetscErrorCode EPSJDGetBlockSize(SlepcEPS,PetscInt*)
+    PetscErrorCode EPSJDSetRestart(SlepcEPS,PetscInt,PetscInt)
+    PetscErrorCode EPSJDGetRestart(SlepcEPS,PetscInt*,PetscInt*)
+    PetscErrorCode EPSJDSetInitialSize(SlepcEPS,PetscInt)
+    PetscErrorCode EPSJDGetInitialSize(SlepcEPS,PetscInt*)
+    PetscErrorCode EPSJDSetFix(SlepcEPS,PetscReal)
+    PetscErrorCode EPSJDGetFix(SlepcEPS,PetscReal*)
+    PetscErrorCode EPSJDSetConstCorrectionTol(SlepcEPS,PetscBool)
+    PetscErrorCode EPSJDGetConstCorrectionTol(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSJDSetBOrth(SlepcEPS,PetscBool)
+    PetscErrorCode EPSJDGetBOrth(SlepcEPS,PetscBool*)
 
-    int EPSRQCGSetReset(SlepcEPS,PetscInt)
-    int EPSRQCGGetReset(SlepcEPS,PetscInt*)
+    PetscErrorCode EPSRQCGSetReset(SlepcEPS,PetscInt)
+    PetscErrorCode EPSRQCGGetReset(SlepcEPS,PetscInt*)
 
-    int EPSLOBPCGSetBlockSize(SlepcEPS,PetscInt)
-    int EPSLOBPCGGetBlockSize(SlepcEPS,PetscInt*)
-    int EPSLOBPCGSetRestart(SlepcEPS,PetscReal)
-    int EPSLOBPCGGetRestart(SlepcEPS,PetscReal*)
-    int EPSLOBPCGSetLocking(SlepcEPS,PetscBool)
-    int EPSLOBPCGGetLocking(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSLOBPCGSetBlockSize(SlepcEPS,PetscInt)
+    PetscErrorCode EPSLOBPCGGetBlockSize(SlepcEPS,PetscInt*)
+    PetscErrorCode EPSLOBPCGSetRestart(SlepcEPS,PetscReal)
+    PetscErrorCode EPSLOBPCGGetRestart(SlepcEPS,PetscReal*)
+    PetscErrorCode EPSLOBPCGSetLocking(SlepcEPS,PetscBool)
+    PetscErrorCode EPSLOBPCGGetLocking(SlepcEPS,PetscBool*)
 
-    int EPSLyapIISetRanks(SlepcEPS,PetscInt,PetscInt)
-    int EPSLyapIIGetRanks(SlepcEPS,PetscInt*,PetscInt*)
+    PetscErrorCode EPSLyapIISetRanks(SlepcEPS,PetscInt,PetscInt)
+    PetscErrorCode EPSLyapIIGetRanks(SlepcEPS,PetscInt*,PetscInt*)
 
     ctypedef enum SlepcEPSCISSQuadRule "EPSCISSQuadRule":
         EPS_CISS_QUADRULE_TRAPEZOIDAL
@@ -288,23 +288,23 @@ cdef extern from * nogil:
         EPS_CISS_EXTRACTION_RITZ
         EPS_CISS_EXTRACTION_HANKEL
 
-    int EPSCISSSetExtraction(SlepcEPS,SlepcEPSCISSExtraction)
-    int EPSCISSGetExtraction(SlepcEPS,SlepcEPSCISSExtraction*)
-    int EPSCISSSetQuadRule(SlepcEPS,SlepcEPSCISSQuadRule)
-    int EPSCISSGetQuadRule(SlepcEPS,SlepcEPSCISSQuadRule*)
-    int EPSCISSSetSizes(SlepcEPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool)
-    int EPSCISSGetSizes(SlepcEPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*)
-    int EPSCISSSetThreshold(SlepcEPS,PetscReal,PetscReal)
-    int EPSCISSGetThreshold(SlepcEPS,PetscReal*,PetscReal*)
-    int EPSCISSSetRefinement(SlepcEPS,PetscInt,PetscInt)
-    int EPSCISSGetRefinement(SlepcEPS,PetscInt*,PetscInt*)
-    int EPSCISSSetUseST(SlepcEPS,PetscBool)
-    int EPSCISSGetUseST(SlepcEPS,PetscBool*)
-    int EPSCISSGetKSPs(SlepcEPS,PetscInt*,PetscKSP**)
+    PetscErrorCode EPSCISSSetExtraction(SlepcEPS,SlepcEPSCISSExtraction)
+    PetscErrorCode EPSCISSGetExtraction(SlepcEPS,SlepcEPSCISSExtraction*)
+    PetscErrorCode EPSCISSSetQuadRule(SlepcEPS,SlepcEPSCISSQuadRule)
+    PetscErrorCode EPSCISSGetQuadRule(SlepcEPS,SlepcEPSCISSQuadRule*)
+    PetscErrorCode EPSCISSSetSizes(SlepcEPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool)
+    PetscErrorCode EPSCISSGetSizes(SlepcEPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*)
+    PetscErrorCode EPSCISSSetThreshold(SlepcEPS,PetscReal,PetscReal)
+    PetscErrorCode EPSCISSGetThreshold(SlepcEPS,PetscReal*,PetscReal*)
+    PetscErrorCode EPSCISSSetRefinement(SlepcEPS,PetscInt,PetscInt)
+    PetscErrorCode EPSCISSGetRefinement(SlepcEPS,PetscInt*,PetscInt*)
+    PetscErrorCode EPSCISSSetUseST(SlepcEPS,PetscBool)
+    PetscErrorCode EPSCISSGetUseST(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSCISSGetKSPs(SlepcEPS,PetscInt*,PetscKSP**)
 
 cdef extern from * nogil:
-    int VecDuplicate(PetscVec,PetscVec*)
-    int MatCreateVecs(PetscMat,PetscVec*,PetscVec*)
+    PetscErrorCode VecDuplicate(PetscVec,PetscVec*)
+    PetscErrorCode MatCreateVecs(PetscMat,PetscVec*,PetscVec*)
 
 # -----------------------------------------------------------------------------
 
@@ -316,7 +316,7 @@ cdef inline EPS ref_EPS(SlepcEPS eps):
 
 # -----------------------------------------------------------------------------
 
-cdef int EPS_Stopping(
+cdef PetscErrorCode EPS_Stopping(
     SlepcEPS                eps,
     PetscInt                its,
     PetscInt                max_it,
@@ -335,7 +335,7 @@ cdef int EPS_Stopping(
 
 # -----------------------------------------------------------------------------
 
-cdef int EPS_Arbitrary(
+cdef PetscErrorCode EPS_Arbitrary(
     PetscScalar  er,
     PetscScalar  ei,
     PetscVec     xr,
@@ -357,7 +357,7 @@ cdef int EPS_Arbitrary(
 
 # -----------------------------------------------------------------------------
 
-cdef int EPS_Comparison(
+cdef PetscErrorCode EPS_Comparison(
     PetscScalar  ar,
     PetscScalar  ai,
     PetscScalar  br,
@@ -371,7 +371,7 @@ cdef int EPS_Comparison(
 
 # -----------------------------------------------------------------------------
 
-cdef int EPS_Monitor(
+cdef PetscErrorCode EPS_Monitor(
     SlepcEPS    eps,
     PetscInt    its,
     PetscInt    nconv,
@@ -383,11 +383,11 @@ cdef int EPS_Monitor(
     ) except PETSC_ERR_PYTHON with gil:
     cdef EPS Eps = ref_EPS(eps)
     cdef object monitorlist = Eps.get_attr('__monitor__')
-    if monitorlist is None: return 0
+    if monitorlist is None: return PETSC_SUCCESS
     cdef object eig = [toComplex(eigr[i], eigi[i]) for i in range(nest)]
     cdef object err = [toReal(errest[i]) for i in range(nest)]
     for (monitor, args, kargs) in monitorlist:
         monitor(Eps, toInt(its), toInt(nconv), eig, err, *args, **kargs)
-    return 0
+    return PETSC_SUCCESS
 
 # -----------------------------------------------------------------------------
