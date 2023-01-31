@@ -16,7 +16,7 @@
 
 #define PetscCallEVSL(func, ...) do {                                                   \
     PetscStackPushExternal(PetscStringize(func));                                                      \
-    PetscErrorCode evsl_ierr_ = func(__VA_ARGS__);                                              \
+    int evsl_ierr_ = func(__VA_ARGS__);                                              \
     PetscStackPop;                                                                             \
     PetscCheck(!evsl_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(__VA_ARGS__)),evsl_ierr_); \
   } while (0)

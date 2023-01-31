@@ -141,7 +141,7 @@ BlopexInt PETSC_Axpy(void *alpha,void *x,void *y)
 BlopexInt PETSC_VectorSize(void *x)
 {
   PetscInt N;
-  VecGetSize((Vec)x,&N);
+  (void)VecGetSize((Vec)x,&N);
   return N;
 }
 
