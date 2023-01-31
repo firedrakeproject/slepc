@@ -13,13 +13,35 @@
 
 static PetscBool SlepcBeganMagma = PETSC_FALSE;
 
+static void slepc_magma_finalize(void PETSC_UNUSED *unused, magma_int_t *ierr)
+{
+  (void)unused;
+  *ierr = magma_finalize();
+  return;
+}
+
+static PetscErrorCode SlepcMagmaFinalize(void)
+{
+  PetscFunctionBegin;
+  SlepcBeganMagma = PETSC_FALSE;
+  PetscCallMAGMA(slepc_magma_finalize, NULL);
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static void slepc_magma_init(void PETSC_UNUSED *unused, magma_int_t *ierr)
+{
+  (void)unused;
+  *ierr = magma_init();
+  return;
+}
+
 PetscErrorCode SlepcMagmaInit(void)
 {
   PetscFunctionBegin;
   if (!SlepcBeganMagma) {
-    magma_init();
+    PetscCallMAGMA(slepc_magma_init, NULL);
     SlepcBeganMagma = PETSC_TRUE;
-    PetscCall(PetscRegisterFinalize(magma_finalize));
+    PetscCall(PetscRegisterFinalize(SlepcMagmaFinalize));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }

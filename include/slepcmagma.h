@@ -21,11 +21,11 @@
 SLEPC_EXTERN PetscErrorCode SlepcMagmaInit(void);
 
 #define PetscCallMAGMA(func, ...) do { \
-    PetscErrorCode magma_ierr_; \
+    magma_int_t magma_ierr_; \
     PetscStackPushExternal(PetscStringize(func)); \
     func(__VA_ARGS__,&magma_ierr_); \
     PetscStackPop; \
-    PetscCheck(!magma_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(__VA_ARGS__,&magma_ierr)),magma_ierr_); \
+    PetscCheck(magma_ierr_ == MAGMA_SUCCESS,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(__VA_ARGS__,&magma_ierr)),(int)magma_ierr_); \
   } while (0)
 #define CHKERRMAGMA(...) PetscCall(__VA_ARGS__)
 
