@@ -22,7 +22,7 @@ PetscErrorCode FNEvaluateFunction_Invsqrt(FN fn,PetscScalar x,PetscScalar *y)
   PetscCheck(x>0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
 #endif
   *y = 1.0/PetscSqrtScalar(x);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateDerivative_Invsqrt(FN fn,PetscScalar x,PetscScalar *y)
@@ -33,7 +33,7 @@ PetscErrorCode FNEvaluateDerivative_Invsqrt(FN fn,PetscScalar x,PetscScalar *y)
   PetscCheck(x>0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
 #endif
   *y = -1.0/(2.0*PetscPowScalarReal(x,1.5));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Schur(FN fn,Mat A,Mat B)
@@ -62,7 +62,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Schur(FN fn,Mat A,Mat B)
   PetscCall(MatDenseRestoreArray(W,&Wa));
   PetscCall(MatDenseRestoreArray(B,&Ba));
   PetscCall(FN_FreeWorkMat(fn,&W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
@@ -92,7 +92,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
   PetscCall(MatGetColumnVector(B,v,0));
   PetscCall(FN_FreeWorkMat(fn,&W));
   PetscCall(FN_FreeWorkMat(fn,&B));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)
@@ -108,7 +108,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmDenmanBeavers(fn,n,T,n,PETSC_TRUE));
   PetscCall(MatDenseRestoreArray(B,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS(FN fn,Mat A,Mat B)
@@ -124,7 +124,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmNewtonSchulz(fn,n,T,n,PETSC_TRUE));
   PetscCall(MatDenseRestoreArray(B,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi(FN fn,Mat A,Mat B)
@@ -153,7 +153,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi(FN fn,Mat A,Mat B)
   PetscCall(MatDenseRestoreArray(W,&Wa));
   PetscCall(MatDenseRestoreArray(B,&Ba));
   PetscCall(FN_FreeWorkMat(fn,&W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_CUDA)
@@ -170,7 +170,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS_CUDA(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmNewtonSchulz_CUDA(fn,n,Ba,n,PETSC_TRUE));
   PetscCall(MatDenseCUDARestoreArray(B,&Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_MAGMA)
@@ -189,7 +189,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_TRUE));
   PetscCall(MatDenseCUDARestoreArray(B,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
@@ -218,7 +218,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
   PetscCall(MatDenseCUDARestoreArray(W,&Wa));
   PetscCall(MatDenseCUDARestoreArray(B,&Ba));
   PetscCall(FN_FreeWorkMat(fn,&W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
@@ -257,7 +257,7 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
     }
     if (fn->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
@@ -278,5 +278,5 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
 #endif /* PETSC_HAVE_CUDA */
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Invsqrt_Schur;
   fn->ops->view                      = FNView_Invsqrt;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

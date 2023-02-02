@@ -44,7 +44,7 @@ PetscErrorCode __SUF__(VecDot_Comp)(Vec a,Vec b,PetscScalar *z)
     }
   }
   *z = sum;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar *z)
@@ -60,7 +60,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
 
   if (as->n->n == 0) {
     *z = 0;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   PetscCall(PetscMalloc2(n,&work0,n,&bx));
@@ -92,7 +92,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
 #endif
 
   PetscCall(PetscFree2(work0,bx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
@@ -120,7 +120,7 @@ PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
     }
   }
   *z = sum;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar *z)
@@ -136,7 +136,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
 
   if (as->n->n == 0) {
     *z = 0;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   PetscCall(PetscMalloc2(n,&work0,n,&bx));
@@ -168,7 +168,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
 #endif
 
   PetscCall(PetscFree2(work0,bx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
@@ -232,7 +232,7 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
     default: ;
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar *nm)
@@ -278,7 +278,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
 #else
     *dp = dp0; *nm = nm0;
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #undef __SUF__

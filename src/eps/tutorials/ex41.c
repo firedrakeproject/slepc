@@ -224,7 +224,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   }
   PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -268,7 +268,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscBool trans,PetscScalar kr,PetscSca
     *norm = SlepcAbsEigenvalue(nr,ni);
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

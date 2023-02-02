@@ -43,7 +43,7 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
   pool->v     = v;
   pool->guess = init_size;
   *p = pool;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -63,7 +63,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
   VecPool_       *pool = (VecPool_*)*p;
 
   PetscFunctionBegin;
-  if (!*p) PetscFunctionReturn(0);
+  if (!*p) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(VecDestroy(&pool->v));
   PetscCall(VecDestroyVecs(pool->n,&pool->vecs));
   pool->n     = 0;
@@ -72,7 +72,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
   PetscCall(SlepcVecPoolDestroy((VecPool*)&pool->next));
   PetscCall(PetscFree(pool));
   *p = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -112,7 +112,7 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
   }
   *vecs = pool->vecs + pool->used;
   pool->used += n;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -144,5 +144,5 @@ PetscErrorCode SlepcVecPoolRestoreVecs(VecPool p,PetscInt n,Vec **vecs)
   }
   pool->used -= n;
   PetscCheck(pool->used>=0,PetscObjectComm((PetscObject)pool->v),PETSC_ERR_ARG_OUTOFRANGE,"Unmatched SlepcVecPoolRestoreVecs");
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

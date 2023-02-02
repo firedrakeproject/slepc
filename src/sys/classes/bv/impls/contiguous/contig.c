@@ -32,7 +32,7 @@ PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Ma
     PetscCall(BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,x->array+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,y->array+(Y->nc+Y->l)*Y->n));
     PetscCall(MatDenseRestoreArrayRead(Q,&q));
   } else PetscCall(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,x->array+(X->nc+X->l)*X->n,beta,y->array+(Y->nc+Y->l)*Y->n));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
@@ -46,7 +46,7 @@ PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec 
   PetscCall(BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,x->array+(X->nc+X->l)*X->n,qq,beta,py));
   if (!q) PetscCall(VecRestoreArray(X->buffer,&qq));
   PetscCall(VecRestoreArray(y,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
@@ -60,7 +60,7 @@ PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCall(MatDenseGetArrayRead(Q,&q));
   PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_FALSE));
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVMultInPlaceHermitianTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
@@ -74,7 +74,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Contiguous(BV V,Mat Q,PetscInt s,
   PetscCall(MatDenseGetArrayRead(Q,&q));
   PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE));
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
@@ -88,7 +88,7 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
   PetscCall(MatDenseGetArray(M,&m));
   PetscCall(BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,ldm,y->array+(Y->nc+Y->l)*Y->n,x->array+(X->nc+X->l)*X->n,m+X->l*ldm+Y->l,x->mpi));
   PetscCall(MatDenseRestoreArray(M,&m));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *q)
@@ -108,7 +108,7 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *q)
   PetscCall(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,qq,x->mpi));
   if (!q) PetscCall(VecRestoreArray(X->buffer,&qq));
   PetscCall(VecRestoreArrayRead(z,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDotVec_Local_Contiguous(BV X,Vec y,PetscScalar *m)
@@ -125,7 +125,7 @@ PetscErrorCode BVDotVec_Local_Contiguous(BV X,Vec y,PetscScalar *m)
   PetscCall(VecGetArray(z,&py));
   PetscCall(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,m,PETSC_FALSE));
   PetscCall(VecRestoreArray(z,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVScale_Contiguous(BV bv,PetscInt j,PetscScalar alpha)
@@ -135,7 +135,7 @@ PetscErrorCode BVScale_Contiguous(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionBegin;
   if (PetscUnlikely(j<0)) PetscCall(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,ctx->array+(bv->nc+bv->l)*bv->n,alpha));
   else PetscCall(BVScale_BLAS_Private(bv,bv->n,ctx->array+(bv->nc+j)*bv->n,alpha));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
@@ -145,7 +145,7 @@ PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionBegin;
   if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
   else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
@@ -155,7 +155,7 @@ PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal 
   PetscFunctionBegin;
   if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
   else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVNormalize_Contiguous(BV bv,PetscScalar *eigi)
@@ -166,7 +166,7 @@ PetscErrorCode BVNormalize_Contiguous(BV bv,PetscScalar *eigi)
   PetscFunctionBegin;
   if (eigi) wi = eigi+bv->l;
   PetscCall(BVNormalize_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,wi,ctx->mpi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
@@ -190,7 +190,7 @@ PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
   } else {
     for (j=0;j<V->k-V->l;j++) PetscCall(MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVCopy_Contiguous(BV V,BV W)
@@ -202,7 +202,7 @@ PetscErrorCode BVCopy_Contiguous(BV V,BV W)
   pvc = v->array+(V->nc+V->l)*V->n;
   pwc = w->array+(W->nc+W->l)*W->n;
   PetscCall(PetscArraycpy(pwc,pvc,(V->k-V->l)*V->n));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVCopyColumn_Contiguous(BV V,PetscInt j,PetscInt i)
@@ -211,7 +211,7 @@ PetscErrorCode BVCopyColumn_Contiguous(BV V,PetscInt j,PetscInt i)
 
   PetscFunctionBegin;
   PetscCall(PetscArraycpy(v->array+(V->nc+i)*V->n,v->array+(V->nc+j)*V->n,V->n));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
@@ -242,7 +242,7 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
   ctx->V = newV;
   PetscCall(PetscFree(ctx->array));
   ctx->array = newarray;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
@@ -253,7 +253,7 @@ PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
   PetscFunctionBegin;
   l = BVAvailableVec;
   bv->cv[l] = ctx->V[bv->nc+j];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVRestoreColumn_Contiguous(BV bv,PetscInt j,Vec *v)
@@ -263,7 +263,7 @@ PetscErrorCode BVRestoreColumn_Contiguous(BV bv,PetscInt j,Vec *v)
   PetscFunctionBegin;
   l = (j==bv->ci[0])? 0: 1;
   bv->cv[l] = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVGetArray_Contiguous(BV bv,PetscScalar **a)
@@ -272,7 +272,7 @@ PetscErrorCode BVGetArray_Contiguous(BV bv,PetscScalar **a)
 
   PetscFunctionBegin;
   *a = ctx->array;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVGetArrayRead_Contiguous(BV bv,const PetscScalar **a)
@@ -281,7 +281,7 @@ PetscErrorCode BVGetArrayRead_Contiguous(BV bv,const PetscScalar **a)
 
   PetscFunctionBegin;
   *a = ctx->array;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVDestroy_Contiguous(BV bv)
@@ -294,7 +294,7 @@ PetscErrorCode BVDestroy_Contiguous(BV bv)
     PetscCall(PetscFree(ctx->array));
   }
   PetscCall(PetscFree(bv->data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVView_Contiguous(BV bv,PetscViewer viewer)
@@ -309,7 +309,7 @@ PetscErrorCode BVView_Contiguous(BV bv,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     PetscCall(PetscViewerGetFormat(viewer,&format));
-    if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+    if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(PETSC_SUCCESS);
     if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
   }
   if (ismatlab) {
@@ -325,7 +325,7 @@ PetscErrorCode BVView_Contiguous(BV bv,PetscViewer viewer)
     }
     PetscCall(BVRestoreColumn(bv,j,&v));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
@@ -406,5 +406,5 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->restoremat       = BVRestoreMat_Default;
   bv->ops->destroy          = BVDestroy_Contiguous;
   bv->ops->view             = BVView_Contiguous;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

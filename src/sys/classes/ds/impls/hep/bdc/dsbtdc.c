@@ -303,7 +303,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
   if (n == 1) {
     ev[0] = d[0]; z[0] = 1.;
     *info = -101;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   /* If NBLKS is equal to 1, then solve the problem with standard */
@@ -318,7 +318,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
     PetscCallBLAS("LAPACKsyevd",LAPACKsyevd_("V", "L", &n, z, &ldz, ev, work, &lwork, iwork, &liwork, info));
     SlepcCheckLapackInfo("syevd",*info);
     *info = -102;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   /* determine the accuracy parameters (if requested) */
@@ -462,7 +462,7 @@ L8:
   if (emax == 0. && dmax == 0.) {
     for (i = 0; i < n; ++i) ev[i] = 0.;
     *info = -100;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
 /* **************************************************************** */
@@ -674,5 +674,5 @@ L20:
   /* may indicate severe inaccuracies in the eigenvector approximations */
 
   if (*mingap <= tol / 10) *info = -103;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

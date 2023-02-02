@@ -21,7 +21,7 @@ PetscErrorCode SlepcMonitorMakeKey_Internal(const char name[],PetscViewerType vt
   PetscCall(PetscStrlcat(key,vtype,PETSC_MAX_PATH_LEN));
   PetscCall(PetscStrlcat(key,":",PETSC_MAX_PATH_LEN));
   PetscCall(PetscStrlcat(key,PetscViewerFormats[format],PETSC_MAX_PATH_LEN));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PetscViewerAndFormatCreate_Internal(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
@@ -29,7 +29,7 @@ PetscErrorCode PetscViewerAndFormatCreate_Internal(PetscViewer viewer,PetscViewe
   PetscFunctionBegin;
   PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -48,7 +48,7 @@ PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W
     for (i=0;i<n;i++) (*W)[i] = V[i];
     *m = -n;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -65,7 +65,7 @@ PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
     PetscCall(PetscFree(*W));
   }
   *m = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -106,7 +106,7 @@ PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBoo
     else PetscCall(PetscSNPrintf(str,len,"%g",(double)re));
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -149,7 +149,7 @@ PetscErrorCode SlepcHasExternalPackage(const char pkg[], PetscBool *has)
 #error "SLEPC_HAVE_PACKAGES macro undefined. Please reconfigure"
 #endif
   *has = loc? PETSC_TRUE: PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -185,7 +185,7 @@ PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *X
   }
   PetscCall(PetscViewerASCIIPrintf(viewer,"];\n"));
   if (filename) PetscCall(PetscViewerDestroy(&viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -200,6 +200,6 @@ PETSC_UNUSED PetscErrorCode SlepcDebugSetMatlabStdout(void)
   PetscFunctionBegin;
   PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
   PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif

@@ -26,7 +26,7 @@ static inline PetscErrorCode CISS_BlockHankel(PetscScalar *Mu,PetscInt s,PetscIn
     for (j=0;j<M;j++)
       for (i=0;i<L;i++)
         H[j*L+i+k*L*M] = Mu[i+k*L+(j+s)*L*L];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode SlepcCISS_isGhost(Mat,PetscInt,PetscReal*,PetscReal,PetscBool*);

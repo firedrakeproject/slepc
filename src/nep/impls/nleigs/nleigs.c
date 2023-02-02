@@ -51,7 +51,7 @@ PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScalar *val
     valr[j] = 1.0 / valr[j] + nep->target;
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Computes the roots of a polynomial */
@@ -93,7 +93,7 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
     PetscCall(PetscFPTrapPop());
     PetscCall(PetscFree(C));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSAuxiliarRmDuplicates(PetscInt nin,PetscScalar *pin,PetscInt *nout,PetscScalar *pout,PetscInt max)
@@ -110,7 +110,7 @@ static PetscErrorCode NEPNLEIGSAuxiliarRmDuplicates(PetscInt nin,PetscScalar *pi
         break;
       }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar **isol,PetscBool *rational)
@@ -163,7 +163,7 @@ static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar 
       PetscCall(PetscFree(isol2));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSRationalSingularities(NEP nep,PetscInt *ndptx,PetscScalar *dxi,PetscBool *rational)
@@ -186,7 +186,7 @@ static PetscErrorCode NEPNLEIGSRationalSingularities(NEP nep,PetscInt *ndptx,Pet
     }
     *rational = ((*rational)&&rat)?PETSC_TRUE:PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*  Adaptive Anderson-Antoulas algorithm */
@@ -286,7 +286,7 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
 #if defined(PETSC_USE_COMPLEX)
   PetscCall(PetscFree(rwork));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*  Singularities using Adaptive Anderson-Antoulas algorithm */
@@ -334,7 +334,7 @@ static PetscErrorCode NEPNLEIGSAAASingularities(NEP nep,PetscInt ndpt,PetscScala
     PetscCall(VecDestroy(&w));
   }
   PetscCall(PetscFree(F));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
@@ -402,7 +402,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     beta[k] = maxnrs;
   }
   PetscCall(PetscFree5(ds,dsi,dxi,nrs,nrxi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma,PetscScalar *b)
@@ -416,7 +416,7 @@ PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma,PetscS
   for (i=0;i<k;i++) {
     b[i+1] = ((sigma-s[i])*b[i])/(beta[i+1]*(1.0-sigma/xi[i]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
@@ -432,7 +432,7 @@ static PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
     PetscCall(MatMult(ctx->A[i],x,ctx->t));
     PetscCall(VecAXPY(y,ctx->coeff[i],ctx->t));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
@@ -448,7 +448,7 @@ static PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
     PetscCall(MatMultTranspose(ctx->A[i],x,ctx->t));
     PetscCall(VecAXPY(y,ctx->coeff[i],ctx->t));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
@@ -464,7 +464,7 @@ static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
     PetscCall(MatGetDiagonal(ctx->A[i],ctx->t));
     PetscCall(VecAXPY(diag,ctx->coeff[i],ctx->t));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
@@ -501,7 +501,7 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   PetscCall(MatShellSetOperation(*B,MATOP_DESTROY,fun));
   PetscCall(MatShellGetOperation(A,MATOP_AXPY,&fun));
   PetscCall(MatShellSetOperation(*B,MATOP_AXPY,fun));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_Fun(Mat A)
@@ -517,7 +517,7 @@ static PetscErrorCode MatDestroy_Fun(Mat A)
     PetscCall(PetscFree2(ctx->A,ctx->coeff));
     PetscCall(PetscFree(ctx));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
@@ -543,7 +543,7 @@ static PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
       PetscCall(PetscObjectReference((PetscObject)ctxX->A[i]));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
@@ -554,7 +554,7 @@ static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
   PetscFunctionBeginUser;
   PetscCall(MatShellGetContext(M,&ctx));
   for (i=0;i<ctx->nmat;i++) ctx->coeff[i] *= a;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NLEIGSMatToMatShellArray(Mat A,Mat *Ms,PetscInt maxnmat)
@@ -584,7 +584,7 @@ static PetscErrorCode NLEIGSMatToMatShellArray(Mat A,Mat *Ms,PetscInt maxnmat)
   PetscCall(MatShellSetOperation(*Ms,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun));
   PetscCall(MatShellSetOperation(*Ms,MATOP_AXPY,(void(*)(void))MatAXPY_Fun));
   PetscCall(MatShellSetOperation(*Ms,MATOP_SCALE,(void(*)(void))MatScale_Fun));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -601,7 +601,7 @@ static PetscErrorCode MatIsShellAny(Mat *A,PetscInt n,PetscBool *shell)
     PetscCall(MatIsShell(A[i],&flg));
     if (flg) { *shell = PETSC_TRUE; break; }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
@@ -640,9 +640,9 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,nmax,nmax,pH,&H));
   PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,nmax,nmax,pK,&K));
   for (j=0;matrix&&j<nep->nt;j++) {
-    PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
+    PetscCall(PetscPushErrorHandler(PetscReturnErrorHandler,NULL));
     ierr = FNEvaluateFunctionMat(nep->f[j],H,K);
-    PetscPopErrorHandler();
+    PetscCall(PetscPopErrorHandler());
     if (!ierr) {
       for (i=0;i<nmax;i++) ctx->coeffD[j+i*nep->nt] = pK[i]*beta[0];
     } else {
@@ -718,7 +718,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   }
   PetscCall(PetscFree3(b,coeffs,matnorm));
   PetscCall(PetscFree2(pK,pH));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
@@ -813,7 +813,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     PetscCall(MatDestroy(&P));
     PetscCall(MatDestroyMatrices(ctx->nmat,&DP));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -855,7 +855,7 @@ PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscBool getall,PetscInt kini
   }
   if (marker!=-1) k = marker;
   *kout = k;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
@@ -917,7 +917,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
     nep->ops->solve          = NEPSolve_NLEIGS_FullBasis;
     nep->ops->computevectors = NULL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -993,7 +993,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
     PetscCall(VecScale(t,-1.0));
   }
   PetscCall(PetscFree(coeffs));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1011,7 +1011,7 @@ static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,
     for (j=0;j<=nv;j++) r[k*lr+j] += t[k]*x[j];
   }
   for (j=0;j<=nv;j++) r[(d-1)*lr+j] = t[d-1]*x[j];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1060,7 +1060,7 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
     PetscCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&n1_,&sone,S,&lds_,t,&one,&szero,cont,&one));
     PetscCall(PetscFPTrapPop());
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1131,7 +1131,7 @@ PetscErrorCode NEPNLEIGSTOARrun(NEP nep,Mat MK,Mat MH,BV W,PetscInt k,PetscInt *
   PetscCall(MatDenseRestoreArray(MH,&H));
   if (MK) PetscCall(MatDenseRestoreArray(MK,&K));
   PetscCall(BVTensorRestoreFactors(ctx->V,NULL,&MS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSolve_NLEIGS(NEP nep)
@@ -1278,7 +1278,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     PetscCall(PetscFree2(eigr,eigi));
   }
   PetscCall(BVDestroy(&W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt*,PetscScalar*,void*),void *ctx)
@@ -1289,7 +1289,7 @@ static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErro
   if (fun) nepctx->computesingularities = fun;
   if (ctx) nepctx->singularitiesctx     = ctx;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1328,7 +1328,7 @@ PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(N
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscTryMethod(nep,"NEPNLEIGSSetSingularitiesFunction_C",(NEP,PetscErrorCode(*)(NEP,PetscInt*,PetscScalar*,void*),void*),(nep,fun,ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSGetSingularitiesFunction_NLEIGS(NEP nep,PetscErrorCode (**fun)(NEP,PetscInt*,PetscScalar*,void*),void **ctx)
@@ -1338,7 +1338,7 @@ static PetscErrorCode NEPNLEIGSGetSingularitiesFunction_NLEIGS(NEP nep,PetscErro
   PetscFunctionBegin;
   if (fun) *fun = nepctx->computesingularities;
   if (ctx) *ctx = nepctx->singularitiesctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1363,7 +1363,7 @@ PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscUseMethod(nep,"NEPNLEIGSGetSingularitiesFunction_C",(NEP,PetscErrorCode(**)(NEP,PetscInt*,PetscScalar*,void*),void**),(nep,fun,ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
@@ -1376,7 +1376,7 @@ static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1406,7 +1406,7 @@ PetscErrorCode NEPNLEIGSSetRestart(NEP nep,PetscReal keep)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,keep,2);
   PetscTryMethod(nep,"NEPNLEIGSSetRestart_C",(NEP,PetscReal),(nep,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSGetRestart_NLEIGS(NEP nep,PetscReal *keep)
@@ -1415,7 +1415,7 @@ static PetscErrorCode NEPNLEIGSGetRestart_NLEIGS(NEP nep,PetscReal *keep)
 
   PetscFunctionBegin;
   *keep = ctx->keep;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1439,7 +1439,7 @@ PetscErrorCode NEPNLEIGSGetRestart(NEP nep,PetscReal *keep)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidRealPointer(keep,2);
   PetscUseMethod(nep,"NEPNLEIGSGetRestart_C",(NEP,PetscReal*),(nep,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSSetLocking_NLEIGS(NEP nep,PetscBool lock)
@@ -1448,7 +1448,7 @@ static PetscErrorCode NEPNLEIGSSetLocking_NLEIGS(NEP nep,PetscBool lock)
 
   PetscFunctionBegin;
   ctx->lock = lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1480,7 +1480,7 @@ PetscErrorCode NEPNLEIGSSetLocking(NEP nep,PetscBool lock)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(nep,lock,2);
   PetscTryMethod(nep,"NEPNLEIGSSetLocking_C",(NEP,PetscBool),(nep,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSGetLocking_NLEIGS(NEP nep,PetscBool *lock)
@@ -1489,7 +1489,7 @@ static PetscErrorCode NEPNLEIGSGetLocking_NLEIGS(NEP nep,PetscBool *lock)
 
   PetscFunctionBegin;
   *lock = ctx->lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1513,7 +1513,7 @@ PetscErrorCode NEPNLEIGSGetLocking(NEP nep,PetscBool *lock)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(lock,2);
   PetscUseMethod(nep,"NEPNLEIGSGetLocking_C",(NEP,PetscBool*),(nep,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,PetscInt degree)
@@ -1540,7 +1540,7 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
       nep->state = NEP_STATE_INITIAL;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1572,7 +1572,7 @@ PetscErrorCode NEPNLEIGSSetInterpolation(NEP nep,PetscReal tol,PetscInt degree)
   PetscValidLogicalCollectiveReal(nep,tol,2);
   PetscValidLogicalCollectiveInt(nep,degree,3);
   PetscTryMethod(nep,"NEPNLEIGSSetInterpolation_C",(NEP,PetscReal,PetscInt),(nep,tol,degree));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,PetscInt *degree)
@@ -1582,7 +1582,7 @@ static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,Pe
   PetscFunctionBegin;
   if (tol)    *tol    = ctx->ddtol;
   if (degree) *degree = ctx->ddmaxit;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1607,7 +1607,7 @@ PetscErrorCode NEPNLEIGSGetInterpolation(NEP nep,PetscReal *tol,PetscInt *degree
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscTryMethod(nep,"NEPNLEIGSGetInterpolation_C",(NEP,PetscReal*,PetscInt*),(nep,tol,degree));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScalar *shifts)
@@ -1627,7 +1627,7 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
   }
   ctx->nshifts = ns;
   nep->state   = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1667,7 +1667,7 @@ PetscErrorCode NEPNLEIGSSetRKShifts(NEP nep,PetscInt ns,PetscScalar shifts[])
   PetscValidLogicalCollectiveInt(nep,ns,2);
   if (ns) PetscValidScalarPointer(shifts,3);
   PetscTryMethod(nep,"NEPNLEIGSSetRKShifts_C",(NEP,PetscInt,PetscScalar*),(nep,ns,shifts));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSGetRKShifts_NLEIGS(NEP nep,PetscInt *ns,PetscScalar **shifts)
@@ -1681,7 +1681,7 @@ static PetscErrorCode NEPNLEIGSGetRKShifts_NLEIGS(NEP nep,PetscInt *ns,PetscScal
     PetscCall(PetscMalloc1(ctx->nshifts,shifts));
     for (i=0;i<ctx->nshifts;i++) (*shifts)[i] = ctx->shifts[i];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1711,7 +1711,7 @@ PetscErrorCode NEPNLEIGSGetRKShifts(NEP nep,PetscInt *ns,PetscScalar *shifts[])
   PetscValidIntPointer(ns,2);
   PetscValidPointer(shifts,3);
   PetscTryMethod(nep,"NEPNLEIGSGetRKShifts_C",(NEP,PetscInt*,PetscScalar**),(nep,ns,shifts));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,PetscInt *nsolve,KSP **ksp)
@@ -1744,7 +1744,7 @@ static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,PetscInt *nsolve,KSP **ksp
   }
   if (nsolve) *nsolve = ctx->nshiftsw;
   if (ksp)    *ksp    = ctx->ksp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1773,7 +1773,7 @@ PetscErrorCode NEPNLEIGSGetKSPs(NEP nep,PetscInt *nsolve,KSP **ksp)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscUseMethod(nep,"NEPNLEIGSGetKSPs_C",(NEP,PetscInt*,KSP**),(nep,nsolve,ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSSetFullBasis_NLEIGS(NEP nep,PetscBool fullbasis)
@@ -1786,7 +1786,7 @@ static PetscErrorCode NEPNLEIGSSetFullBasis_NLEIGS(NEP nep,PetscBool fullbasis)
     nep->state     = NEP_STATE_INITIAL;
     nep->useds     = PetscNot(fullbasis);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1822,7 +1822,7 @@ PetscErrorCode NEPNLEIGSSetFullBasis(NEP nep,PetscBool fullbasis)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(nep,fullbasis,2);
   PetscTryMethod(nep,"NEPNLEIGSSetFullBasis_C",(NEP,PetscBool),(nep,fullbasis));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPNLEIGSGetFullBasis_NLEIGS(NEP nep,PetscBool *fullbasis)
@@ -1831,7 +1831,7 @@ static PetscErrorCode NEPNLEIGSGetFullBasis_NLEIGS(NEP nep,PetscBool *fullbasis)
 
   PetscFunctionBegin;
   *fullbasis = ctx->fullbasis;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1856,7 +1856,7 @@ PetscErrorCode NEPNLEIGSGetFullBasis(NEP nep,PetscBool *fullbasis)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(fullbasis,2);
   PetscUseMethod(nep,"NEPNLEIGSGetFullBasis_C",(NEP,PetscBool*),(nep,fullbasis));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define SHIFTMAX 30
@@ -1901,7 +1901,7 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(NEP nep,PetscOptionItems *PetscOptionsOb
     if (!ctx->eps) PetscCall(NEPNLEIGSGetEPS(nep,&ctx->eps));
     PetscCall(EPSSetFromOptions(ctx->eps));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
@@ -1940,7 +1940,7 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
       PetscCall(PetscViewerASCIIPopTab(viewer));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPReset_NLEIGS(NEP nep)
@@ -1961,7 +1961,7 @@ PetscErrorCode NEPReset_NLEIGS(NEP nep)
     PetscCall(EPSReset(ctx->eps));
     for (k=0;k<4;k++) PetscCall(VecDestroy(&ctx->w[k]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
@@ -1991,7 +1991,7 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetFullBasis_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetEPS_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetEPS_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
@@ -2027,5 +2027,5 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetFullBasis_C",NEPNLEIGSGetFullBasis_NLEIGS));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetEPS_C",NEPNLEIGSSetEPS_NLEIGS));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetEPS_C",NEPNLEIGSGetEPS_NLEIGS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

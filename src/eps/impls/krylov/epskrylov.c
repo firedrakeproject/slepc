@@ -110,7 +110,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
   if (m>100) PetscCall(PetscFree(lhh));
   PetscCall(VecDestroy(&u));
   PetscCall(VecDestroy(&t));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -151,7 +151,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k
   }
 
   *breakdown = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -184,7 +184,7 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
   }
   *kout = kini+nconv;
   PetscCall(PetscInfo(eps,"Found %" PetscInt_FMT " eigenvalue approximations inside the interval (gamma=%g), k=%" PetscInt_FMT " nconv=%" PetscInt_FMT "\n",ninside,(double)gamma,k,nconv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -218,7 +218,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     if (isfilter) {
       PetscCall(STFilterGetThreshold(eps->st,&gamma));
       PetscCall(EPSKrylovConvergence_Filter(eps,getall,kini,nits,beta,gamma,kout));
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     }
   }
   PetscCall(RGIsTrivial(eps->rg,&istrivial));
@@ -291,7 +291,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     PetscCall(VecDestroy(&w[1]));
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,PetscReal *cos,Vec w)
@@ -349,5 +349,5 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
     }
   }
   if (m > 100) PetscCall(PetscFree(hwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

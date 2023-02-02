@@ -70,7 +70,7 @@ PetscErrorCode SVDComputeVectors_Left(SVD svd)
       PetscCall(VecDestroy(&omega2));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDComputeVectors(SVD svd)
@@ -79,7 +79,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
   SVDCheckSolved(svd,1);
   if (svd->state==SVD_STATE_SOLVED) PetscTryTypeMethod(svd,computevectors);
   svd->state = SVD_STATE_VECTORS;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -119,7 +119,7 @@ PetscErrorCode SVDSolve(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (svd->state>=SVD_STATE_SOLVED) PetscFunctionReturn(0);
+  if (svd->state>=SVD_STATE_SOLVED) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscLogEventBegin(SVD_Solve,svd,0,0,0));
 
   /* call setup */
@@ -170,7 +170,7 @@ PetscErrorCode SVDSolve(SVD svd)
   /* Remove the initial subspaces */
   svd->nini = 0;
   svd->ninil = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -203,7 +203,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidIntPointer(its,2);
   *its = svd->its;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -243,7 +243,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
   PetscValidIntPointer(reason,2);
   SVDCheckSolved(svd,1);
   *reason = svd->reason;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -271,7 +271,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
   PetscValidIntPointer(nconv,2);
   SVDCheckSolved(svd,1);
   *nconv = svd->nconv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -333,7 +333,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
     if (u) PetscCall(BVCopyVec(svd->U,svd->perm[i],u));
     if (v) PetscCall(BVCopyVec(svd->V,svd->perm[i],v));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -364,7 +364,7 @@ static PetscErrorCode SVDComputeResidualNorms_Standard(SVD svd,PetscReal sigma,V
     PetscCall(VecAXPY(y,-sigma,v));
     PetscCall(VecNorm(y,NORM_2,norm2));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -417,7 +417,7 @@ static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigm
   PetscCall(VecDestroy(&v));
   PetscCall(VecDestroy(&u));
   PetscCall(VecDestroy(&nest));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -450,7 +450,7 @@ static PetscErrorCode SVDComputeResidualNorms_Hyperbolic(SVD svd,PetscReal sigma
     PetscCall(VecAXPY(y,-sigma*sign,v));
     PetscCall(VecNorm(y,NORM_2,norm2));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -549,5 +549,5 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

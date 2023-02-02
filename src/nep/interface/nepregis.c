@@ -31,7 +31,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP);
 PetscErrorCode NEPRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (NEPRegisterAllCalled) PetscFunctionReturn(0);
+  if (NEPRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   NEPRegisterAllCalled = PETSC_TRUE;
   PetscCall(NEPRegister(NEPRII,NEPCreate_RII));
   PetscCall(NEPRegister(NEPSLP,NEPCreate_SLP));
@@ -41,7 +41,7 @@ PetscErrorCode NEPRegisterAll(void)
   PetscCall(NEPRegister(NEPCISS,NEPCreate_CISS));
 #endif
   PetscCall(NEPRegister(NEPNLEIGS,NEPCreate_NLEIGS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -56,7 +56,7 @@ PetscErrorCode NEPRegisterAll(void)
 PetscErrorCode NEPMonitorRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (NEPMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  if (NEPMonitorRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   NEPMonitorRegisterAllCalled = PETSC_TRUE;
 
   PetscCall(NEPMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,NEPMonitorFirst,NULL,NULL));
@@ -65,5 +65,5 @@ PetscErrorCode NEPMonitorRegisterAll(void)
   PetscCall(NEPMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,NEPMonitorAllDrawLG,NEPMonitorAllDrawLGCreate,NULL));
   PetscCall(NEPMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,NEPMonitorConverged,NEPMonitorConvergedCreate,NEPMonitorConvergedDestroy));
   PetscCall(NEPMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,NEPMonitorConvergedDrawLG,NEPMonitorConvergedDrawLGCreate,NEPMonitorConvergedDestroy));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

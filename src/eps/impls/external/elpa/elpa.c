@@ -78,7 +78,7 @@ PetscErrorCode EPSSetUp_ELPA(EPS eps)
     if (nmat>1) PetscCall(MatAXPY(ctx->As,-shift,ctx->Bs,SAME_NONZERO_PATTERN));
     else PetscCall(MatShift(ctx->As,-shift));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_ELPA(EPS eps)
@@ -136,14 +136,14 @@ PetscErrorCode EPSSolve_ELPA(EPS eps)
   eps->nconv  = eps->ncv;
   eps->its    = 1;
   eps->reason = EPS_CONVERGED_TOL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_ELPA(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_ELPA(EPS eps)
@@ -153,7 +153,7 @@ PetscErrorCode EPSReset_ELPA(EPS eps)
   PetscFunctionBegin;
   PetscCall(MatDestroy(&ctx->As));
   PetscCall(MatDestroy(&ctx->Bs));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_ELPA(EPS eps)
@@ -173,5 +173,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_ELPA(EPS eps)
   eps->ops->reset          = EPSReset_ELPA;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->setdefaultst   = EPSSetDefaultST_NoFactor;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

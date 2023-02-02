@@ -112,7 +112,7 @@ static PetscErrorCode MatCreateTile_Seq(PetscScalar a,Mat A,PetscScalar b,Mat B,
     }
   }
   PetscCall(PetscFree2(buf,scols));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
@@ -248,7 +248,7 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
     }
   }
   PetscCall(PetscFree4(buf,scols,map1,map2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -352,7 +352,7 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   else PetscCall(MatCreateTile_Seq(a,A,b,B,c,C,d,D,*G));
   PetscCall(MatAssemblyBegin(*G,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(*G,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -430,7 +430,7 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
       }
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -487,5 +487,5 @@ PetscErrorCode MatNormEstimate(Mat A,Vec vrn,Vec w,PetscReal *nrm)
 
   PetscCall(VecDestroy(&vv));
   PetscCall(VecDestroy(&ww));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

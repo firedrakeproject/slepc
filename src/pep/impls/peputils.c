@@ -47,7 +47,7 @@ PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ld
     PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&a,T,&ldt_,Tp,&ldtp_,&g,Tj,&ldtj_));
     for (i=0;i<k;i++) T[i*ldt+i] += cb[idx-1];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -72,7 +72,7 @@ PetscErrorCode PEPEvaluateBasis(PEP pep,PetscScalar sigma,PetscScalar isigma,Pet
     if (ivals) ivals[k] = ((sigma-b[k-1])*ivals[k-1]+isigma*vals[k-1]-g[k-1]*ivals[k-2])/a[k-1];
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -105,5 +105,5 @@ PetscErrorCode PEPEvaluateBasisDerivative(PEP pep,PetscScalar sigma,PetscScalar 
     }
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

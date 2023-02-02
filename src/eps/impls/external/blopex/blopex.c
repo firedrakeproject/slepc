@@ -114,7 +114,7 @@ PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
   } else *ncv = k;
   if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
   else PetscCall(PetscInfo(eps,"Warning: given value of mpd ignored\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
@@ -166,7 +166,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   blopex->blap_fn.dpotrf = PETSC_dpotrf_interface;
   blopex->blap_fn.dsygv = PETSC_dsygv_interface;
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
@@ -262,7 +262,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
   PetscCall(PetscFree(lambda));
   if (eps->numbermonitors>0) PetscCall(PetscFree4(lambdahist,eigr,residhist,errest));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSBLOPEXSetBlockSize_BLOPEX(EPS eps,PetscInt bs)
@@ -277,7 +277,7 @@ static PetscErrorCode EPSBLOPEXSetBlockSize_BLOPEX(EPS eps,PetscInt bs)
     PetscCheck(bs>0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Block size must be >0");
     ctx->bs = bs;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -302,7 +302,7 @@ PetscErrorCode EPSBLOPEXSetBlockSize(EPS eps,PetscInt bs)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,bs,2);
   PetscTryMethod(eps,"EPSBLOPEXSetBlockSize_C",(EPS,PetscInt),(eps,bs));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSBLOPEXGetBlockSize_BLOPEX(EPS eps,PetscInt *bs)
@@ -311,7 +311,7 @@ static PetscErrorCode EPSBLOPEXGetBlockSize_BLOPEX(EPS eps,PetscInt *bs)
 
   PetscFunctionBegin;
   *bs = ctx->bs;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -335,7 +335,7 @@ PetscErrorCode EPSBLOPEXGetBlockSize(EPS eps,PetscInt *bs)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(bs,2);
   PetscUseMethod(eps,"EPSBLOPEXGetBlockSize_C",(EPS,PetscInt*),(eps,bs));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_BLOPEX(EPS eps)
@@ -344,7 +344,7 @@ PetscErrorCode EPSReset_BLOPEX(EPS eps)
 
   PetscFunctionBegin;
   PetscCall(VecDestroy(&blopex->w));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
@@ -354,7 +354,7 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
   PetscCall(PetscFree(eps->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
@@ -365,7 +365,7 @@ PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) PetscCall(PetscViewerASCIIPrintf(viewer,"  block size %" PetscInt_FMT "\n",ctx->bs));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps,PetscOptionItems *PetscOptionsObject)
@@ -382,7 +382,7 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps,PetscOptionItems *PetscOptionsOb
   PetscOptionsHeadEnd();
 
   LOBPCG_SetFromOptionsRandomContext();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
@@ -409,5 +409,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",EPSBLOPEXSetBlockSize_BLOPEX));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",EPSBLOPEXGetBlockSize_BLOPEX));
   if (slepc_blopex_useconstr < 0) PetscCall(PetscObjectComposedDataRegister(&slepc_blopex_useconstr));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

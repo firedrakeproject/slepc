@@ -36,7 +36,7 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
     }
   }
   PetscCall(KSPSetErrorIfNotConverged(st->ksp,PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STPostSolve_Precond(ST st)
@@ -49,7 +49,7 @@ PetscErrorCode STPostSolve_Precond(ST st)
     st->state   = ST_STATE_INITIAL;
     st->opready = PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -94,7 +94,7 @@ PetscErrorCode STComputeOperator_Precond(ST st)
       st->P = st->T[1];
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STSetUp_Precond(ST st)
@@ -106,7 +106,7 @@ PetscErrorCode STSetUp_Precond(ST st)
     PetscCall(ST_KSPSetOperators(st,ctx->ksphasmat?st->P:NULL,st->P));
     /* NOTE: we do not call KSPSetUp() here because some eigensolvers such as JD require a lazy setup */
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
@@ -126,7 +126,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
     }
   }
   if (st->P) PetscCall(ST_KSPSetOperators(st,ctx->ksphasmat?st->P:NULL,st->P));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool ksphasmat)
@@ -138,7 +138,7 @@ static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool ksphasmat)
     ctx->ksphasmat = ksphasmat;
     st->state      = ST_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -167,7 +167,7 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool ksphasmat)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveBool(st,ksphasmat,2);
   PetscTryMethod(st,"STPrecondSetKSPHasMat_C",(ST,PetscBool),(st,ksphasmat));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *ksphasmat)
@@ -176,7 +176,7 @@ static PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *ksphasmat)
 
   PetscFunctionBegin;
   *ksphasmat = ctx->ksphasmat;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -202,7 +202,7 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *ksphasmat)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidBoolPointer(ksphasmat,2);
   PetscUseMethod(st,"STPrecondGetKSPHasMat_C",(ST,PetscBool*),(st,ksphasmat));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STDestroy_Precond(ST st)
@@ -211,7 +211,7 @@ PetscErrorCode STDestroy_Precond(ST st)
   PetscCall(PetscFree(st->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
@@ -237,5 +237,5 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
 
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",STPrecondGetKSPHasMat_Precond));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",STPrecondSetKSPHasMat_Precond));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

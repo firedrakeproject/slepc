@@ -64,7 +64,7 @@ static PetscErrorCode MatMult_Resolvent(Mat M,Vec v,Vec r)
       PetscCall(BVRestoreColumn(nep->W,i,&y));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_Resolvent(Mat M)
@@ -77,7 +77,7 @@ static PetscErrorCode MatDestroy_Resolvent(Mat M)
     PetscCall(PetscFree4(ctx->nfactor,ctx->nfactor_avail,ctx->dots,ctx->dots_avail));
     PetscCall(PetscFree(ctx));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -132,5 +132,5 @@ PetscErrorCode NEPApplyResolvent(NEP nep,RG rg,PetscScalar omega,Vec v,Vec r)
   ctx->omega = omega;
   PetscCall(MatMult(nep->resolvent,v,r));
   PetscCall(PetscLogEventEnd(NEP_Resolvent,nep,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

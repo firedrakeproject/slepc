@@ -58,7 +58,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   PetscCall(EPSAllocateSolution(eps,0));
   PetscCall(EPS_SetInnerProduct(eps));
   PetscCall(EPSSetWorkVecs(eps,2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_ARPACK(EPS eps)
@@ -237,7 +237,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 
   PetscCall(VecDestroy(&x));
   PetscCall(VecDestroy(&y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
@@ -247,7 +247,7 @@ PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&isSinv));
   if (!isSinv) PetscCall(EPSBackTransform_Default(eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_ARPACK(EPS eps)
@@ -262,14 +262,14 @@ PetscErrorCode EPSReset_ARPACK(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   PetscCall(PetscFree(ar->rwork));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
@@ -286,5 +286,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
   eps->ops->destroy        = EPSDestroy_ARPACK;
   eps->ops->reset          = EPSReset_ARPACK;
   eps->ops->backtransform  = EPSBackTransform_ARPACK;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -322,7 +322,7 @@ SLEPC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
 SLEPC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
 SLEPC_EXTERN PetscErrorCode PEPLinearGetEPS(PEP,EPS*);
 PETSC_DEPRECATED_FUNCTION("Use PEPLinearSetLinearization()") static inline PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform) {return (cform==1)?PEPLinearSetLinearization(pep,1.0,0.0):PEPLinearSetLinearization(pep,0.0,1.0);}
-PETSC_DEPRECATED_FUNCTION("Use PEPLinearGetLinearization()") static inline PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform) {(void)pep; if (cform) *cform=1; return 0;}
+PETSC_DEPRECATED_FUNCTION("Use PEPLinearGetLinearization()") static inline PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform) {(void)pep; if (cform) *cform=1; return PETSC_SUCCESS;}
 
 SLEPC_EXTERN PetscErrorCode PEPQArnoldiSetRestart(PEP,PetscReal);
 SLEPC_EXTERN PetscErrorCode PEPQArnoldiGetRestart(PEP,PetscReal*);

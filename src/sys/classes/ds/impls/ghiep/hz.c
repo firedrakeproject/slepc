@@ -61,7 +61,7 @@ static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,Pet
       *rcond = PetscAbs(PetscAbs(s)-PetscAbs(c))/(PetscAbs(s)+PetscAbs(c));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,PetscReal dt,PetscReal *aa,PetscReal *bb,PetscReal *dd,PetscScalar *uu,PetscInt n,PetscInt ld,PetscBool *flag)
@@ -156,7 +156,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         PetscCall(UnifiedRotation(bulge10,bulge20,sygn,rot,&rcond,&swap));
         if (rcond<PETSC_MACHINE_EPSILON) {
           *flag = PETSC_TRUE;
-          PetscFunctionReturn(0);
+          PetscFunctionReturn(PETSC_SUCCESS);
         }
         if (rcond < worstcond) worstcond = rcond;
 
@@ -217,7 +217,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
     bulge41 = 0.0;
     bulge42 = 0.0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa,PetscReal *bb,PetscReal *dd,PetscScalar *uu,PetscBLASInt ld)
@@ -280,7 +280,7 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
       }
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -329,7 +329,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   /* Reduce to pseudotriadiagonal form */
   PetscCall(DSIntermediate_GHIEP(ds));
@@ -350,5 +350,5 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 #endif
   ds->t = ds->n;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

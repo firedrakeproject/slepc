@@ -45,7 +45,7 @@ PetscErrorCode Laplacian(MPI_Comm comm,PetscInt n,PetscInt m,PetscInt shift,Mat 
   }
   PetscCall(MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

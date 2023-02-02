@@ -50,7 +50,7 @@ PetscErrorCode SVDSetImplicitTranspose(SVD svd,PetscBool impl)
     svd->impltrans = impl;
     svd->state     = SVD_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -75,7 +75,7 @@ PetscErrorCode SVDGetImplicitTranspose(SVD svd,PetscBool *impl)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(impl,2);
   *impl = svd->impltrans;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -120,7 +120,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     svd->max_it = maxits;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -149,7 +149,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (tol)    *tol    = svd->tol;
   if (maxits) *maxits = svd->max_it;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -208,7 +208,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
     svd->mpd = mpd;
   }
   svd->state = SVD_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -239,7 +239,7 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
   if (nsv) *nsv = svd->nsv;
   if (ncv) *ncv = svd->ncv;
   if (mpd) *mpd = svd->mpd;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -284,7 +284,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
   default:
     SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -312,7 +312,7 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(which,2);
   *which = svd->which;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -359,7 +359,7 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD 
     svd->conv      = SVD_CONV_USER;
     svd->converged = svd->convergeduser;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -411,7 +411,7 @@ PetscErrorCode SVDSetConvergenceTest(SVD svd,SVDConv conv)
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }
   svd->conv = conv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -436,7 +436,7 @@ PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(conv,2);
   *conv = svd->conv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -484,7 +484,7 @@ PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD svd
     svd->stop     = SVD_STOP_USER;
     svd->stopping = svd->stoppinguser;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -525,7 +525,7 @@ PetscErrorCode SVDSetStoppingTest(SVD svd,SVDStop stop)
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
   }
   svd->stop = stop;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -550,7 +550,7 @@ PetscErrorCode SVDGetStoppingTest(SVD svd,SVDStop *stop)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(stop,2);
   *stop = svd->stop;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -584,7 +584,7 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
 
   PetscFunctionBegin;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,opt,&viewer,&format,&flg));
-  if (!flg) PetscFunctionReturn(0);
+  if (!flg) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetType(viewer,&vtype));
   PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
@@ -599,7 +599,7 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
   PetscCall(PetscObjectDereference((PetscObject)viewer));
   PetscCall(SVDMonitorSet(svd,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   if (trackall) PetscCall(SVDSetTrackAll(svd,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -710,7 +710,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
   PetscCall(SVDSetDSType(svd));
   PetscCall(DSSetFromOptions(svd->ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -740,7 +740,7 @@ PetscErrorCode SVDSetProblemType(SVD svd,SVDProblemType type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveEnum(svd,type,2);
-  if (type == svd->problem_type) PetscFunctionReturn(0);
+  if (type == svd->problem_type) PetscFunctionReturn(PETSC_SUCCESS);
   switch (type) {
     case SVD_STANDARD:
       svd->isgeneralized = PETSC_FALSE;
@@ -759,7 +759,7 @@ PetscErrorCode SVDSetProblemType(SVD svd,SVDProblemType type)
   }
   svd->problem_type = type;
   svd->state = SVD_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -783,7 +783,7 @@ PetscErrorCode SVDGetProblemType(SVD svd,SVDProblemType *type)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(type,2);
   *type = svd->problem_type;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -808,7 +808,7 @@ PetscErrorCode SVDIsGeneralized(SVD svd,PetscBool* is)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(is,2);
   *is = svd->isgeneralized;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -833,7 +833,7 @@ PetscErrorCode SVDIsHyperbolic(SVD svd,PetscBool* is)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(is,2);
   *is = svd->ishyperbolic;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -864,7 +864,7 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscBool trackall)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveBool(svd,trackall,2);
   svd->trackall = trackall;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -889,7 +889,7 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(trackall,2);
   *trackall = svd->trackall;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -928,7 +928,7 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
   if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
   PetscCall(DSSetOptionsPrefix(svd->ds,prefix));
   PetscCall(PetscObjectSetOptionsPrefix((PetscObject)svd,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -959,7 +959,7 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
   if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
   PetscCall(DSAppendOptionsPrefix(svd->ds,prefix));
   PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -988,5 +988,5 @@ PetscErrorCode SVDGetOptionsPrefix(SVD svd,const char *prefix[])
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)svd,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

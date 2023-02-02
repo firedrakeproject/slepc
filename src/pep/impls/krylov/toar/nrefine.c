@@ -72,7 +72,7 @@ static PetscErrorCode MatMult_FS(Mat M ,Vec x,Vec y)
   PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("getrs",info);
   PetscCall(BVMultVec(ctx->M2,-1.0,1.0,y,c));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -119,7 +119,7 @@ static PetscErrorCode PEPEvaluateBasisforMatrix(PEP pep,PetscInt nm,PetscInt k,P
     PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&alpha,H,&ldh_,fH+(i-1)*k,&ldfh_,&beta,fH+off,&ldfh_));
   }
   for (j=0;j<k;j++) H[j+j*ldh] += corr;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,PEP_REFINE_MATSHELL *ctx)
@@ -219,7 +219,7 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
   PetscCall(MatDiagonalSet(P,ctx->t,ADD_VALUES));
   PetscCall(PetscFree(T));
   PetscCall(KSPSetUp(pep->refineksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScalar *Rh,PetscInt k,Vec dVi,PetscScalar *dHi)
@@ -250,7 +250,7 @@ static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScala
   SlepcCheckLapackInfo("getrs",info);
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscFree(t0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -338,7 +338,7 @@ static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
     PetscCall(BVMultVec(W,1.0,1.0,Rv,h));
   }
   PetscCall(PetscFree4(h,DS0,DS1,Z));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefSysSolve_mbe(PetscInt k,PetscInt sz,BV W,PetscScalar *w,BV Wt,PetscScalar *wt,PetscScalar *d,PetscScalar *dt,KSP ksp,BV T2,BV T3 ,PetscScalar *T4,PetscBool trans,Vec x1,PetscScalar *x2,Vec sol1,PetscScalar *sol2,Vec vw)
@@ -395,7 +395,7 @@ static PetscErrorCode NRefSysSolve_mbe(PetscInt k,PetscInt sz,BV W,PetscScalar *
     PetscCall(BVRestoreColumn(WW,i,&v));
   }
   PetscCall(PetscFree3(y,g,xx2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,PEP_REFINE_EXPLICIT *matctx)
@@ -518,7 +518,7 @@ static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *f
 
   if (flg) PetscCall(PetscFree(At));
   PetscCall(PetscFree3(T12,Tr,Ts));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,PEP_REFINE_EXPLICIT *matctx,BV W)
@@ -654,7 +654,7 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
   PetscCall(MatDestroy(&Md));
   if (flg) PetscCall(PetscFree(At));
   PetscCall(PetscFree5(T22,T21,T12,Tr,Ts));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScalar *Rh,Vec dVi,PetscScalar *dHi,PEP_REFINE_EXPLICIT *matctx)
@@ -694,7 +694,7 @@ static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScala
     for (i=0;i<k;i++) dHi[i] = array[i];
     PetscCall(VecRestoreArrayRead(matctx->vseq,&array));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar *H,PetscInt ldh,Vec Rv,PetscScalar *Rh,BV V,Vec dVi,PetscScalar *dHi,PEP_REFINE_EXPLICIT *matctx,BV W)
@@ -803,7 +803,7 @@ static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscSca
       break;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar *S,PetscInt lds,PetscScalar *H,PetscInt ldh,PetscScalar *fH,BV dV,PetscScalar *dVS,PetscInt *rds,PetscScalar *dH,PetscInt lddh,KSP ksp,PEP_REFINE_EXPLICIT *matctx)
@@ -887,7 +887,7 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
   if (flg) PetscCall(PetscFree(At));
   PetscCall(PetscFree2(DfH,Rh));
   if (pep->scheme!=PEP_REFINE_SCHEME_SCHUR) PetscCall(PetscFree(fh));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds)
@@ -921,7 +921,7 @@ static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt 
   PetscCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&k_,&k_,&sone,G,&ldg_,H,&ldh_));
   PetscCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&k_,&k_,&sone,G,&ldg_,H,&ldh_));
   PetscCall(PetscFree3(tau,work,G));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *dH,PetscScalar *S,PetscInt lds,BV dV,PetscScalar *dVS,PetscInt rds)
@@ -974,7 +974,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   PetscCall(MatDestroy(&M0));
   PetscCall(NRefOrthogStep(pep,k,H,ldh,fH,S,lds));
   PetscCall(PetscFree2(tau,work));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PEP_REFINE_EXPLICIT *matctx,PetscBool ini)
@@ -1169,7 +1169,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
    }
   PetscCall(PetscFree(coef));
   if (flg) PetscCall(PetscFree(At));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,PEP_REFINE_EXPLICIT *matctx,PetscInt nsubc)
@@ -1252,7 +1252,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,PEP_REFINE_EXPLICIT *m
   PetscCall(VecDuplicate(matctx->t,&matctx->Rv));
   PetscCall(VecDuplicate(matctx->t,&matctx->Vi));
   if (flg) PetscCall(PetscFree(A));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NRefSubcommDestroy(PEP pep,PEP_REFINE_EXPLICIT *matctx)
@@ -1275,7 +1275,7 @@ static PetscErrorCode NRefSubcommDestroy(PEP pep,PEP_REFINE_EXPLICIT *matctx)
   PetscCall(VecDestroy(&matctx->tg));
   PetscCall(VecDestroy(&matctx->Rv));
   PetscCall(VecDestroy(&matctx->Vi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds)
@@ -1422,5 +1422,5 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
     break;
   }
   PetscCall(PetscLogEventEnd(PEP_Refine,pep,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

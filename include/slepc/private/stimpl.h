@@ -141,7 +141,7 @@ static inline PetscErrorCode ST_KSPSetOperators(ST st,Mat A,Mat B)
     PetscCall(KSPGetOptionsPrefix(st->ksp,&prefix));
     PetscCall(MatSetOptionsPrefix(B,prefix));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #endif

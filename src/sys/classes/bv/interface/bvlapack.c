@@ -24,7 +24,7 @@ SLEPC_EXTERN void MPIAPI SlepcPythag(void *in,void *inout,PetscMPIInt *len,MPI_D
 
   PetscFunctionBegin;
   if (PetscUnlikely(*datatype!=MPIU_REAL)) {
-    (*PetscErrorPrintf)("Only implemented for MPIU_REAL data type");
+    (void)(*PetscErrorPrintf)("Only implemented for MPIU_REAL data type");
     MPI_Abort(PETSC_COMM_WORLD,1);
   }
   for (i=0;i<n;i++) y[i] = SlepcAbs(x[i],y[i]);
@@ -78,7 +78,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
     PetscCall(PetscLogFlops(1.0*m*n));
   }
   PetscCall(PetscFPTrapPop());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -124,7 +124,7 @@ PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const Pe
   }
   PetscCall(PetscLogFlops(3.0*m*n_));
   PetscCall(PetscFPTrapPop());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -196,7 +196,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   }
   PetscCall(MatDenseRestoreArray(R,&pR));
   if (S!=R) PetscCall(MatDenseRestoreArray(S,&pS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -246,7 +246,7 @@ PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
 
   PetscCall(MatDenseRestoreArray(R,&pR));
   if (S!=R) PetscCall(MatDenseRestoreArray(S,&pS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -336,7 +336,7 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
 
   PetscCall(MatDenseRestoreArray(R,&pR));
   if (S!=R) PetscCall(MatDenseRestoreArray(S,&pS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -472,7 +472,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
 
   PetscCall(PetscLogFlops(3.0*m*n*n));
   PetscCall(PetscFPTrapPop());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -487,7 +487,7 @@ SLEPC_EXTERN void MPIAPI SlepcGivensPacked(void *in,void *inout,PetscMPIInt *len
   PetscReal      c;
 
   PetscFunctionBegin;
-  PetscCallAbort(PETSC_COMM_SELF,MPI_Type_size(*datatype,&tsize));  /* we assume len=1 */
+  PetscCallMPIAbort(PETSC_COMM_SELF,MPI_Type_size(*datatype,&tsize));  /* we assume len=1 */
   tsize /= sizeof(PetscScalar);
   n = (-1+(PetscBLASInt)PetscSqrtReal(1+8*tsize))/2;
   for (j=0;j<n;j++) {
@@ -557,5 +557,5 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,P
 
   PetscCall(PetscLogFlops(3.0*m*n*n));
   PetscCall(PetscFPTrapPop());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

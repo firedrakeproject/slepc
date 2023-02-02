@@ -38,7 +38,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD);
 PetscErrorCode SVDRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (SVDRegisterAllCalled) PetscFunctionReturn(0);
+  if (SVDRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   SVDRegisterAllCalled = PETSC_TRUE;
   PetscCall(SVDRegister(SVDCROSS,SVDCreate_Cross));
   PetscCall(SVDRegister(SVDCYCLIC,SVDCreate_Cyclic));
@@ -55,7 +55,7 @@ PetscErrorCode SVDRegisterAll(void)
 #if defined(SLEPC_HAVE_PRIMME)
   PetscCall(SVDRegister(SVDPRIMME,SVDCreate_PRIMME));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -70,7 +70,7 @@ PetscErrorCode SVDRegisterAll(void)
 PetscErrorCode SVDMonitorRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (SVDMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  if (SVDMonitorRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   SVDMonitorRegisterAllCalled = PETSC_TRUE;
 
   PetscCall(SVDMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorFirst,NULL,NULL));
@@ -80,5 +80,5 @@ PetscErrorCode SVDMonitorRegisterAll(void)
   PetscCall(SVDMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorConverged,SVDMonitorConvergedCreate,SVDMonitorConvergedDestroy));
   PetscCall(SVDMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorConvergedDrawLG,SVDMonitorConvergedDrawLGCreate,SVDMonitorConvergedDestroy));
   PetscCall(SVDMonitorRegister("conditioning",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorConditioning,NULL,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

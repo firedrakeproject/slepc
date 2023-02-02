@@ -40,7 +40,7 @@ PetscErrorCode PEPComputeVectors(PEP pep)
   PEPCheckSolved(pep,1);
   if (pep->state==PEP_STATE_SOLVED) PetscTryTypeMethod(pep,computevectors);
   pep->state = PEP_STATE_EIGENVECTORS;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPExtractVectors(PEP pep)
@@ -48,7 +48,7 @@ PetscErrorCode PEPExtractVectors(PEP pep)
   PetscFunctionBegin;
   PEPCheckSolved(pep,1);
   if (pep->state==PEP_STATE_SOLVED) PetscTryTypeMethod(pep,extractvectors);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -88,7 +88,7 @@ PetscErrorCode PEPSolve(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (pep->state>=PEP_STATE_SOLVED) PetscFunctionReturn(0);
+  if (pep->state>=PEP_STATE_SOLVED) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscLogEventBegin(PEP_Solve,pep,0,0,0));
 
   /* call setup */
@@ -161,7 +161,7 @@ PetscErrorCode PEPSolve(PEP pep)
 
   /* Remove the initial subspace */
   pep->nini = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -194,7 +194,7 @@ PetscErrorCode PEPGetIterationNumber(PEP pep,PetscInt *its)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidIntPointer(its,2);
   *its = pep->its;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -222,7 +222,7 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
   PetscValidIntPointer(nconv,2);
   PEPCheckSolved(pep,1);
   *nconv = pep->nconv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -261,7 +261,7 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
   PetscValidPointer(reason,2);
   PEPCheckSolved(pep,1);
   *reason = pep->reason;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -326,7 +326,7 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
 
   /* eigenvector */
   PetscCall(BV_GetEigenvector(pep->V,k,pep->eigi[k],Vr,Vi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -360,7 +360,7 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscCheck(i>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<pep->nconv,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see PEPGetConverged()");
   *errest = pep->errest[pep->perm[i]];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -439,7 +439,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
     PetscCall(PetscFree(ivals));
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -525,5 +525,5 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

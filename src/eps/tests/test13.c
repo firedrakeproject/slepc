@@ -20,7 +20,7 @@ PetscErrorCode MyArbitrarySelection(PetscScalar eigr,PetscScalar eigi,Vec xr,Vec
   PetscCall(VecDot(xr,xref,rr));
   *rr = PetscAbsScalar(*rr);
   if (ri) *ri = 0.0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

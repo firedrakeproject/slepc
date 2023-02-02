@@ -46,7 +46,7 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char opt[],const char name
 
   PetscFunctionBegin;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,opt,&viewer,&format,&flg));
-  if (!flg) PetscFunctionReturn(0);
+  if (!flg) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetType(viewer,&vtype));
   PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
@@ -61,7 +61,7 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char opt[],const char name
   PetscCall(PetscObjectDereference((PetscObject)viewer));
   PetscCall(PEPMonitorSet(pep,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   if (trackall) PetscCall(PEPSetTrackAll(pep,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -234,7 +234,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   PetscCall(STSetFromOptions(pep->st));
   if (!pep->refineksp) PetscCall(PEPRefineGetKSP(pep,&pep->refineksp));
   PetscCall(KSPSetFromOptions(pep->refineksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -263,7 +263,7 @@ PetscErrorCode PEPGetTolerances(PEP pep,PetscReal *tol,PetscInt *maxits)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (tol)    *tol    = pep->tol;
   if (maxits) *maxits = pep->max_it;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -308,7 +308,7 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     pep->max_it = maxits;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -339,7 +339,7 @@ PetscErrorCode PEPGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
   if (nev) *nev = pep->nev;
   if (ncv) *ncv = pep->ncv;
   if (mpd) *mpd = pep->mpd;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -401,7 +401,7 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     pep->mpd = mpd;
   }
   pep->state = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -493,7 +493,7 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -521,7 +521,7 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(which,2);
   *which = pep->which;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -561,7 +561,7 @@ PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscSc
   pep->sc->comparison    = func;
   pep->sc->comparisonctx = ctx;
   pep->which             = PEP_WHICH_USER;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -606,7 +606,7 @@ PetscErrorCode PEPSetProblemType(PEP pep,PEPProblemType type)
     pep->problem_type = type;
     pep->state = PEP_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -630,7 +630,7 @@ PetscErrorCode PEPGetProblemType(PEP pep,PEPProblemType *type)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(type,2);
   *type = pep->problem_type;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -663,7 +663,7 @@ PetscErrorCode PEPSetBasis(PEP pep,PEPBasis basis)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,basis,2);
   pep->basis = basis;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -687,7 +687,7 @@ PetscErrorCode PEPGetBasis(PEP pep,PEPBasis *basis)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(basis,2);
   *basis = pep->basis;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -718,7 +718,7 @@ PetscErrorCode PEPSetTrackAll(PEP pep,PetscBool trackall)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,trackall,2);
   pep->trackall = trackall;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -743,7 +743,7 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(trackall,2);
   *trackall = pep->trackall;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -790,7 +790,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP 
     pep->conv      = PEP_CONV_USER;
     pep->converged = pep->convergeduser;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -837,7 +837,7 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }
   pep->conv = conv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -862,7 +862,7 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(conv,2);
   *conv = pep->conv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -910,7 +910,7 @@ PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*func)(PEP pep
     pep->stop     = PEP_STOP_USER;
     pep->stopping = pep->stoppinguser;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -951,7 +951,7 @@ PetscErrorCode PEPSetStoppingTest(PEP pep,PEPStop stop)
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
   }
   pep->stop = stop;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -976,7 +976,7 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(stop,2);
   *stop = pep->stop;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1065,7 +1065,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
     }
   }
   pep->state = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1105,7 +1105,7 @@ PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec 
   if (Dr)     *Dr     = pep->Dr;
   if (its)    *its    = pep->sits;
   if (lambda) *lambda = pep->slambda;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1130,7 +1130,7 @@ PetscErrorCode PEPSetExtract(PEP pep,PEPExtract extract)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,extract,2);
   pep->extract = extract;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1154,7 +1154,7 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(extract,2);
   *extract = pep->extract;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1244,7 +1244,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
     pep->scheme = scheme;
   }
   pep->state = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1279,7 +1279,7 @@ PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal 
   if (tol)    *tol    = pep->rtol;
   if (its)    *its    = pep->rits;
   if (scheme) *scheme = pep->scheme;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1321,7 +1321,7 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
   if (!pep->rg) PetscCall(PEPGetRG(pep,&pep->rg));
   PetscCall(RGSetOptionsPrefix(pep->rg,prefix));
   PetscCall(PetscObjectSetOptionsPrefix((PetscObject)pep,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1355,7 +1355,7 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
   if (!pep->rg) PetscCall(PEPGetRG(pep,&pep->rg));
   PetscCall(RGAppendOptionsPrefix(pep->rg,prefix));
   PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)pep,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1384,5 +1384,5 @@ PetscErrorCode PEPGetOptionsPrefix(PEP pep,const char *prefix[])
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)pep,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

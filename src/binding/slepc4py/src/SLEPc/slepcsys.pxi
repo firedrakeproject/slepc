@@ -21,38 +21,38 @@ cdef extern from * :
         MAT_SUBSET_NONZERO_PATTERN    "SUBSET_NONZERO_PATTERN"
 
 cdef extern from * nogil:
-    int PetscMalloc(size_t,void*)
-    int PetscFree(void*)
-    int PetscMemcpy(void*,void*,size_t)
-    int PetscMemzero(void*,size_t)
+    PetscErrorCode PetscMalloc(size_t,void*)
+    PetscErrorCode PetscFree(void*)
+    PetscErrorCode PetscMemcpy(void*,void*,size_t)
+    PetscErrorCode PetscMemzero(void*,size_t)
 
 cdef extern from * nogil:
     MPI_Comm PetscObjectComm(PetscObject)
-    int PetscObjectReference(PetscObject)
-    int PetscObjectDereference(PetscObject)
-    int PetscObjectDestroy(PetscObject*)
-    int PetscObjectTypeCompare(PetscObject,char[],PetscBool*)
+    PetscErrorCode PetscObjectReference(PetscObject)
+    PetscErrorCode PetscObjectDereference(PetscObject)
+    PetscErrorCode PetscObjectDestroy(PetscObject*)
+    PetscErrorCode PetscObjectTypeCompare(PetscObject,char[],PetscBool*)
 
 cdef extern from * nogil:
-    int VecCopy(PetscVec,PetscVec)
-    int VecSet(PetscVec,PetscScalar)
-    int VecDestroy(PetscVec*)
+    PetscErrorCode VecCopy(PetscVec,PetscVec)
+    PetscErrorCode VecSet(PetscVec,PetscScalar)
+    PetscErrorCode VecDestroy(PetscVec*)
 
 cdef extern from * nogil:
-    int MatGetSize(PetscMat,PetscInt*,PetscInt*)
-    int MatGetLocalSize(PetscMat,PetscInt*,PetscInt*)
+    PetscErrorCode MatGetSize(PetscMat,PetscInt*,PetscInt*)
+    PetscErrorCode MatGetLocalSize(PetscMat,PetscInt*,PetscInt*)
 
 cdef extern from * nogil:
     const_char SLEPC_AUTHOR_INFO[]
-    int SlepcGetVersion(char[],size_t)
-    int SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*)
+    PetscErrorCode SlepcGetVersion(char[],size_t)
+    PetscErrorCode SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*)
 
-    int SlepcInitialize(int*,char***,char[],char[])
-    int SlepcFinalize()
+    PetscErrorCode SlepcInitialize(int*,char***,char[],char[])
+    PetscErrorCode SlepcFinalize()
     PetscBool SlepcInitializeCalled
     PetscBool SlepcFinalizeCalled
 
-    int SlepcHasExternalPackage(const char[],PetscBool*)
+    PetscErrorCode SlepcHasExternalPackage(const char[],PetscBool*)
 
 cdef inline PetscMatStructure matstructure(object structure) \
     except <PetscMatStructure>(-1):
@@ -61,14 +61,14 @@ cdef inline PetscMatStructure matstructure(object structure) \
     elif structure is True:  return MAT_SAME_NONZERO_PATTERN
     else:                    return structure
 
-cdef inline int PetscINCREF(PetscObject *obj):
-    if obj    == NULL: return 0
-    if obj[0] == NULL: return 0
+cdef inline PetscErrorCode PetscINCREF(PetscObject *obj):
+    if obj    == NULL: return PETSC_SUCCESS
+    if obj[0] == NULL: return PETSC_SUCCESS
     return PetscObjectReference(obj[0])
 
-cdef inline int SlepcCLEAR(PetscObject* obj):
-    if obj    == NULL: return 0
-    if obj[0] == NULL: return 0
+cdef inline PetscErrorCode SlepcCLEAR(PetscObject* obj):
+    if obj    == NULL: return PETSC_SUCCESS
+    if obj[0] == NULL: return PETSC_SUCCESS
     cdef PetscObject tmp
     tmp = obj[0]; obj[0] = NULL
     return PetscObjectDestroy(&tmp)

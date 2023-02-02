@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   PetscCall(DSSetType(eps->ds,DSHEP));
   PetscCall(DSAllocate(eps->ds,eps->ncv));
   PetscCall(EPSSetWorkVecs(eps,1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_RQCG(EPS eps)
@@ -237,7 +237,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   }
 
   PetscCall(PetscFree(gamma));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
@@ -252,7 +252,7 @@ static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
     PetscCheck(nrest>0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Reset parameter must be >0");
     ctx->nrest = nrest;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -278,7 +278,7 @@ PetscErrorCode EPSRQCGSetReset(EPS eps,PetscInt nrest)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,nrest,2);
   PetscTryMethod(eps,"EPSRQCGSetReset_C",(EPS,PetscInt),(eps,nrest));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
@@ -287,7 +287,7 @@ static PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
 
   PetscFunctionBegin;
   *nrest = ctx->nrest;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -311,7 +311,7 @@ PetscErrorCode EPSRQCGGetReset(EPS eps,PetscInt *nrest)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(nrest,2);
   PetscUseMethod(eps,"EPSRQCGGetReset_C",(EPS,PetscInt*),(eps,nrest));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_RQCG(EPS eps)
@@ -324,7 +324,7 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   PetscCall(BVDestroy(&ctx->P));
   PetscCall(BVDestroy(&ctx->G));
   ctx->allocsize = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetFromOptions_RQCG(EPS eps,PetscOptionItems *PetscOptionsObject)
@@ -339,7 +339,7 @@ PetscErrorCode EPSSetFromOptions_RQCG(EPS eps,PetscOptionItems *PetscOptionsObje
     if (flg) PetscCall(EPSRQCGSetReset(eps,nrest));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_RQCG(EPS eps)
@@ -348,7 +348,7 @@ PetscErrorCode EPSDestroy_RQCG(EPS eps)
   PetscCall(PetscFree(eps->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
@@ -359,7 +359,7 @@ PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) PetscCall(PetscViewerASCIIPrintf(viewer,"  reset every %" PetscInt_FMT " iterations\n",ctx->nrest));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
@@ -385,5 +385,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
 
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C",EPSRQCGSetReset_RQCG));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C",EPSRQCGGetReset_RQCG));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

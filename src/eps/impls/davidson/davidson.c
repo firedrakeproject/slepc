@@ -184,7 +184,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Configure dvd for a basic GD */
   PetscCall(dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,data->fix,init,eps->trackall,data->ipB,data->dynamic,data->doubleexp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_XD(EPS eps)
@@ -223,7 +223,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
 
   /* Call the ending routines */
   PetscCall(EPSDavidsonFLCall(d->endList,d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_XD(EPS eps)
@@ -237,7 +237,7 @@ PetscErrorCode EPSReset_XD(EPS eps)
   PetscCall(EPSDavidsonFLDestroy(&dvd->destroyList));
   PetscCall(EPSDavidsonFLDestroy(&dvd->startList));
   PetscCall(EPSDavidsonFLDestroy(&dvd->endList));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDSetKrylovStart_XD(EPS eps,PetscBool krylovstart)
@@ -246,7 +246,7 @@ PetscErrorCode EPSXDSetKrylovStart_XD(EPS eps,PetscBool krylovstart)
 
   PetscFunctionBegin;
   data->krylovstart = krylovstart;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDGetKrylovStart_XD(EPS eps,PetscBool *krylovstart)
@@ -255,7 +255,7 @@ PetscErrorCode EPSXDGetKrylovStart_XD(EPS eps,PetscBool *krylovstart)
 
   PetscFunctionBegin;
   *krylovstart = data->krylovstart;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDSetBlockSize_XD(EPS eps,PetscInt blocksize)
@@ -269,7 +269,7 @@ PetscErrorCode EPSXDSetBlockSize_XD(EPS eps,PetscInt blocksize)
     data->blocksize = blocksize;
     eps->state      = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDGetBlockSize_XD(EPS eps,PetscInt *blocksize)
@@ -278,7 +278,7 @@ PetscErrorCode EPSXDGetBlockSize_XD(EPS eps,PetscInt *blocksize)
 
   PetscFunctionBegin;
   *blocksize = data->blocksize;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDSetRestart_XD(EPS eps,PetscInt minv,PetscInt plusk)
@@ -295,7 +295,7 @@ PetscErrorCode EPSXDSetRestart_XD(EPS eps,PetscInt minv,PetscInt plusk)
     data->plusk = plusk;
     eps->state  = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDGetRestart_XD(EPS eps,PetscInt *minv,PetscInt *plusk)
@@ -305,7 +305,7 @@ PetscErrorCode EPSXDGetRestart_XD(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscFunctionBegin;
   if (minv) *minv = data->minv;
   if (plusk) *plusk = data->plusk;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDGetInitialSize_XD(EPS eps,PetscInt *initialsize)
@@ -314,7 +314,7 @@ PetscErrorCode EPSXDGetInitialSize_XD(EPS eps,PetscInt *initialsize)
 
   PetscFunctionBegin;
   *initialsize = data->initialsize;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDSetInitialSize_XD(EPS eps,PetscInt initialsize)
@@ -328,7 +328,7 @@ PetscErrorCode EPSXDSetInitialSize_XD(EPS eps,PetscInt initialsize)
     data->initialsize = initialsize;
     eps->state        = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDSetBOrth_XD(EPS eps,PetscBool borth)
@@ -337,7 +337,7 @@ PetscErrorCode EPSXDSetBOrth_XD(EPS eps,PetscBool borth)
 
   PetscFunctionBegin;
   data->ipB = borth;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth)
@@ -346,7 +346,7 @@ PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth)
 
   PetscFunctionBegin;
   *borth = data->ipB;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -364,7 +364,7 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
 
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)eps->ds,DSHEP,&symm));
-  if (symm) PetscFunctionReturn(0);
+  if (symm) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
 
   /* V <- V * X */
@@ -372,5 +372,5 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
   PetscCall(BVSetActiveColumns(eps->V,0,eps->nconv));
   PetscCall(BVMultInPlace(eps->V,X,0,eps->nconv));
   PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&X));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -34,7 +34,7 @@ PetscErrorCode CheckArray(PetscScalar *A,const char *label,PetscInt k)
     }
     PetscCall(PetscFree(buf));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

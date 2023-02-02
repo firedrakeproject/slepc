@@ -34,7 +34,7 @@ PetscErrorCode BV_CleanCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h)
   } else { /* cpu memory */
     for (i=0;i<bv->nc+j;i++) h[i] = 0.0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -63,7 +63,7 @@ PetscErrorCode BV_AddCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscScal
     for (i=0;i<bv->nc+j;i++) h[i] += c[i];
     PetscCall(PetscLogFlops(1.0*(bv->nc+j)));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -86,7 +86,7 @@ PetscErrorCode BV_SetValue_CUDA(BV bv,PetscInt j,PetscInt k,PetscScalar *h,Petsc
   } else { /* cpu memory */
     h[bv->nc+j] = value;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -117,7 +117,7 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
     for (i=0;i<bv->nc+j;i++) *sum += PetscRealPart(h[i]*PetscConj(h[i]));
     PetscCall(PetscLogFlops(2.0*(bv->nc+j)));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* pointwise multiplication */
@@ -151,7 +151,7 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
   dim3              blocks3d, threads3d;
 
   PetscFunctionBegin;
-  if (!(bv->nc+j)) PetscFunctionReturn(0);
+  if (!(bv->nc+j)) PetscFunctionReturn(PETSC_SUCCESS);
   if (!h) {
     PetscCall(VecCUDAGetArray(bv->buffer,&d_h));
     PetscCall(VecCUDAGetArrayRead(bv->omega,&d_omega));
@@ -174,7 +174,7 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
     PetscCall(VecRestoreArrayRead(bv->omega,&omega));
     PetscCall(PetscLogFlops(1.0*(bv->nc+j)));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -196,7 +196,7 @@ PetscErrorCode BV_SquareRoot_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *bet
     PetscCall(BV_SafeSqrt(bv,hh,beta));
     PetscCall(VecCUDARestoreArrayRead(bv->buffer,&d_h));
   } else PetscCall(BV_SafeSqrt(bv,h[bv->nc+j],beta));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -220,5 +220,5 @@ PetscErrorCode BV_StoreCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscSc
   } else {
     for (i=bv->l;i<j;i++) dest[i-bv->l] = h[bv->nc+i];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

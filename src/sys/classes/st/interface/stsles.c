@@ -25,7 +25,7 @@ PetscErrorCode STSetDefaultKSP(ST st)
   PetscValidType(st,1);
   if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
   PetscTryTypeMethod(st,setdefaultksp);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -55,7 +55,7 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
     }
   }
   PetscCall(KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -95,7 +95,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   else PetscCall(MatMult(st->T[k],x,y));
   PetscCall(PetscLogEventEnd(ST_MatMult,st,x,y,0));
   PetscCall(VecLockReadPop(x));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -135,7 +135,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   else PetscCall(MatMultTranspose(st->T[k],x,y));
   PetscCall(PetscLogEventEnd(ST_MatMultTranspose,st,x,y,0));
   PetscCall(VecLockReadPop(x));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -172,7 +172,7 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   else PetscCall(KSPSolve(st->ksp,b,x));
   PetscCall(PetscLogEventEnd(ST_MatSolve,st,b,x,0));
   PetscCall(VecLockReadPop(b));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -205,7 +205,7 @@ PetscErrorCode STMatMatSolve(ST st,Mat B,Mat X)
   if (!st->P) PetscCall(MatCopy(B,X,SAME_NONZERO_PATTERN)); /* P=NULL means identity matrix */
   else PetscCall(KSPMatSolve(st->ksp,B,X));
   PetscCall(PetscLogEventEnd(ST_MatSolve,st,B,X,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -242,7 +242,7 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   else PetscCall(KSPSolveTranspose(st->ksp,b,x));
   PetscCall(PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0));
   PetscCall(VecLockReadPop(b));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STCheckFactorPackage(ST st)
@@ -254,14 +254,14 @@ PetscErrorCode STCheckFactorPackage(ST st)
 
   PetscFunctionBegin;
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)st),&size));
-  if (size==1) PetscFunctionReturn(0);
+  if (size==1) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(KSPGetPC(st->ksp,&pc));
   PetscCall(PCFactorGetMatSolverType(pc,&stype));
   if (stype) {   /* currently selected PC is a factorization */
     PetscCall(PetscStrcmp(stype,MATSOLVERPETSC,&flg));
     PetscCheck(!flg,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"You chose to solve linear systems with a factorization, but in parallel runs you need to select an external package; see the users guide for details");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -288,7 +288,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscCall(PetscObjectReference((PetscObject)ksp));
   PetscCall(KSPDestroy(&st->ksp));
   st->ksp = ksp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -321,7 +321,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
     PetscCall(KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = st->ksp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
@@ -361,7 +361,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
     PetscCall(MatNullSpaceDestroy(&nullsp));
     PetscCall(VecDestroyVecs(c,&T));
   } else PetscCall(PetscFree(T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -399,5 +399,5 @@ PetscErrorCode STCheckNullSpace(ST st,BV V)
 
   PetscCall(BVGetNumConstraints(V,&nc));
   if (nc) PetscTryTypeMethod(st,checknullspace,V);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

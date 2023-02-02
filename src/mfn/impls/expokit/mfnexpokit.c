@@ -38,7 +38,7 @@ PetscErrorCode MFNSetUp_Expokit(MFN mfn)
 
   PetscCall(PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp));
   PetscCheck(isexp,PETSC_COMM_SELF,PETSC_ERR_SUP,"This solver only supports the exponential function");
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
@@ -176,7 +176,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   PetscCall(MatDenseRestoreArray(H,&Harray));
   PetscCall(MatDestroy(&H));
   PetscCall(PetscFree2(betaF,B));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN mfn)
@@ -184,5 +184,5 @@ SLEPC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN mfn)
   PetscFunctionBegin;
   mfn->ops->solve          = MFNSolve_Expokit;
   mfn->ops->setup          = MFNSetUp_Expokit;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

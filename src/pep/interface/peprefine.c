@@ -39,7 +39,7 @@ static PetscErrorCode MatMult_FS(Mat M ,Vec x,Vec y)
   t *= ctx->m3/ctx->M4;
   PetscCall(MatMult(ctx->M1,x,y));
   PetscCall(VecAXPY(y,-t,ctx->M2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
@@ -107,7 +107,7 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
       PetscCall(ISDestroy(&is1));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -146,7 +146,7 @@ static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,P
   } else {
     if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT && !(*fail)) PetscCallMPI(MPI_Bcast(&pep->eigr[idx],1,MPIU_SCALAR,p,comm));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
@@ -169,7 +169,7 @@ static PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ct
     }
     PetscCall(BVRestoreColumn(pep->V,idx,&v));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,PetscScalar *vals)
@@ -188,7 +188,7 @@ static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,P
     vals[i] = (a2+(alpha-b[i-1])*vals[i-1]-g[i-1]*vals[i-2])/a[i-1];
     a0 = a1; a1 = a2;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ctx,PetscInt idx,Mat *Mt,Mat *T,Mat *P,PetscBool ini,Vec t,Vec v)
@@ -347,7 +347,7 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
     break;
   }
   PetscCall(PetscFree2(coeffs,coeffs2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,PetscInt k)
@@ -545,5 +545,5 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,
   PetscCall(MatDestroy(&T));
   PetscCall(PetscFree(ctx));
   PetscCall(PetscLogEventEnd(PEP_Refine,pep,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

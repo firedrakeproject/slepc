@@ -48,7 +48,7 @@ static PetscErrorCode MatMult_SLPTS_Right(Mat M,Vec x,Vec y)
   PetscCall(MatShellGetContext(M,&ctx));
   PetscCall(MatMult(ctx->Jt,x,ctx->w));
   PetscCall(MatSolve(ctx->Ft,ctx->w,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_SLPTS_Left(Mat M,Vec x,Vec y)
@@ -59,7 +59,7 @@ static PetscErrorCode MatMult_SLPTS_Left(Mat M,Vec x,Vec y)
   PetscCall(MatShellGetContext(M,&ctx));
   PetscCall(MatMultTranspose(ctx->Jt,x,ctx->w));
   PetscCall(MatSolveTranspose(ctx->Ft,ctx->w,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_SLPTS(Mat M)
@@ -70,7 +70,7 @@ static PetscErrorCode MatDestroy_SLPTS(Mat M)
   PetscCall(MatShellGetContext(M,&ctx));
   PetscCall(VecDestroy(&ctx->w));
   PetscCall(PetscFree(ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_CUDA)
@@ -82,7 +82,7 @@ static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
   PetscCall(MatShellGetContext(M,&ctx));
   if (right) PetscCall(VecDuplicate(ctx->w,right));
   if (left) PetscCall(VecDuplicate(ctx->w,left));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -107,17 +107,17 @@ static PetscErrorCode NEPSLPSetUpEPSMat(NEP nep,Mat F,Mat J,PetscBool left,Mat *
 #endif
   *M = Mshell;
   PetscCall(MatCreateVecs(nep->function,&shellctx->w,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Functions for deflation */
 static PetscErrorCode NEPDeflationNEDestroy(NEP_NEDEF_CTX defctx)
 {
   PetscFunctionBegin;
-  if (!defctx) PetscFunctionReturn(0);
+  if (!defctx) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscFree(defctx->eig));
   PetscCall(PetscFree(defctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationNECreate(NEP nep,BV V,BV W,PetscInt sz,NEP_NEDEF_CTX *defctx)
@@ -134,7 +134,7 @@ static PetscErrorCode NEPDeflationNECreate(NEP nep,BV V,BV W,PetscInt sz,NEP_NED
   PetscCall(PetscObjectStateIncrease((PetscObject)W));
   op->V = V;
   op->W = W;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar lambda)
@@ -143,12 +143,12 @@ static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar la
 
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(M,&matctx));
-  if (lambda==matctx->lambda) PetscFunctionReturn(0);
+  if (lambda==matctx->lambda) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(NEPComputeFunction(nep,lambda,matctx->F,matctx->P));
   if (matctx->isJ) PetscCall(NEPComputeJacobian(nep,lambda,matctx->J));
   if (matctx->ksp) PetscCall(NEP_KSPSetOperators(matctx->ksp,matctx->F,matctx->P));
   matctx->lambda = lambda;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
@@ -181,7 +181,7 @@ static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
     }
     PetscCall(PetscFree2(h,alpha));
   } else PetscCall(MatMult(matctx->isJ?matctx->J:matctx->F,x,r));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMultTranspose_NEPDeflationNE(Mat M,Vec x,Vec r)
@@ -217,7 +217,7 @@ static PetscErrorCode MatMultTranspose_NEPDeflationNE(Mat M,Vec x,Vec r)
     }
     PetscCall(PetscFree2(h,alphaC));
   } else PetscCall(MatMultTranspose(matctx->isJ?matctx->J:matctx->F,t,r));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatSolve_NEPDeflationNE(Mat M,Vec b,Vec x)
@@ -230,7 +230,7 @@ static PetscErrorCode MatSolve_NEPDeflationNE(Mat M,Vec b,Vec x)
   PetscCall(MatShellGetContext(M,&matctx));
   if (!matctx->ksp) {
     PetscCall(VecCopy(b,x));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   PetscCall(KSPSolve(matctx->ksp,b,x));
   if (matctx->defctx->n && !matctx->defctx->ref) {
@@ -244,7 +244,7 @@ static PetscErrorCode MatSolve_NEPDeflationNE(Mat M,Vec b,Vec x)
     PetscCall(BVMultVec(matctx->defctx->W,1.0,1.0,x,h));
     PetscCall(PetscFree2(h,alpha));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatSolveTranspose_NEPDeflationNE(Mat M,Vec b,Vec x)
@@ -257,7 +257,7 @@ static PetscErrorCode MatSolveTranspose_NEPDeflationNE(Mat M,Vec b,Vec x)
   PetscCall(MatShellGetContext(M,&matctx));
   if (!matctx->ksp) {
     PetscCall(VecCopy(b,x));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   PetscCall(KSPSolveTranspose(matctx->ksp,b,x));
   if (matctx->defctx->n && !matctx->defctx->ref) {
@@ -273,7 +273,7 @@ static PetscErrorCode MatSolveTranspose_NEPDeflationNE(Mat M,Vec b,Vec x)
     PetscCall(PetscFree2(h,alphaC));
     PetscCall(VecConjugate(x));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_NEPDeflationNE(Mat M)
@@ -285,7 +285,7 @@ static PetscErrorCode MatDestroy_NEPDeflationNE(Mat M)
   PetscCall(VecDestroy(&matctx->w[0]));
   PetscCall(VecDestroy(&matctx->w[1]));
   PetscCall(PetscFree(matctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatCreateVecs_NEPDeflationNE(Mat M,Vec *right,Vec *left)
@@ -295,7 +295,7 @@ static PetscErrorCode MatCreateVecs_NEPDeflationNE(Mat M,Vec *right,Vec *left)
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(M,&matctx));
   PetscCall(MatCreateVecs(matctx->F,right,left));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,Mat F,Mat P,Mat J,KSP ksp,PetscBool isJ,Mat *Mshell)
@@ -323,7 +323,7 @@ static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,
   PetscCall(MatShellSetOperation(*Mshell,MATOP_SOLVE_TRANSPOSE,(void(*)(void))MatSolveTranspose_NEPDeflationNE));
   PetscCall(MatShellSetOperation(*Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_NEPDeflationNE));
   PetscCall(MatShellSetOperation(*Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_NEPDeflationNE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationNERecoverEigenvectors(NEP_NEDEF_CTX defctx,Vec u,Vec w,PetscScalar lambda)
@@ -351,7 +351,7 @@ static PetscErrorCode NEPDeflationNERecoverEigenvectors(NEP_NEDEF_CTX defctx,Vec
     }
     PetscCall(PetscFree2(h,alpha));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationNELocking(NEP_NEDEF_CTX defctx,Vec u,Vec w,PetscScalar lambda)
@@ -366,14 +366,14 @@ static PetscErrorCode NEPDeflationNELocking(NEP_NEDEF_CTX defctx,Vec u,Vec w,Pet
   PetscCall(BVSetActiveColumns(defctx->V,0,defctx->n));
   PetscCall(BVSetActiveColumns(defctx->W,0,defctx->n));
   PetscCall(BVBiorthonormalizeColumn(defctx->V,defctx->W,n,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPDeflationNESetRefine(NEP_NEDEF_CTX defctx,PetscBool ref)
 {
   PetscFunctionBegin;
   defctx->ref = ref;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
@@ -517,5 +517,5 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
   PetscCall(BVDestroy(&X));
   PetscCall(BVDestroy(&Y));
   PetscCall(NEPDeflationNEDestroy(defctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

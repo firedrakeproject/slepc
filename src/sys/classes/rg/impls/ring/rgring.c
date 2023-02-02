@@ -61,7 +61,7 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
     PetscCheck(width>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The width argument must be > 0.0");
     ctx->width = width;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -121,7 +121,7 @@ PetscErrorCode RGRingSetParameters(RG rg,PetscScalar center,PetscReal radius,Pet
   PetscValidLogicalCollectiveReal(rg,end_ang,6);
   PetscValidLogicalCollectiveReal(rg,width,7);
   PetscTryMethod(rg,"RGRingSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal),(rg,center,radius,vscale,start_ang,end_ang,width));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode RGRingGetParameters_Ring(RG rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscReal *start_ang,PetscReal *end_ang,PetscReal *width)
@@ -135,7 +135,7 @@ static PetscErrorCode RGRingGetParameters_Ring(RG rg,PetscScalar *center,PetscRe
   if (start_ang) *start_ang = ctx->start_ang;
   if (end_ang)   *end_ang   = ctx->end_ang;
   if (width)     *width     = ctx->width;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -163,7 +163,7 @@ PetscErrorCode RGRingGetParameters(RG rg,PetscScalar *center,PetscReal *radius,P
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscUseMethod(rg,"RGRingGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,center,radius,vscale,start_ang,end_ang,width));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
@@ -226,7 +226,7 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
     PetscCall(PetscDrawSave(draw));
     PetscCall(PetscDrawPause(draw));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
@@ -236,7 +236,7 @@ PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
   PetscFunctionBegin;
   if (rg->complement) *trivial = PetscNot(ctx->radius);
   else *trivial = PetscNot(ctx->radius<PETSC_MAX_REAL);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
@@ -266,7 +266,7 @@ PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScala
 #endif
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGComputeBoundingBox_Ring(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
@@ -279,7 +279,7 @@ PetscErrorCode RGComputeBoundingBox_Ring(RG rg,PetscReal *a,PetscReal *b,PetscRe
   if (b) *b = PetscRealPart(ctx->center) + (ctx->radius+ctx->width/2.0);
   if (c) *c = PetscImaginaryPart(ctx->center) - (ctx->radius+ctx->width/2.0)*ctx->vscale;
   if (d) *d = PetscImaginaryPart(ctx->center) + (ctx->radius+ctx->width/2.0)*ctx->vscale;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGComputeQuadrature_Ring(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
@@ -316,7 +316,7 @@ PetscErrorCode RGComputeQuadrature_Ring(RG rg,RGQuadRule quad,PetscInt n,PetscSc
     }
     for (i=0;i<n;i++) w[i] /= (PetscScalar)max_w;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
@@ -368,7 +368,7 @@ PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *insi
       if (r<ctx->start_ang || r>ctx->end_ang) *inside = -1;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGIsAxisymmetric_Ring(RG rg,PetscBool vertical,PetscBool *symm)
@@ -378,7 +378,7 @@ PetscErrorCode RGIsAxisymmetric_Ring(RG rg,PetscBool vertical,PetscBool *symm)
   PetscFunctionBegin;
   if (vertical) *symm = (PetscRealPart(ctx->center) == 0.0 && PetscAbs(ctx->start_ang+ctx->end_ang-PetscRealConstant(1.0)) == 0.5)? PETSC_TRUE: PETSC_FALSE;
   else *symm = (PetscImaginaryPart(ctx->center) == 0.0 && ctx->start_ang+ctx->end_ang == 1.0)? PETSC_TRUE: PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGSetFromOptions_Ring(RG rg,PetscOptionItems *PetscOptionsObject)
@@ -400,7 +400,7 @@ PetscErrorCode RGSetFromOptions_Ring(RG rg,PetscOptionItems *PetscOptionsObject)
     if (flg1 || flg2 || flg3 || flg4 || flg5 || flg6) PetscCall(RGRingSetParameters(rg,s,r1,r2,r3,r4,r5));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode RGDestroy_Ring(RG rg)
@@ -409,7 +409,7 @@ PetscErrorCode RGDestroy_Ring(RG rg)
   PetscCall(PetscFree(rg->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGRingSetParameters_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGRingGetParameters_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
@@ -437,5 +437,5 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
   rg->ops->destroy           = RGDestroy_Ring;
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGRingSetParameters_C",RGRingSetParameters_Ring));
   PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGRingGetParameters_C",RGRingGetParameters_Ring));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

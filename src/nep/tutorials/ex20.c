@@ -205,7 +205,7 @@ PetscErrorCode FormInitialGuess(Vec x)
 {
   PetscFunctionBeginUser;
   PetscCall(VecSet(x,1.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -276,7 +276,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
     PetscCall(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY));
     PetscCall(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -341,7 +341,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   */
   PetscCall(MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -379,7 +379,7 @@ PetscErrorCode CheckSolution(PetscScalar lambda,Vec y,PetscReal *error,void *ctx
   PetscCall(VecAXPY(u,-1.0,y));
   PetscCall(VecNorm(u,NORM_2,error));
   PetscCall(VecDestroy(&u));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -406,7 +406,7 @@ PetscErrorCode FixSign(Vec x)
   }
   PetscCallMPI(MPI_Bcast(&sign,1,MPIU_SCALAR,0,PETSC_COMM_WORLD));
   PetscCall(VecScale(x,1.0/sign));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

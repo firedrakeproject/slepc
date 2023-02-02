@@ -57,7 +57,7 @@ PetscErrorCode CheckNormalizedVectors(EPS eps)
     PetscCall(VecDestroy(&xi));
     if (error>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Vectors are not normalized. Error=%g\n",(double)error));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)
@@ -183,7 +183,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   }
   PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -201,7 +201,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
   PetscFunctionBeginUser;
   d = (SlepcAbsEigenvalue(br-origin,bi) - SlepcAbsEigenvalue(ar-origin,ai))/PetscMax(SlepcAbsEigenvalue(ar-origin,ai),SlepcAbsEigenvalue(br-origin,bi));
   *r = d > PETSC_SQRT_MACHINE_EPSILON ? 1 : (d < -PETSC_SQRT_MACHINE_EPSILON ? -1 : PetscSign(PetscRealPart(br)));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

@@ -37,7 +37,7 @@ PetscErrorCode SVDSetUp_ScaLAPACK(SVD svd)
   /* convert matrix */
   PetscCall(MatDestroy(&ctx->As));
   PetscCall(MatConvert(svd->OP,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->As));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
@@ -116,14 +116,14 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   svd->nconv  = svd->ncv;
   svd->its    = 1;
   svd->reason = SVD_CONVERGED_TOL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDDestroy_ScaLAPACK(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(svd->data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDReset_ScaLAPACK(SVD svd)
@@ -132,7 +132,7 @@ PetscErrorCode SVDReset_ScaLAPACK(SVD svd)
 
   PetscFunctionBegin;
   PetscCall(MatDestroy(&ctx->As));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_ScaLAPACK(SVD svd)
@@ -147,5 +147,5 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_ScaLAPACK(SVD svd)
   svd->ops->setup          = SVDSetUp_ScaLAPACK;
   svd->ops->destroy        = SVDDestroy_ScaLAPACK;
   svd->ops->reset          = SVDReset_ScaLAPACK;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

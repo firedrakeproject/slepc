@@ -87,7 +87,7 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
   if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
   PetscCall(BVView(lme->V,viewer));
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -109,7 +109,7 @@ PetscErrorCode LMEViewFromOptions(LME lme,PetscObject obj,const char name[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscCall(PetscObjectViewFromOptions((PetscObject)lme,obj,name));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 /*@C
    LMEConvergedReasonView - Displays the reason an LME solve converged or diverged.
@@ -148,7 +148,7 @@ PetscErrorCode LMEConvergedReasonView(LME lme,PetscViewer viewer)
     else if (lme->reason <= 0) PetscCall(PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its));
     PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)lme)->tablevel));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -172,7 +172,7 @@ PetscErrorCode LMEConvergedReasonViewFromOptions(LME lme)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
+  if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)lme),((PetscObject)lme)->options,((PetscObject)lme)->prefix,"-lme_converged_reason",&viewer,&format,&flg));
   if (flg) {
@@ -182,7 +182,7 @@ PetscErrorCode LMEConvergedReasonViewFromOptions(LME lme)
     PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -238,7 +238,7 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
   lme->reason          = LME_CONVERGED_ITERATING;
 
   *outlme = lme;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -280,7 +280,7 @@ PetscErrorCode LMESetType(LME lme,LMEType type)
   PetscValidCharPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)lme,type,&match));
-  if (match) PetscFunctionReturn(0);
+  if (match) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscFunctionListFind(LMEList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown LME type given: %s",type);
@@ -291,7 +291,7 @@ PetscErrorCode LMESetType(LME lme,LMEType type)
   lme->setupcalled = 0;
   PetscCall(PetscObjectChangeTypeName((PetscObject)lme,type));
   PetscCall((*r)(lme));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -315,7 +315,7 @@ PetscErrorCode LMEGetType(LME lme,LMEType *type)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)lme)->type_name;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -349,7 +349,7 @@ PetscErrorCode LMERegister(const char *name,PetscErrorCode (*function)(LME))
   PetscFunctionBegin;
   PetscCall(LMEInitializePackage());
   PetscCall(PetscFunctionListAdd(&LMEList,name,function));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -392,7 +392,7 @@ PetscErrorCode LMEMonitorRegister(const char name[],PetscViewerType vtype,PetscV
   PetscCall(PetscFunctionListAdd(&LMEMonitorList,key,monitor));
   if (create)  PetscCall(PetscFunctionListAdd(&LMEMonitorCreateList,key,create));
   if (destroy) PetscCall(PetscFunctionListAdd(&LMEMonitorDestroyList,key,destroy));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -412,7 +412,7 @@ PetscErrorCode LMEReset(LME lme)
 {
   PetscFunctionBegin;
   if (lme) PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  if (!lme) PetscFunctionReturn(0);
+  if (!lme) PetscFunctionReturn(PETSC_SUCCESS);
   PetscTryTypeMethod(lme,reset);
   PetscCall(MatDestroy(&lme->A));
   PetscCall(MatDestroy(&lme->B));
@@ -424,7 +424,7 @@ PetscErrorCode LMEReset(LME lme)
   PetscCall(VecDestroyVecs(lme->nwork,&lme->work));
   lme->nwork = 0;
   lme->setupcalled = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -442,14 +442,14 @@ PetscErrorCode LMEReset(LME lme)
 PetscErrorCode LMEDestroy(LME *lme)
 {
   PetscFunctionBegin;
-  if (!*lme) PetscFunctionReturn(0);
+  if (!*lme) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*lme,LME_CLASSID,1);
-  if (--((PetscObject)(*lme))->refct > 0) { *lme = NULL; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*lme))->refct > 0) { *lme = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(LMEReset(*lme));
   PetscTryTypeMethod(*lme,destroy);
   PetscCall(LMEMonitorCancel(*lme));
   PetscCall(PetscHeaderDestroy(lme));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -478,7 +478,7 @@ PetscErrorCode LMESetBV(LME lme,BV bv)
   PetscCall(PetscObjectReference((PetscObject)bv));
   PetscCall(BVDestroy(&lme->V));
   lme->V = bv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -508,5 +508,5 @@ PetscErrorCode LMEGetBV(LME lme,BV *bv)
     PetscCall(PetscObjectSetOptions((PetscObject)lme->V,((PetscObject)lme)->options));
   }
   *bv = lme->V;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

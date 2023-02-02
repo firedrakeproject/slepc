@@ -186,14 +186,14 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y)
 
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
 {
   PetscFunctionBeginUser;
   PetscCall(VecSet(diag,4.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -203,14 +203,14 @@ PetscErrorCode MatMult_Zero(Mat A,Vec x,Vec y)
 {
   PetscFunctionBeginUser;
   PetscCall(VecSet(y,0.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatGetDiagonal_Zero(Mat A,Vec diag)
 {
   PetscFunctionBeginUser;
   PetscCall(VecSet(diag,0.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -220,14 +220,14 @@ PetscErrorCode MatMult_Identity(Mat A,Vec x,Vec y)
 {
   PetscFunctionBeginUser;
   PetscCall(VecCopy(x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatGetDiagonal_Identity(Mat A,Vec diag)
 {
   PetscFunctionBeginUser;
   PetscCall(VecSet(diag,1.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

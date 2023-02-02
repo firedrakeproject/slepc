@@ -35,7 +35,7 @@ PetscErrorCode DSGetLeadingDimension(DS ds,PetscInt *ld)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(ld,2);
   *ld = ds->ld;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -76,7 +76,7 @@ PetscErrorCode DSSetState(DS ds,DSStateType state)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Wrong state");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -100,7 +100,7 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(state,2);
   *state = ds->state;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -158,7 +158,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
     ds->k = k;
   }
   if (on!=ds->n || ol!=ds->l || ok!=ds->k) PetscCall(PetscInfo(ds,"New dimensions are: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -195,7 +195,7 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *l,PetscInt *k,PetscIn
   if (l) *l = ds->l;
   if (k) *k = ds->k;
   if (t) *t = ds->t;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -247,7 +247,7 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n,PetscBool trim)
   ds->state = trim? DS_STATE_RAW: DS_STATE_TRUNCATED;
   if (old!=ds->state) PetscCall(PetscInfo(ds,"State has changed from %s to %s\n",DSStateTypes[old],DSStateTypes[ds->state]));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -288,7 +288,7 @@ PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
   }
   if (m) *m = rows;
   if (n) *n = cols;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -320,7 +320,7 @@ PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
   PetscValidBoolPointer(flg,3);
   *flg = PETSC_FALSE;
   PetscTryTypeMethod(ds,hermitian,t,flg);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSGetTruncateSize_Default(DS ds,PetscInt l,PetscInt n,PetscInt *k)
@@ -337,7 +337,7 @@ PetscErrorCode DSGetTruncateSize_Default(DS ds,PetscInt l,PetscInt n,PetscInt *k
     else (*k)--;
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -376,7 +376,7 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
   PetscValidLogicalCollectiveInt(ds,n,3);
   PetscValidIntPointer(k,4);
   PetscUseTypeMethod(ds,gettruncatesize,l?l:ds->l,n?n:ds->n,k);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -430,7 +430,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   PetscCall(DSMatIsHermitian(ds,m,&flg));
   PetscCall(MatSetOption(*A,MAT_SYMMETRIC,flg));
   PetscCall(MatSetOption(*A,MAT_HERMITIAN,flg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -460,7 +460,7 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
 
   PetscCall(MatDenseRestoreSubMatrix(ds->omat[m],A));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -513,7 +513,7 @@ PetscErrorCode DSGetMatAndColumn(DS ds,DSMatType m,PetscInt col,Mat *A,Vec *v)
     PetscCall(VecRestoreArrayWrite(*v,&vs));
     PetscCall(MatDenseRestoreArrayRead(*A,&as));
   } else PetscCall(MatDenseGetColumnVec(*A,col,v));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -561,7 +561,7 @@ PetscErrorCode DSRestoreMatAndColumn(DS ds,DSMatType m,PetscInt col,Mat *A,Vec *
     PetscCall(VecDestroy(v));
   } else PetscCall(MatDenseRestoreColumnVec(*A,col,v));
   PetscCall(DSRestoreMat(ds,m,A));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -593,7 +593,7 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(a,3);
   PetscCall(MatDenseGetArray(ds->omat[m],a));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -619,7 +619,7 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscValidPointer(a,3);
   PetscCall(MatDenseRestoreArray(ds->omat[m],a));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -661,7 +661,7 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
 #else
   PetscCall(MatDenseGetArray(ds->omat[m],a));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -696,7 +696,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscCall(MatDenseRestoreArray(ds->omat[m],a));
 #endif
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -724,7 +724,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscValidScalarPointer(eigr,2);
-  if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(0);
+  if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCheck(ds->ops->solve[ds->method],PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
   PetscCall(PetscInfo(ds,"Starting solve with problem sizes: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k));
   PetscCall(PetscLogEventBegin(DS_Solve,ds,0,0,0));
@@ -735,7 +735,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscCall(PetscInfo(ds,"State has changed from %s to CONDENSED\n",DSStateTypes[ds->state]));
   ds->state = DS_STATE_CONDENSED;
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -793,7 +793,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscCall(PetscInfo(ds,"Finished sorting\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -836,7 +836,7 @@ PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,Pets
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscCall(PetscInfo(ds,"Finished sorting\n"));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -885,7 +885,7 @@ PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     PetscCall(PetscObjectStateIncrease((PetscObject)ds));
     PetscCall(PetscInfo(ds,"Synchronization completed (%s)\n",DSParallelTypes[ds->pmode]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -942,7 +942,7 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscLogEventEnd(DS_Vectors,ds,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -971,7 +971,7 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
   PetscUseTypeMethod(ds,update);
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1009,7 +1009,7 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
   PetscCall(PetscInfo(ds,"Computed condition number = %g\n",(double)*cond));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -1059,7 +1059,7 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
   ds->state = DS_STATE_RAW;
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1103,5 +1103,5 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
   ds->state   = DS_STATE_RAW;
   ds->compact = PETSC_FALSE;
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

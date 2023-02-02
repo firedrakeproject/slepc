@@ -64,7 +64,7 @@ static PetscErrorCode SNESMonitor_PowerUpdate(SNES snes,PetscInt its,PetscReal f
   PetscCheck(eps,PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
   /* Call EPS monitor on each SNES iteration */
   PetscCall(EPSMonitor(eps,its,eps->nconv,eps->eigr,eps->eigi,eps->errest,PetscMin(eps->nconv+1,eps->nev)));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetUp_Power(EPS eps)
@@ -164,7 +164,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     PetscCheck(power->shift_type!=EPS_POWER_SHIFT_WILKINSON,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided variant does not support Wilkinson shifts");
     eps->ops->solve = EPSSolve_TS_Power;
   } else eps->ops->solve = EPSSolve_Power;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -189,7 +189,7 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
   PetscCheck(*idx!=N,PetscObjectComm((PetscObject)x),PETSC_ERR_PLIB,"Zero vector found");
   PetscCall(VecGetLayout(x,&map));
   PetscCall(PetscLayoutFindOwner(map,*idx,p));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -215,7 +215,7 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,
   if (sign) *sign = alpha;
   alpha *= norm;
   PetscCall(VecScale(x,1.0/alpha));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
@@ -230,7 +230,7 @@ static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
     if (power->formFunctionB) PetscCall((*power->formFunctionB)(power->snes,x,Bx,power->formFunctionBctx));
     else PetscCall(MatMult(B,x,Bx));
   } else PetscCall(VecCopy(x,Bx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
@@ -244,7 +244,7 @@ static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
   PetscCheck(A,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem");
   if (power->formFunctionA) PetscCall((*power->formFunctionA)(power->snes,x,Ax,power->formFunctionActx));
   else PetscCall(MatMult(A,x,Ax));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ctx)
@@ -271,7 +271,7 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
   PetscCall(VecAXPY(y,-1.0,Bx));
   /* Keep tracking eigenvalue update. It would be useful when we want to monitor solver progress via snes monitor. */
   eps->eigr[(eps->nconv < eps->nev)? eps->nconv:(eps->nconv-1)] = 1.0/(bx*sign);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -289,7 +289,7 @@ static PetscErrorCode EPSPowerApply_SNES(EPS eps,Vec x,Vec y)
     Bx = eps->work[2];
     PetscCall(SNESSolve(power->snes,Bx,y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -337,7 +337,7 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   /* restore context back to the old nonlinear solver */
   PetscCall(DMCopyDMSNES(newdm,dm));
   PetscCall(DMDestroy(&newdm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_Power(EPS eps)
@@ -536,7 +536,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     PetscCall(DSSetDimensions(eps->ds,eps->nconv,0,0));
     PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_TS_Power(EPS eps)
@@ -663,7 +663,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 
   PetscCall(DSSetDimensions(eps->ds,eps->nconv,0,0));
   PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSStopping_Power(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
@@ -676,11 +676,11 @@ PetscErrorCode EPSStopping_Power(EPS eps,PetscInt its,PetscInt max_it,PetscInt n
     PetscCall(SNESGetConvergedReason(power->snes,&snesreason));
     if (snesreason < 0) {
       *reason = EPS_DIVERGED_BREAKDOWN;
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     }
   }
   PetscCall(EPSStoppingBasic(eps,its,max_it,nconv,nev,reason,ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSBackTransform_Power(EPS eps)
@@ -690,7 +690,7 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
   PetscFunctionBegin;
   if (power->nonlinear) eps->eigr[0] = 1.0/eps->eigr[0];
   else if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) PetscCall(EPSBackTransform_Default(eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetFromOptions_Power(EPS eps,PetscOptionItems *PetscOptionsObject)
@@ -712,7 +712,7 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps,PetscOptionItems *PetscOptionsObj
     if (flg) PetscCall(EPSPowerSetUpdate(eps,val));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift)
@@ -732,7 +732,7 @@ static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid shift type");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -769,7 +769,7 @@ PetscErrorCode EPSPowerSetShiftType(EPS eps,EPSPowerShiftType shift)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,shift,2);
   PetscTryMethod(eps,"EPSPowerSetShiftType_C",(EPS,EPSPowerShiftType),(eps,shift));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shift)
@@ -778,7 +778,7 @@ static PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shif
 
   PetscFunctionBegin;
   *shift = power->shift_type;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -803,7 +803,7 @@ PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(shift,2);
   PetscUseMethod(eps,"EPSPowerGetShiftType_C",(EPS,EPSPowerShiftType*),(eps,shift));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerSetNonlinear_Power(EPS eps,PetscBool nonlinear)
@@ -817,7 +817,7 @@ static PetscErrorCode EPSPowerSetNonlinear_Power(EPS eps,PetscBool nonlinear)
     eps->ops->setupsort = nonlinear? NULL: EPSSetUpSort_Default;
     eps->state = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -856,7 +856,7 @@ PetscErrorCode EPSPowerSetNonlinear(EPS eps,PetscBool nonlinear)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,nonlinear,2);
   PetscTryMethod(eps,"EPSPowerSetNonlinear_C",(EPS,PetscBool),(eps,nonlinear));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerGetNonlinear_Power(EPS eps,PetscBool *nonlinear)
@@ -865,7 +865,7 @@ static PetscErrorCode EPSPowerGetNonlinear_Power(EPS eps,PetscBool *nonlinear)
 
   PetscFunctionBegin;
   *nonlinear = power->nonlinear;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -889,7 +889,7 @@ PetscErrorCode EPSPowerGetNonlinear(EPS eps,PetscBool *nonlinear)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(nonlinear,2);
   PetscUseMethod(eps,"EPSPowerGetNonlinear_C",(EPS,PetscBool*),(eps,nonlinear));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerSetUpdate_Power(EPS eps,PetscBool update)
@@ -900,7 +900,7 @@ static PetscErrorCode EPSPowerSetUpdate_Power(EPS eps,PetscBool update)
   PetscCheck(power->nonlinear,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"This option does not make sense for linear problems");
   power->update = update;
   eps->state = EPS_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -926,7 +926,7 @@ PetscErrorCode EPSPowerSetUpdate(EPS eps,PetscBool update)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,update,2);
   PetscTryMethod(eps,"EPSPowerSetUpdate_C",(EPS,PetscBool),(eps,update));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerGetUpdate_Power(EPS eps,PetscBool *update)
@@ -935,7 +935,7 @@ static PetscErrorCode EPSPowerGetUpdate_Power(EPS eps,PetscBool *update)
 
   PetscFunctionBegin;
   *update = power->update;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -960,7 +960,7 @@ PetscErrorCode EPSPowerGetUpdate(EPS eps,PetscBool *update)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(update,2);
   PetscUseMethod(eps,"EPSPowerGetUpdate_C",(EPS,PetscBool*),(eps,update));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerSetSNES_Power(EPS eps,SNES snes)
@@ -972,7 +972,7 @@ static PetscErrorCode EPSPowerSetSNES_Power(EPS eps,SNES snes)
   PetscCall(SNESDestroy(&power->snes));
   power->snes = snes;
   eps->state = EPS_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -996,7 +996,7 @@ PetscErrorCode EPSPowerSetSNES(EPS eps,SNES snes)
   PetscValidHeaderSpecific(snes,SNES_CLASSID,2);
   PetscCheckSameComm(eps,1,snes,2);
   PetscTryMethod(eps,"EPSPowerSetSNES_C",(EPS,SNES),(eps,snes));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSPowerGetSNES_Power(EPS eps,SNES *snes)
@@ -1012,7 +1012,7 @@ static PetscErrorCode EPSPowerGetSNES_Power(EPS eps,SNES *snes)
     PetscCall(PetscObjectSetOptions((PetscObject)power->snes,((PetscObject)eps)->options));
   }
   *snes = power->snes;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1037,7 +1037,7 @@ PetscErrorCode EPSPowerGetSNES(EPS eps,SNES *snes)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(snes,2);
   PetscUseMethod(eps,"EPSPowerGetSNES_C",(EPS,SNES*),(eps,snes));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_Power(EPS eps)
@@ -1046,7 +1046,7 @@ PetscErrorCode EPSReset_Power(EPS eps)
 
   PetscFunctionBegin;
   if (power->snes) PetscCall(SNESReset(power->snes));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_Power(EPS eps)
@@ -1064,7 +1064,7 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetUpdate_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetSNES_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSNES_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
@@ -1084,7 +1084,7 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
       PetscCall(PetscViewerASCIIPopTab(viewer));
     } else PetscCall(PetscViewerASCIIPrintf(viewer,"  %s shifts\n",EPSPowerShiftTypes[power->shift_type]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSComputeVectors_Power(EPS eps)
@@ -1097,7 +1097,7 @@ PetscErrorCode EPSComputeVectors_Power(EPS eps)
     PetscCall(BVNormalize(eps->V,NULL));
     PetscCall(BVNormalize(eps->W,NULL));
   } else if (!power->nonlinear) PetscCall(EPSComputeVectors_Schur(eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetDefaultST_Power(EPS eps)
@@ -1117,7 +1117,7 @@ PetscErrorCode EPSSetDefaultST_Power(EPS eps)
     PetscCall(KSPGetPC(ksp,&pc));
     PetscCall(PCSetType(pc,PCNONE));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
@@ -1150,5 +1150,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetUpdate_C",EPSPowerGetUpdate_Power));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetSNES_C",EPSPowerSetSNES_Power));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSNES_C",EPSPowerGetSNES_Power));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

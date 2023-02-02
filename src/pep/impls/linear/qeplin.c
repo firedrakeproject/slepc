@@ -56,7 +56,7 @@ PetscErrorCode MatCreateExplicit_Linear_NA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
   PetscCall(MatCreateTile(-b*ctx->dsfactor,ctx->K,a,Id,-ctx->dsfactor*a,ctx->K,scalt,T,A));
   PetscCall(MatDestroy(&Id));
   if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatCreateExplicit_Linear_NB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
@@ -81,7 +81,7 @@ PetscErrorCode MatCreateExplicit_Linear_NB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
   PetscCall(MatCreateTile(scalt,T,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,b,Id,a*ctx->sfactor*ctx->sfactor*ctx->dsfactor,ctx->M,B));
   PetscCall(MatDestroy(&Id));
   if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* - - - S - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -103,7 +103,7 @@ PetscErrorCode MatCreateExplicit_Linear_SA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
   }
   PetscCall(MatCreateTile(b*ctx->dsfactor,ctx->K,a*ctx->dsfactor,ctx->K,a*ctx->dsfactor,ctx->K,scalt,T,A));
   if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatCreateExplicit_Linear_SB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
@@ -123,7 +123,7 @@ PetscErrorCode MatCreateExplicit_Linear_SB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
   }
   PetscCall(MatCreateTile(scalt,T,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,-a*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,B));
   if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* - - - H - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -145,7 +145,7 @@ PetscErrorCode MatCreateExplicit_Linear_HA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
   }
   PetscCall(MatCreateTile(a*ctx->dsfactor,ctx->K,-b*ctx->dsfactor,ctx->K,scalt,T,a*ctx->dsfactor,ctx->K,A));
   if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatCreateExplicit_Linear_HB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
@@ -165,5 +165,5 @@ PetscErrorCode MatCreateExplicit_Linear_HB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
   }
   PetscCall(MatCreateTile(b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,scalt,T,-a*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,B));
   if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

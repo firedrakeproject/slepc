@@ -74,7 +74,7 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   PetscCall(MatDestroy(&F));
   PetscCall(VecDestroy(&v));
   PetscCall(VecDestroy(&f0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

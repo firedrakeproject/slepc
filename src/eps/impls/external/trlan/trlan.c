@@ -46,7 +46,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   PetscCall(PetscMalloc1(tr->lwork,&tr->work));
 
   PetscCall(EPSAllocateSolution(eps,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin,PetscBLASInt *ldx,PetscReal *yout,PetscBLASInt *ldy)
@@ -64,7 +64,7 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
     PetscCall(VecResetArray(x));
     PetscCall(VecResetArray(y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_TRLAN(EPS eps)
@@ -128,7 +128,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscCall(VecDestroy(&globaldata.x));
   PetscCall(VecDestroy(&globaldata.y));
   PetscCheck(stat==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%" PetscBLASInt_FMT ")",stat);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_TRLAN(EPS eps)
@@ -137,14 +137,14 @@ PetscErrorCode EPSReset_TRLAN(EPS eps)
 
   PetscFunctionBegin;
   PetscCall(PetscFree(tr->work));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_TRLAN(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
@@ -161,5 +161,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
   eps->ops->destroy        = EPSDestroy_TRLAN;
   eps->ops->reset          = EPSReset_TRLAN;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

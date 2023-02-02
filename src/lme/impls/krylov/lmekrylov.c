@@ -42,7 +42,7 @@ PetscErrorCode LMESetUp_Krylov(LME lme)
   if (lme->ncv==PETSC_DEFAULT) lme->ncv = PetscMin(30,N);
   if (lme->max_it==PETSC_DEFAULT) lme->max_it = 100;
   PetscCall(LMEAllocateSolution(lme,1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,BV C1,BV *X1,PetscInt *col,PetscBool *fail,PetscInt *totalits)
@@ -154,7 +154,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
   PetscCall(MatDestroy(&H));
   if (L) PetscCall(PetscFree(L));
   if (U) PetscCall(PetscFree(U));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
@@ -193,7 +193,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
   PetscCall(MatDestroy(&X1t));
   PetscCall(BVDestroy(&C1));
   PetscCall(BVDestroy(&X1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode LMECreate_Krylov(LME lme)
@@ -201,5 +201,5 @@ SLEPC_EXTERN PetscErrorCode LMECreate_Krylov(LME lme)
   PetscFunctionBegin;
   lme->ops->solve[LME_LYAPUNOV]      = LMESolve_Krylov_Lyapunov;
   lme->ops->setup                    = LMESetUp_Krylov;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

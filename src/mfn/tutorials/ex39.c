@@ -76,7 +76,7 @@ PetscErrorCode BuildFNPhi(FN fphi)
   PetscCall(FNDestroy(&fpol));
   PetscCall(FNDestroy(&fconst));
   PetscCall(FNDestroy(&fexp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

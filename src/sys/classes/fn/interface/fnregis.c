@@ -30,7 +30,7 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN);
 PetscErrorCode FNRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (FNRegisterAllCalled) PetscFunctionReturn(0);
+  if (FNRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   FNRegisterAllCalled = PETSC_TRUE;
   PetscCall(FNRegister(FNCOMBINE,FNCreate_Combine));
   PetscCall(FNRegister(FNRATIONAL,FNCreate_Rational));
@@ -39,5 +39,5 @@ PetscErrorCode FNRegisterAll(void)
   PetscCall(FNRegister(FNPHI,FNCreate_Phi));
   PetscCall(FNRegister(FNSQRT,FNCreate_Sqrt));
   PetscCall(FNRegister(FNINVSQRT,FNCreate_Invsqrt));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

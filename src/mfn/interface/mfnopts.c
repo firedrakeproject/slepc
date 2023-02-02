@@ -45,7 +45,7 @@ PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char opt[],const char name
 
   PetscFunctionBegin;
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->options,((PetscObject)mfn)->prefix,opt,&viewer,&format,&flg));
-  if (!flg) PetscFunctionReturn(0);
+  if (!flg) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetType(viewer,&vtype));
   PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
@@ -59,7 +59,7 @@ PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char opt[],const char name
   PetscCall((*cfunc)(viewer,format,ctx,&vf));
   PetscCall(PetscObjectDereference((PetscObject)viewer));
   PetscCall(MFNMonitorSet(mfn,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -125,7 +125,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   PetscCall(BVSetFromOptions(mfn->V));
   if (!mfn->fn) PetscCall(MFNGetFN(mfn,&mfn->fn));
   PetscCall(FNSetFromOptions(mfn->fn));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -154,7 +154,7 @@ PetscErrorCode MFNGetTolerances(MFN mfn,PetscReal *tol,PetscInt *maxits)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (tol)    *tol    = mfn->tol;
   if (maxits) *maxits = mfn->max_it;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -199,7 +199,7 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     mfn->max_it = maxits;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -223,7 +223,7 @@ PetscErrorCode MFNGetDimensions(MFN mfn,PetscInt *ncv)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidIntPointer(ncv,2);
   *ncv = mfn->ncv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -258,7 +258,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
     mfn->ncv = ncv;
   }
   mfn->setupcalled = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -288,7 +288,7 @@ PetscErrorCode MFNSetErrorIfNotConverged(MFN mfn,PetscBool flg)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveBool(mfn,flg,2);
   mfn->errorifnotconverged = flg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -313,7 +313,7 @@ PetscErrorCode MFNGetErrorIfNotConverged(MFN mfn,PetscBool *flag)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidBoolPointer(flag,2);
   *flag = mfn->errorifnotconverged;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -351,7 +351,7 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
   if (!mfn->fn) PetscCall(MFNGetFN(mfn,&mfn->fn));
   PetscCall(FNSetOptionsPrefix(mfn->fn,prefix));
   PetscCall(PetscObjectSetOptionsPrefix((PetscObject)mfn,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -381,7 +381,7 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
   if (!mfn->fn) PetscCall(MFNGetFN(mfn,&mfn->fn));
   PetscCall(FNAppendOptionsPrefix(mfn->fn,prefix));
   PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)mfn,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -410,5 +410,5 @@ PetscErrorCode MFNGetOptionsPrefix(MFN mfn,const char *prefix[])
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)mfn,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

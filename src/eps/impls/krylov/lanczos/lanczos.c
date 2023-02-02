@@ -73,7 +73,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   PetscCall(DSSetCompact(eps->ds,PETSC_TRUE));
   PetscCall(DSAllocate(eps->ds,eps->ncv+1));
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) PetscCall(EPSSetWorkVecs(eps,1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -115,7 +115,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
   }
   PetscCall(STRestoreOperator(eps->st,&Op));
   if (m > 100) PetscCall(PetscFree2(which,hwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -173,7 +173,7 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
   }
 #endif
   PetscCall(PetscFree3(isuppz,work,iwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -253,7 +253,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
 
   PetscCall(STRestoreOperator(eps->st,&Op));
   PetscCall(PetscFree6(d,e,ritz,Y,which,hwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscReal *alpha,PetscReal *beta,PetscReal eps1,PetscReal anorm)
@@ -432,7 +432,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
 
   PetscCall(STRestoreOperator(eps->st,&Op));
   if (m>100) PetscCall(PetscFree5(omega,omega_old,which,which2,hwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -511,7 +511,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscInt k,PetscInt *m,PetscReal *
       PetscCall(PetscFree(T));
       break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_Lanczos(EPS eps)
@@ -692,7 +692,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
   eps->nconv = nconv;
 
   PetscCall(PetscFree4(ritz,bnd,perm,conv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps,PetscOptionItems *PetscOptionsObject)
@@ -709,7 +709,7 @@ PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps,PetscOptionItems *PetscOptionsO
     if (flg) PetscCall(EPSLanczosSetReorthog(eps,reorthog));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLanczosSetReorthog_Lanczos(EPS eps,EPSLanczosReorthogType reorthog)
@@ -732,7 +732,7 @@ static PetscErrorCode EPSLanczosSetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -759,7 +759,7 @@ PetscErrorCode EPSLanczosSetReorthog(EPS eps,EPSLanczosReorthogType reorthog)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,reorthog,2);
   PetscTryMethod(eps,"EPSLanczosSetReorthog_C",(EPS,EPSLanczosReorthogType),(eps,reorthog));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLanczosGetReorthog_Lanczos(EPS eps,EPSLanczosReorthogType *reorthog)
@@ -768,7 +768,7 @@ static PetscErrorCode EPSLanczosGetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
 
   PetscFunctionBegin;
   *reorthog = lanczos->reorthog;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -793,7 +793,7 @@ PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(reorthog,2);
   PetscUseMethod(eps,"EPSLanczosGetReorthog_C",(EPS,EPSLanczosReorthogType*),(eps,reorthog));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSReset_Lanczos(EPS eps)
@@ -803,7 +803,7 @@ PetscErrorCode EPSReset_Lanczos(EPS eps)
   PetscFunctionBegin;
   PetscCall(BVDestroy(&lanczos->AV));
   lanczos->allocsize = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_Lanczos(EPS eps)
@@ -812,7 +812,7 @@ PetscErrorCode EPSDestroy_Lanczos(EPS eps)
   PetscCall(PetscFree(eps->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosSetReorthog_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosGetReorthog_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
@@ -825,7 +825,7 @@ PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
   if (isascii) {
     if (lanczos->reorthog != (EPSLanczosReorthogType)-1) PetscCall(PetscViewerASCIIPrintf(viewer,"  %s reorthogonalization\n",EPSLanczosReorthogTypes[lanczos->reorthog]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
@@ -851,5 +851,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
 
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosSetReorthog_C",EPSLanczosSetReorthog_Lanczos));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosGetReorthog_C",EPSLanczosGetReorthog_Lanczos));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

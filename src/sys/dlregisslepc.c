@@ -52,6 +52,6 @@ SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
   PetscCall(PetscDLLibraryRegister_slepcmfn());
   PetscCall(PetscDLLibraryRegister_slepclme());
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

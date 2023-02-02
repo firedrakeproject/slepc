@@ -49,7 +49,7 @@ PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
   } else *ncv = k;
   if (*mpd==PETSC_DEFAULT) *mpd = 3*ctx->bs;
   else PetscCheck(*mpd==3*ctx->bs,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"This solver does not allow a value of mpd different from 3*blocksize");
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
@@ -78,7 +78,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   PetscCall(DSSetType(eps->ds,DSGHEP));
   PetscCall(DSAllocate(eps->ds,eps->mpd));
   PetscCall(EPSSetWorkVecs(eps,1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_LOBPCG(EPS eps)
@@ -391,7 +391,7 @@ diverged:
   PetscCall(BVDestroy(&AX));
   if (B) PetscCall(BVDestroy(&BX));
   if (nc>0 || eps->nev>ctx->bs-ctx->guard) PetscCall(BVDestroy(&Y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLOBPCGSetBlockSize_LOBPCG(EPS eps,PetscInt bs)
@@ -405,7 +405,7 @@ static PetscErrorCode EPSLOBPCGSetBlockSize_LOBPCG(EPS eps,PetscInt bs)
     ctx->bs = bs;
     eps->state = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -430,7 +430,7 @@ PetscErrorCode EPSLOBPCGSetBlockSize(EPS eps,PetscInt bs)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,bs,2);
   PetscTryMethod(eps,"EPSLOBPCGSetBlockSize_C",(EPS,PetscInt),(eps,bs));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLOBPCGGetBlockSize_LOBPCG(EPS eps,PetscInt *bs)
@@ -439,7 +439,7 @@ static PetscErrorCode EPSLOBPCGGetBlockSize_LOBPCG(EPS eps,PetscInt *bs)
 
   PetscFunctionBegin;
   *bs = ctx->bs;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -463,7 +463,7 @@ PetscErrorCode EPSLOBPCGGetBlockSize(EPS eps,PetscInt *bs)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(bs,2);
   PetscUseMethod(eps,"EPSLOBPCGGetBlockSize_C",(EPS,PetscInt*),(eps,bs));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
@@ -477,7 +477,7 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
     ctx->restart = restart;
     eps->state = EPS_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -508,7 +508,7 @@ PetscErrorCode EPSLOBPCGSetRestart(EPS eps,PetscReal restart)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,restart,2);
   PetscTryMethod(eps,"EPSLOBPCGSetRestart_C",(EPS,PetscReal),(eps,restart));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLOBPCGGetRestart_LOBPCG(EPS eps,PetscReal *restart)
@@ -517,7 +517,7 @@ static PetscErrorCode EPSLOBPCGGetRestart_LOBPCG(EPS eps,PetscReal *restart)
 
   PetscFunctionBegin;
   *restart = ctx->restart;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -541,7 +541,7 @@ PetscErrorCode EPSLOBPCGGetRestart(EPS eps,PetscReal *restart)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidRealPointer(restart,2);
   PetscUseMethod(eps,"EPSLOBPCGGetRestart_C",(EPS,PetscReal*),(eps,restart));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLOBPCGSetLocking_LOBPCG(EPS eps,PetscBool lock)
@@ -550,7 +550,7 @@ static PetscErrorCode EPSLOBPCGSetLocking_LOBPCG(EPS eps,PetscBool lock)
 
   PetscFunctionBegin;
   ctx->lock = lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -581,7 +581,7 @@ PetscErrorCode EPSLOBPCGSetLocking(EPS eps,PetscBool lock)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,lock,2);
   PetscTryMethod(eps,"EPSLOBPCGSetLocking_C",(EPS,PetscBool),(eps,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSLOBPCGGetLocking_LOBPCG(EPS eps,PetscBool *lock)
@@ -590,7 +590,7 @@ static PetscErrorCode EPSLOBPCGGetLocking_LOBPCG(EPS eps,PetscBool *lock)
 
   PetscFunctionBegin;
   *lock = ctx->lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -614,7 +614,7 @@ PetscErrorCode EPSLOBPCGGetLocking(EPS eps,PetscBool *lock)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(lock,2);
   PetscUseMethod(eps,"EPSLOBPCGGetLocking_C",(EPS,PetscBool*),(eps,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
@@ -629,7 +629,7 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
     PetscCall(PetscViewerASCIIPrintf(viewer,"  restart parameter=%g (using %" PetscInt_FMT " guard vectors)\n",(double)ctx->restart,ctx->guard));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  soft locking %sactivated\n",ctx->lock?"":"de"));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetFromOptions_LOBPCG(EPS eps,PetscOptionItems *PetscOptionsObject)
@@ -651,7 +651,7 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(EPS eps,PetscOptionItems *PetscOptionsOb
     if (flg) PetscCall(EPSLOBPCGSetLocking(eps,lock));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
@@ -664,7 +664,7 @@ PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetRestart_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetLocking_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetLocking_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
@@ -694,5 +694,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetRestart_C",EPSLOBPCGGetRestart_LOBPCG));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetLocking_C",EPSLOBPCGSetLocking_LOBPCG));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetLocking_C",EPSLOBPCGGetLocking_LOBPCG));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

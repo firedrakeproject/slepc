@@ -31,7 +31,7 @@ PetscErrorCode ComputeNorm(DS ds,DSMatType mat,PetscInt j,PetscReal *onrm)
   }
   PetscCall(DSRestoreArray(ds,mat,&X));
   *onrm = PetscSqrtReal(nrm);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

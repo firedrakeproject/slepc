@@ -65,7 +65,7 @@ PetscErrorCode CheckNormalizedVectors(PEP pep)
     PetscCall(VecDestroy(&xi));
     if (error>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Vectors are not normalized. Error=%g\n",(double)error));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

@@ -38,7 +38,7 @@ PetscErrorCode SVDSetUp_Elemental(SVD svd)
   /* convert matrix */
   PetscCall(MatDestroy(&ctx->Ae));
   PetscCall(MatConvert(svd->OP,MATELEMENTAL,MAT_INITIAL_MATRIX,&ctx->Ae));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_Elemental(SVD svd)
@@ -74,14 +74,14 @@ PetscErrorCode SVDSolve_Elemental(SVD svd)
   svd->nconv  = svd->ncv;
   svd->its    = 1;
   svd->reason = SVD_CONVERGED_TOL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDDestroy_Elemental(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(svd->data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDReset_Elemental(SVD svd)
@@ -90,7 +90,7 @@ PetscErrorCode SVDReset_Elemental(SVD svd)
 
   PetscFunctionBegin;
   PetscCall(MatDestroy(&ctx->Ae));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_Elemental(SVD svd)
@@ -105,5 +105,5 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Elemental(SVD svd)
   svd->ops->setup          = SVDSetUp_Elemental;
   svd->ops->destroy        = SVDDestroy_Elemental;
   svd->ops->reset          = SVDReset_Elemental;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

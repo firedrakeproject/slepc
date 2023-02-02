@@ -120,7 +120,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 
   PetscCall(PetscNew(&nep->sc));
   *outnep = nep;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -161,7 +161,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   PetscValidCharPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)nep,type,&match));
-  if (match) PetscFunctionReturn(0);
+  if (match) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscFunctionListFind(NEPList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown NEP type given: %s",type);
@@ -172,7 +172,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   nep->state = NEP_STATE_INITIAL;
   PetscCall(PetscObjectChangeTypeName((PetscObject)nep,type));
   PetscCall((*r)(nep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -196,7 +196,7 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)nep)->type_name;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -230,7 +230,7 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
   PetscFunctionBegin;
   PetscCall(NEPInitializePackage());
   PetscCall(PetscFunctionListAdd(&NEPList,name,function));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -273,7 +273,7 @@ PetscErrorCode NEPMonitorRegister(const char name[],PetscViewerType vtype,PetscV
   PetscCall(PetscFunctionListAdd(&NEPMonitorList,key,monitor));
   if (create)  PetscCall(PetscFunctionListAdd(&NEPMonitorCreateList,key,create));
   if (destroy) PetscCall(PetscFunctionListAdd(&NEPMonitorDestroyList,key,destroy));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -296,7 +296,7 @@ PetscErrorCode NEPReset_Problem(NEP nep)
     if (nep->P) PetscCall(MatDestroyMatrices(nep->nt,&nep->P));
     nep->nt = 0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 /*@
    NEPReset - Resets the NEP context to the initial state (prior to setup)
@@ -315,7 +315,7 @@ PetscErrorCode NEPReset(NEP nep)
 {
   PetscFunctionBegin;
   if (nep) PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!nep) PetscFunctionReturn(0);
+  if (!nep) PetscFunctionReturn(PETSC_SUCCESS);
   PetscTryTypeMethod(nep,reset);
   if (nep->refineksp) PetscCall(KSPReset(nep->refineksp));
   PetscCall(NEPReset_Problem(nep));
@@ -325,7 +325,7 @@ PetscErrorCode NEPReset(NEP nep)
   PetscCall(MatDestroy(&nep->resolvent));
   nep->nwork = 0;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -343,9 +343,9 @@ PetscErrorCode NEPReset(NEP nep)
 PetscErrorCode NEPDestroy(NEP *nep)
 {
   PetscFunctionBegin;
-  if (!*nep) PetscFunctionReturn(0);
+  if (!*nep) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*nep,NEP_CLASSID,1);
-  if (--((PetscObject)(*nep))->refct > 0) { *nep = NULL; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*nep))->refct > 0) { *nep = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(NEPReset(*nep));
   PetscTryTypeMethod(*nep,destroy);
   if ((*nep)->eigr) PetscCall(PetscFree4((*nep)->eigr,(*nep)->eigi,(*nep)->errest,(*nep)->perm));
@@ -359,7 +359,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   if ((*nep)->convergeddestroy) PetscCall((*(*nep)->convergeddestroy)((*nep)->convergedctx));
   PetscCall(NEPMonitorCancel(*nep));
   PetscCall(PetscHeaderDestroy(nep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -388,7 +388,7 @@ PetscErrorCode NEPSetBV(NEP nep,BV bv)
   PetscCall(PetscObjectReference((PetscObject)bv));
   PetscCall(BVDestroy(&nep->V));
   nep->V = bv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -418,7 +418,7 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
     PetscCall(PetscObjectSetOptions((PetscObject)nep->V,((PetscObject)nep)->options));
   }
   *bv = nep->V;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -449,7 +449,7 @@ PetscErrorCode NEPSetRG(NEP nep,RG rg)
   PetscCall(PetscObjectReference((PetscObject)rg));
   PetscCall(RGDestroy(&nep->rg));
   nep->rg = rg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -479,7 +479,7 @@ PetscErrorCode NEPGetRG(NEP nep,RG *rg)
     PetscCall(PetscObjectSetOptions((PetscObject)nep->rg,((PetscObject)nep)->options));
   }
   *rg = nep->rg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -508,7 +508,7 @@ PetscErrorCode NEPSetDS(NEP nep,DS ds)
   PetscCall(PetscObjectReference((PetscObject)ds));
   PetscCall(DSDestroy(&nep->ds));
   nep->ds = ds;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -538,7 +538,7 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
     PetscCall(PetscObjectSetOptions((PetscObject)nep->ds,((PetscObject)nep)->options));
   }
   *ds = nep->ds;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -580,7 +580,7 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
     PetscCall(KSPSetTolerances(nep->refineksp,SlepcDefaultTol(nep->rtol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = nep->refineksp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -613,7 +613,7 @@ PetscErrorCode NEPSetTarget(NEP nep,PetscScalar target)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveScalar(nep,target,2);
   nep->target = target;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -640,7 +640,7 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidScalarPointer(target,2);
   *target = nep->target;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -697,7 +697,7 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP nep,
   }
   nep->fui   = NEP_USER_INTERFACE_CALLBACK;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -728,7 +728,7 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
   if (B)   *B   = nep->function_pre;
   if (fun) *fun = nep->computefunction;
   if (ctx) *ctx = nep->functionctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -776,7 +776,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP nep,PetscS
   }
   nep->fui   = NEP_USER_INTERFACE_CALLBACK;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -805,7 +805,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
   if (A)   *A   = nep->jacobian;
   if (jac) *jac = nep->computejacobian;
   if (ctx) *ctx = nep->jacobianctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -882,7 +882,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructu
   nep->mstr  = str;
   nep->fui   = NEP_USER_INTERFACE_SPLIT;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -912,7 +912,7 @@ PetscErrorCode NEPGetSplitOperatorTerm(NEP nep,PetscInt k,Mat *A,FN *f)
   PetscCheck(k>=0 && k<nep->nt,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,nep->nt-1);
   if (A) *A = nep->A[k];
   if (f) *f = nep->f[k];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -939,7 +939,7 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
   NEPCheckSplit(nep,1);
   if (n)   *n = nep->nt;
   if (str) *str = nep->mstr;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1012,7 +1012,7 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
   }
   nep->mstrp = strp;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1042,7 +1042,7 @@ PetscErrorCode NEPGetSplitPreconditionerTerm(NEP nep,PetscInt k,Mat *P)
   PetscCheck(k>=0 && k<nep->nt,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,nep->nt-1);
   PetscCheck(nep->P,PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"You have not called NEPSetSplitPreconditioner()");
   *P = nep->P[k];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1069,5 +1069,5 @@ PetscErrorCode NEPGetSplitPreconditionerInfo(NEP nep,PetscInt *n,MatStructure *s
   NEPCheckSplit(nep,1);
   if (n)    *n    = nep->P? nep->nt: 0;
   if (strp) *strp = nep->mstrp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

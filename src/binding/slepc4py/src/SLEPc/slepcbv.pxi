@@ -32,94 +32,94 @@ cdef extern from * nogil:
         BV_SVD_METHOD_QR
         BV_SVD_METHOD_QR_CAA
 
-    int BVCreate(MPI_Comm,SlepcBV*)
-    int BVCreateMat(SlepcBV,PetscMat*)
-    int BVDuplicate(SlepcBV,SlepcBV*)
-    int BVDuplicateResize(SlepcBV,PetscInt,SlepcBV*)
-    int BVCopy(SlepcBV,SlepcBV)
-    int BVView(SlepcBV,PetscViewer)
-    int BVDestroy(SlepcBV*)
-    int BVSetType(SlepcBV,SlepcBVType)
-    int BVGetType(SlepcBV,SlepcBVType*)
-    int BVSetSizes(SlepcBV,PetscInt,PetscInt,PetscInt)
-    int BVSetSizesFromVec(SlepcBV,PetscVec,PetscInt)
-    int BVGetSizes(SlepcBV,PetscInt*,PetscInt*,PetscInt*)
-    int BVResize(SlepcBV,PetscInt,PetscBool)
+    PetscErrorCode BVCreate(MPI_Comm,SlepcBV*)
+    PetscErrorCode BVCreateMat(SlepcBV,PetscMat*)
+    PetscErrorCode BVDuplicate(SlepcBV,SlepcBV*)
+    PetscErrorCode BVDuplicateResize(SlepcBV,PetscInt,SlepcBV*)
+    PetscErrorCode BVCopy(SlepcBV,SlepcBV)
+    PetscErrorCode BVView(SlepcBV,PetscViewer)
+    PetscErrorCode BVDestroy(SlepcBV*)
+    PetscErrorCode BVSetType(SlepcBV,SlepcBVType)
+    PetscErrorCode BVGetType(SlepcBV,SlepcBVType*)
+    PetscErrorCode BVSetSizes(SlepcBV,PetscInt,PetscInt,PetscInt)
+    PetscErrorCode BVSetSizesFromVec(SlepcBV,PetscVec,PetscInt)
+    PetscErrorCode BVGetSizes(SlepcBV,PetscInt*,PetscInt*,PetscInt*)
+    PetscErrorCode BVResize(SlepcBV,PetscInt,PetscBool)
 
-    int BVSetOptionsPrefix(SlepcBV,char[])
-    int BVGetOptionsPrefix(SlepcBV,char*[])
-    int BVAppendOptionsPrefix(SlepcBV,char[])
-    int BVSetFromOptions(SlepcBV)
+    PetscErrorCode BVSetOptionsPrefix(SlepcBV,char[])
+    PetscErrorCode BVGetOptionsPrefix(SlepcBV,char*[])
+    PetscErrorCode BVAppendOptionsPrefix(SlepcBV,char[])
+    PetscErrorCode BVSetFromOptions(SlepcBV)
 
-    int BVSetOrthogonalization(SlepcBV,SlepcBVOrthogType,SlepcBVOrthogRefineType,PetscReal,SlepcBVOrthogBlockType)
-    int BVGetOrthogonalization(SlepcBV,SlepcBVOrthogType*,SlepcBVOrthogRefineType*,PetscReal*,SlepcBVOrthogBlockType*)
-    int BVSetMatMultMethod(SlepcBV,SlepcBVMatMultType)
-    int BVGetMatMultMethod(SlepcBV,SlepcBVMatMultType*)
+    PetscErrorCode BVSetOrthogonalization(SlepcBV,SlepcBVOrthogType,SlepcBVOrthogRefineType,PetscReal,SlepcBVOrthogBlockType)
+    PetscErrorCode BVGetOrthogonalization(SlepcBV,SlepcBVOrthogType*,SlepcBVOrthogRefineType*,PetscReal*,SlepcBVOrthogBlockType*)
+    PetscErrorCode BVSetMatMultMethod(SlepcBV,SlepcBVMatMultType)
+    PetscErrorCode BVGetMatMultMethod(SlepcBV,SlepcBVMatMultType*)
 
-    int BVSetRandom(SlepcBV)
-    int BVSetRandomNormal(SlepcBV)
-    int BVSetRandomSign(SlepcBV)
-    int BVSetRandomColumn(SlepcBV,PetscInt)
-    int BVSetRandomCond(SlepcBV,PetscReal)
-    int BVSetRandomContext(SlepcBV,PetscRandom)
-    int BVGetRandomContext(SlepcBV,PetscRandom*)
+    PetscErrorCode BVSetRandom(SlepcBV)
+    PetscErrorCode BVSetRandomNormal(SlepcBV)
+    PetscErrorCode BVSetRandomSign(SlepcBV)
+    PetscErrorCode BVSetRandomColumn(SlepcBV,PetscInt)
+    PetscErrorCode BVSetRandomCond(SlepcBV,PetscReal)
+    PetscErrorCode BVSetRandomContext(SlepcBV,PetscRandom)
+    PetscErrorCode BVGetRandomContext(SlepcBV,PetscRandom*)
 
-    int BVSetMatrix(SlepcBV,PetscMat,PetscBool)
-    int BVGetMatrix(SlepcBV,PetscMat*,PetscBool*)
-    int BVApplyMatrix(SlepcBV,PetscVec,PetscVec)
+    PetscErrorCode BVSetMatrix(SlepcBV,PetscMat,PetscBool)
+    PetscErrorCode BVGetMatrix(SlepcBV,PetscMat*,PetscBool*)
+    PetscErrorCode BVApplyMatrix(SlepcBV,PetscVec,PetscVec)
 
-    int BVSetActiveColumns(SlepcBV,PetscInt,PetscInt)
-    int BVGetActiveColumns(SlepcBV,PetscInt*,PetscInt*)
-    int BVSetDefiniteTolerance(SlepcBV,PetscReal)
-    int BVGetDefiniteTolerance(SlepcBV,PetscReal*)
+    PetscErrorCode BVSetActiveColumns(SlepcBV,PetscInt,PetscInt)
+    PetscErrorCode BVGetActiveColumns(SlepcBV,PetscInt*,PetscInt*)
+    PetscErrorCode BVSetDefiniteTolerance(SlepcBV,PetscReal)
+    PetscErrorCode BVGetDefiniteTolerance(SlepcBV,PetscReal*)
 
-    int BVCreateVec(SlepcBV,PetscVec*)
-    int BVInsertVec(SlepcBV,PetscInt,PetscVec)
-    int BVInsertVecs(SlepcBV,PetscInt,PetscInt*,PetscVec*,PetscBool)
-    int BVInsertConstraints(SlepcBV,PetscInt*,PetscVec*)
-    int BVSetNumConstraints(SlepcBV,PetscInt)
-    int BVGetNumConstraints(SlepcBV,PetscInt*)
-    int BVGetColumn(SlepcBV,PetscInt,PetscVec*)
-    int BVRestoreColumn(SlepcBV,PetscInt,PetscVec*)
-    int BVCopyVec(SlepcBV,PetscInt,PetscVec)
-    int BVCopyColumn(SlepcBV,PetscInt,PetscInt)
+    PetscErrorCode BVCreateVec(SlepcBV,PetscVec*)
+    PetscErrorCode BVInsertVec(SlepcBV,PetscInt,PetscVec)
+    PetscErrorCode BVInsertVecs(SlepcBV,PetscInt,PetscInt*,PetscVec*,PetscBool)
+    PetscErrorCode BVInsertConstraints(SlepcBV,PetscInt*,PetscVec*)
+    PetscErrorCode BVSetNumConstraints(SlepcBV,PetscInt)
+    PetscErrorCode BVGetNumConstraints(SlepcBV,PetscInt*)
+    PetscErrorCode BVGetColumn(SlepcBV,PetscInt,PetscVec*)
+    PetscErrorCode BVRestoreColumn(SlepcBV,PetscInt,PetscVec*)
+    PetscErrorCode BVCopyVec(SlepcBV,PetscInt,PetscVec)
+    PetscErrorCode BVCopyColumn(SlepcBV,PetscInt,PetscInt)
 
-    int BVDot(SlepcBV,SlepcBV,PetscMat)
-    int BVDotVec(SlepcBV,PetscVec,PetscScalar*)
-    int BVDotColumn(SlepcBV,PetscInt,PetscScalar*)
+    PetscErrorCode BVDot(SlepcBV,SlepcBV,PetscMat)
+    PetscErrorCode BVDotVec(SlepcBV,PetscVec,PetscScalar*)
+    PetscErrorCode BVDotColumn(SlepcBV,PetscInt,PetscScalar*)
 
-    int BVMatProject(SlepcBV,PetscMat,SlepcBV,PetscMat)
-    int BVMatMult(SlepcBV,PetscMat,SlepcBV)
-    int BVMatMultHermitianTranspose(SlepcBV,PetscMat,SlepcBV)
-    int BVMatMultColumn(SlepcBV,PetscMat,PetscInt)
-    int BVMatMultTransposeColumn(SlepcBV,PetscMat,PetscInt)
-    int BVMatMultHermitianTransposeColumn(SlepcBV,PetscMat,PetscInt)
+    PetscErrorCode BVMatProject(SlepcBV,PetscMat,SlepcBV,PetscMat)
+    PetscErrorCode BVMatMult(SlepcBV,PetscMat,SlepcBV)
+    PetscErrorCode BVMatMultHermitianTranspose(SlepcBV,PetscMat,SlepcBV)
+    PetscErrorCode BVMatMultColumn(SlepcBV,PetscMat,PetscInt)
+    PetscErrorCode BVMatMultTransposeColumn(SlepcBV,PetscMat,PetscInt)
+    PetscErrorCode BVMatMultHermitianTransposeColumn(SlepcBV,PetscMat,PetscInt)
 
-    int BVMult(SlepcBV,PetscScalar,PetscScalar,SlepcBV,PetscMat)
-    int BVMultColumn(SlepcBV,PetscScalar,PetscScalar,PetscInt,PetscScalar*)
-    int BVMultInPlace(SlepcBV,PetscMat,PetscInt,PetscInt)
-    int BVMultVec(SlepcBV,PetscScalar,PetscScalar,PetscVec,PetscScalar*)
+    PetscErrorCode BVMult(SlepcBV,PetscScalar,PetscScalar,SlepcBV,PetscMat)
+    PetscErrorCode BVMultColumn(SlepcBV,PetscScalar,PetscScalar,PetscInt,PetscScalar*)
+    PetscErrorCode BVMultInPlace(SlepcBV,PetscMat,PetscInt,PetscInt)
+    PetscErrorCode BVMultVec(SlepcBV,PetscScalar,PetscScalar,PetscVec,PetscScalar*)
 
-    int BVScaleColumn(SlepcBV,PetscInt,PetscScalar)
-    int BVScale(SlepcBV,PetscScalar)
+    PetscErrorCode BVScaleColumn(SlepcBV,PetscInt,PetscScalar)
+    PetscErrorCode BVScale(SlepcBV,PetscScalar)
 
-    int BVNormColumn(SlepcBV,PetscInt,PetscNormType,PetscReal*)
-    int BVNorm(SlepcBV,PetscNormType,PetscReal*)
+    PetscErrorCode BVNormColumn(SlepcBV,PetscInt,PetscNormType,PetscReal*)
+    PetscErrorCode BVNorm(SlepcBV,PetscNormType,PetscReal*)
 
-    int BVOrthogonalizeVec(SlepcBV,PetscVec,PetscScalar*,PetscReal*,PetscBool*)
-    int BVOrthogonalizeColumn(SlepcBV,PetscInt,PetscScalar*,PetscReal*,PetscBool*)
-    int BVOrthonormalizeColumn(SlepcBV,PetscInt,PetscBool,PetscReal*,PetscBool*)
-    int BVOrthogonalize(SlepcBV,PetscMat)
+    PetscErrorCode BVOrthogonalizeVec(SlepcBV,PetscVec,PetscScalar*,PetscReal*,PetscBool*)
+    PetscErrorCode BVOrthogonalizeColumn(SlepcBV,PetscInt,PetscScalar*,PetscReal*,PetscBool*)
+    PetscErrorCode BVOrthonormalizeColumn(SlepcBV,PetscInt,PetscBool,PetscReal*,PetscBool*)
+    PetscErrorCode BVOrthogonalize(SlepcBV,PetscMat)
 
-    int BVCreateFromMat(PetscMat,SlepcBV*)
-    int BVGetMat(SlepcBV,PetscMat*)
-    int BVRestoreMat(SlepcBV,PetscMat*)
+    PetscErrorCode BVCreateFromMat(PetscMat,SlepcBV*)
+    PetscErrorCode BVGetMat(SlepcBV,PetscMat*)
+    PetscErrorCode BVRestoreMat(SlepcBV,PetscMat*)
 
-cdef inline int BV_Sizes(
+cdef inline PetscErrorCode BV_Sizes(
     object size,
     PetscInt *_n,
     PetscInt *_N,
-    ) except -1:
+    ) except PETSC_ERR_PYTHON:
     # unpack and get local and global sizes
     cdef PetscInt n=PETSC_DECIDE, N=PETSC_DECIDE
     cdef object on, oN
@@ -134,4 +134,4 @@ cdef inline int BV_Sizes(
     # return result to the caller
     if _n != NULL: _n[0] = n
     if _N != NULL: _N[0] = N
-    return 0
+    return PETSC_SUCCESS

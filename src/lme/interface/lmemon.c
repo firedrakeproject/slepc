@@ -30,7 +30,7 @@ PetscErrorCode LMEMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscCall(PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric));
   PetscCall(PetscDrawDestroy(&draw));
   *lgctx = lg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -42,7 +42,7 @@ PetscErrorCode LMEMonitor(LME lme,PetscInt it,PetscReal errest)
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) PetscCall((*lme->monitor[i])(lme,it,errest,lme->monitorcontext[i]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -89,7 +89,7 @@ PetscErrorCode LMEMonitorSet(LME lme,PetscErrorCode (*monitor)(LME lme,PetscInt 
   lme->monitor[lme->numbermonitors]           = monitor;
   lme->monitorcontext[lme->numbermonitors]    = (void*)mctx;
   lme->monitordestroy[lme->numbermonitors++]  = monitordestroy;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -119,7 +119,7 @@ PetscErrorCode LMEMonitorCancel(LME lme)
     if (lme->monitordestroy[i]) PetscCall((*lme->monitordestroy[i])(&lme->monitorcontext[i]));
   }
   lme->numbermonitors = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -143,7 +143,7 @@ PetscErrorCode LMEGetMonitorContext(LME lme,void *ctx)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   *(void**)ctx = lme->monitorcontext[0];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -178,7 +178,7 @@ PetscErrorCode LMEMonitorDefault(LME lme,PetscInt its,PetscReal errest,PetscView
   PetscCall(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " LME Error estimate %14.12e\n",its,(double)errest));
   PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)lme)->tablevel));
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -225,7 +225,7 @@ PetscErrorCode LMEMonitorDefaultDrawLG(LME lme,PetscInt its,PetscReal errest,Pet
     PetscCall(PetscDrawLGSave(lg));
   }
   PetscCall(PetscViewerPopFormat(viewer));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -251,5 +251,5 @@ PetscErrorCode LMEMonitorDefaultDrawLGCreate(PetscViewer viewer,PetscViewerForma
   PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
   PetscCall(LMEMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

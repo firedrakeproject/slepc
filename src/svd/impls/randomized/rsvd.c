@@ -44,7 +44,7 @@ PetscErrorCode SVDSetUp_Randomized(SVD svd)
   PetscCall(DSSetType(svd->ds,DSSVD));
   PetscCall(DSAllocate(svd->ds,svd->ncv));
   PetscCall(SVDSetWorkVecs(svd,1,1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode SVDRandomizedResidualNorm(SVD svd,PetscInt i,PetscScalar sigma,PetscReal *res)
@@ -71,7 +71,7 @@ static PetscErrorCode SVDRandomizedResidualNorm(SVD svd,PetscInt i,PetscScalar s
     PetscCall(BVRestoreColumn(svd->U,i,&u));
     *res = SlepcAbs(norm1,norm2);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* If A is a virtual Hermitian transpose, then BVMatMult will fail if PRODUCT_AhB is not implemented */
@@ -85,7 +85,7 @@ static PetscErrorCode BlockMatMult(BV V,Mat A,BV Y,Mat AT)
     if (flg) PetscCall(BVMatMultHermitianTranspose(V,AT,Y));
     else PetscCall(BVMatMult(V,A,Y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_Randomized(SVD svd)
@@ -147,7 +147,7 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     PetscCall(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv));
   } while (svd->reason == SVD_CONVERGED_ITERATING);
   PetscCall(PetscFree(w));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_Randomized(SVD svd)
@@ -155,5 +155,5 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Randomized(SVD svd)
   PetscFunctionBegin;
   svd->ops->setup          = SVDSetUp_Randomized;
   svd->ops->solve          = SVDSolve_Randomized;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

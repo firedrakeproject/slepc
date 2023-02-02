@@ -7,6 +7,9 @@ from petsc4py.PETSc import COMM_WORLD
 # -----------------------------------------------------------------------------
 
 from petsc4py.PETSc cimport MPI_Comm
+from petsc4py.PETSc cimport PetscErrorCode, PetscErrorType
+from petsc4py.PETSc cimport PETSC_SUCCESS, PETSC_ERR_PYTHON
+from petsc4py.PETSc cimport CHKERR
 from petsc4py.PETSc cimport PetscObject, PetscViewer
 from petsc4py.PETSc cimport PetscRandom
 from petsc4py.PETSc cimport PetscVec, PetscMat
@@ -53,29 +56,18 @@ include "allocate.pxi"
 # Vile hack for raising a exception and not contaminating traceback
 
 cdef extern from *:
-    enum: PETSC_ERR_PYTHON
-
-cdef extern from *:
     void PyErr_SetObject(object, object)
     void *PyExc_RuntimeError
 
 cdef object PetscError = <object>PyExc_RuntimeError
 from petsc4py.PETSc import Error as PetscError
 
-cdef inline int SETERR(int ierr) with gil:
+cdef inline PetscErrorCode SETERR(PetscErrorCode ierr) with gil:
     if (<void*>PetscError) != NULL:
         PyErr_SetObject(PetscError, <long>ierr)
     else:
         PyErr_SetObject(<object>PyExc_RuntimeError, <long>ierr)
     return ierr
-
-cdef inline int CHKERR(int ierr) nogil except -1:
-    if ierr == 0:
-        return 0  # no error
-    if ierr == PETSC_ERR_PYTHON:
-        return -1 # Python error
-    SETERR(ierr)
-    return -1
 
 # -----------------------------------------------------------------------------
 
@@ -196,7 +188,7 @@ cdef extern from "stdio.h" nogil:
     FILE *stderr
     int fprintf(FILE *, char *, ...)
 
-cdef int initialize(object args) except -1:
+cdef int initialize(object args) except PETSC_ERR_PYTHON:
     if (<int>SlepcInitializeCalled): return 1
     if (<int>SlepcFinalizeCalled):   return 0
     # initialize SLEPC
@@ -210,7 +202,7 @@ cdef int initialize(object args) except -1:
 from petsc4py.PETSc cimport PyPetscType_Register
 
 cdef extern from *:
-    int SlepcInitializePackageAll()
+    PetscErrorCode SlepcInitializePackageAll()
     ctypedef int PetscClassId
     PetscClassId SLEPC_ST_CLASSID  "ST_CLASSID"
     PetscClassId SLEPC_BV_CLASSID  "BV_CLASSID"
@@ -223,7 +215,7 @@ cdef extern from *:
     PetscClassId SLEPC_NEP_CLASSID "NEP_CLASSID"
     PetscClassId SLEPC_MFN_CLASSID "MFN_CLASSID"
 
-cdef int register(char path[]) except -1:
+cdef PetscErrorCode register(char path[]) except PETSC_ERR_PYTHON:
     # make sure all SLEPc packages are initialized
     CHKERR( SlepcInitializePackageAll() )
     # register Python types
@@ -237,18 +229,18 @@ cdef int register(char path[]) except -1:
     PyPetscType_Register(SLEPC_PEP_CLASSID, PEP)
     PyPetscType_Register(SLEPC_NEP_CLASSID, NEP)
     PyPetscType_Register(SLEPC_MFN_CLASSID, MFN)
-    return 0
+    return PETSC_SUCCESS
 
 cdef void finalize() nogil:
-    cdef int ierr = 0
+    cdef PetscErrorCode ierr = PETSC_SUCCESS
     # manage SLEPc finalization
     if not (<int>SlepcInitializeCalled): return
     if (<int>SlepcFinalizeCalled): return
     # finalize SLEPc
     ierr = SlepcFinalize()
-    if ierr != 0:
+    if ierr != PETSC_SUCCESS:
         fprintf(stderr, "SlepcFinalize() failed "
-                "[error code: %d]\n", ierr)
+                "[error code: %d]\n", <int>ierr)
     # and we are done, see you later !!
 
 # -----------------------------------------------------------------------------

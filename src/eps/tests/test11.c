@@ -146,7 +146,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   }
   PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -177,7 +177,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
     else *r = 0;
   } else if (aisright && !bisright) *r = -1; /* 'a' is on the right */
   else *r = 1;  /* 'b' is on the right */
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

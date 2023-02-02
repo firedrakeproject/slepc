@@ -40,7 +40,7 @@ PetscErrorCode BVFinalizePackage(void)
   PetscCallMPI(MPI_Op_free(&MPIU_LAPY2));
   BVPackageInitialized = PETSC_FALSE;
   BVRegisterAllCalled  = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -59,7 +59,7 @@ PetscErrorCode BVInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (BVPackageInitialized) PetscFunctionReturn(0);
+  if (BVPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   BVPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("Basis Vectors",&BV_CLASSID));
@@ -98,7 +98,7 @@ PetscErrorCode BVInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(BVFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -116,10 +116,10 @@ PetscErrorCode BVInitializePackage(void)
 PetscErrorCode BVDestroy(BV *bv)
 {
   PetscFunctionBegin;
-  if (!*bv) PetscFunctionReturn(0);
+  if (!*bv) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*bv,BV_CLASSID,1);
   PetscCheck(!(*bv)->lsplit,PetscObjectComm((PetscObject)(*bv)),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
-  if (--((PetscObject)(*bv))->refct > 0) { *bv = NULL; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*bv))->refct > 0) { *bv = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscTryTypeMethod(*bv,destroy);
   PetscCall(VecDestroy(&(*bv)->t));
   PetscCall(MatDestroy(&(*bv)->matrix));
@@ -136,7 +136,7 @@ PetscErrorCode BVDestroy(BV *bv)
   PetscCall(MatDestroy(&(*bv)->Abuffer));
   PetscCall(PetscRandomDestroy(&(*bv)->rand));
   PetscCall(PetscHeaderDestroy(bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -217,7 +217,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->data         = NULL;
 
   *newbv = bv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -256,7 +256,7 @@ PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
 
   (*bv)->Acreate = A;
   PetscCall(PetscObjectReference((PetscObject)A));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -295,7 +295,7 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
   PetscCall(VecCopy(w,v));
   PetscCall(BVRestoreColumn(V,j,&v));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -335,7 +335,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
   PetscValidLogicalCollectiveInt(V,s,2);
   PetscValidIntPointer(m,3);
   PetscValidLogicalCollectiveInt(V,*m,3);
-  if (!*m) PetscFunctionReturn(0);
+  if (!*m) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCheck(*m>0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %" PetscInt_FMT ") cannot be negative",*m);
   PetscValidPointer(W,4);
   PetscValidHeaderSpecific(*W,VEC_CLASSID,4);
@@ -365,7 +365,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
   }
   *m -= ndep;
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -411,7 +411,7 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidIntPointer(nc,2);
   PetscValidLogicalCollectiveInt(V,*nc,2);
-  if (!*nc) PetscFunctionReturn(0);
+  if (!*nc) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCheck(*nc>0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %" PetscInt_FMT ") cannot be negative",*nc);
   PetscValidPointer(C,3);
   PetscValidHeaderSpecific(*C,VEC_CLASSID,3);
@@ -430,7 +430,7 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   V->ci[0] = -V->nc-1;
   V->ci[1] = -V->nc-1;
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -457,7 +457,7 @@ PetscErrorCode BVSetOptionsPrefix(BV bv,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscCall(PetscObjectSetOptionsPrefix((PetscObject)bv,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -484,7 +484,7 @@ PetscErrorCode BVAppendOptionsPrefix(BV bv,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)bv,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -513,7 +513,7 @@ PetscErrorCode BVGetOptionsPrefix(BV bv,const char *prefix[])
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)bv,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -596,7 +596,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
     }
   }
   PetscTryTypeMethod(bv,view,viewer);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -618,7 +618,7 @@ PetscErrorCode BVViewFromOptions(BV bv,PetscObject obj,const char name[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscCall(PetscObjectViewFromOptions((PetscObject)bv,obj,name));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -643,7 +643,7 @@ PetscErrorCode BVRegister(const char *name,PetscErrorCode (*function)(BV))
   PetscFunctionBegin;
   PetscCall(BVInitializePackage());
   PetscCall(PetscFunctionListAdd(&BVList,name,function));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BVAllocateWork_Private(BV bv,PetscInt s)
@@ -654,7 +654,7 @@ PetscErrorCode BVAllocateWork_Private(BV bv,PetscInt s)
     PetscCall(PetscMalloc1(s,&bv->work));
     bv->lwork = s;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_USE_DEBUG)
@@ -675,6 +675,6 @@ PETSC_UNUSED PetscErrorCode SlepcDebugBVView(BV bv,PetscInt ini,PetscInt end,con
   PetscCall(BVGetSizes(bv,NULL,&N,&m));
   PetscCall(SlepcDebugViewMatrix(N,end-ini+1,array+ini*N,NULL,N,s,filename));
   PetscCall(BVRestoreArray(bv,&array));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif

@@ -69,7 +69,7 @@ static PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASI
     }
     if (sj==2) j++;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define BLOCKSIZE 64
@@ -146,7 +146,7 @@ PetscErrorCode FNSqrtmSchur(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
 #else
   PetscCall(PetscFree7(wr,rwork,W,Q,work,s,p));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define DBMAXIT 25
@@ -238,7 +238,7 @@ PetscErrorCode FNSqrtmDenmanBeavers(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
   PetscCheck(Mres<=tol,PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations",DBMAXIT);
   PetscCall(PetscFree5(work,piv,Told,M,invM));
   PetscCall(SlepcResetFlushToZero(&ftz));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define NSMAXIT 50
@@ -313,7 +313,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
 
   PetscCall(PetscFree4(Yold,Z,Zold,M));
   PetscCall(SlepcResetFlushToZero(&ftz));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_CUDA)
@@ -408,7 +408,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *d_A,Pe
   PetscCallCUDA(cudaFree(d_Z));
   PetscCallCUDA(cudaFree(d_Zold));
   PetscCallCUDA(cudaFree(d_M));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_MAGMA)
@@ -508,7 +508,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *d_T,
   PetscCallCUDA(cudaFree(d_Told));
   PetscCallCUDA(cudaFree(d_M));
   PetscCallCUDA(cudaFree(d_invM));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_MAGMA */
 
@@ -592,7 +592,7 @@ static PetscErrorCode SlepcNormEst1(PetscBLASInt n,PetscScalar *A,PetscInt m,Pet
   *nrm = est;
   /* Flop count is roughly (it * 2*m * t*gemv) = 4*its*m*t*n*n */
   PetscCall(PetscLogFlops(4.0*it*m*t*n*n));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define SMALLN 100
@@ -640,5 +640,5 @@ PetscErrorCode SlepcNormAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar 
       for (i=0;i<n;i++) if ((tmp = PetscAbsScalar(v[i])) > *nrm) *nrm = tmp;   /* norm(v,inf) */
     } else PetscCall(SlepcNormEst1(n,A,m,work,rand,nrm));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

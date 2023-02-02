@@ -21,7 +21,7 @@ PetscErrorCode FNEvaluateFunction_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
   PetscCheck(x>=0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
 #endif
   *y = PetscSqrtScalar(x);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
@@ -32,7 +32,7 @@ PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
   PetscCheck(x>0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
 #endif
   *y = 1.0/(2.0*PetscSqrtScalar(x));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
@@ -48,7 +48,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmSchur(fn,n,T,n,PETSC_FALSE));
   PetscCall(MatDenseRestoreArray(B,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
@@ -67,7 +67,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
   PetscCall(MatDenseRestoreArray(B,&T));
   PetscCall(MatGetColumnVector(B,v,0));
   PetscCall(FN_FreeWorkMat(fn,&B));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
@@ -83,7 +83,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmDenmanBeavers(fn,n,T,n,PETSC_FALSE));
   PetscCall(MatDenseRestoreArray(B,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
@@ -99,7 +99,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmNewtonSchulz(fn,n,Ba,n,PETSC_FALSE));
   PetscCall(MatDenseRestoreArray(B,&Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define MAXIT 50
@@ -184,7 +184,7 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
 
   PetscCall(PetscFree5(M,M2,G,work,piv));
   PetscCall(SlepcResetFlushToZero(&ftz));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_CUDA)
@@ -289,7 +289,7 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *d_A,PetscB
   PetscCallCUDA(cudaFree(d_G));
   PetscCallCUDA(cudaFree(d_work));
   PetscCall(PetscFree(piv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
@@ -307,7 +307,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmSadeghi(fn,n,Ba,n));
   PetscCall(MatDenseRestoreArray(B,&Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_CUDA)
@@ -324,7 +324,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS_CUDA(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmNewtonSchulz_CUDA(fn,n,Ba,n,PETSC_FALSE));
   PetscCall(MatDenseCUDARestoreArray(B,&Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_MAGMA)
@@ -341,7 +341,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_FALSE));
   PetscCall(MatDenseCUDARestoreArray(B,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
@@ -357,7 +357,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmSadeghi_CUDAm(fn,n,Ba,n));
   PetscCall(MatDenseCUDARestoreArray(B,&Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
@@ -396,7 +396,7 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
     }
     if (fn->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
@@ -417,5 +417,5 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
 #endif /* PETSC_HAVE_CUDA */
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Sqrt_Schur;
   fn->ops->view                      = FNView_Sqrt;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

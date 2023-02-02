@@ -33,7 +33,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   PetscCall(BVGetSizes(pep->V,NULL,NULL,&ld));
   PetscCall(BVGetActiveColumns(pep->V,NULL,&nq));
   k = pep->nconv;
-  if (k==0) PetscFunctionReturn(0);
+  if (k==0) PetscFunctionReturn(PETSC_SUCCESS);
   lds = deg*ld;
   PetscCall(DSGetLeadingDimension(pep->ds,&ldds));
   PetscCall(PetscCalloc5(k,&er,k,&ei,nq*k,&SS,pep->nmat,&vals,pep->nmat,&ivals));
@@ -165,7 +165,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   PetscCall(PetscFree5(er,ei,SS,vals,ivals));
   PetscCall(MatDenseRestoreArrayRead(MS,&S));
   PetscCall(BVTensorRestoreFactors(ctx->V,NULL,&MS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -214,5 +214,5 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
   }
   if (marker!=-1) k = marker;
   *kout = k;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

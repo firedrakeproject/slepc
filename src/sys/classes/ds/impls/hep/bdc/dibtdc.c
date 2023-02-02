@@ -158,7 +158,7 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
   if (*cut < start || *cut >= start + blkct - 1) *info = 6;
   else if (*lsum < 1 || *lsum >= n) *info = 7;
   else if (*lblks < 1 || *lblks >= blkct) *info = 8;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
@@ -768,5 +768,5 @@ L200:
   /* copy ordered eigenvectors back from WORK(N+1:N+1+N^2) into Z */
 
   for (j=0;j<n;j++) for (i=0;i<n;i++) z[i+j*ldz] = work[i+(j+1)*n];
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

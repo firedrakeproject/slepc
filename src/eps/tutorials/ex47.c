@@ -38,7 +38,7 @@ PetscErrorCode MatMult_Sinvert0(Mat S,Vec x,Vec y)
   PetscCall(MatShellGetContext(S,&ctx));
   PetscCall(MatMult(ctx->B,x,ctx->w));
   PetscCall(KSPSolve(ctx->ksp,ctx->w,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

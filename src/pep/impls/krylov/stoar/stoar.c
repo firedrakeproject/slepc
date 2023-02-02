@@ -58,7 +58,7 @@ static PetscErrorCode MatMult_STOAR(Mat A,Vec x,Vec y)
     PetscCall(MatMult(ctx->A[1],x,ctx->t));
     PetscCall(VecAXPY(y,ctx->scal[1],ctx->t));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatDestroy_STOAR(Mat A)
@@ -69,7 +69,7 @@ static PetscErrorCode MatDestroy_STOAR(Mat A)
   PetscCall(MatShellGetContext(A,&ctx));
   PetscCall(VecDestroy(&ctx->t));
   PetscCall(PetscFree(ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
@@ -107,7 +107,7 @@ PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
   PetscCall(BVCreateVec(pep->V,&ctxMat[0]->t));
   PetscCall(MatCreateNest(PetscObjectComm((PetscObject)pep),2,NULL,2,NULL,pB,B));
   for (j=0;j<3;j++) PetscCall(MatDestroy(&Bs[j]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetUp_STOAR(PEP pep)
@@ -161,7 +161,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   PetscCall(BVCreateTensor(pep->V,pep->nmat-1,&ctx->V));
   PetscCall(BVGetOrthogonalization(pep->V,&otype,NULL,&eta,&obtype));
   PetscCall(BVSetOrthogonalization(ctx->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta,obtype));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -278,7 +278,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   PetscCall(BVSetActiveColumns(pep->V,lock,nqt));
   PetscCall(BVSetActiveColumns(ctx->V,0,*M));
   PetscCall(PetscFree(y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if 0
@@ -304,7 +304,7 @@ static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *nor
   PetscCall(VecNorm(w[2],NORM_2,&t2));
   t2 *= pep->sfactor*pep->sfactor;
   *norm = PetscMax(*norm,SlepcAbs(t1,t2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -468,7 +468,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   if (pep->sfactor!=1.0) PetscCall(RGPopScale(pep->rg));
 
   PetscCall(DSTruncate(pep->ds,pep->nconv,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetFromOptions_STOAR(PEP pep,PetscOptionItems *PetscOptionsObject)
@@ -504,7 +504,7 @@ PetscErrorCode PEPSetFromOptions_STOAR(PEP pep,PetscOptionItems *PetscOptionsObj
     if (flg) PetscCall(PEPSTOARSetCheckEigenvalueType(pep,b));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARSetLocking_STOAR(PEP pep,PetscBool lock)
@@ -513,7 +513,7 @@ static PetscErrorCode PEPSTOARSetLocking_STOAR(PEP pep,PetscBool lock)
 
   PetscFunctionBegin;
   ctx->lock = lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -545,7 +545,7 @@ PetscErrorCode PEPSTOARSetLocking(PEP pep,PetscBool lock)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,lock,2);
   PetscTryMethod(pep,"PEPSTOARSetLocking_C",(PEP,PetscBool),(pep,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARGetLocking_STOAR(PEP pep,PetscBool *lock)
@@ -554,7 +554,7 @@ static PetscErrorCode PEPSTOARGetLocking_STOAR(PEP pep,PetscBool *lock)
 
   PetscFunctionBegin;
   *lock = ctx->lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -578,7 +578,7 @@ PetscErrorCode PEPSTOARGetLocking(PEP pep,PetscBool *lock)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(lock,2);
   PetscUseMethod(pep,"PEPSTOARGetLocking_C",(PEP,PetscBool*),(pep,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARGetInertias_STOAR(PEP pep,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
@@ -620,7 +620,7 @@ static PetscErrorCode PEPSTOARGetInertias_STOAR(PEP pep,PetscInt *n,PetscReal **
     }
     break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -673,7 +673,7 @@ PetscErrorCode PEPSTOARGetInertias(PEP pep,PetscInt *n,PetscReal **shifts,PetscI
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidIntPointer(n,2);
   PetscUseMethod(pep,"PEPSTOARGetInertias_C",(PEP,PetscInt*,PetscReal**,PetscInt**),(pep,n,shifts,inertias));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARSetDetectZeros_STOAR(PEP pep,PetscBool detect)
@@ -683,7 +683,7 @@ static PetscErrorCode PEPSTOARSetDetectZeros_STOAR(PEP pep,PetscBool detect)
   PetscFunctionBegin;
   ctx->detect = detect;
   pep->state  = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -717,7 +717,7 @@ PetscErrorCode PEPSTOARSetDetectZeros(PEP pep,PetscBool detect)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,detect,2);
   PetscTryMethod(pep,"PEPSTOARSetDetectZeros_C",(PEP,PetscBool),(pep,detect));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARGetDetectZeros_STOAR(PEP pep,PetscBool *detect)
@@ -726,7 +726,7 @@ static PetscErrorCode PEPSTOARGetDetectZeros_STOAR(PEP pep,PetscBool *detect)
 
   PetscFunctionBegin;
   *detect = ctx->detect;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -751,7 +751,7 @@ PetscErrorCode PEPSTOARGetDetectZeros(PEP pep,PetscBool *detect)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(detect,2);
   PetscUseMethod(pep,"PEPSTOARGetDetectZeros_C",(PEP,PetscBool*),(pep,detect));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARSetLinearization_STOAR(PEP pep,PetscReal alpha,PetscReal beta)
@@ -762,7 +762,7 @@ static PetscErrorCode PEPSTOARSetLinearization_STOAR(PEP pep,PetscReal alpha,Pet
   PetscCheck(beta!=0.0 || alpha!=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
   ctx->alpha = alpha;
   ctx->beta  = beta;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -794,7 +794,7 @@ PetscErrorCode PEPSTOARSetLinearization(PEP pep,PetscReal alpha,PetscReal beta)
   PetscValidLogicalCollectiveReal(pep,alpha,2);
   PetscValidLogicalCollectiveReal(pep,beta,3);
   PetscTryMethod(pep,"PEPSTOARSetLinearization_C",(PEP,PetscReal,PetscReal),(pep,alpha,beta));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARGetLinearization_STOAR(PEP pep,PetscReal *alpha,PetscReal *beta)
@@ -804,7 +804,7 @@ static PetscErrorCode PEPSTOARGetLinearization_STOAR(PEP pep,PetscReal *alpha,Pe
   PetscFunctionBegin;
   if (alpha) *alpha = ctx->alpha;
   if (beta)  *beta  = ctx->beta;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -829,7 +829,7 @@ PetscErrorCode PEPSTOARGetLinearization(PEP pep,PetscReal *alpha,PetscReal *beta
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscUseMethod(pep,"PEPSTOARGetLinearization_C",(PEP,PetscReal*,PetscReal*),(pep,alpha,beta));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
@@ -852,7 +852,7 @@ static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt 
     ctx->mpd = mpd;
   }
   pep->state = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -885,7 +885,7 @@ PetscErrorCode PEPSTOARSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt 
   PetscValidLogicalCollectiveInt(pep,ncv,3);
   PetscValidLogicalCollectiveInt(pep,mpd,4);
   PetscTryMethod(pep,"PEPSTOARSetDimensions_C",(PEP,PetscInt,PetscInt,PetscInt),(pep,nev,ncv,mpd));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARGetDimensions_STOAR(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
@@ -896,7 +896,7 @@ static PetscErrorCode PEPSTOARGetDimensions_STOAR(PEP pep,PetscInt *nev,PetscInt
   if (nev) *nev = ctx->nev;
   if (ncv) *ncv = ctx->ncv;
   if (mpd) *mpd = ctx->mpd;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -922,7 +922,7 @@ PetscErrorCode PEPSTOARGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscIn
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscUseMethod(pep,"PEPSTOARGetDimensions_C",(PEP,PetscInt*,PetscInt*,PetscInt*),(pep,nev,ncv,mpd));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARSetCheckEigenvalueType_STOAR(PEP pep,PetscBool checket)
@@ -932,7 +932,7 @@ static PetscErrorCode PEPSTOARSetCheckEigenvalueType_STOAR(PEP pep,PetscBool che
   PetscFunctionBegin;
   ctx->checket = checket;
   pep->state   = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -969,7 +969,7 @@ PetscErrorCode PEPSTOARSetCheckEigenvalueType(PEP pep,PetscBool checket)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,checket,2);
   PetscTryMethod(pep,"PEPSTOARSetCheckEigenvalueType_C",(PEP,PetscBool),(pep,checket));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPSTOARGetCheckEigenvalueType_STOAR(PEP pep,PetscBool *checket)
@@ -978,7 +978,7 @@ static PetscErrorCode PEPSTOARGetCheckEigenvalueType_STOAR(PEP pep,PetscBool *ch
 
   PetscFunctionBegin;
   *checket = ctx->checket;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1003,7 +1003,7 @@ PetscErrorCode PEPSTOARGetCheckEigenvalueType(PEP pep,PetscBool *checket)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(checket,2);
   PetscUseMethod(pep,"PEPSTOARGetCheckEigenvalueType_C",(PEP,PetscBool*),(pep,checket));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
@@ -1018,14 +1018,14 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
     PetscCall(PetscViewerASCIIPrintf(viewer,"  linearization parameters: alpha=%g beta=%g\n",(double)ctx->alpha,(double)ctx->beta));
     if (pep->which==PEP_ALL && !ctx->hyperbolic) PetscCall(PetscViewerASCIIPrintf(viewer,"  checking eigenvalue type: %s\n",ctx->checket?"enabled":"disabled"));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPReset_STOAR(PEP pep)
 {
   PetscFunctionBegin;
   if (pep->which==PEP_ALL) PetscCall(PEPReset_STOAR_QSlice(pep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPDestroy_STOAR(PEP pep)
@@ -1046,7 +1046,7 @@ PetscErrorCode PEPDestroy_STOAR(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLinearization_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetCheckEigenvalueType_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetCheckEigenvalueType_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
@@ -1086,5 +1086,5 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLinearization_C",PEPSTOARGetLinearization_STOAR));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetCheckEigenvalueType_C",PEPSTOARSetCheckEigenvalueType_STOAR));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetCheckEigenvalueType_C",PEPSTOARGetCheckEigenvalueType_STOAR));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

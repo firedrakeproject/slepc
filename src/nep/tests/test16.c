@@ -181,7 +181,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
     PetscCall(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY));
     PetscCall(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* ------------------------------------------------------------------- */
@@ -247,7 +247,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   */
   PetscCall(MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -272,7 +272,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
     else if (a<b) *r = -1;
     else *r = 0;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

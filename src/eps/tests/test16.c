@@ -20,7 +20,7 @@ PetscErrorCode MyConvergedAbsolute(EPS eps,PetscScalar eigr,PetscScalar eigi,Pet
 {
   PetscFunctionBegin;
   *errest = (PetscRealPart(eigr)<0.0)?res:100*res;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

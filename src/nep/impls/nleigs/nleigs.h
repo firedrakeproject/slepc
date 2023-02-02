@@ -59,7 +59,7 @@ static inline PetscErrorCode NEPNLEIGSSetShifts(NEP nep,PetscInt *nshiftsw)
     ctx->shifts = &nep->target;
     *nshiftsw = 1;
   } else *nshiftsw = ctx->nshifts;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_INTERN PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP);

@@ -48,7 +48,7 @@ PetscErrorCode LMEDenseRankSVD(LME lme,PetscInt n,PetscScalar *A,PetscInt lda,Pe
   }
   *rank = rk;
   PetscCall(PetscFree3(sg,work,rwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_USE_INFO)
@@ -80,7 +80,7 @@ static PetscErrorCode LyapunovCholResidual(PetscInt m,PetscScalar *A,PetscInt ld
 
   *res = LAPACKlange_("F",&n,&n,R,&n,NULL);
   PetscCall(PetscFree2(M,R));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -108,7 +108,7 @@ static PetscErrorCode LyapunovResidual(PetscInt m,PetscScalar *A,PetscInt lda,Pe
 
   *res = LAPACKlange_("F",&n,&n,R,&n,NULL);
   PetscCall(PetscFree(R));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -163,7 +163,7 @@ static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt
 
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscFree5(W,Q,wr,wi,work));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #else
@@ -204,7 +204,7 @@ static PetscErrorCode CholeskyFactor(PetscInt m,PetscScalar *A,PetscInt lda)
   for (i=0;i<m-1;i++) PetscCall(PetscArrayzero(A+i*lda+i+1,m-i-1));
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscFree(S));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -279,7 +279,7 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 #else
   PetscCall(PetscFree5(Q,W,Z,wr,work));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #endif /* SLEPC_HAVE_SLICOT */
@@ -346,7 +346,7 @@ PetscErrorCode LMEDenseHessLyapunovChol(LME lme,PetscInt m,PetscScalar *H,PetscI
     PetscCall(PetscInfo(lme,"Residual norm of dense Lyapunov equation = %g\n",(double)error));
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(SLEPC_HAVE_SLICOT)
@@ -388,7 +388,7 @@ static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,Pet
 
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscFree6(W,Q,wr,wi,iwork,work));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #else
@@ -453,7 +453,7 @@ static PetscErrorCode Lyapunov_LAPACK(PetscInt m,PetscScalar *A,PetscInt lda,Pet
 #else
   PetscCall(PetscFree6(Q,W,Z,wr,work,rwork));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #endif /* SLEPC_HAVE_SLICOT */
@@ -512,5 +512,5 @@ PetscErrorCode LMEDenseLyapunov(LME lme,PetscInt m,PetscScalar *A,PetscInt lda,P
     PetscCall(PetscInfo(lme,"Residual norm of dense Lyapunov equation = %g\n",(double)error));
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

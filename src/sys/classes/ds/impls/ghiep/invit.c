@@ -44,14 +44,14 @@ static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *
   if (x2==0.0) {
     *r = PetscAbsReal(x1); *c = (x1>=0.0)?1.0:-1.0; *s = 0.0;
     if (type) *type = 1;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   if (PetscAbsReal(x1) == PetscAbsReal(x2)) {
     /* hyperbolic rotation doesn't exist */
     *c = *s = *r = 0.0;
     if (type) *type = 0;
     *cond = PETSC_MAX_REAL;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   if (PetscAbsReal(x1)>PetscAbsReal(x2)) {
@@ -67,7 +67,7 @@ static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *
   if (type_ == 2) *r *= -1;
   if (type) *type = type_;
   if (cond) *cond = (PetscAbsReal(*c) + PetscAbsReal(*s))/PetscAbsReal(PetscAbsReal(*c) - PetscAbsReal(*s));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -97,7 +97,7 @@ static PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScal
       x2[i*inc2] = t*x1[i*inc1] + tmp/s;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -127,7 +127,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
       Q[0] = Q[1+ldq] = 1;
       Q[1] = Q[ldq] = 0;
     }
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   PetscCall(PetscBLASIntCast(lda,&lda_));
   PetscCall(PetscBLASIntCast(n,&n_));
@@ -271,7 +271,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
     s[n-1] = ss[n-1];
     d[n-1] = PetscRealPart(A[n-1 + (n-1)*lda]);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,PetscInt idx1,PetscInt n1,struct HRtr *tr1,struct HRtr *tr2,PetscReal *ncond,PetscScalar *work)
@@ -333,7 +333,7 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
     }
     if (ncond2>*ncond) *ncond = ncond2;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -477,7 +477,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
       (*n1)--; (*idx1)++; *idx0 = *idx1;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -566,7 +566,7 @@ PetscErrorCode DSPseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscR
     if (breakdown) *breakdown = PETSC_TRUE;
     *nv = n-k;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScalar *wi,PetscBool accum)
@@ -668,7 +668,7 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   ds->t = nv+l;
   PetscCall(MatDenseRestoreArray(ds->omat[mat],&X));
   if (!ds->compact) PetscCall(DSSwitchFormat_GHIEP(ds,PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -718,5 +718,5 @@ PetscErrorCode DSIntermediate_GHIEP(DS ds)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

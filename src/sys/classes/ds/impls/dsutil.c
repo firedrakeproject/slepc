@@ -42,7 +42,7 @@ PetscErrorCode DSSolve_NHEP_Private(DS ds,DSMatType mA,DSMatType mQ,PetscScalar 
   if (n==1) { /* quick return */
     wr[0] = A[0];
     if (wi) wi[0] = 0.0;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   /* reduce to upper Hessenberg form */
@@ -83,7 +83,7 @@ PetscErrorCode DSSolve_NHEP_Private(DS ds,DSMatType mA,DSMatType mQ,PetscScalar 
   SlepcCheckLapackInfo("hseqr",info);
   PetscCall(MatDenseRestoreArray(ds->omat[mA],&A));
   PetscCall(MatDenseRestoreArray(ds->omat[mQ],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -167,7 +167,7 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,DSMatType mT,DSMatType mQ,PetscScalar *wr
   }
   PetscCall(MatDenseRestoreArray(ds->omat[mT],&T));
   PetscCall(MatDenseRestoreArray(ds->omat[mQ],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -233,5 +233,5 @@ PetscErrorCode DSSortWithPermutation_NHEP_Private(DS ds,PetscInt *perm,DSMatType
   }
   PetscCall(MatDenseRestoreArray(ds->omat[mT],&T));
   PetscCall(MatDenseRestoreArray(ds->omat[mQ],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

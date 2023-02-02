@@ -22,7 +22,7 @@ PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   for (j=0;j<n;j++) {
     eigr[j] += st->sigma;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STPostSolve_Shift(ST st)
@@ -35,7 +35,7 @@ PetscErrorCode STPostSolve_Shift(ST st)
     st->state   = ST_STATE_INITIAL;
     st->opready = PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -61,7 +61,7 @@ PetscErrorCode STComputeOperator_Shift(ST st)
     PetscCall(PetscObjectReference((PetscObject)st->Psplit[1]));
     st->Pmat = st->Psplit[1];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STSetUp_Shift(ST st)
@@ -100,7 +100,7 @@ PetscErrorCode STSetUp_Shift(ST st)
     }
   }
   if (st->P) PetscCall(KSPSetUp(st->ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
@@ -120,7 +120,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
     if (st->matmode == ST_MATMODE_COPY && nmat>2) PetscCall(PetscFree(coeffs));
     if (st->nmat<=2) st->M = st->T[0];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode STCreate_Shift(ST st)
@@ -137,5 +137,5 @@ SLEPC_EXTERN PetscErrorCode STCreate_Shift(ST st)
   st->ops->computeoperator = STComputeOperator_Shift;
   st->ops->postsolve       = STPostSolve_Shift;
   st->ops->setdefaultksp   = STSetDefaultKSP_Default;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

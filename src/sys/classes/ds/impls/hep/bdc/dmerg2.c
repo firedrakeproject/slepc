@@ -211,7 +211,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
   /* Quick return if possible */
 
-  if (n == 0) PetscFunctionReturn(0);
+  if (n == 0) PetscFunctionReturn(PETSC_SUCCESS);
 
 /* **************************************************************************** */
 
@@ -349,5 +349,5 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
     for (i = 0; i < n; ++i) indxq[i] = i+1;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

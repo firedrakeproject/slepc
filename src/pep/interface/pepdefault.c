@@ -45,7 +45,7 @@ PetscErrorCode PEPSetWorkVecs(PEP pep,PetscInt nw)
     PetscCall(VecDuplicateVecs(t,nw,&pep->work));
     PetscCall(BVRestoreColumn(pep->V,0,&t));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -58,7 +58,7 @@ PetscErrorCode PEPConvergedRelative(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
   *errest = res/w;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -84,7 +84,7 @@ PetscErrorCode PEPConvergedNorm(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscR
     w = w*t+pep->nrma[j];
   }
   *errest = res/w;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -99,7 +99,7 @@ PetscErrorCode PEPSetWhichEigenpairs_Default(PEP pep)
   PetscCall(PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&target));
   if (target) pep->which = PEP_TARGET_MAGNITUDE;
   else pep->which = PEP_LARGEST_MAGNITUDE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -109,7 +109,7 @@ PetscErrorCode PEPConvergedAbsolute(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
 {
   PetscFunctionBegin;
   *errest = res;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -155,14 +155,14 @@ PetscErrorCode PEPStoppingBasic(PEP pep,PetscInt its,PetscInt max_it,PetscInt nc
     *reason = PEP_DIVERGED_ITS;
     PetscCall(PetscInfo(pep,"Polynomial eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPBackTransform_Default(PEP pep)
 {
   PetscFunctionBegin;
   PetscCall(STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPComputeVectors_Default(PEP pep)
@@ -184,7 +184,7 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
 
   /* normalization */
   PetscCall(BVNormalize(pep->V,pep->eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -323,7 +323,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   PetscCall(MatDestroy(&M));
   PetscCall(PetscFree4(rsum,csum,aux,cols));
   PetscCall(PetscFree(T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -341,9 +341,9 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
   if (pep->scale==PEP_SCALE_NONE || pep->scale==PEP_SCALE_DIAGONAL) {  /* no scalar scaling */
     pep->sfactor = 1.0;
     pep->dsfactor = 1.0;
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
-  if (pep->sfactor_set) PetscFunctionReturn(0);  /* user provided value */
+  if (pep->sfactor_set) PetscFunctionReturn(PETSC_SUCCESS);  /* user provided value */
   pep->sfactor = 1.0;
   pep->dsfactor = 1.0;
   PetscCall(PEPGetBasis(pep,&basis));
@@ -379,7 +379,7 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
       }
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -431,5 +431,5 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
     }
     break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

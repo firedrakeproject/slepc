@@ -86,7 +86,7 @@ static PetscErrorCode NEPContourDSComputeMatrix(DS ds,PetscScalar lambda,PetscBo
   PetscCall(DSGetMat(ds,mat,&M));
   PetscCall(BVMatProject(proj->Q,fun,proj->Q,M));
   PetscCall(DSRestoreMat(ds,mat,&M));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPComputeFunctionSubcomm(NEP nep,PetscScalar lambda,Mat T,Mat P,PetscBool deriv)
@@ -105,7 +105,7 @@ static PetscErrorCode NEPComputeFunctionSubcomm(NEP nep,PetscScalar lambda,Mat T
     PetscCall(MatAXPY(T,alpha,ctx->contour->pA[i],nep->mstr));
     if (!deriv && T != P) PetscCall(MatAXPY(P,alpha,ctx->contour->pP[i],nep->mstrp));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -132,7 +132,7 @@ static PetscErrorCode NEPCISSSetUp(NEP nep,Mat T,Mat P)
     PetscCall(MatDestroy(&Amat));
     if (T != P) PetscCall(MatDestroy(&Pmat));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -166,7 +166,7 @@ static PetscErrorCode NEPCISSSolve(NEP nep,Mat dT,BV V,PetscInt L_start,PetscInt
   }
   PetscCall(MatDestroy(&BMV));
   PetscCall(BVRestoreMat(V,&MV));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSetUp_CISS(NEP nep)
@@ -268,7 +268,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscCall(DSAllocate(nep->ds,nep->ncv));
   nwork = (nep->fui==NEP_USER_INTERFACE_SPLIT)? 2: 1;
   PetscCall(NEPSetWorkVecs(nep,nwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSolve_CISS(NEP nep)
@@ -494,7 +494,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   }
   PetscCall(PetscFree2(Mu,H0));
   if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) PetscCall(PetscFree(H1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
@@ -549,7 +549,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
   }
   ctx->isreal = realmats;
   if (oL != ctx->L || oM != ctx->M || oLmax != ctx->L_max) nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -598,7 +598,7 @@ PetscErrorCode NEPCISSSetSizes(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,Petsc
   PetscValidLogicalCollectiveInt(nep,bsmax,6);
   PetscValidLogicalCollectiveBool(nep,realmats,7);
   PetscTryMethod(nep,"NEPCISSSetSizes_C",(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(nep,ip,bs,ms,npart,bsmax,realmats));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
@@ -612,7 +612,7 @@ static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,Pet
   if (npart) *npart = ctx->npart;
   if (bsmax) *bsmax = ctx->L_max;
   if (realmats) *realmats = ctx->isreal;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -640,7 +640,7 @@ PetscErrorCode NEPCISSGetSizes(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,Pe
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscUseMethod(nep,"NEPCISSGetSizes_C",(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(nep,ip,bs,ms,npart,bsmax,realmats));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal spur)
@@ -660,7 +660,7 @@ static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal
     PetscCheck(spur>0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
     ctx->spurious_threshold = spur;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -689,7 +689,7 @@ PetscErrorCode NEPCISSSetThreshold(NEP nep,PetscReal delta,PetscReal spur)
   PetscValidLogicalCollectiveReal(nep,delta,2);
   PetscValidLogicalCollectiveReal(nep,spur,3);
   PetscTryMethod(nep,"NEPCISSSetThreshold_C",(NEP,PetscReal,PetscReal),(nep,delta,spur));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPCISSGetThreshold_CISS(NEP nep,PetscReal *delta,PetscReal *spur)
@@ -699,7 +699,7 @@ static PetscErrorCode NEPCISSGetThreshold_CISS(NEP nep,PetscReal *delta,PetscRea
   PetscFunctionBegin;
   if (delta) *delta = ctx->delta;
   if (spur)  *spur = ctx->spurious_threshold;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -724,7 +724,7 @@ PetscErrorCode NEPCISSGetThreshold(NEP nep,PetscReal *delta,PetscReal *spur)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscUseMethod(nep,"NEPCISSGetThreshold_C",(NEP,PetscReal*,PetscReal*),(nep,delta,spur));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt blsize)
@@ -744,7 +744,7 @@ static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt 
     PetscCheck(blsize>=0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine blocksize argument must be >= 0");
     ctx->refine_blocksize = blsize;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -773,7 +773,7 @@ PetscErrorCode NEPCISSSetRefinement(NEP nep,PetscInt inner,PetscInt blsize)
   PetscValidLogicalCollectiveInt(nep,inner,2);
   PetscValidLogicalCollectiveInt(nep,blsize,3);
   PetscTryMethod(nep,"NEPCISSSetRefinement_C",(NEP,PetscInt,PetscInt),(nep,inner,blsize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPCISSGetRefinement_CISS(NEP nep,PetscInt *inner,PetscInt *blsize)
@@ -783,7 +783,7 @@ static PetscErrorCode NEPCISSGetRefinement_CISS(NEP nep,PetscInt *inner,PetscInt
   PetscFunctionBegin;
   if (inner)  *inner = ctx->refine_inner;
   if (blsize) *blsize = ctx->refine_blocksize;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -808,7 +808,7 @@ PetscErrorCode NEPCISSGetRefinement(NEP nep, PetscInt *inner, PetscInt *blsize)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscUseMethod(nep,"NEPCISSGetRefinement_C",(NEP,PetscInt*,PetscInt*),(nep,inner,blsize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPCISSSetExtraction_CISS(NEP nep,NEPCISSExtraction extraction)
@@ -820,7 +820,7 @@ static PetscErrorCode NEPCISSSetExtraction_CISS(NEP nep,NEPCISSExtraction extrac
     ctx->extraction = extraction;
     nep->state      = NEP_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -852,7 +852,7 @@ PetscErrorCode NEPCISSSetExtraction(NEP nep,NEPCISSExtraction extraction)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(nep,extraction,2);
   PetscTryMethod(nep,"NEPCISSSetExtraction_C",(NEP,NEPCISSExtraction),(nep,extraction));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPCISSGetExtraction_CISS(NEP nep,NEPCISSExtraction *extraction)
@@ -861,7 +861,7 @@ static PetscErrorCode NEPCISSGetExtraction_CISS(NEP nep,NEPCISSExtraction *extra
 
   PetscFunctionBegin;
   *extraction = ctx->extraction;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -885,7 +885,7 @@ PetscErrorCode NEPCISSGetExtraction(NEP nep,NEPCISSExtraction *extraction)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(extraction,2);
   PetscUseMethod(nep,"NEPCISSGetExtraction_C",(NEP,NEPCISSExtraction*),(nep,extraction));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPCISSGetKSPs_CISS(NEP nep,PetscInt *nsolve,KSP **ksp)
@@ -925,7 +925,7 @@ static PetscErrorCode NEPCISSGetKSPs_CISS(NEP nep,PetscInt *nsolve,KSP **ksp)
   }
   if (nsolve) *nsolve = contour->npoints;
   if (ksp)    *ksp    = contour->ksp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -955,7 +955,7 @@ PetscErrorCode NEPCISSGetKSPs(NEP nep,PetscInt *nsolve,KSP **ksp)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscUseMethod(nep,"NEPCISSGetKSPs_C",(NEP,PetscInt*,KSP**),(nep,nsolve,ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPReset_CISS(NEP nep)
@@ -970,7 +970,7 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   PetscCall(MatDestroy(&ctx->J));
   PetscCall(BVDestroy(&ctx->pV));
   if (ctx->extraction == NEP_CISS_EXTRACTION_RITZ && nep->fui==NEP_USER_INTERFACE_CALLBACK) PetscCall(PetscFree(ctx->dsctxf));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSetFromOptions_CISS(NEP nep,PetscOptionItems *PetscOptionsObject)
@@ -1014,7 +1014,7 @@ PetscErrorCode NEPSetFromOptions_CISS(NEP nep,PetscOptionItems *PetscOptionsObje
   PetscAssert(ctx->contour && ctx->contour->ksp,PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Something went wrong with NEPCISSGetKSPs()");
   for (i=0;i<ctx->contour->npoints;i++) PetscCall(KSPSetFromOptions(ctx->contour->ksp[i]));
   PetscCall(PetscSubcommSetFromOptions(ctx->contour->subcomm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDestroy_CISS(NEP nep)
@@ -1034,7 +1034,7 @@ PetscErrorCode NEPDestroy_CISS(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetExtraction_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetExtraction_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetKSPs_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
@@ -1065,7 +1065,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     } else PetscCall(KSPView(ctx->contour->ksp[0],viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSetDSType_CISS(NEP nep)
@@ -1078,7 +1078,7 @@ PetscErrorCode NEPSetDSType_CISS(NEP nep)
     case NEP_CISS_EXTRACTION_HANKEL: PetscCall(DSSetType(nep->ds,DSGNHEP)); break;
     case NEP_CISS_EXTRACTION_CAA:    PetscCall(DSSetType(nep->ds,DSNHEP)); break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
@@ -1117,5 +1117,5 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetExtraction_C",NEPCISSSetExtraction_CISS));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetExtraction_C",NEPCISSGetExtraction_CISS));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetKSPs_C",NEPCISSGetKSPs_CISS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

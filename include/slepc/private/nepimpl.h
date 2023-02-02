@@ -229,7 +229,7 @@ static inline PetscErrorCode NEP_KSPSetOperators(KSP ksp,Mat A,Mat B)
     PetscCall(KSPGetOptionsPrefix(ksp,&prefix));
     PetscCall(MatSetOptionsPrefix(B,prefix));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_INTERN PetscErrorCode NEPSetDimensions_Default(NEP,PetscInt,PetscInt*,PetscInt*);

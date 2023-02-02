@@ -59,7 +59,7 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
     else if (!inside[0] && inside[1]) *res = 1;
     else PetscCall((*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx));
   } else PetscCall((*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -136,7 +136,7 @@ PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,Pets
 #endif
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -146,7 +146,7 @@ PetscErrorCode SlepcMap_ST(PetscObject obj,PetscInt n,PetscScalar* eigr,PetscSca
 {
   PetscFunctionBegin;
   PetscCall(STBackTransform((ST)obj,n,eigr,eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
@@ -159,7 +159,7 @@ PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar ar,PetscScalar ai,PetscS
   if (a<b) *result = 1;
   else if (a>b) *result = -1;
   else *result = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
@@ -172,7 +172,7 @@ PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar ar,PetscScalar ai,Petsc
   if (a>b) *result = 1;
   else if (a<b) *result = -1;
   else *result = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SlepcCompareLargestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
@@ -185,7 +185,7 @@ PetscErrorCode SlepcCompareLargestReal(PetscScalar ar,PetscScalar ai,PetscScalar
   if (a<b) *result = 1;
   else if (a>b) *result = -1;
   else *result = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SlepcCompareSmallestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
@@ -198,7 +198,7 @@ PetscErrorCode SlepcCompareSmallestReal(PetscScalar ar,PetscScalar ai,PetscScala
   if (a>b) *result = 1;
   else if (a<b) *result = -1;
   else *result = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SlepcCompareLargestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
@@ -216,7 +216,7 @@ PetscErrorCode SlepcCompareLargestImaginary(PetscScalar ar,PetscScalar ai,PetscS
   if (a<b) *result = 1;
   else if (a>b) *result = -1;
   else *result = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
@@ -234,7 +234,7 @@ PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar ar,PetscScalar ai,Petsc
   if (a>b) *result = 1;
   else if (a<b) *result = -1;
   else *result = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
@@ -249,7 +249,7 @@ PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar ar,PetscScalar ai,PetscSc
   if (a>b) *result = 1;
   else if (a<b) *result = -1;
   else *result = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SlepcCompareTargetReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
@@ -263,7 +263,7 @@ PetscErrorCode SlepcCompareTargetReal(PetscScalar ar,PetscScalar ai,PetscScalar 
   if (a>b) *result = 1;
   else if (a<b) *result = -1;
   else *result = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_USE_COMPLEX)
@@ -278,7 +278,7 @@ PetscErrorCode SlepcCompareTargetImaginary(PetscScalar ar,PetscScalar ai,PetscSc
   if (a>b) *result = 1;
   else if (a<b) *result = -1;
   else *result = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -304,5 +304,5 @@ PetscErrorCode SlepcCompareSmallestPosReal(PetscScalar ar,PetscScalar ai,PetscSc
     else *result = 0;
   } else if (aisright && !bisright) *result = -1; /* 'a' is on the right */
   else *result = 1;  /* 'b' is on the right */
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

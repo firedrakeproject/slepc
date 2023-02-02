@@ -152,14 +152,14 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y)
 
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
 {
   PetscFunctionBeginUser;
   PetscCall(VecSet(diag,4.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

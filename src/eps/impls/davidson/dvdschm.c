@@ -43,7 +43,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
       PetscCall(dvd_improvex_jd_lit_const(d,b,0,0.0,0.0));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,PetscBool orth,PetscBool dynamic,PetscBool doubleexp)
@@ -79,5 +79,5 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
 
   check_sum1 = DVD_CHECKSUM(b);
   PetscAssert(check_sum0==check_sum1,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Something awful happened");
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

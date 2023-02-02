@@ -41,7 +41,7 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
     PetscCheck(q!=0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
     *y = p/q;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -63,7 +63,7 @@ static PetscErrorCode EvaluatePoly(Mat A,Mat P,Mat W,PetscInt d,PetscScalar *coe
       PetscCall(MatShift(P,coeff[j]));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
@@ -95,7 +95,7 @@ PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
     PetscCall(MatDestroy(&P));
   }
   PetscCall(MatDestroy(&W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
@@ -127,7 +127,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
 
   PetscCall(MatDestroy(&P));
   PetscCall(MatDestroy(&W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp)
@@ -159,7 +159,7 @@ PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp
     PetscCheck(q!=0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
     *yp = (pp*q-p*qp)/(q*q);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
@@ -224,7 +224,7 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
       PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscScalar *pcoeff)
@@ -240,7 +240,7 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
     PetscCall(PetscMalloc1(np,&ctx->pcoeff));
     for (i=0;i<np;i++) ctx->pcoeff[i] = pcoeff[i];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -274,7 +274,7 @@ PetscErrorCode FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff)
   PetscValidLogicalCollectiveInt(fn,np,2);
   if (np) PetscValidScalarPointer(pcoeff,3);
   PetscTryMethod(fn,"FNRationalSetNumerator_C",(FN,PetscInt,PetscScalar*),(fn,np,pcoeff));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FNRationalGetNumerator_Rational(FN fn,PetscInt *np,PetscScalar *pcoeff[])
@@ -291,7 +291,7 @@ static PetscErrorCode FNRationalGetNumerator_Rational(FN fn,PetscInt *np,PetscSc
       for (i=0;i<ctx->np;i++) (*pcoeff)[i] = ctx->pcoeff[i];
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -321,7 +321,7 @@ PetscErrorCode FNRationalGetNumerator(FN fn,PetscInt *np,PetscScalar *pcoeff[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscUseMethod(fn,"FNRationalGetNumerator_C",(FN,PetscInt*,PetscScalar**),(fn,np,pcoeff));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscScalar *qcoeff)
@@ -337,7 +337,7 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
     PetscCall(PetscMalloc1(nq,&ctx->qcoeff));
     for (i=0;i<nq;i++) ctx->qcoeff[i] = qcoeff[i];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -371,7 +371,7 @@ PetscErrorCode FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff)
   PetscValidLogicalCollectiveInt(fn,nq,2);
   if (nq) PetscValidScalarPointer(qcoeff,3);
   PetscTryMethod(fn,"FNRationalSetDenominator_C",(FN,PetscInt,PetscScalar*),(fn,nq,qcoeff));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,PetscScalar *qcoeff[])
@@ -388,7 +388,7 @@ static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,Petsc
       for (i=0;i<ctx->nq;i++) (*qcoeff)[i] = ctx->qcoeff[i];
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -418,7 +418,7 @@ PetscErrorCode FNRationalGetDenominator(FN fn,PetscInt *nq,PetscScalar *qcoeff[]
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscUseMethod(fn,"FNRationalGetDenominator_C",(FN,PetscInt*,PetscScalar**),(fn,nq,qcoeff));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNSetFromOptions_Rational(FN fn,PetscOptionItems *PetscOptionsObject)
@@ -442,7 +442,7 @@ PetscErrorCode FNSetFromOptions_Rational(FN fn,PetscOptionItems *PetscOptionsObj
     if (flg) PetscCall(FNRationalSetDenominator(fn,k,array));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
@@ -461,7 +461,7 @@ PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
     PetscCall(PetscMalloc1(ctx->nq,&ctx2->qcoeff));
     for (i=0;i<ctx->nq;i++) ctx2->qcoeff[i] = ctx->qcoeff[i];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNDestroy_Rational(FN fn)
@@ -476,7 +476,7 @@ PetscErrorCode FNDestroy_Rational(FN fn)
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetDenominator_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
@@ -503,5 +503,5 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",FNRationalGetNumerator_Rational));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",FNRationalSetDenominator_Rational));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetDenominator_C",FNRationalGetDenominator_Rational));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -50,7 +50,7 @@ PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *
   } else
 #endif
     PetscCall(VecNormalize(xr,norm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev,PetscBool norm)
@@ -66,7 +66,7 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
     PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,6);
     PetscCheckSameComm(*V,1,viewer,6);
     PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-    if (!isascii) PetscFunctionReturn(0);
+    if (!isascii) PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   PetscCall(PetscMalloc1(nv,&vals));
@@ -100,7 +100,7 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
   }
   PetscCall(PetscFree(vals));
   if (B) PetscCall(VecDestroy(&w));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -142,14 +142,14 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
   PetscValidHeaderSpecific(*V,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(*V,nv,2);
   PetscValidLogicalCollectiveInt(*V,nw,4);
-  if (nv<=0 || nw<=0) PetscFunctionReturn(0);
+  if (nv<=0 || nw<=0) PetscFunctionReturn(PETSC_SUCCESS);
   if (W) {
     PetscValidPointer(W,3);
     PetscValidHeaderSpecific(*W,VEC_CLASSID,3);
     PetscCheckSameComm(*V,1,*W,3);
   }
   PetscCall(VecCheckOrthogonality_Private(V,nv,W,nw,B,viewer,lev,PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -184,14 +184,14 @@ PetscErrorCode VecCheckOrthonormality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Ma
   PetscValidHeaderSpecific(*V,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(*V,nv,2);
   PetscValidLogicalCollectiveInt(*V,nw,4);
-  if (nv<=0 || nw<=0) PetscFunctionReturn(0);
+  if (nv<=0 || nw<=0) PetscFunctionReturn(PETSC_SUCCESS);
   if (W) {
     PetscValidPointer(W,3);
     PetscValidHeaderSpecific(*W,VEC_CLASSID,3);
     PetscCheckSameComm(*V,1,*W,3);
   }
   PetscCall(VecCheckOrthogonality_Private(V,nv,W,nw,B,viewer,lev,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -241,7 +241,7 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
       else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
     }
   } else PetscCall(VecDuplicate(v,newv)); /* standard duplicate, with internal array */
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -314,5 +314,5 @@ PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
   PetscCall(VecDestroy(&v1));
   PetscCall(VecDestroy(&v2));
   if (!rctx) PetscCall(PetscRandomDestroy(&rand));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

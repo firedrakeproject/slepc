@@ -49,7 +49,7 @@ PetscErrorCode STShellGetContext(ST st,void *ctx)
   PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg));
   if (!flg) *(void**)ctx = NULL;
   else      *(void**)ctx = ((ST_SHELL*)(st->data))->ctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -79,7 +79,7 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg));
   if (flg) shell->ctx = ctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
@@ -96,7 +96,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
     /* user forgot to increase the state of the output vector */
     PetscCall(PetscObjectStateIncrease((PetscObject)y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
@@ -113,7 +113,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
     /* user forgot to increase the state of the output vector */
     PetscCall(PetscObjectStateIncrease((PetscObject)y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
@@ -122,7 +122,7 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscSca
 
   PetscFunctionBegin;
   if (shell->backtransform) PetscCallBack("STSHELL user function backtransform()",(*shell->backtransform)(st,n,eigr,eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -134,7 +134,7 @@ PetscErrorCode STIsInjective_Shell(ST st,PetscBool* is)
 
   PetscFunctionBegin;
   *is = shell->backtransform? PETSC_TRUE: PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STDestroy_Shell(ST st)
@@ -144,7 +144,7 @@ PetscErrorCode STDestroy_Shell(ST st)
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
@@ -153,7 +153,7 @@ static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec
 
   PetscFunctionBegin;
   shell->apply = apply;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -181,7 +181,7 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST st,Vec xin,Vec x
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscTryMethod(st,"STShellSetApply_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,apply));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
@@ -190,7 +190,7 @@ static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*appl
 
   PetscFunctionBegin;
   shell->applytrans = applytrans;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -218,7 +218,7 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST st
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscTryMethod(st,"STShellSetApplyTranspose_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,applytrans));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
@@ -227,7 +227,7 @@ static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backt
 
   PetscFunctionBegin;
   shell->backtransform = backtr;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -257,7 +257,7 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST st,Pets
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscTryMethod(st,"STShellSetBackTransform_C",(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*)),(st,backtr));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*MC
@@ -299,5 +299,5 @@ SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST st)
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",STShellSetApply_Shell));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",STShellSetApplyTranspose_Shell));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",STShellSetBackTransform_Shell));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

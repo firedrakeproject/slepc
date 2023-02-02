@@ -32,7 +32,7 @@ PetscErrorCode RGFinalizePackage(void)
   PetscCall(PetscFunctionListDestroy(&RGList));
   RGPackageInitialized = PETSC_FALSE;
   RGRegisterAllCalled  = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -51,7 +51,7 @@ PetscErrorCode RGInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (RGPackageInitialized) PetscFunctionReturn(0);
+  if (RGPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   RGPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("Region",&RG_CLASSID));
@@ -68,7 +68,7 @@ PetscErrorCode RGInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(RGFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -101,7 +101,7 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
   rg->data       = NULL;
 
   *newrg = rg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -128,7 +128,7 @@ PetscErrorCode RGSetOptionsPrefix(RG rg,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscCall(PetscObjectSetOptionsPrefix((PetscObject)rg,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -154,7 +154,7 @@ PetscErrorCode RGAppendOptionsPrefix(RG rg,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)rg,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -183,7 +183,7 @@ PetscErrorCode RGGetOptionsPrefix(RG rg,const char *prefix[])
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)rg,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -209,7 +209,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
   PetscValidCharPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)rg,type,&match));
-  if (match) PetscFunctionReturn(0);
+  if (match) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscFunctionListFind(RGList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested RG type %s",type);
@@ -219,7 +219,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
 
   PetscCall(PetscObjectChangeTypeName((PetscObject)rg,type));
   PetscCall((*r)(rg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -243,7 +243,7 @@ PetscErrorCode RGGetType(RG rg,RGType *type)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)rg)->type_name;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -283,7 +283,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
     PetscTryTypeMethod(rg,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)rg,PetscOptionsObject));
   PetscOptionsEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -329,7 +329,7 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
     if (rg->complement) PetscCall(PetscViewerASCIIPrintf(viewer,"  selected region is the complement of the specified one\n"));
     if (rg->sfactor!=1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  scaling factor = %g\n",(double)rg->sfactor));
   } else if (isdraw) PetscTryTypeMethod(rg,view,viewer);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -351,7 +351,7 @@ PetscErrorCode RGViewFromOptions(RG rg,PetscObject obj,const char name[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscCall(PetscObjectViewFromOptions((PetscObject)rg,obj,name));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -379,7 +379,7 @@ PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
   PetscValidBoolPointer(trivial,2);
   *trivial = PETSC_FALSE;
   PetscTryTypeMethod(rg,istrivial,trivial);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -436,7 +436,7 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
     PetscUseTypeMethod(rg,checkinside,px,py,inside+i);
     if (PetscUnlikely(rg->complement)) inside[i] = -inside[i];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -468,7 +468,7 @@ PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
   PetscValidBoolPointer(symm,3);
   *symm = PETSC_FALSE;
   PetscTryTypeMethod(rg,isaxisymmetric,vertical,symm);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -516,7 +516,7 @@ PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
     }
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -560,7 +560,7 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
     if (cr) cr[i] *= rg->sfactor;
     if (ci) ci[i] *= rg->sfactor;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -605,7 +605,7 @@ PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c
     if (c && *c!=-PETSC_MAX_REAL) *c *= rg->sfactor;
     if (d && *d!= PETSC_MAX_REAL) *d *= rg->sfactor;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -647,7 +647,7 @@ PetscErrorCode RGComputeQuadrature(RG rg,RGQuadRule quad,PetscInt n,PetscScalar 
 
   PetscCall(RGComputeContour(rg,n,z,NULL));
   PetscUseTypeMethod(rg,computequadrature,quad,n,z,zn,w);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -673,7 +673,7 @@ PetscErrorCode RGSetComplement(RG rg,PetscBool flg)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidLogicalCollectiveBool(rg,flg,2);
   rg->complement = flg;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -698,7 +698,7 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidBoolPointer(flg,2);
   *flg = rg->complement;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -728,7 +728,7 @@ PetscErrorCode RGSetScale(RG rg,PetscReal sfactor)
     PetscCheck(sfactor>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of scaling factor. Must be > 0");
     rg->sfactor = sfactor;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -752,7 +752,7 @@ PetscErrorCode RGGetScale(RG rg,PetscReal *sfactor)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidRealPointer(sfactor,2);
   *sfactor = rg->sfactor;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -784,7 +784,7 @@ PetscErrorCode RGPushScale(RG rg,PetscReal sfactor)
   PetscCheck(!rg->osfactor,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Current implementation does not allow pushing several scaling factors");
   rg->osfactor = rg->sfactor;
   rg->sfactor *= sfactor;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -806,7 +806,7 @@ PetscErrorCode RGPopScale(RG rg)
   PetscCheck(rg->osfactor,PetscObjectComm((PetscObject)rg),PETSC_ERR_ORDER,"Must call RGPushScale first");
   rg->sfactor  = rg->osfactor;
   rg->osfactor = 0.0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -824,12 +824,12 @@ PetscErrorCode RGPopScale(RG rg)
 PetscErrorCode RGDestroy(RG *rg)
 {
   PetscFunctionBegin;
-  if (!*rg) PetscFunctionReturn(0);
+  if (!*rg) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*rg,RG_CLASSID,1);
-  if (--((PetscObject)(*rg))->refct > 0) { *rg = NULL; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*rg))->refct > 0) { *rg = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscTryTypeMethod(*rg,destroy);
   PetscCall(PetscHeaderDestroy(rg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -853,5 +853,5 @@ PetscErrorCode RGRegister(const char *name,PetscErrorCode (*function)(RG))
   PetscFunctionBegin;
   PetscCall(RGInitializePackage());
   PetscCall(PetscFunctionListAdd(&RGList,name,function));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

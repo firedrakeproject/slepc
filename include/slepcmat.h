@@ -30,7 +30,7 @@ PETSC_DEPRECATED_FUNCTION("Use MatCreateRedundantMatrix() followed by MatConvert
   PetscCall(MatCreateRedundantMatrix(mat,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar));
   PetscCall(MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat));
   PetscCall(MatDestroy(&Ar));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 PETSC_DEPRECATED_FUNCTION("Use MatCreateTile()") static inline PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G) {return MatCreateTile(a,A,b,B,c,C,d,D,G);}
 

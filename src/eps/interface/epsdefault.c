@@ -18,7 +18,7 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(STBackTransform(eps->st,eps->nconv,eps->eigr,eps->eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -46,7 +46,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
       PetscCall(BVSetMatrix(eps->V,C,PETSC_FALSE));  /* restore original matrix */
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -70,7 +70,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 
   /* normalization */
   PetscCall(BVNormalize(eps->V,eps->eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -82,7 +82,7 @@ PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
   Vec            w,y;
 
   PetscFunctionBegin;
-  if (!eps->twosided || !eps->isgeneralized) PetscFunctionReturn(0);
+  if (!eps->twosided || !eps->isgeneralized) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(EPSSetWorkVecs(eps,1));
   w = eps->work[0];
   for (i=0;i<eps->nconv;i++) {
@@ -93,7 +93,7 @@ PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
     PetscCall(VecConjugate(y));
     PetscCall(BVRestoreColumn(eps->W,i,&y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -114,7 +114,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   if (eps->ishermitian) {
     if (eps->isgeneralized && !eps->ispositive) PetscCall(EPSComputeVectors_Indefinite(eps));
     else PetscCall(EPSComputeVectors_Hermitian(eps));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   /* right eigenvectors */
@@ -167,7 +167,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     }
 #endif
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -202,7 +202,7 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
     PetscCall(VecDuplicateVecs(t,nw,&eps->work));
     PetscCall(BVRestoreColumn(eps->V,0,&t));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -217,7 +217,7 @@ PetscErrorCode EPSSetWhichEigenpairs_Default(EPS eps)
   PetscCall(PetscObjectTypeCompareAny((PetscObject)eps->st,&target,STSINVERT,STCAYLEY,""));
   if (target) eps->which = EPS_TARGET_MAGNITUDE;
   else eps->which = EPS_LARGEST_MAGNITUDE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -230,7 +230,7 @@ PetscErrorCode EPSConvergedRelative(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
   *errest = res/w;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -240,7 +240,7 @@ PetscErrorCode EPSConvergedAbsolute(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
 {
   PetscFunctionBegin;
   *errest = res;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -254,7 +254,7 @@ PetscErrorCode EPSConvergedNorm(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscR
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
   *errest = res / (eps->nrma + w*eps->nrmb);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -300,7 +300,7 @@ PetscErrorCode EPSStoppingBasic(EPS eps,PetscInt its,PetscInt max_it,PetscInt nc
     *reason = EPS_DIVERGED_ITS;
     PetscCall(PetscInfo(eps,"Linear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -362,7 +362,7 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
     PetscCall(VecNormalize(x,NULL));
   }
   PetscCall(BVSetActiveColumns(V,l,k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -429,5 +429,5 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     PetscCall(VecRestoreArrayRead(p,&pp));
     PetscCall(VecRestoreArray(eps->D,&pD));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

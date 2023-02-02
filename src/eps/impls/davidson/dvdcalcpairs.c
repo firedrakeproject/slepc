@@ -30,7 +30,7 @@ static PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
   if (d->W) PetscCall(BVSetActiveColumns(d->W,0,0));
   PetscCall(BVSetActiveColumns(d->AX,0,0));
   if (d->BX) PetscCall(BVSetActiveColumns(d->BX,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
@@ -45,7 +45,7 @@ static PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
   PetscCall(MatDestroy(&d->auxM));
   PetscCall(SlepcVecPoolDestroy(&d->auxV));
   PetscCall(PetscFree(d->nBds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* in complex, d->size_H real auxiliary values are needed */
@@ -90,7 +90,7 @@ static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   }
   PetscCall(DSSetState(d->eps->ds,DS_STATE_RAW));
   PetscCall(DSSolve(d->eps->ds,d->eigr,d->eigi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -145,7 +145,7 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
   PetscCall(MatDenseRestoreArrayRead(Q,&pQ));
   if (Q!=Z) PetscCall(MatDenseRestoreArrayRead(Z,&pZ));
   PetscCall(MatDenseRestoreArrayWrite(aux,&pW));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
@@ -165,7 +165,7 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   if (d->W) PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
 
   PetscCall(PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,DSGHIEP,DSGHEP,""));
-  if (d->V_tra_s==0 || symm) PetscFunctionReturn(0);
+  if (d->V_tra_s==0 || symm) PetscFunctionReturn(PETSC_SUCCESS);
   /* Compute upper part of H (and G): H(0:l-1,l:k-1) <- W(0:l-1)' * AV(l:k-1), where
      k=l+d->V_tra_s */
   PetscCall(BVSetActiveColumns(d->W?d->W:d->eps->V,0,lV));
@@ -190,7 +190,7 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   if (d->BX) PetscCall(BVSetActiveColumns(d->BX,lV,kV));
   if (d->W) PetscCall(BVSetActiveColumns(d->W,lV,kV));
   if (d->W) PetscCall(dvd_harm_updateproj(d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -215,7 +215,7 @@ static inline PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,D
   PetscCall(DSRestoreMat(d->eps->ds,mat,&M));
   PetscCall(BVMultInPlace(bv,auxM,l,l+d->V_tra_e));
   PetscCall(MatDestroy(&auxM));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
@@ -304,7 +304,7 @@ static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 
   d->V_tra_s = d->V_tra_e = 0;
   d->V_new_s = d->V_new_e;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscScalar *rr,PetscScalar *ri)
@@ -320,13 +320,13 @@ static PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s
 
   PetscFunctionBegin;
   /* Quick exit without neither arbitrary selection nor harmonic extraction */
-  if (!d->eps->arbitrary && !d->calcpairs_eig_backtrans) PetscFunctionReturn(0);
+  if (!d->eps->arbitrary && !d->calcpairs_eig_backtrans) PetscFunctionReturn(PETSC_SUCCESS);
 
   /* Quick exit without arbitrary selection, but with harmonic extraction */
   if (d->calcpairs_eig_backtrans) {
     for (i=r_s; i<r_e; i++) PetscCall(d->calcpairs_eig_backtrans(d,d->eigr[i],d->eigi[i],&rr[i-r_s],&ri[i-r_s]));
   }
-  if (!d->eps->arbitrary) PetscFunctionReturn(0);
+  if (!d->eps->arbitrary) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(SlepcVecPoolGetVecs(d->auxV,N,&X));
   PetscCall(DSGetLeadingDimension(d->eps->ds,&ld));
@@ -358,7 +358,7 @@ static PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s
 #endif
   }
   PetscCall(SlepcVecPoolRestoreVecs(d->auxV,N,&X));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
@@ -370,7 +370,7 @@ static PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
   PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   nV = kV - lV;
   n = PetscMin(n,nV);
-  if (n <= 0) PetscFunctionReturn(0);
+  if (n <= 0) PetscFunctionReturn(PETSC_SUCCESS);
   /* Put the best n pairs at the beginning. Useful for restarting */
   if (d->eps->arbitrary || d->calcpairs_eig_backtrans) {
     PetscCall(PetscMalloc1(nV,&rr));
@@ -400,7 +400,7 @@ static PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
     PetscCall(PetscFree(rr));
     PetscCall(PetscFree(ri));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
@@ -415,7 +415,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   PetscFunctionBegin;
   PetscCall(BVSetActiveColumns(d->eps->V,0,d->eps->nconv));
   PetscCall(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSHEP,&symm));
-  if (symm) PetscFunctionReturn(0);
+  if (symm) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(DSSetDimensions(d->eps->ds,d->eps->nconv,0,0));
   PetscCall(DSGetMat(d->eps->ds,DS_MAT_A,&A));
   PetscCall(MatDenseGetSubMatrix(d->H,0,d->eps->nconv,0,d->eps->nconv,&H0));
@@ -448,7 +448,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   if (d->W) {
     for (i=0;i<d->eps->nconv;i++) PetscCall(d->calcpairs_eig_backtrans(d,d->eps->eigr[i],d->eps->eigi[i],&d->eps->eigr[i],&d->eps->eigi[i]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -477,7 +477,7 @@ static PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt 
   PetscCall(DSRestoreArray(d->eps->ds,DS_MAT_Q,&pX));
   PetscCall(d->calcpairs_proj_res(d,r_s,r_e,R));
   PetscCall(SlepcVecPoolRestoreVecs(d->auxV,r_e-r_s,&R));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R)
@@ -501,7 +501,7 @@ static PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscI
     for (i=0;i<r_e-r_s;i++) PetscCall(VecNormBegin(R[i],NORM_2,&d->nR[r_s+i]));
     for (i=0;i<r_e-r_s;i++) PetscCall(VecNormEnd(R[i],NORM_2,&d->nR[r_s+i]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool borth,PetscBool harm)
@@ -570,5 +570,5 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool borth
     PetscCall(EPSDavidsonFLAdd(&d->endList,EPSXDComputeDSConv));
     PetscCall(EPSDavidsonFLAdd(&d->destroyList,dvd_calcpairs_qz_d));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

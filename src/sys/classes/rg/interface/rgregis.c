@@ -27,11 +27,11 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Polygon(RG);
 PetscErrorCode RGRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (RGRegisterAllCalled) PetscFunctionReturn(0);
+  if (RGRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   RGRegisterAllCalled = PETSC_TRUE;
   PetscCall(RGRegister(RGINTERVAL,RGCreate_Interval));
   PetscCall(RGRegister(RGELLIPSE,RGCreate_Ellipse));
   PetscCall(RGRegister(RGRING,RGCreate_Ring));
   PetscCall(RGRegister(RGPOLYGON,RGCreate_Polygon));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

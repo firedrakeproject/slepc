@@ -19,7 +19,7 @@ PetscErrorCode PCApply_User(PC pc,Vec x,Vec y)
 {
   PetscFunctionBeginUser;
   PetscCall(VecCopy(x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

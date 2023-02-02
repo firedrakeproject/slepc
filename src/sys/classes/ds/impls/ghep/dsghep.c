@@ -19,7 +19,7 @@ PetscErrorCode DSAllocate_GHEP(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_Q));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
@@ -28,12 +28,12 @@ PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
-  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(DSViewMat(ds,viewer,DS_MAT_A));
   PetscCall(DSViewMat(ds,viewer,DS_MAT_B));
   if (ds->state>DS_STATE_INTERMEDIATE) PetscCall(DSViewMat(ds,viewer,DS_MAT_Q));
   if (ds->omat[DS_MAT_X]) PetscCall(DSViewMat(ds,viewer,DS_MAT_X));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
@@ -69,7 +69,7 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
@@ -78,7 +78,7 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  if (!ds->sc) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(PETSC_SUCCESS);
   n = ds->n;
   l = ds->l;
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
@@ -90,7 +90,7 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(DSPermuteColumns_Private(ds,l,n,n,DS_MAT_Q,perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -141,7 +141,7 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
@@ -179,7 +179,7 @@ PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
   if (ds->state>DS_STATE_RAW) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -188,7 +188,7 @@ PetscErrorCode DSHermitian_GHEP(DS ds,DSMatType m,PetscBool *flg)
   PetscFunctionBegin;
   if (m==DS_MAT_A || m==DS_MAT_B) *flg = PETSC_TRUE;
   else *flg = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*MC
@@ -226,5 +226,5 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
   ds->ops->synchronize   = DSSynchronize_GHEP;
 #endif
   ds->ops->hermitian     = DSHermitian_GHEP;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

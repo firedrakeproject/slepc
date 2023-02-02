@@ -86,7 +86,7 @@ static PetscErrorCode PEPComputeFunction(PEP pep,PetscScalar lambda,Mat T,Mat P,
     if (!deriv && T != P) PetscCall(MatAXPY(P,coeff[i],K[i],strp));
   }
   PetscCall(PetscFree(coeff));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -112,7 +112,7 @@ static PetscErrorCode PEPCISSSetUp(PEP pep,Mat T,Mat P)
     PetscCall(MatDestroy(&Amat));
     if (T != P) PetscCall(MatDestroy(&Pmat));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -146,7 +146,7 @@ static PetscErrorCode PEPCISSSolve(PEP pep,Mat dT,BV V,PetscInt L_start,PetscInt
   }
   PetscCall(MatDestroy(&BMV));
   PetscCall(BVRestoreMat(V,&MV));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetUp_CISS(PEP pep)
@@ -246,7 +246,7 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
   PetscCall(DSAllocate(pep->ds,pep->ncv));
   nwork = 2;
   PetscCall(PEPSetWorkVecs(pep,nwork));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSolve_CISS(PEP pep)
@@ -463,7 +463,7 @@ PetscErrorCode PEPSolve_CISS(PEP pep)
   }
   PetscCall(PetscFree2(Mu,H0));
   if (ctx->extraction == PEP_CISS_EXTRACTION_HANKEL) PetscCall(PetscFree(H1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
@@ -518,7 +518,7 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
   }
   ctx->isreal = realmats;
   if (oL != ctx->L || oM != ctx->M || oLmax != ctx->L_max) pep->state = PEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -563,7 +563,7 @@ PetscErrorCode PEPCISSSetSizes(PEP pep,PetscInt ip,PetscInt bs,PetscInt ms,Petsc
   PetscValidLogicalCollectiveInt(pep,bsmax,6);
   PetscValidLogicalCollectiveBool(pep,realmats,7);
   PetscTryMethod(pep,"PEPCISSSetSizes_C",(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(pep,ip,bs,ms,npart,bsmax,realmats));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPCISSGetSizes_CISS(PEP pep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
@@ -577,7 +577,7 @@ static PetscErrorCode PEPCISSGetSizes_CISS(PEP pep,PetscInt *ip,PetscInt *bs,Pet
   if (npart) *npart = ctx->npart;
   if (bsmax) *bsmax = ctx->L_max;
   if (realmats) *realmats = ctx->isreal;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -605,7 +605,7 @@ PetscErrorCode PEPCISSGetSizes(PEP pep,PetscInt *ip,PetscInt *bs,PetscInt *ms,Pe
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscUseMethod(pep,"PEPCISSGetSizes_C",(PEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(pep,ip,bs,ms,npart,bsmax,realmats));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPCISSSetThreshold_CISS(PEP pep,PetscReal delta,PetscReal spur)
@@ -625,7 +625,7 @@ static PetscErrorCode PEPCISSSetThreshold_CISS(PEP pep,PetscReal delta,PetscReal
     PetscCheck(spur>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
     ctx->spurious_threshold = spur;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -654,7 +654,7 @@ PetscErrorCode PEPCISSSetThreshold(PEP pep,PetscReal delta,PetscReal spur)
   PetscValidLogicalCollectiveReal(pep,delta,2);
   PetscValidLogicalCollectiveReal(pep,spur,3);
   PetscTryMethod(pep,"PEPCISSSetThreshold_C",(PEP,PetscReal,PetscReal),(pep,delta,spur));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPCISSGetThreshold_CISS(PEP pep,PetscReal *delta,PetscReal *spur)
@@ -664,7 +664,7 @@ static PetscErrorCode PEPCISSGetThreshold_CISS(PEP pep,PetscReal *delta,PetscRea
   PetscFunctionBegin;
   if (delta) *delta = ctx->delta;
   if (spur)  *spur = ctx->spurious_threshold;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -689,7 +689,7 @@ PetscErrorCode PEPCISSGetThreshold(PEP pep,PetscReal *delta,PetscReal *spur)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscUseMethod(pep,"PEPCISSGetThreshold_C",(PEP,PetscReal*,PetscReal*),(pep,delta,spur));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPCISSSetRefinement_CISS(PEP pep,PetscInt inner,PetscInt blsize)
@@ -709,7 +709,7 @@ static PetscErrorCode PEPCISSSetRefinement_CISS(PEP pep,PetscInt inner,PetscInt 
     PetscCheck(blsize>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The refine blocksize argument must be >= 0");
     ctx->refine_blocksize = blsize;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -738,7 +738,7 @@ PetscErrorCode PEPCISSSetRefinement(PEP pep,PetscInt inner,PetscInt blsize)
   PetscValidLogicalCollectiveInt(pep,inner,2);
   PetscValidLogicalCollectiveInt(pep,blsize,3);
   PetscTryMethod(pep,"PEPCISSSetRefinement_C",(PEP,PetscInt,PetscInt),(pep,inner,blsize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPCISSGetRefinement_CISS(PEP pep,PetscInt *inner,PetscInt *blsize)
@@ -748,7 +748,7 @@ static PetscErrorCode PEPCISSGetRefinement_CISS(PEP pep,PetscInt *inner,PetscInt
   PetscFunctionBegin;
   if (inner)  *inner = ctx->refine_inner;
   if (blsize) *blsize = ctx->refine_blocksize;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -773,7 +773,7 @@ PetscErrorCode PEPCISSGetRefinement(PEP pep, PetscInt *inner, PetscInt *blsize)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscUseMethod(pep,"PEPCISSGetRefinement_C",(PEP,PetscInt*,PetscInt*),(pep,inner,blsize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPCISSSetExtraction_CISS(PEP pep,PEPCISSExtraction extraction)
@@ -785,7 +785,7 @@ static PetscErrorCode PEPCISSSetExtraction_CISS(PEP pep,PEPCISSExtraction extrac
     ctx->extraction = extraction;
     pep->state      = PEP_STATE_INITIAL;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -817,7 +817,7 @@ PetscErrorCode PEPCISSSetExtraction(PEP pep,PEPCISSExtraction extraction)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,extraction,2);
   PetscTryMethod(pep,"PEPCISSSetExtraction_C",(PEP,PEPCISSExtraction),(pep,extraction));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPCISSGetExtraction_CISS(PEP pep,PEPCISSExtraction *extraction)
@@ -826,7 +826,7 @@ static PetscErrorCode PEPCISSGetExtraction_CISS(PEP pep,PEPCISSExtraction *extra
 
   PetscFunctionBegin;
   *extraction = ctx->extraction;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -850,7 +850,7 @@ PetscErrorCode PEPCISSGetExtraction(PEP pep,PEPCISSExtraction *extraction)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(extraction,2);
   PetscUseMethod(pep,"PEPCISSGetExtraction_C",(PEP,PEPCISSExtraction*),(pep,extraction));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPCISSGetKSPs_CISS(PEP pep,PetscInt *nsolve,KSP **ksp)
@@ -892,7 +892,7 @@ static PetscErrorCode PEPCISSGetKSPs_CISS(PEP pep,PetscInt *nsolve,KSP **ksp)
   }
   if (nsolve) *nsolve = contour->npoints;
   if (ksp)    *ksp    = contour->ksp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -922,7 +922,7 @@ PetscErrorCode PEPCISSGetKSPs(PEP pep,PetscInt *nsolve,KSP **ksp)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscUseMethod(pep,"PEPCISSGetKSPs_C",(PEP,PetscInt*,KSP**),(pep,nsolve,ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPReset_CISS(PEP pep)
@@ -937,7 +937,7 @@ PetscErrorCode PEPReset_CISS(PEP pep)
   PetscCall(MatDestroy(&ctx->J));
   PetscCall(BVDestroy(&ctx->pV));
   PetscCall(PetscFree(ctx->Psplit));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetFromOptions_CISS(PEP pep,PetscOptionItems *PetscOptionsObject)
@@ -981,7 +981,7 @@ PetscErrorCode PEPSetFromOptions_CISS(PEP pep,PetscOptionItems *PetscOptionsObje
   PetscAssert(ctx->contour && ctx->contour->ksp,PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Something went wrong with PEPCISSGetKSPs()");
   for (i=0;i<ctx->contour->npoints;i++) PetscCall(KSPSetFromOptions(ctx->contour->ksp[i]));
   PetscCall(PetscSubcommSetFromOptions(ctx->contour->subcomm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPDestroy_CISS(PEP pep)
@@ -1001,7 +1001,7 @@ PetscErrorCode PEPDestroy_CISS(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPCISSSetExtraction_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPCISSGetExtraction_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPCISSGetKSPs_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPView_CISS(PEP pep,PetscViewer viewer)
@@ -1032,7 +1032,7 @@ PetscErrorCode PEPView_CISS(PEP pep,PetscViewer viewer)
     } else PetscCall(KSPView(ctx->contour->ksp[0],viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetDSType_CISS(PEP pep)
@@ -1045,7 +1045,7 @@ PetscErrorCode PEPSetDSType_CISS(PEP pep)
     case PEP_CISS_EXTRACTION_HANKEL: PetscCall(DSSetType(pep->ds,DSGNHEP)); break;
     case PEP_CISS_EXTRACTION_CAA:    PetscCall(DSSetType(pep->ds,DSNHEP)); break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode PEPCreate_CISS(PEP pep)
@@ -1082,5 +1082,5 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_CISS(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPCISSSetExtraction_C",PEPCISSSetExtraction_CISS));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPCISSGetExtraction_C",PEPCISSGetExtraction_CISS));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPCISSGetKSPs_C",PEPCISSGetKSPs_CISS));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

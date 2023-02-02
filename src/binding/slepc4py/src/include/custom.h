@@ -20,7 +20,7 @@ static PetscErrorCode SlepcInitializePackageAll(void)
   PetscCall(DSInitializePackage());
   PetscCall(FNInitializePackage());
   PetscCall(RGInitializePackage());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #endif/*SLEPC4PY_CUSTOM_H*/

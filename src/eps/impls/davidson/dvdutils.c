@@ -49,7 +49,7 @@ static PetscErrorCode dvd_improvex_precond_d(dvdDashboard *d)
   /* Free local data */
   PetscCall(PCDestroy(&dvdpc->pc));
   PetscCall(PetscFree(d->improvex_precond_data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_static_precond_PC_0(dvdDashboard *d,PetscInt i,Vec x,Vec Px)
@@ -58,7 +58,7 @@ static PetscErrorCode dvd_static_precond_PC_0(dvdDashboard *d,PetscInt i,Vec x,V
 
   PetscFunctionBegin;
   PetscCall(PCApply(dvdpc->pc,x,Px));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -68,7 +68,7 @@ static PetscErrorCode dvd_precond_none(dvdDashboard *d,PetscInt i,Vec x,Vec Px)
 {
   PetscFunctionBegin;
   PetscCall(VecCopy(x,Px));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -114,7 +114,7 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
     /* Else, use no preconditioner */
     } else d->improvex_precond = dvd_precond_none;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_harm_d(dvdDashboard *d)
@@ -122,7 +122,7 @@ static PetscErrorCode dvd_harm_d(dvdDashboard *d)
   PetscFunctionBegin;
   /* Free local data */
   PetscCall(PetscFree(d->calcpairs_W_data));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh,PetscScalar t)
@@ -153,7 +153,7 @@ static PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh,PetscScalar t)
     dvdh->Pb *= -1.0;
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
@@ -178,7 +178,7 @@ static PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
   PetscCall(BVSetActiveColumns(d->W,l,k));
   PetscCall(BVSetActiveColumns(d->AX,l,k));
   PetscCall(BVSetActiveColumns(BX,l,k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_harm_proj(dvdDashboard *d)
@@ -215,7 +215,7 @@ static PetscErrorCode dvd_harm_proj(dvdDashboard *d)
   }
   PetscCall(MatDenseRestoreArray(d->H,&H));
   PetscCall(MatDenseRestoreArray(d->G,&G));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_harm_updateproj(dvdDashboard *d)
@@ -251,7 +251,7 @@ PetscErrorCode dvd_harm_updateproj(dvdDashboard *d)
   }
   PetscCall(MatDenseRestoreArray(d->H,&H));
   PetscCall(MatDenseRestoreArray(d->G,&G));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data,PetscScalar *ar,PetscScalar *ai)
@@ -272,7 +272,7 @@ static PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data,PetscScalar *ar,Petsc
   } else
 #endif
     *ar = (data->Pb - data->Wb*xr) / (data->Pa - data->Wa*xr);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_harm_eig_backtrans(dvdDashboard *d,PetscScalar ar,PetscScalar ai,PetscScalar *br,PetscScalar *bi)
@@ -283,7 +283,7 @@ static PetscErrorCode dvd_harm_eig_backtrans(dvdDashboard *d,PetscScalar ar,Pets
   PetscCall(dvd_harm_backtrans(data,&ar,&ai));
   *br = ar;
   *bi = ai;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
@@ -294,7 +294,7 @@ static PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
   PetscFunctionBegin;
   PetscCall(BVGetActiveColumns(d->eps->V,&l,&k));
   for (i=0;i<k-l;i++) PetscCall(dvd_harm_backtrans(data,&d->eigr[i],&d->eigi[i]));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,PetscBool fixedTarget,PetscScalar t)
@@ -311,7 +311,7 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,Pe
     PetscCall(PetscNew(&dvdh));
     dvdh->withTarget = fixedTarget;
     dvdh->mode = mode;
-    if (fixedTarget) dvd_harm_transf(dvdh, t);
+    if (fixedTarget) PetscCall(dvd_harm_transf(dvdh, t));
     d->calcpairs_W_data = dvdh;
     d->calcpairs_W = dvd_harm_updateW;
     d->calcpairs_proj_trans = dvd_harm_proj;
@@ -320,5 +320,5 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,Pe
 
     PetscCall(EPSDavidsonFLAdd(&d->destroyList,dvd_harm_d));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

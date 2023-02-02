@@ -48,7 +48,7 @@ static inline PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
   }
   PetscCall(MatDenseRestoreArray(M,&marray));
   Y->matrix = B;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -104,7 +104,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   PetscCheck(n>=X->k,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,X->k);
   PetscCheck(X->n==Y->n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", Y %" PetscInt_FMT,X->n,Y->n);
   PetscCheck(X->matrix==Y->matrix,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"X and Y must have the same inner product matrix");
-  if (X->l==X->k || Y->l==Y->k) PetscFunctionReturn(0);
+  if (X->l==X->k || Y->l==Y->k) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_Dot,X,Y,0,0));
   if (X->matrix) { /* non-standard inner product */
@@ -116,7 +116,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
     } else PetscUseTypeMethod(X->cached,dot,Y,M);
   } else PetscUseTypeMethod(X,dot,Y,M);
   PetscCall(PetscLogEventEnd(BV_Dot,X,Y,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -167,7 +167,7 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar m[])
   PetscCall(PetscLogEventBegin(BV_DotVec,X,y,0,0));
   PetscUseTypeMethod(X,dotvec,y,m);
   PetscCall(PetscLogEventEnd(BV_DotVec,X,y,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -219,7 +219,7 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
     sr->numopsbegin += nv;
     PetscCall(PetscLogEventEnd(BV_DotVec,X,y,0,0));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -267,7 +267,7 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
       sr->numopsbegin = 0;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -323,7 +323,7 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
   PetscCall(PetscLogEventEnd(BV_DotVec,X,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -379,7 +379,7 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
   }
   PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -438,7 +438,7 @@ PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
     }
   }
   X->k = ksave;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal *val)
@@ -449,7 +449,7 @@ static inline PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal 
   PetscCall(BV_IPMatMult(bv,z));
   PetscCall(VecDot(bv->Bx,z,&p));
   PetscCall(BV_SafeSqrt(bv,p,val));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType type,PetscReal *val)
@@ -459,7 +459,7 @@ static inline PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType type,Pets
   PetscFunctionBegin;
   PetscCall(BV_IPMatMult(bv,z));
   PetscCall(VecDotBegin(bv->Bx,z,&p));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,PetscReal *val)
@@ -469,7 +469,7 @@ static inline PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,PetscR
   PetscFunctionBegin;
   PetscCall(VecDotEnd(bv->Bx,z,&p));
   PetscCall(BV_SafeSqrt(bv,p,val));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -510,7 +510,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
   PetscCall(PetscLogEventBegin(BV_Norm,bv,0,0,0));
   PetscUseTypeMethod(bv,norm,-1,type,val);
   PetscCall(PetscLogEventEnd(BV_Norm,bv,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -559,7 +559,7 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
     PetscCall(BVNorm_Private(bv,v,type,val));
   } else PetscCall(VecNorm(v,type,val));
   PetscCall(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -601,7 +601,7 @@ PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
     PetscCall(BVNorm_Begin_Private(bv,v,type,val));
   } else PetscCall(VecNormBegin(v,type,val));
   PetscCall(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -633,7 +633,7 @@ PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
 
   if (bv->matrix) PetscCall(BVNorm_End_Private(bv,v,type,val));  /* non-standard inner product */
   else PetscCall(VecNormEnd(v,type,val));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -681,7 +681,7 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
     PetscCall(BVRestoreColumn(bv,j,&z));
   } else PetscUseTypeMethod(bv,norm,j,type,val);
   PetscCall(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -737,7 +737,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
   }
   PetscCall(BVRestoreColumn(bv,j,&z));
   PetscCall(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -792,7 +792,7 @@ PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
     }
   }
   PetscCall(BVRestoreColumn(bv,j,&z));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -845,7 +845,7 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
   } else PetscTryTypeMethod(bv,normalize,eigi);
   PetscCall(PetscLogEventEnd(BV_Normalize,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -889,7 +889,7 @@ static inline PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar *marra
   PetscCall(VecDestroy(&f));
   X->l = lx; X->k = kx;
   Y->l = ly; Y->k = ky;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -940,7 +940,7 @@ static inline PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscScalar *m
   PetscCall(BVDestroy(&W));
   X->l = lx; X->k = kx;
   Y->l = ly; Y->k = ky;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1001,7 +1001,7 @@ static inline PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar 
   PetscCall(BVDestroy(&W));
   X->l = lx; X->k = kx;
   Y->l = ly; Y->k = ky;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1045,7 +1045,7 @@ static inline PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marray,Pets
   }
   X->l = lx; X->k = kx;
   Y->l = ly; Y->k = ky;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -1156,5 +1156,5 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   /* restore non-standard inner product */
   X->matrix = Xmatrix;
   Y->matrix = Ymatrix;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

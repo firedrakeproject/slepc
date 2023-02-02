@@ -114,7 +114,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
   PetscCall(PetscNew(&svd->sc));
   *outsvd = svd;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -134,7 +134,7 @@ PetscErrorCode SVDReset(SVD svd)
 {
   PetscFunctionBegin;
   if (svd) PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!svd) PetscFunctionReturn(0);
+  if (!svd) PetscFunctionReturn(PETSC_SUCCESS);
   PetscTryTypeMethod(svd,reset);
   PetscCall(MatDestroy(&svd->OP));
   PetscCall(MatDestroy(&svd->OPb));
@@ -151,7 +151,7 @@ PetscErrorCode SVDReset(SVD svd)
   svd->nworkr = 0;
   svd->swapped = PETSC_FALSE;
   svd->state = SVD_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -169,9 +169,9 @@ PetscErrorCode SVDReset(SVD svd)
 PetscErrorCode SVDDestroy(SVD *svd)
 {
   PetscFunctionBegin;
-  if (!*svd) PetscFunctionReturn(0);
+  if (!*svd) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*svd,SVD_CLASSID,1);
-  if (--((PetscObject)(*svd))->refct > 0) { *svd = NULL; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*svd))->refct > 0) { *svd = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(SVDReset(*svd));
   PetscTryTypeMethod(*svd,destroy);
   if ((*svd)->sigma) PetscCall(PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest));
@@ -183,7 +183,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   PetscCall(SlepcBasisDestroy_Private(&(*svd)->ninil,&(*svd)->ISL));
   PetscCall(SVDMonitorCancel(*svd));
   PetscCall(PetscHeaderDestroy(svd));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -225,7 +225,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   PetscValidCharPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)svd,type,&match));
-  if (match) PetscFunctionReturn(0);
+  if (match) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscFunctionListFind(SVDList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown SVD type given: %s",type);
@@ -236,7 +236,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   svd->state = SVD_STATE_INITIAL;
   PetscCall(PetscObjectChangeTypeName((PetscObject)svd,type));
   PetscCall((*r)(svd));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -260,7 +260,7 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)svd)->type_name;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -294,7 +294,7 @@ PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
   PetscFunctionBegin;
   PetscCall(SVDInitializePackage());
   PetscCall(PetscFunctionListAdd(&SVDList,name,function));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -337,7 +337,7 @@ PetscErrorCode SVDMonitorRegister(const char name[],PetscViewerType vtype,PetscV
   PetscCall(PetscFunctionListAdd(&SVDMonitorList,key,monitor));
   if (create)  PetscCall(PetscFunctionListAdd(&SVDMonitorCreateList,key,create));
   if (destroy) PetscCall(PetscFunctionListAdd(&SVDMonitorDestroyList,key,destroy));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -376,7 +376,7 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
     PetscCall(BVDestroy(&svd->U));
     svd->U = U;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -416,7 +416,7 @@ PetscErrorCode SVDGetBV(SVD svd,BV *V,BV *U)
     }
     *U = svd->U;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -445,7 +445,7 @@ PetscErrorCode SVDSetDS(SVD svd,DS ds)
   PetscCall(PetscObjectReference((PetscObject)ds));
   PetscCall(DSDestroy(&svd->ds));
   svd->ds = ds;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -475,5 +475,5 @@ PetscErrorCode SVDGetDS(SVD svd,DS *ds)
     PetscCall(PetscObjectSetOptions((PetscObject)svd->ds,((PetscObject)svd)->options));
   }
   *ds = svd->ds;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

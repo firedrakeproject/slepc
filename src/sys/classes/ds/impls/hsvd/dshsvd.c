@@ -27,7 +27,7 @@ PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_D));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*   0       l           k                 m-1
@@ -72,7 +72,7 @@ PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscCall(PetscViewerASCIIPrintf(viewer,"number of columns: %" PetscInt_FMT "\n",m));
     if (ds->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]));
     if (ctx->reorth) PetscCall(PetscViewerASCIIPrintf(viewer,"reorthogonalizing left vectors\n"));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   if (ds->compact) {
@@ -133,7 +133,7 @@ PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
     PetscCall(DSViewMat(ds,viewer,DS_MAT_U));
     PetscCall(DSViewMat(ds,viewer,DS_MAT_V));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSVectors_HSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
@@ -147,7 +147,7 @@ PetscErrorCode DSVectors_HSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSort_HSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
@@ -158,7 +158,7 @@ PetscErrorCode DSSort_HSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscReal      *d,*s;
 
   PetscFunctionBegin;
-  if (!ds->sc) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   l = ds->l;
   n = PetscMin(ds->n,ctx->m);
@@ -180,7 +180,7 @@ PetscErrorCode DSSort_HSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   }
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
@@ -208,7 +208,7 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_U],&U));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&Omega));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSTruncate_HSVD(DS ds,PetscInt n,PetscBool trim)
@@ -242,7 +242,7 @@ PetscErrorCode DSTruncate_HSVD(DS ds,PetscInt n,PetscBool trim)
     ctx->m = n;
   }
   if (!ds->compact && ds->extrarow) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -390,7 +390,7 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&Omega));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
@@ -448,7 +448,7 @@ PetscErrorCode DSSynchronize_HSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -482,7 +482,7 @@ PetscErrorCode DSMatGetSize_HSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid t parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSHSVDSetDimensions_HSVD(DS ds,PetscInt m)
@@ -497,7 +497,7 @@ static PetscErrorCode DSHSVDSetDimensions_HSVD(DS ds,PetscInt m)
     PetscCheck(m>0 && m<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
     ctx->m = m;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -523,7 +523,7 @@ PetscErrorCode DSHSVDSetDimensions(DS ds,PetscInt m)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,m,2);
   PetscTryMethod(ds,"DSHSVDSetDimensions_C",(DS,PetscInt),(ds,m));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSHSVDGetDimensions_HSVD(DS ds,PetscInt *m)
@@ -532,7 +532,7 @@ static PetscErrorCode DSHSVDGetDimensions_HSVD(DS ds,PetscInt *m)
 
   PetscFunctionBegin;
   *m = ctx->m;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -556,7 +556,7 @@ PetscErrorCode DSHSVDGetDimensions(DS ds,PetscInt *m)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(m,2);
   PetscUseMethod(ds,"DSHSVDGetDimensions_C",(DS,PetscInt*),(ds,m));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSHSVDSetReorthogonalize_HSVD(DS ds,PetscBool reorth)
@@ -565,7 +565,7 @@ static PetscErrorCode DSHSVDSetReorthogonalize_HSVD(DS ds,PetscBool reorth)
 
   PetscFunctionBegin;
   ctx->reorth = reorth;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -595,7 +595,7 @@ PetscErrorCode DSHSVDSetReorthogonalize(DS ds,PetscBool reorth)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveBool(ds,reorth,2);
   PetscTryMethod(ds,"DSHSVDSetReorthogonalize_C",(DS,PetscBool),(ds,reorth));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSHSVDGetReorthogonalize_HSVD(DS ds,PetscBool *reorth)
@@ -604,7 +604,7 @@ static PetscErrorCode DSHSVDGetReorthogonalize_HSVD(DS ds,PetscBool *reorth)
 
   PetscFunctionBegin;
   *reorth = ctx->reorth;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -628,7 +628,7 @@ PetscErrorCode DSHSVDGetReorthogonalize(DS ds,PetscBool *reorth)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidBoolPointer(reorth,2);
   PetscUseMethod(ds,"DSHSVDGetReorthogonalize_C",(DS,PetscBool*),(ds,reorth));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSetFromOptions_HSVD(DS ds,PetscOptionItems *PetscOptionsObject)
@@ -642,7 +642,7 @@ PetscErrorCode DSSetFromOptions_HSVD(DS ds,PetscOptionItems *PetscOptionsObject)
     if (flg) PetscCall(DSHSVDSetReorthogonalize(ds,reorth));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSDestroy_HSVD(DS ds)
@@ -653,7 +653,7 @@ PetscErrorCode DSDestroy_HSVD(DS ds)
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetDimensions_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetReorthogonalize_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetReorthogonalize_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*MC
@@ -711,5 +711,5 @@ SLEPC_EXTERN PetscErrorCode DSCreate_HSVD(DS ds)
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetDimensions_C",DSHSVDGetDimensions_HSVD));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetReorthogonalize_C",DSHSVDSetReorthogonalize_HSVD));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetReorthogonalize_C",DSHSVDGetReorthogonalize_HSVD));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

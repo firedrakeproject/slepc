@@ -34,7 +34,7 @@ PetscErrorCode LMEFinalizePackage(void)
   LMEPackageInitialized       = PETSC_FALSE;
   LMERegisterAllCalled        = PETSC_FALSE;
   LMEMonitorRegisterAllCalled = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -53,7 +53,7 @@ PetscErrorCode LMEInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (LMEPackageInitialized) PetscFunctionReturn(0);
+  if (LMEPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   LMEPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("Lin. Matrix Equation",&LME_CLASSID));
@@ -76,7 +76,7 @@ PetscErrorCode LMEInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(LMEFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
@@ -91,6 +91,6 @@ SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme(void)
 {
   PetscFunctionBegin;
   PetscCall(LMEInitializePackage());
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

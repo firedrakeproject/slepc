@@ -25,7 +25,7 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*   0       l           k                 m-1
@@ -77,7 +77,7 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds)
   }
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_A],&A));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
@@ -89,10 +89,10 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
-  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
+  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(PETSC_SUCCESS);
   if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     PetscCall(PetscViewerASCIIPrintf(viewer,"number of columns: %" PetscInt_FMT "\n",m));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   if (ds->compact) {
@@ -131,7 +131,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
     PetscCall(DSViewMat(ds,viewer,DS_MAT_U));
     PetscCall(DSViewMat(ds,viewer,DS_MAT_V));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
@@ -145,7 +145,7 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
@@ -156,7 +156,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscReal      *d;
 
   PetscFunctionBegin;
-  if (!ds->sc) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   l = ds->l;
   n = PetscMin(ds->n,ctx->m);
@@ -173,7 +173,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
@@ -210,7 +210,7 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_U],&U));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
@@ -244,7 +244,7 @@ PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
     ctx->m = n;
   }
   if (!ds->compact && ds->extrarow) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -337,7 +337,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
@@ -390,7 +390,7 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -420,7 +420,7 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid t parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSSVDSetDimensions_SVD(DS ds,PetscInt m)
@@ -435,7 +435,7 @@ static PetscErrorCode DSSVDSetDimensions_SVD(DS ds,PetscInt m)
     PetscCheck(m>0 && m<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
     ctx->m = m;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -461,7 +461,7 @@ PetscErrorCode DSSVDSetDimensions(DS ds,PetscInt m)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,m,2);
   PetscTryMethod(ds,"DSSVDSetDimensions_C",(DS,PetscInt),(ds,m));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSSVDGetDimensions_SVD(DS ds,PetscInt *m)
@@ -470,7 +470,7 @@ static PetscErrorCode DSSVDGetDimensions_SVD(DS ds,PetscInt *m)
 
   PetscFunctionBegin;
   *m = ctx->m;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -494,7 +494,7 @@ PetscErrorCode DSSVDGetDimensions(DS ds,PetscInt *m)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(m,2);
   PetscUseMethod(ds,"DSSVDGetDimensions_C",(DS,PetscInt*),(ds,m));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSDestroy_SVD(DS ds)
@@ -503,7 +503,7 @@ PetscErrorCode DSDestroy_SVD(DS ds)
   PetscCall(PetscFree(ds->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDSetDimensions_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDGetDimensions_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*MC
@@ -558,5 +558,5 @@ SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->matgetsize    = DSMatGetSize_SVD;
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDSetDimensions_C",DSSVDSetDimensions_SVD));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDGetDimensions_C",DSSVDGetDimensions_SVD));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

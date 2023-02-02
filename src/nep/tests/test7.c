@@ -181,7 +181,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   PetscFunctionBeginUser;
   PetscCall(MatShellGetContext(fun,&ctxF));
   ctxF->t = PetscSqrtScalar(lambda);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -199,7 +199,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
   h = 12.0/(*maxnp-1);
   xi[0] = -1e-6; xi[*maxnp-1] = -1e+6;
   for (i=1;i<*maxnp-1;i++) xi[i] = -PetscPowReal(10,-6+h*i);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* -------------------------------- A0 ----------------------------------- */
@@ -231,14 +231,14 @@ PetscErrorCode MatMult_A0(Mat A,Vec x,Vec y)
   py[n-1] = px[n-2]-2.0*px[n-1]+lower;
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatGetDiagonal_A0(Mat A,Vec diag)
 {
   PetscFunctionBeginUser;
   PetscCall(VecSet(diag,-2.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatDuplicate_A0(Mat A,MatDuplicateOption op,Mat *B)
@@ -255,7 +255,7 @@ PetscErrorCode MatDuplicate_A0(Mat A,MatDuplicateOption op,Mat *B)
   PetscCall(MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A0));
   PetscCall(MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A0));
   PetscCall(MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* -------------------------------- A1 ----------------------------------- */
@@ -264,14 +264,14 @@ PetscErrorCode MatMult_A1(Mat A,Vec x,Vec y)
 {
   PetscFunctionBeginUser;
   PetscCall(VecCopy(x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatGetDiagonal_A1(Mat A,Vec diag)
 {
   PetscFunctionBeginUser;
   PetscCall(VecSet(diag,1.0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatDuplicate_A1(Mat A,MatDuplicateOption op,Mat *B)
@@ -288,7 +288,7 @@ PetscErrorCode MatDuplicate_A1(Mat A,MatDuplicateOption op,Mat *B)
   PetscCall(MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A1));
   PetscCall(MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1));
   PetscCall(MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A1));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* -------------------------------- F ----------------------------------- */
@@ -323,7 +323,7 @@ PetscErrorCode MatMult_F(Mat A,Vec x,Vec y)
   py[n-1] = px[n-2]+d*px[n-1]+lower;
   PetscCall(VecRestoreArrayRead(x,&px));
   PetscCall(VecRestoreArray(y,&py));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatGetDiagonal_F(Mat A,Vec diag)
@@ -333,7 +333,7 @@ PetscErrorCode MatGetDiagonal_F(Mat A,Vec diag)
   PetscFunctionBeginUser;
   PetscCall(MatShellGetContext(A,&ctx));
   PetscCall(VecSet(diag,-2.0+ctx->t));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatDuplicate_F(Mat A,MatDuplicateOption op,Mat *B)
@@ -355,7 +355,7 @@ PetscErrorCode MatDuplicate_F(Mat A,MatDuplicateOption op,Mat *B)
   PetscCall(MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_F));
   PetscCall(MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_F));
   PetscCall(MatShellSetOperation(*B,MATOP_DESTROY,(void(*)(void))MatDestroy_F));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatDestroy_F(Mat A)
@@ -365,7 +365,7 @@ PetscErrorCode MatDestroy_F(Mat A)
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(A,&ctx));
   PetscCall(PetscFree(ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

@@ -45,7 +45,7 @@ PetscErrorCode MyStoppingTest(SVD svd,PetscInt its,PetscInt max_it,PetscInt ncon
     PetscCall(PetscTime(&now));
     if (now>deadline) *reason = SVD_CONVERGED_USER;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

@@ -40,10 +40,10 @@ SLEPC_INTERN PetscBool SlepcBeganPetsc;
     Level: developer
 @*/
 #define SlepcHeaderCreate(h,classid,class_name,descr,mansec,comm,destroy,view) \
-    ((!SlepcInitializeCalled && \
-    PetscError(comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,1,PETSC_ERROR_INITIAL, \
-    "Must call SlepcInitialize instead of PetscInitialize to use SLEPc classes")) ||  \
-    PetscHeaderCreate(h,classid,class_name,descr,mansec,comm,destroy,view))
+    ((PetscErrorCode)((!SlepcInitializeCalled && \
+                       PetscError(comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,PETSC_ERR_ORDER,PETSC_ERROR_INITIAL, \
+                                  "Must call SlepcInitialize instead of PetscInitialize to use SLEPc classes")) || \
+                      PetscHeaderCreate(h,classid,class_name,descr,mansec,comm,destroy,view)))
 
 /* context for monitors of type XXXMonitorConverged */
 struct _n_SlepcConvMon {
@@ -72,7 +72,7 @@ static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscS
   /* print as real if imaginary part is zero */
   if (im!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im));
   else PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f",(double)re));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -98,7 +98,7 @@ static inline PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec 
   PetscCall(PetscObjectSetName((PetscObject)xi,vname));
   PetscCall(VecView(xi,viewer));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /* Macros for strings with different value in real and complex */
@@ -149,7 +149,7 @@ static inline PetscErrorCode SlepcKernelSetGrid1D(PetscInt rows,dim3 *dimGrid,di
     *dimGrid_xcount = (dimGrid->x+(devprop.maxGridSize[X_AXIS]-1))/devprop.maxGridSize[X_AXIS];
     dimGrid->x = devprop.maxGridSize[X_AXIS];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode SlepcKernelSetGrid2DTiles(PetscInt rows,PetscInt cols,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount,PetscInt *dimGrid_ycount)
@@ -181,7 +181,7 @@ static inline PetscErrorCode SlepcKernelSetGrid2DTiles(PetscInt rows,PetscInt co
     *dimGrid_ycount = (dimGrid->y+(devprop.maxGridSize[Y_AXIS]-1))/devprop.maxGridSize[Y_AXIS];
     dimGrid->y = devprop.maxGridSize[Y_AXIS];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #undef X_AXIS
 #undef Y_AXIS

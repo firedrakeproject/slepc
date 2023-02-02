@@ -24,7 +24,7 @@ PetscErrorCode EPSSetDefaultST(EPS eps)
   PetscFunctionBegin;
   PetscTryTypeMethod(eps,setdefaultst);
   if (!((PetscObject)eps->st)->type_name) PetscCall(STSetType(eps->st,STSHIFT));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -39,7 +39,7 @@ PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
   if (!((PetscObject)eps->st)->type_name) PetscCall(STSetType(eps->st,STPRECOND));
   PetscCall(STGetKSP(eps->st,&ksp));
   if (!((PetscObject)ksp)->type_name) PetscCall(KSPSetType(ksp,KSPPREONLY));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -58,7 +58,7 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
     PetscCall(KSPSetType(ksp,KSPGMRES));
     PetscCall(KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,5));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(SLEPC_HAVE_SCALAPACK) || defined(SLEPC_HAVE_ELPA) || defined(SLEPC_HAVE_ELEMENTAL) || defined(SLEPC_HAVE_EVSL)
@@ -77,7 +77,7 @@ PetscErrorCode EPSSetDefaultST_NoFactor(EPS eps)
   if (!((PetscObject)ksp)->type_name) PetscCall(KSPSetType(ksp,KSPPREONLY));
   PetscCall(KSPGetPC(ksp,&pc));
   if (!((PetscObject)pc)->type_name) PetscCall(PCSetType(pc,PCNONE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -118,7 +118,7 @@ PetscErrorCode EPSCheckCompatibleST(EPS eps)
     PetscCall(PetscObjectTypeCompare((PetscObject)eps,EPSLYAPII,&lyapii));
     PetscCheck(lyapii || eps->which==EPS_TARGET_MAGNITUDE || eps->which==EPS_TARGET_REAL || eps->which==EPS_TARGET_IMAGINARY || eps->which==EPS_ALL || eps->which==EPS_WHICH_USER,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -157,7 +157,7 @@ PetscErrorCode MatEstimateSpectralRange_EPS(Mat A,PetscReal *left,PetscReal *rig
   } else eig0 = eps->eigr[0];
   *right = PetscRealPart(eig0)+errest;
   PetscCall(EPSDestroy(&eps));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -214,7 +214,7 @@ PetscErrorCode EPSSetUpSort_Basic(EPS eps)
   }
   eps->sc->map    = NULL;
   eps->sc->mapobj = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -236,7 +236,7 @@ PetscErrorCode EPSSetUpSort_Default(EPS eps)
   sc->comparisonctx = eps->sc->comparisonctx;
   sc->map           = SlepcMap_ST;
   sc->mapobj        = (PetscObject)eps->st;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -261,7 +261,7 @@ PetscErrorCode EPSSetDSType(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscTryTypeMethod(eps,setdstype);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -291,7 +291,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->state) PetscFunctionReturn(0);
+  if (eps->state) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscLogEventBegin(EPS_SetUp,eps,0,0,0));
 
   /* reset the convergence flag from the previous solves */
@@ -406,7 +406,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   PetscCall(PetscLogEventEnd(EPS_SetUp,eps,0,0,0));
   eps->state = EPS_STATE_SETUP;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -465,7 +465,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   } else nmat = 1;
   PetscCall(STSetMatrices(eps->st,nmat,mat));
   eps->state = EPS_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -504,7 +504,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
     if (k<2) *B = NULL;
     else PetscCall(STGetMatrix(st,1,B));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -546,7 +546,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
   }
   PetscCall(SlepcBasisReference_Private(n,v,&eps->nds,&eps->defl));
   if (n>0) eps->state = EPS_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -589,7 +589,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
   }
   PetscCall(SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS));
   if (n>0) eps->state = EPS_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -626,7 +626,7 @@ PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec isl[])
   }
   PetscCall(SlepcBasisReference_Private(n,isl,&eps->ninil,&eps->ISL));
   if (n>0) eps->state = EPS_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -655,7 +655,7 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
     }
   }
   if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -716,5 +716,5 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
     PetscCall(BVDestroy(&eps->W));
     PetscCall(BVDuplicate(eps->V,&eps->W));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -84,7 +84,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   }
   PetscCall(BVDestroy(&ctx->V));
   PetscCall(BVCreateTensor(pep->V,pep->nmat-1,&ctx->V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -159,7 +159,7 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
     PetscCall(VecAXPY(t,cb[deg-1],ve));
   }
   if (PetscUnlikely(pep->Dr)) PetscCall(VecPointwiseDivide(t,t,pep->Dr));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -186,7 +186,7 @@ static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscBool sinvert,PetscScalar 
     }
     if (sigma!=0.0) for (j=0;j<=nv;j++) r[(d-1)*lr+j] -= sigma*S[(d-1)*ls+j];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -253,7 +253,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,Mat A,PetscInt k,Pets
   PetscCall(MatDenseRestoreArray(MS,&S));
   PetscCall(BVTensorRestoreFactors(ctx->V,NULL,&MS));
   PetscCall(MatDenseRestoreArray(A,&H));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -284,7 +284,7 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
     pt = *Tj; *Tj = *Tp; *Tp = pt;
     for (i=0;i<k;i++) T[i*ldt+i] += cb[idx-1];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt sr,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt deg,Mat HH)
@@ -298,7 +298,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
   Mat            M,*A;
 
   PetscFunctionBegin;
-  if (k==0) PetscFunctionReturn(0);
+  if (k==0) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetArray(HH,&H));
   PetscCall(MatDenseGetLDA(HH,&ldh));
   lds = deg*ld;
@@ -425,7 +425,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
   if (transf) PetscCall(PetscFree(T));
   PetscCall(PetscFree6(p,At,Bt,Hj,Hp,work));
   PetscCall(MatDenseRestoreArray(HH,&H));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSolve_TOAR(PEP pep)
@@ -601,7 +601,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   /* change the state to raw so that DSVectors() computes eigenvectors from scratch */
   PetscCall(DSSetDimensions(pep->ds,pep->nconv,0,0));
   PetscCall(DSSetState(pep->ds,DS_STATE_RAW));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPTOARSetRestart_TOAR(PEP pep,PetscReal keep)
@@ -614,7 +614,7 @@ static PetscErrorCode PEPTOARSetRestart_TOAR(PEP pep,PetscReal keep)
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -644,7 +644,7 @@ PetscErrorCode PEPTOARSetRestart(PEP pep,PetscReal keep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,keep,2);
   PetscTryMethod(pep,"PEPTOARSetRestart_C",(PEP,PetscReal),(pep,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPTOARGetRestart_TOAR(PEP pep,PetscReal *keep)
@@ -653,7 +653,7 @@ static PetscErrorCode PEPTOARGetRestart_TOAR(PEP pep,PetscReal *keep)
 
   PetscFunctionBegin;
   *keep = ctx->keep;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -677,7 +677,7 @@ PetscErrorCode PEPTOARGetRestart(PEP pep,PetscReal *keep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidRealPointer(keep,2);
   PetscUseMethod(pep,"PEPTOARGetRestart_C",(PEP,PetscReal*),(pep,keep));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPTOARSetLocking_TOAR(PEP pep,PetscBool lock)
@@ -686,7 +686,7 @@ static PetscErrorCode PEPTOARSetLocking_TOAR(PEP pep,PetscBool lock)
 
   PetscFunctionBegin;
   ctx->lock = lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -718,7 +718,7 @@ PetscErrorCode PEPTOARSetLocking(PEP pep,PetscBool lock)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,lock,2);
   PetscTryMethod(pep,"PEPTOARSetLocking_C",(PEP,PetscBool),(pep,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode PEPTOARGetLocking_TOAR(PEP pep,PetscBool *lock)
@@ -727,7 +727,7 @@ static PetscErrorCode PEPTOARGetLocking_TOAR(PEP pep,PetscBool *lock)
 
   PetscFunctionBegin;
   *lock = ctx->lock;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -751,7 +751,7 @@ PetscErrorCode PEPTOARGetLocking(PEP pep,PetscBool *lock)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(lock,2);
   PetscUseMethod(pep,"PEPTOARGetLocking_C",(PEP,PetscBool*),(pep,lock));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPSetFromOptions_TOAR(PEP pep,PetscOptionItems *PetscOptionsObject)
@@ -769,7 +769,7 @@ PetscErrorCode PEPSetFromOptions_TOAR(PEP pep,PetscOptionItems *PetscOptionsObje
     if (flg) PetscCall(PEPTOARSetLocking(pep,lock));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPView_TOAR(PEP pep,PetscViewer viewer)
@@ -783,7 +783,7 @@ PetscErrorCode PEPView_TOAR(PEP pep,PetscViewer viewer)
     PetscCall(PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep)));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-"));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode PEPDestroy_TOAR(PEP pep)
@@ -797,7 +797,7 @@ PetscErrorCode PEPDestroy_TOAR(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPTOARGetRestart_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPTOARSetLocking_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPTOARGetLocking_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
@@ -824,5 +824,5 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPTOARGetRestart_C",PEPTOARGetRestart_TOAR));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPTOARSetLocking_C",PEPTOARSetLocking_TOAR));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPTOARGetLocking_C",PEPTOARGetLocking_TOAR));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

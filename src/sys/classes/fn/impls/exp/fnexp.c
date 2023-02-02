@@ -18,14 +18,14 @@ PetscErrorCode FNEvaluateFunction_Exp(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
   *y = PetscExpScalar(x);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
   *y = PetscExpScalar(x);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define MAX_PADE 6
@@ -122,7 +122,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
   PetscCall(PetscFree6(Q,W,As,A2,rwork,ipiv));
   PetscCall(MatDenseRestoreArrayRead(A,&Aa));
   PetscCall(MatDenseRestoreArray(B,&Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -151,7 +151,7 @@ static PetscErrorCode sexpm_params(PetscReal nrm,PetscInt *s,PetscInt *k,PetscIn
     else  if (nrm>1e-8) {*s = 0; *k = 2; *m = 0;}
     else                {*s = 0; *k = 1; *m = 0;}
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_COMPLEX)
@@ -223,7 +223,7 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
     if (m==k+1) {
       *remain = 0;
       *r = *q = k+1;
-      PetscFunctionReturn(0); /* quick return */
+      PetscFunctionReturn(PETSC_SUCCESS); /* quick return */
     }
     if (m==k-1) {
       *remain = 2;
@@ -247,7 +247,7 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
       } else if (k==1) {
         for (i=0;i<2;i++) { r[i] = p1r1[i]; q[i] = p1q1[i]; }
       }
-      PetscFunctionReturn(0); /* quick return */
+      PetscFunctionReturn(PETSC_SUCCESS); /* quick return */
     }
     if (m==k-1) {
       if (k==5) {
@@ -272,7 +272,7 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
       }
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -337,7 +337,7 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
       *mult = 1;
       *p = k;
       *q = k+1;
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     }
     if (m==k-1) {
       *mult = 1;
@@ -361,7 +361,7 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
         p[0] = -3;
         for (i=0;i<2;i++) q[i] = p1q1[i];
       }
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     }
     if (m==k-1) {
       *mult = PetscPowInt(-1,m);
@@ -381,7 +381,7 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
       }
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_COMPLEX */
 
@@ -395,7 +395,7 @@ static PetscErrorCode getisreal(PetscInt n,PetscComplex *a,PetscBool *result)
   for (i=0;i<n&&*result;i++) {
     if (PetscImaginaryPartComplex(a[i])) *result=PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -496,7 +496,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     PetscCall(PetscFree2(sMaux,Maux));
     PetscCall(MatDenseRestoreArrayRead(A,&Aa));
     PetscCall(MatDenseRestoreArray(B,&Ba));
-    PetscFunctionReturn(0); /* quick return */
+    PetscFunctionReturn(PETSC_SUCCESS); /* quick return */
   }
 
   PetscCall(PetscMalloc4(n2,&expmA,n2,&As,n2,&RR,n,&piv));
@@ -680,7 +680,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   PetscCall(PetscFree4(expmA,As,RR,piv));
   PetscCall(MatDenseRestoreArrayRead(A,&Aa));
   PetscCall(MatDenseRestoreArray(B,&Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 #endif
 }
 
@@ -786,7 +786,7 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
   *s += ell(n_,Ascaled,coeff[4],13,work,rand);
 done:
   PetscCall(PetscRandomDestroy(&rand));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -930,7 +930,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   PetscCall(PetscFree2(work,ipiv));
   PetscCall(MatDenseRestoreArrayRead(A,&Aa));
   PetscCall(MatDenseRestoreArray(B,&Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_CUDA)
@@ -1083,7 +1083,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
     PetscCall(MatDenseCUDARestoreArrayRead(A,(const PetscScalar**)&d_As));
   } else PetscCallCUDA(cudaFree(d_As));
   PetscCall(MatDenseCUDARestoreArrayWrite(B,&d_Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_HAVE_MAGMA)
@@ -1203,7 +1203,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
     PetscCall(MatDenseCUDARestoreArrayRead(A,(const PetscScalar**)&d_As));
   } else PetscCallCUDA(cudaFree(d_As));
   PetscCall(MatDenseCUDARestoreArrayWrite(B,&d_Ba));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1376,7 +1376,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   }
   PetscCall(MatDenseCUDARestoreArrayWrite(B,&d_Ba));
   PetscCallCUDA(cudaFree(d_work));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -1487,7 +1487,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     PetscCallCUDA(cudaFree(d_sMaux));
     PetscCallCUDA(cudaFree(d_Maux));
     PetscCall(MatDenseCUDARestoreArrayWrite(B,&d_Ba));
-    PetscFunctionReturn(0); /* quick return */
+    PetscFunctionReturn(PETSC_SUCCESS); /* quick return */
   }
 
   PetscCallCUDA(cudaMalloc((void **)&d_expmA,sizeof(PetscComplex)*n2));
@@ -1649,7 +1649,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   PetscCallCUDA(cudaFree(d_As));
   PetscCallCUDA(cudaFree(d_RR));
   PetscCall(PetscFree(piv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
@@ -1688,7 +1688,7 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
     }
     if (fn->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
@@ -1710,5 +1710,5 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
 #endif
 #endif
   fn->ops->view                   = FNView_Exp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

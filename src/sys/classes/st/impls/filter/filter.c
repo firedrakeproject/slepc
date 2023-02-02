@@ -36,14 +36,14 @@ PetscErrorCode STComputeOperator_Filter(ST st)
   PetscCall(STFilter_FILTLAN_setFilter(st,&st->T[0]));
   st->M = st->T[0];
   PetscCall(MatDestroy(&st->P));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STSetUp_Filter(ST st)
 {
   PetscFunctionBegin;
   PetscCall(STSetWorkVecs(st,4));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STSetFromOptions_Filter(ST st,PetscOptionItems *PetscOptionsObject)
@@ -71,7 +71,7 @@ PetscErrorCode STSetFromOptions_Filter(ST st,PetscOptionItems *PetscOptionsObjec
     if (flg) PetscCall(STFilterSetDegree(st,k));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STFilterSetInterval_Filter(ST st,PetscReal inta,PetscReal intb)
@@ -87,7 +87,7 @@ static PetscErrorCode STFilterSetInterval_Filter(ST st,PetscReal inta,PetscReal 
     st->opready = PETSC_FALSE;
     ctx->filtch = PETSC_TRUE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -124,7 +124,7 @@ PetscErrorCode STFilterSetInterval(ST st,PetscReal inta,PetscReal intb)
   PetscValidLogicalCollectiveReal(st,inta,2);
   PetscValidLogicalCollectiveReal(st,intb,3);
   PetscTryMethod(st,"STFilterSetInterval_C",(ST,PetscReal,PetscReal),(st,inta,intb));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STFilterGetInterval_Filter(ST st,PetscReal *inta,PetscReal *intb)
@@ -134,7 +134,7 @@ static PetscErrorCode STFilterGetInterval_Filter(ST st,PetscReal *inta,PetscReal
   PetscFunctionBegin;
   if (inta) *inta = ctx->inta;
   if (intb) *intb = ctx->intb;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -158,7 +158,7 @@ PetscErrorCode STFilterGetInterval(ST st,PetscReal *inta,PetscReal *intb)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscUseMethod(st,"STFilterGetInterval_C",(ST,PetscReal*,PetscReal*),(st,inta,intb));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STFilterSetRange_Filter(ST st,PetscReal left,PetscReal right)
@@ -174,7 +174,7 @@ static PetscErrorCode STFilterSetRange_Filter(ST st,PetscReal left,PetscReal rig
     st->opready = PETSC_FALSE;
     ctx->filtch = PETSC_TRUE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -206,7 +206,7 @@ PetscErrorCode STFilterSetRange(ST st,PetscReal left,PetscReal right)
   PetscValidLogicalCollectiveReal(st,left,2);
   PetscValidLogicalCollectiveReal(st,right,3);
   PetscTryMethod(st,"STFilterSetRange_C",(ST,PetscReal,PetscReal),(st,left,right));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STFilterGetRange_Filter(ST st,PetscReal *left,PetscReal *right)
@@ -216,7 +216,7 @@ static PetscErrorCode STFilterGetRange_Filter(ST st,PetscReal *left,PetscReal *r
   PetscFunctionBegin;
   if (left)  *left  = ctx->left;
   if (right) *right = ctx->right;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -240,7 +240,7 @@ PetscErrorCode STFilterGetRange(ST st,PetscReal *left,PetscReal *right)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscUseMethod(st,"STFilterGetRange_C",(ST,PetscReal*,PetscReal*),(st,left,right));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STFilterSetDegree_Filter(ST st,PetscInt deg)
@@ -262,7 +262,7 @@ static PetscErrorCode STFilterSetDegree_Filter(ST st,PetscInt deg)
       ctx->filtch     = PETSC_TRUE;
     }
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -287,7 +287,7 @@ PetscErrorCode STFilterSetDegree(ST st,PetscInt deg)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,deg,2);
   PetscTryMethod(st,"STFilterSetDegree_C",(ST,PetscInt),(st,deg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STFilterGetDegree_Filter(ST st,PetscInt *deg)
@@ -296,7 +296,7 @@ static PetscErrorCode STFilterGetDegree_Filter(ST st,PetscInt *deg)
 
   PetscFunctionBegin;
   *deg = ctx->polyDegree;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -320,7 +320,7 @@ PetscErrorCode STFilterGetDegree(ST st,PetscInt *deg)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidIntPointer(deg,2);
   PetscUseMethod(st,"STFilterGetDegree_C",(ST,PetscInt*),(st,deg));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode STFilterGetThreshold_Filter(ST st,PetscReal *gamma)
@@ -329,7 +329,7 @@ static PetscErrorCode STFilterGetThreshold_Filter(ST st,PetscReal *gamma)
 
   PetscFunctionBegin;
   *gamma = ctx->filterInfo->yLimit;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -354,7 +354,7 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidRealPointer(gamma,2);
   PetscUseMethod(st,"STFilterGetThreshold_C",(ST,PetscReal*),(st,gamma));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STReset_Filter(ST st)
@@ -367,7 +367,7 @@ PetscErrorCode STReset_Filter(ST st)
   PetscCall(MatDestroy(&ctx->T));
   PetscCall(MatDestroyMatrices(ctx->nW,&ctx->W));
   ctx->nW = 0;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
@@ -383,7 +383,7 @@ PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
     PetscCall(PetscViewerASCIIPrintf(viewer,"  degree of filter polynomial: %" PetscInt_FMT "\n",ctx->polyDegree));
     if (st->state>=ST_STATE_SETUP) PetscCall(PetscViewerASCIIPrintf(viewer,"  limit to accept eigenvalues: theta=%g\n",(double)ctx->filterInfo->yLimit));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STDestroy_Filter(ST st)
@@ -402,7 +402,7 @@ PetscErrorCode STDestroy_Filter(ST st)
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
@@ -461,5 +461,5 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",STFilterSetDegree_Filter));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",STFilterGetDegree_Filter));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",STFilterGetThreshold_Filter));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

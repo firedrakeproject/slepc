@@ -69,7 +69,7 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv,PetscReal b
   PetscCall(PetscFree3(p,A,w));
   PetscCall(BVSetActiveColumns(eps->V,l,nnv));
   PetscCall(BVSetActiveColumns(eps->W,l,nnv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSTwoSidedRQUpdate2(EPS eps,Mat M,PetscInt k)
@@ -120,7 +120,7 @@ static PetscErrorCode EPSTwoSidedRQUpdate2(EPS eps,Mat M,PetscInt k)
   PetscCall(PetscFree2(w,c));
   PetscCall(BVSetActiveColumns(eps->V,l,nv));
   PetscCall(BVSetActiveColumns(eps->W,l,nv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
@@ -237,5 +237,5 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
 
   PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
   PetscCall(MatDestroy(&M));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

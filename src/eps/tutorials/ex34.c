@@ -254,7 +254,7 @@ PetscErrorCode SetupDiscretization(DM dm)
   PetscCall(DMSetField(dm,0,NULL,(PetscObject)fe));
   PetscCall(DMCreateDS(dm));
   PetscCall(PetscFEDestroy(&fe));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode CreateSquareMesh(MPI_Comm comm,DM *dm)
@@ -274,7 +274,7 @@ PetscErrorCode CreateSquareMesh(MPI_Comm comm,DM *dm)
     PetscCall(DMDestroy(dm));
     *dm = pdm;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode BoundaryGlobalIndex(DM dm,const char labelname[],IS *bdis)
@@ -308,7 +308,7 @@ PetscErrorCode BoundaryGlobalIndex(DM dm,const char labelname[],IS *bdis)
   PetscCall(ISRestoreIndices(bdpoints,&bdpoints_indices));
   PetscCall(ISDestroy(&bdpoints));
   PetscCall(ISCreateGeneral(PetscObjectComm((PetscObject)dm),nindices,indices,PETSC_OWN_POINTER,bdis));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FormJacobian(SNES snes,Vec X,Mat A,Mat B,void *ctx)
@@ -330,7 +330,7 @@ static PetscErrorCode FormJacobian(SNES snes,Vec X,Mat A,Mat B,void *ctx)
   }
   CHKMEMQ;
   PetscCall(DMRestoreLocalVector(dm,&Xloc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FormJacobianA(SNES snes,Vec X,Mat A,Mat B,void *ctx)
@@ -349,7 +349,7 @@ PetscErrorCode FormJacobianA(SNES snes,Vec X,Mat A,Mat B,void *ctx)
   PetscCall(PetscWeakFormSetIndexJacobian(wf, NULL, 0, 0, 0, 0, 0, NULL, 0, NULL, 0, NULL, 0, g3_uu));
   PetscCall(FormJacobian(snes,X,A,B,ctx));
   PetscCall(MatZeroRowsIS(B,userctx->bdis,1.0,NULL,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FormJacobianB(SNES snes,Vec X,Mat A,Mat B,void *ctx)
@@ -368,7 +368,7 @@ PetscErrorCode FormJacobianB(SNES snes,Vec X,Mat A,Mat B,void *ctx)
   PetscCall(PetscWeakFormSetIndexJacobian(wf, NULL, 0, 0, 0, 0, 0, g0_uu, 0, NULL, 0, NULL, 0, NULL));
   PetscCall(FormJacobian(snes,X,A,B,ctx));
   PetscCall(MatZeroRowsIS(B,userctx->bdis,0.0,NULL,NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FormFunctionAB(SNES snes,Vec x,Vec Ax,Vec Bx,void *ctx)
@@ -382,7 +382,7 @@ PetscErrorCode FormFunctionAB(SNES snes,Vec x,Vec Ax,Vec Bx,void *ctx)
    */
   PetscCall(FormFunctionA(snes,x,Ax,ctx));
   PetscCall(FormFunctionB(snes,x,Bx,ctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FormFunction(SNES snes,Vec X,Vec F,void *ctx)
@@ -406,7 +406,7 @@ static PetscErrorCode FormFunction(SNES snes,Vec X,Vec F,void *ctx)
   PetscCall(DMLocalToGlobalEnd(dm,Floc,ADD_VALUES,F));
   PetscCall(DMRestoreLocalVector(dm,&Xloc));
   PetscCall(DMRestoreLocalVector(dm,&Floc));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
@@ -444,7 +444,7 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   if (vecstate>0) PetscCall(VecLockReadPush(X));
   PetscCall(VecAssemblyBegin(F));
   PetscCall(VecAssemblyEnd(F));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatMult_A(Mat A,Vec x,Vec y)
@@ -454,7 +454,7 @@ PetscErrorCode MatMult_A(Mat A,Vec x,Vec y)
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(A,&userctx));
   PetscCall(FormFunctionA(userctx->snes,x,y,userctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
@@ -486,7 +486,7 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
   PetscCall(ISRestoreIndices(userctx->bdis,&indices));
   PetscCall(VecAssemblyBegin(F));
   PetscCall(VecAssemblyEnd(F));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
@@ -496,7 +496,7 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(B,&userctx));
   PetscCall(FormFunctionB(userctx->snes,x,y,userctx));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

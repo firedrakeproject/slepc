@@ -152,7 +152,7 @@ PetscErrorCode STCreate_Fold(Mat A,PetscScalar target,FoldShellST **fold)
   newctx->target = target;
   PetscCall(MatCreateVecs(A,&newctx->w,NULL));
   *fold = newctx;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -177,7 +177,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
   PetscCall(VecAXPY(fold->w,sigma,x));
   PetscCall(MatMult(fold->A,fold->w,y));
   PetscCall(VecAXPY(y,sigma,fold->w));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -192,7 +192,7 @@ PetscErrorCode STDestroy_Fold(FoldShellST *fold)
   PetscCall(MatDestroy(&fold->A));
   PetscCall(VecDestroy(&fold->w));
   PetscCall(PetscFree(fold));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*TEST

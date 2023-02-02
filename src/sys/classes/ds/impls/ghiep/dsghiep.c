@@ -21,7 +21,7 @@ PetscErrorCode DSAllocate_GHIEP(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_D));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
@@ -72,7 +72,7 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&S));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
@@ -91,7 +91,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
   PetscCall(PetscViewerGetFormat(viewer,&format));
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     if (ds->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   if (ds->compact) {
     PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
@@ -153,7 +153,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
     PetscCall(DSViewMat(ds,viewer,DS_MAT_B));
   }
   if (ds->state>DS_STATE_INTERMEDIATE) PetscCall(DSViewMat(ds,viewer,DS_MAT_Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
@@ -257,7 +257,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&S));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
@@ -299,7 +299,7 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -374,7 +374,7 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_B],&B));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
@@ -417,7 +417,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   PetscCall(DSPermuteColumns_Private(ds,ds->l,n,n,DS_MAT_Q,perm));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSUpdateExtraRow_GHIEP(DS ds)
@@ -452,7 +452,7 @@ PetscErrorCode DSUpdateExtraRow_GHIEP(DS ds)
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_Q],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -535,7 +535,7 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
   PetscCall(DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_TRUE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -662,7 +662,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -712,7 +712,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (wi) wi[ds->l] = 0.0;
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   PetscCall(DSAllocateWork_Private(ds,ld*ld,2*ld,ld*2));
@@ -786,7 +786,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -836,7 +836,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (wi) wi[ds->l] = 0.0;
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
 
   lw = 14*ld+ld*ld;
@@ -928,7 +928,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
   }
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSGetTruncateSize_GHIEP(DS ds,PetscInt l,PetscInt n,PetscInt *k)
@@ -942,7 +942,7 @@ PetscErrorCode DSGetTruncateSize_GHIEP(DS ds,PetscInt l,PetscInt n,PetscInt *k)
     else (*k)--;
   }
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
@@ -993,7 +993,7 @@ PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&omega));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
@@ -1062,7 +1062,7 @@ PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
   }
   if (ds->state>DS_STATE_RAW) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -1071,7 +1071,7 @@ PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
   PetscFunctionBegin;
   if ((m==DS_MAT_A && !ds->extrarow) || m==DS_MAT_B) *flg = PETSC_TRUE;
   else *flg = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*MC
@@ -1128,5 +1128,5 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->truncate        = DSTruncate_GHIEP;
   ds->ops->update          = DSUpdateExtraRow_GHIEP;
   ds->ops->hermitian       = DSHermitian_GHIEP;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -80,7 +80,7 @@ static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
   else PetscCall(MatCopy(A,fn->W[fn->cw],SAME_NONZERO_PATTERN));
   *M = fn->W[fn->cw];
   fn->cw++;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -93,7 +93,7 @@ static inline PetscErrorCode FN_FreeWorkMat(FN fn,Mat *M)
   fn->cw--;
   PetscCheck(fn->W[fn->cw]==*M,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Work matrices must be freed in the reverse order of their creation");
   *M = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_INTERN PetscErrorCode FNSqrtmSchur(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);

@@ -76,7 +76,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscUseTypeMethod(Y,mult,alpha,beta,X,Q);
   PetscCall(PetscLogEventEnd(BV_Mult,X,Y,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)Y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -130,7 +130,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
   PetscCall(PetscLogEventBegin(BV_MultVec,X,y,0,0));
   PetscUseTypeMethod(X,multvec,alpha,beta,y,q);
   PetscCall(PetscLogEventEnd(BV_MultVec,X,y,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -188,7 +188,7 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   X->k = ksave;
   PetscCall(PetscLogEventEnd(BV_MultVec,X,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)X));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -236,13 +236,13 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCall(MatGetSize(Q,&m,&n));
   PetscCheck(m>=V->k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,V->k);
   PetscCheck(e<=n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %" PetscInt_FMT " columns, the requested value of e is larger: %" PetscInt_FMT,n,e);
-  if (s>=e) PetscFunctionReturn(0);
+  if (s>=e) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
   PetscUseTypeMethod(V,multinplace,Q,s,e);
   PetscCall(PetscLogEventEnd(BV_MultInPlace,V,Q,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -285,13 +285,13 @@ PetscErrorCode BVMultInPlaceHermitianTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCall(MatGetSize(Q,&m,&n));
   PetscCheck(n>=V->k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,V->k);
   PetscCheck(e<=m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %" PetscInt_FMT " rows, the requested value of e is larger: %" PetscInt_FMT,m,e);
-  if (s>=e || !V->n) PetscFunctionReturn(0);
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
   PetscUseTypeMethod(V,multinplacetrans,Q,s,e);
   PetscCall(PetscLogEventEnd(BV_MultInPlace,V,Q,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -317,13 +317,13 @@ PetscErrorCode BVScale(BV bv,PetscScalar alpha)
   PetscValidLogicalCollectiveScalar(bv,alpha,2);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
+  if (alpha == (PetscScalar)1.0) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
   if (bv->n) PetscUseTypeMethod(bv,scale,-1,alpha);
   PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -350,13 +350,13 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   BVCheckSizes(bv,1);
 
   PetscCheck(j>=0 && j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", the number of columns is %" PetscInt_FMT,j,bv->m);
-  if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
+  if (alpha == (PetscScalar)1.0) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
   if (bv->n) PetscUseTypeMethod(bv,scale,j,alpha);
   PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
@@ -377,7 +377,7 @@ static inline PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
     PetscCall(VecRestoreArray(x,&px));
   } else PetscCall(VecSetRandom(x,bv->rand));
   PetscCall(BVRestoreColumn(bv,k,&x));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscInt k,Vec w1,Vec w2)
@@ -405,7 +405,7 @@ static inline PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscInt k,Ve
     PetscCall(VecRestoreArray(x,&px));
   } else PetscCall(VecSetRandomNormal(x,bv->rand,w1,w2));
   PetscCall(BVRestoreColumn(bv,k,&x));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static inline PetscErrorCode BVSetRandomSignColumn_Private(BV bv,PetscInt k)
@@ -433,7 +433,7 @@ static inline PetscErrorCode BVSetRandomSignColumn_Private(BV bv,PetscInt k)
     PetscCall(VecRestoreArray(x,&px));
   }
   PetscCall(BVRestoreColumn(bv,k,&x));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -465,7 +465,7 @@ PetscErrorCode BVSetRandom(BV bv)
   for (k=bv->l;k<bv->k;k++) PetscCall(BVSetRandomColumn_Private(bv,k));
   PetscCall(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -495,7 +495,7 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
   PetscCall(BVSetRandomColumn_Private(bv,j));
   PetscCall(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -545,7 +545,7 @@ PetscErrorCode BVSetRandomNormal(BV bv)
     PetscCall(VecDestroy(&w2));
   }
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -589,7 +589,7 @@ PetscErrorCode BVSetRandomSign(BV bv)
   for (k=bv->l;k<bv->k;k++) PetscCall(BVSetRandomSignColumn_Private(bv,k));
   PetscCall(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -662,7 +662,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   PetscCall(DSDestroy(&ds));
   PetscCall(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -720,7 +720,7 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   PetscUseTypeMethod(V,matmult,A,Y);
   PetscCall(PetscLogEventEnd(BV_MatMult,V,A,Y,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)Y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -777,7 +777,7 @@ PetscErrorCode BVMatMultTranspose(BV V,Mat A,BV Y)
   PetscCall(MatCreateTranspose(A,&AT));
   PetscCall(BVMatMult(V,AT,Y));
   PetscCall(MatDestroy(&AT));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -843,7 +843,7 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
     PetscCall(BVRestoreColumn(V,V->l+j,&v));
     PetscCall(BVRestoreColumn(Y,Y->l+j,&y));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -883,7 +883,7 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
   PetscCall(BVRestoreColumn(V,j+1,&vj1));
   PetscCall(PetscLogEventEnd(BV_MatMultVec,V,A,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -923,7 +923,7 @@ PetscErrorCode BVMatMultTransposeColumn(BV V,Mat A,PetscInt j)
   PetscCall(BVRestoreColumn(V,j+1,&vj1));
   PetscCall(PetscLogEventEnd(BV_MatMultVec,V,A,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -963,5 +963,5 @@ PetscErrorCode BVMatMultHermitianTransposeColumn(BV V,Mat A,PetscInt j)
   PetscCall(BVRestoreColumn(V,j+1,&vj1));
   PetscCall(PetscLogEventEnd(BV_MatMultVec,V,A,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

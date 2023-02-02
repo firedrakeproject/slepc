@@ -28,12 +28,12 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV);
 PetscErrorCode BVRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (BVRegisterAllCalled) PetscFunctionReturn(0);
+  if (BVRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   BVRegisterAllCalled = PETSC_TRUE;
   PetscCall(BVRegister(BVVECS,BVCreate_Vecs));
   PetscCall(BVRegister(BVCONTIGUOUS,BVCreate_Contiguous));
   PetscCall(BVRegister(BVSVEC,BVCreate_Svec));
   PetscCall(BVRegister(BVMAT,BVCreate_Mat));
   PetscCall(BVRegister(BVTENSOR,BVCreate_Tensor));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

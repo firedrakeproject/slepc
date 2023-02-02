@@ -28,7 +28,7 @@ PetscErrorCode MyConvergedRel(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscRea
 
   PetscFunctionBegin;
   *errest = res/norm;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 int main(int argc,char **argv)

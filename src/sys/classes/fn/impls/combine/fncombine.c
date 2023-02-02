@@ -49,7 +49,7 @@ PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
       PetscCall(FNEvaluateFunction(ctx->f2,a,y));
       break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
@@ -86,7 +86,7 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
       *yp *= ap;
       break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
@@ -126,7 +126,7 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
       break;
   }
   PetscCall(FN_FreeWorkMat(fn,&W));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
@@ -175,7 +175,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
       PetscCall(FN_FreeWorkMat(fn,&Z));
       break;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
@@ -205,7 +205,7 @@ PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
     PetscCall(FNView(ctx->f2,viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FNCombineSetChildren_Combine(FN fn,FNCombineType comb,FN f1,FN f2)
@@ -220,7 +220,7 @@ static PetscErrorCode FNCombineSetChildren_Combine(FN fn,FNCombineType comb,FN f
   PetscCall(PetscObjectReference((PetscObject)f2));
   PetscCall(FNDestroy(&ctx->f2));
   ctx->f2 = f2;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -247,7 +247,7 @@ PetscErrorCode FNCombineSetChildren(FN fn,FNCombineType comb,FN f1,FN f2)
   PetscValidHeaderSpecific(f1,FN_CLASSID,3);
   PetscValidHeaderSpecific(f2,FN_CLASSID,4);
   PetscTryMethod(fn,"FNCombineSetChildren_C",(FN,FNCombineType,FN,FN),(fn,comb,f1,f2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FNCombineGetChildren_Combine(FN fn,FNCombineType *comb,FN *f1,FN *f2)
@@ -264,7 +264,7 @@ static PetscErrorCode FNCombineGetChildren_Combine(FN fn,FNCombineType *comb,FN 
     if (!ctx->f2) PetscCall(FNCreate(PetscObjectComm((PetscObject)fn),&ctx->f2));
     *f2 = ctx->f2;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -290,7 +290,7 @@ PetscErrorCode FNCombineGetChildren(FN fn,FNCombineType *comb,FN *f1,FN *f2)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscUseMethod(fn,"FNCombineGetChildren_C",(FN,FNCombineType*,FN*,FN*),(fn,comb,f1,f2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNDuplicate_Combine(FN fn,MPI_Comm comm,FN *newfn)
@@ -301,7 +301,7 @@ PetscErrorCode FNDuplicate_Combine(FN fn,MPI_Comm comm,FN *newfn)
   ctx2->comb = ctx->comb;
   PetscCall(FNDuplicate(ctx->f1,comm,&ctx2->f1));
   PetscCall(FNDuplicate(ctx->f2,comm,&ctx2->f2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNDestroy_Combine(FN fn)
@@ -314,7 +314,7 @@ PetscErrorCode FNDestroy_Combine(FN fn)
   PetscCall(PetscFree(fn->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNCombineSetChildren_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNCombineGetChildren_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
@@ -338,5 +338,5 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
   fn->ops->destroy                   = FNDestroy_Combine;
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNCombineSetChildren_C",FNCombineSetChildren_Combine));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNCombineGetChildren_C",FNCombineGetChildren_Combine));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

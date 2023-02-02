@@ -53,7 +53,7 @@ PetscErrorCode STSetType(ST st,STType type)
   PetscValidCharPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)st,type,&match));
-  if (match) PetscFunctionReturn(0);
+  if (match) PetscFunctionReturn(PETSC_SUCCESS);
   STCheckNotSeized(st,1);
 
   PetscCall(PetscFunctionListFind(STList,type,&r));
@@ -66,7 +66,7 @@ PetscErrorCode STSetType(ST st,STType type)
   st->opready = PETSC_FALSE;
   PetscCall(PetscObjectChangeTypeName((PetscObject)st,type));
   PetscCall((*r)(st));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -91,7 +91,7 @@ PetscErrorCode STGetType(ST st,STType *type)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)st)->type_name;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -144,7 +144,7 @@ PetscErrorCode STSetFromOptions(ST st)
     PetscCall(STSetDefaultKSP(st));
     PetscCall(KSPSetFromOptions(st->ksp));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -195,7 +195,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
     default:
       SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Invalid matrix structure flag");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -221,7 +221,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(str,2);
   *str = st->str;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -273,7 +273,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
     st->state   = ST_STATE_INITIAL;
     st->opready = PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -298,7 +298,7 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mode,2);
   *mode = st->matmode;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -334,7 +334,7 @@ PetscErrorCode STSetTransform(ST st,PetscBool flg)
     st->state     = ST_STATE_INITIAL;
     st->opready   = PETSC_FALSE;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -359,5 +359,5 @@ PetscErrorCode STGetTransform(ST st,PetscBool *flg)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidBoolPointer(flg,2);
   *flg = st->transform;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

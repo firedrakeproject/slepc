@@ -21,7 +21,7 @@ PetscErrorCode STApply_Generic(ST st,Vec x,Vec y)
     PetscCall(STMatSolve(st,st->work[0],y));
   } else if (st->M) PetscCall(MatMult(st->M,x,y));
   else PetscCall(STMatSolve(st,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -56,7 +56,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscCall(VecSetErrorIfLocked(y,3));
   PetscCall(STGetOperator_Private(st,&Op));
   PetscCall(MatMult(Op,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STApplyMat_Generic(ST st,Mat B,Mat C)
@@ -70,7 +70,7 @@ PetscErrorCode STApplyMat_Generic(ST st,Mat B,Mat C)
     PetscCall(MatDestroy(&work));
   } else if (st->M) PetscCall(MatMatMult(st->M,B,MAT_REUSE_MATRIX,PETSC_DEFAULT,&C));
   else PetscCall(STMatMatSolve(st,B,C));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -101,7 +101,7 @@ PetscErrorCode STApplyMat(ST st,Mat X,Mat Y)
   STCheckMatrices(st,1);
   PetscCheck(X!=Y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"X and Y must be different matrices");
   PetscUseTypeMethod(st,applymat,X,Y);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STApplyTranspose_Generic(ST st,Vec x,Vec y)
@@ -112,7 +112,7 @@ PetscErrorCode STApplyTranspose_Generic(ST st,Vec x,Vec y)
     PetscCall(MatMultTranspose(st->M,st->work[0],y));
   } else if (st->M) PetscCall(MatMultTranspose(st->M,x,y));
   else PetscCall(STMatSolveTranspose(st,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -147,7 +147,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscCall(VecSetErrorIfLocked(y,3));
   PetscCall(STGetOperator_Private(st,&Op));
   PetscCall(MatMultTranspose(Op,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -185,7 +185,7 @@ PetscErrorCode STApplyHermitianTranspose(ST st,Vec x,Vec y)
   PetscCall(VecSetErrorIfLocked(y,3));
   PetscCall(STGetOperator_Private(st,&Op));
   PetscCall(MatMultHermitianTranspose(Op,x,y));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -216,7 +216,7 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
   PetscValidPointer(B,2);
   STCheckMatrices(st,1);
   PetscUseTypeMethod(st,getbilinearform,B);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
@@ -227,7 +227,7 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
     *B = st->A[1];
     PetscCall(PetscObjectReference((PetscObject)*B));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMult_STOperator(Mat Op,Vec x,Vec y)
@@ -244,7 +244,7 @@ static PetscErrorCode MatMult_STOperator(Mat Op,Vec x,Vec y)
     PetscCall(VecPointwiseMult(y,y,st->D));
   } else PetscUseTypeMethod(st,apply,x,y);
   PetscCall(PetscLogEventEnd(ST_Apply,st,x,y,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
@@ -261,7 +261,7 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
     PetscCall(VecPointwiseDivide(y,y,st->D));
   } else PetscUseTypeMethod(st,applytrans,x,y);
   PetscCall(PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if defined(PETSC_USE_COMPLEX)
@@ -283,7 +283,7 @@ static PetscErrorCode MatMultHermitianTranspose_STOperator(Mat Op,Vec x,Vec y)
   } else PetscUseTypeMethod(st,applytrans,st->wht,y);
   PetscCall(VecConjugate(y));
   PetscCall(PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -297,7 +297,7 @@ static PetscErrorCode MatMatMult_STOperator(Mat Op,Mat B,Mat C,void *ctx)
   PetscCall(PetscLogEventBegin(ST_Apply,st,B,C,0));
   PetscCall(STApplyMat_Generic(st,B,C));
   PetscCall(PetscLogEventEnd(ST_Apply,st,B,C,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
@@ -333,7 +333,7 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
     PetscCall(STComputeOperator(st));
   }
   if (Op) *Op = st->Op;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -391,7 +391,7 @@ PetscErrorCode STGetOperator(ST st,Mat *Op)
   PetscCheck(st->nmat<=2,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"The operator is not defined in polynomial eigenproblems");
   PetscCall(STGetOperator_Private(st,Op));
   if (Op) st->opseized = PETSC_TRUE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -419,7 +419,7 @@ PetscErrorCode STRestoreOperator(ST st,Mat *Op)
   PetscCheck(st->opseized,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must be called after STGetOperator()");
   *Op = NULL;
   st->opseized = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -468,7 +468,7 @@ PetscErrorCode STComputeOperator(ST st)
     }
   }
   st->opready = PETSC_TRUE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -497,7 +497,7 @@ PetscErrorCode STSetUp(ST st)
       if (!((PetscObject)st)->type_name) PetscCall(STSetType(st,STSHIFT));
       break;
     case ST_STATE_SETUP:
-      PetscFunctionReturn(0);
+      PetscFunctionReturn(PETSC_SUCCESS);
     case ST_STATE_UPDATED:
       PetscCall(PetscInfo(st,"Setting up updated ST\n"));
       break;
@@ -524,7 +524,7 @@ PetscErrorCode STSetUp(ST st)
   PetscTryTypeMethod(st,setup);
   st->state = ST_STATE_SETUP;
   PetscCall(PetscLogEventEnd(ST_SetUp,st,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -609,7 +609,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
   }
   PetscCall(MatSetOption(*S,MAT_SYMMETRIC,st->asymm));
   PetscCall(MatSetOption(*S,MAT_HERMITIAN,(PetscImaginaryPart(st->sigma)==0.0)?st->aherm:PETSC_FALSE));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -630,7 +630,7 @@ PetscErrorCode STCoeffs_Monomial(ST st, PetscScalar *coeffs)
     coeffs[ini] = 1.0;
     for (i=1;i<k;i++) coeffs[ini+i] = coeffs[ini+i-1]+coeffs[inip+i-1];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -652,7 +652,7 @@ PetscErrorCode STPostSolve(ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
   PetscTryTypeMethod(st,postsolve);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -678,7 +678,7 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
   PetscTryTypeMethod(st,backtransform,n,eigr,eigi);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -710,7 +710,7 @@ PetscErrorCode STIsInjective(ST st,PetscBool* is)
   PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&shell));
   if (shell) PetscCall(STIsInjective_Shell(st,is));
   else *is = st->ops->backtransform? PETSC_TRUE: PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -748,7 +748,7 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
   PetscCall(ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P));
   PetscCall(KSPSetUp(st->ksp));
   PetscCall(PetscLogEventEnd(ST_MatSetUp,st,0,0,0));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -781,5 +781,5 @@ PetscErrorCode STSetWorkVecs(ST st,PetscInt nw)
     PetscCall(PetscMalloc1(nw,&st->work));
     for (i=0;i<nw;i++) PetscCall(STMatCreateVecs(st,&st->work[i],NULL));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

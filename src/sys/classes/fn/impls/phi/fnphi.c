@@ -39,7 +39,7 @@ PetscErrorCode FNEvaluateFunction_Phi(FN fn,PetscScalar x,PetscScalar *y)
     for (i=1;i<=ctx->k;i++) phi[i] = (phi[i-1]-rfactorial[i-1])/x;
     *y = phi[ctx->k];
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
@@ -55,7 +55,7 @@ PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
     for (i=1;i<=ctx->k+1;i++) phi[i] = (phi[i-1]-rfactorial[i-1])/x;
     *y = phi[ctx->k] - phi[ctx->k+1]*(PetscReal)ctx->k;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
@@ -103,7 +103,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
   }
   PetscCall(VecRestoreArray(v,&va));
   PetscCall(MatDenseRestoreArrayRead(ctx->F,&Fa));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
@@ -118,7 +118,7 @@ static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
     PetscCall(MatDestroy(&ctx->H));
     PetscCall(MatDestroy(&ctx->F));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -148,7 +148,7 @@ PetscErrorCode FNPhiSetIndex(FN fn,PetscInt k)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,k,2);
   PetscTryMethod(fn,"FNPhiSetIndex_C",(FN,PetscInt),(fn,k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode FNPhiGetIndex_Phi(FN fn,PetscInt *k)
@@ -157,7 +157,7 @@ static PetscErrorCode FNPhiGetIndex_Phi(FN fn,PetscInt *k)
 
   PetscFunctionBegin;
   *k = ctx->k;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -181,7 +181,7 @@ PetscErrorCode FNPhiGetIndex(FN fn,PetscInt *k)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidIntPointer(k,2);
   PetscUseMethod(fn,"FNPhiGetIndex_C",(FN,PetscInt*),(fn,k));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
@@ -209,7 +209,7 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
     else PetscCall(PetscViewerASCIIPrintf(viewer,"(phi_%" PetscInt_FMT "(%s)-1/%" PetscInt_FMT "!)/%s\n",ctx->k-1,strx,ctx->k-1,strx));
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNSetFromOptions_Phi(FN fn,PetscOptionItems *PetscOptionsObject)
@@ -225,7 +225,7 @@ PetscErrorCode FNSetFromOptions_Phi(FN fn,PetscOptionItems *PetscOptionsObject)
     if (flag) PetscCall(FNPhiSetIndex(fn,k));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
@@ -234,7 +234,7 @@ PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
 
   PetscFunctionBegin;
   ctx2->k = ctx->k;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode FNDestroy_Phi(FN fn)
@@ -247,7 +247,7 @@ PetscErrorCode FNDestroy_Phi(FN fn)
   PetscCall(PetscFree(fn->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNPhiSetIndex_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNPhiGetIndex_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Phi(FN fn)
@@ -268,5 +268,5 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Phi(FN fn)
   fn->ops->destroy                   = FNDestroy_Phi;
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNPhiSetIndex_C",FNPhiSetIndex_Phi));
   PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNPhiGetIndex_C",FNPhiGetIndex_Phi));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

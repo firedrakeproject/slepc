@@ -29,7 +29,7 @@ PetscErrorCode DSAllocate_GSVD(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_D));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -97,11 +97,11 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
-  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
+  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(PETSC_SUCCESS);
   if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     PetscCall(PetscViewerASCIIPrintf(viewer,"number of columns: %" PetscInt_FMT "\n",m));
     PetscCall(PetscViewerASCIIPrintf(viewer,"number of rows of B: %" PetscInt_FMT "\n",p));
-    PetscFunctionReturn(0);
+    PetscFunctionReturn(PETSC_SUCCESS);
   }
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   if (ds->compact) {
@@ -171,7 +171,7 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
     PetscCall(DSViewMat(ds,viewer,DS_MAT_U));
     PetscCall(DSViewMat(ds,viewer,DS_MAT_V));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSVectors_GSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
@@ -187,7 +187,7 @@ PetscErrorCode DSVectors_GSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
@@ -199,7 +199,7 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscBool      compact=ds->compact;
 
   PetscFunctionBegin;
-  if (!ds->sc) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   l = ds->l;
   t = ds->t;
@@ -237,7 +237,7 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscCall(DSPermuteColumns_Private(ds,l,t,ctx->m,DS_MAT_X,perm2));
   PetscCall(DSPermuteColumns_Private(ds,l,t,ctx->p,DS_MAT_V,perm));
   PetscCall(PetscFree2(eig,perm2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSUpdateExtraRow_GSVD(DS ds)
@@ -279,7 +279,7 @@ PetscErrorCode DSUpdateExtraRow_GSVD(DS ds)
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_V],&V));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSTruncate_GSVD(DS ds,PetscInt n,PetscBool trim)
@@ -320,7 +320,7 @@ PetscErrorCode DSTruncate_GSVD(DS ds,PetscInt n,PetscBool trim)
     ctx->m  = n;
     ctx->p  = n;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
@@ -360,7 +360,7 @@ static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_B],&B));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -504,7 +504,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSCond_GSVD(DS ds,PetscReal *cond)
@@ -561,7 +561,7 @@ PetscErrorCode DSCond_GSVD(DS ds,PetscReal *cond)
   PetscCall(PetscFPTrapPop());
 
   *cond = PetscMax(conda,condb);
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
@@ -619,7 +619,7 @@ PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif
 
@@ -661,7 +661,7 @@ PetscErrorCode DSMatGetSize_GSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid t parameter");
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSGSVDSetDimensions_GSVD(DS ds,PetscInt m,PetscInt p)
@@ -682,7 +682,7 @@ static PetscErrorCode DSGSVDSetDimensions_GSVD(DS ds,PetscInt m,PetscInt p)
     PetscCheck(p>0 && p<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of p. Must be between 1 and ld");
     ctx->p = p;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -711,7 +711,7 @@ PetscErrorCode DSGSVDSetDimensions(DS ds,PetscInt m,PetscInt p)
   PetscValidLogicalCollectiveInt(ds,m,2);
   PetscValidLogicalCollectiveInt(ds,p,3);
   PetscTryMethod(ds,"DSGSVDSetDimensions_C",(DS,PetscInt,PetscInt),(ds,m,p));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode DSGSVDGetDimensions_GSVD(DS ds,PetscInt *m,PetscInt *p)
@@ -721,7 +721,7 @@ static PetscErrorCode DSGSVDGetDimensions_GSVD(DS ds,PetscInt *m,PetscInt *p)
   PetscFunctionBegin;
   if (m) *m = ctx->m;
   if (p) *p = ctx->p;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -745,7 +745,7 @@ PetscErrorCode DSGSVDGetDimensions(DS ds,PetscInt *m,PetscInt *p)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscUseMethod(ds,"DSGSVDGetDimensions_C",(DS,PetscInt*,PetscInt*),(ds,m,p));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode DSDestroy_GSVD(DS ds)
@@ -754,7 +754,7 @@ PetscErrorCode DSDestroy_GSVD(DS ds)
   PetscCall(PetscFree(ds->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSGSVDSetDimensions_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSGSVDGetDimensions_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*MC
@@ -823,5 +823,5 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GSVD(DS ds)
   ds->ops->destroy       = DSDestroy_GSVD;
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSGSVDSetDimensions_C",DSGSVDSetDimensions_GSVD));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSGSVDGetDimensions_C",DSGSVDGetDimensions_GSVD));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

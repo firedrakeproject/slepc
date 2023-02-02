@@ -29,7 +29,7 @@ PetscErrorCode SlepcContourDataCreate(PetscInt n,PetscInt npart,PetscObject pare
   PetscCall(PetscSubcommSetType((*contour)->subcomm,PETSC_SUBCOMM_INTERLACED));
   (*contour)->npoints = n / npart;
   if (n%npart > (*contour)->subcomm->color) (*contour)->npoints++;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -52,7 +52,7 @@ PetscErrorCode SlepcContourDataReset(SlepcContourData contour)
   PetscCall(VecScatterDestroy(&contour->scatterin));
   PetscCall(VecDestroy(&contour->xsub));
   PetscCall(VecDestroy(&contour->xdup));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -63,7 +63,7 @@ PetscErrorCode SlepcContourDataDestroy(SlepcContourData *contour)
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!(*contour)) PetscFunctionReturn(0);
+  if (!(*contour)) PetscFunctionReturn(PETSC_SUCCESS);
   if ((*contour)->ksp) {
     for (i=0;i<(*contour)->npoints;i++) PetscCall(KSPDestroy(&(*contour)->ksp[i]));
     PetscCall(PetscFree((*contour)->ksp));
@@ -71,7 +71,7 @@ PetscErrorCode SlepcContourDataDestroy(SlepcContourData *contour)
   PetscCall(PetscSubcommDestroy(&(*contour)->subcomm));
   PetscCall(PetscFree((*contour)));
   *contour = NULL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -103,7 +103,7 @@ PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,M
     }
     contour->nmat = nmat;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -152,7 +152,7 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
   PetscCall(ISDestroy(&is1));
   PetscCall(ISDestroy(&is2));
   PetscCall(PetscFree2(idx1,idx2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -191,7 +191,7 @@ PetscErrorCode SlepcCISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thr
   PetscCall(MatDenseRestoreArrayRead(X,&pX));
   for (j=0;j<n;j++) fl[j] = (tau[j]>=thresh*tau_max)? PETSC_TRUE: PETSC_FALSE;
   PetscCall(PetscFree(tau));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
@@ -238,5 +238,5 @@ PetscErrorCode SlepcCISS_BH_SVD(PetscScalar *H,PetscInt ml,PetscReal delta,Petsc
 #if defined(PETSC_USE_COMPLEX)
   PetscCall(PetscFree(rwork));
 #endif
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -38,7 +38,7 @@ PetscErrorCode DSFinalizePackage(void)
   PetscCall(PetscFunctionListDestroy(&DSList));
   DSPackageInitialized = PETSC_FALSE;
   DSRegisterAllCalled  = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -57,7 +57,7 @@ PetscErrorCode DSInitializePackage(void)
   PetscClassId   classids[1];
 
   PetscFunctionBegin;
-  if (DSPackageInitialized) PetscFunctionReturn(0);
+  if (DSPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   DSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   PetscCall(PetscClassIdRegister("Direct Solver",&DS_CLASSID));
@@ -79,7 +79,7 @@ PetscErrorCode DSInitializePackage(void)
   }
   /* Register package finalizer */
   PetscCall(PetscRegisterFinalize(DSFinalizePackage));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -138,7 +138,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->liwork        = 0;
 
   *newds = ds;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -165,7 +165,7 @@ PetscErrorCode DSSetOptionsPrefix(DS ds,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscCall(PetscObjectSetOptionsPrefix((PetscObject)ds,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -191,7 +191,7 @@ PetscErrorCode DSAppendOptionsPrefix(DS ds,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)ds,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -220,7 +220,7 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)ds,prefix));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -246,7 +246,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   PetscValidCharPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)ds,type,&match));
-  if (match) PetscFunctionReturn(0);
+  if (match) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscFunctionListFind(DSList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
@@ -255,7 +255,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
 
   PetscCall(PetscObjectChangeTypeName((PetscObject)ds,type));
   PetscCall((*r)(ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -279,7 +279,7 @@ PetscErrorCode DSGetType(DS ds,DSType *type)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)ds)->type_name;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -317,7 +317,7 @@ PetscErrorCode DSDuplicate(DS ds,DS *dsnew)
   (*dsnew)->extrarow = ds->extrarow;
   (*dsnew)->bs       = ds->bs;
   (*dsnew)->pmode    = ds->pmode;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -344,7 +344,7 @@ PetscErrorCode DSSetMethod(DS ds,PetscInt meth)
   PetscCheck(meth>=0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
   PetscCheck(meth<=DS_MAX_SOLVE,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
   ds->method = meth;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -368,7 +368,7 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(meth,2);
   *meth = ds->method;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -409,7 +409,7 @@ PetscErrorCode DSSetParallel(DS ds,DSParallelType pmode)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(ds,pmode,2);
   ds->pmode = pmode;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -433,7 +433,7 @@ PetscErrorCode DSGetParallel(DS ds,DSParallelType *pmode)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(pmode,2);
   *pmode = ds->pmode;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -463,7 +463,7 @@ PetscErrorCode DSSetCompact(DS ds,PetscBool comp)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveBool(ds,comp,2);
   ds->compact = comp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -487,7 +487,7 @@ PetscErrorCode DSGetCompact(DS ds,PetscBool *comp)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidBoolPointer(comp,2);
   *comp = ds->compact;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -519,7 +519,7 @@ PetscErrorCode DSSetExtraRow(DS ds,PetscBool ext)
   PetscValidLogicalCollectiveBool(ds,ext,2);
   PetscCheck(!ext || ds->n==0 || ds->n!=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
   ds->extrarow = ext;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -543,7 +543,7 @@ PetscErrorCode DSGetExtraRow(DS ds,PetscBool *ext)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidBoolPointer(ext,2);
   *ext = ds->extrarow;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -576,7 +576,7 @@ PetscErrorCode DSSetRefined(DS ds,PetscBool ref)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveBool(ds,ref,2);
   ds->refined = ref;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -600,7 +600,7 @@ PetscErrorCode DSGetRefined(DS ds,PetscBool *ref)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidBoolPointer(ref,2);
   *ref = ds->refined;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -626,7 +626,7 @@ PetscErrorCode DSSetBlockSize(DS ds,PetscInt bs)
   PetscValidLogicalCollectiveInt(ds,bs,2);
   PetscCheck(bs>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The block size must be at least one");
   ds->bs = bs;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -650,7 +650,7 @@ PetscErrorCode DSGetBlockSize(DS ds,PetscInt *bs)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(bs,2);
   *bs = ds->bs;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -674,7 +674,7 @@ PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
   if (ds->sc && !ds->scset) PetscCall(PetscFree(ds->sc));
   ds->sc    = sc;
   ds->scset = PETSC_TRUE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -699,7 +699,7 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
   PetscValidPointer(sc,2);
   if (!ds->sc) PetscCall(PetscNew(&ds->sc));
   *sc = ds->sc;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -742,7 +742,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
     PetscTryTypeMethod(ds,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)ds,PetscOptionsObject));
   PetscOptionsEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -797,7 +797,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
     PetscTryTypeMethod(ds,view,viewer);
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -819,7 +819,7 @@ PetscErrorCode DSViewFromOptions(DS ds,PetscObject obj,const char name[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscCall(PetscObjectViewFromOptions((PetscObject)ds,obj,name));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -853,7 +853,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
     ds->ld = ld;
     PetscUseTypeMethod(ds,allocate,ld);
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -878,7 +878,7 @@ PetscErrorCode DSReset(DS ds)
 
   PetscFunctionBegin;
   if (ds) PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!ds) PetscFunctionReturn(0);
+  if (!ds) PetscFunctionReturn(PETSC_SUCCESS);
   ds->state    = DS_STATE_RAW;
   ds->ld       = 0;
   ds->l        = 0;
@@ -886,7 +886,7 @@ PetscErrorCode DSReset(DS ds)
   ds->k        = 0;
   for (i=0;i<DS_NUM_MAT;i++) PetscCall(MatDestroy(&ds->omat[i]));
   PetscCall(PetscFree(ds->perm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -904,9 +904,9 @@ PetscErrorCode DSReset(DS ds)
 PetscErrorCode DSDestroy(DS *ds)
 {
   PetscFunctionBegin;
-  if (!*ds) PetscFunctionReturn(0);
+  if (!*ds) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
-  if (--((PetscObject)(*ds))->refct > 0) { *ds = NULL; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*ds))->refct > 0) { *ds = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(DSReset(*ds));
   PetscTryTypeMethod(*ds,destroy);
   PetscCall(PetscFree((*ds)->work));
@@ -914,7 +914,7 @@ PetscErrorCode DSDestroy(DS *ds)
   PetscCall(PetscFree((*ds)->iwork));
   if (!(*ds)->scset) PetscCall(PetscFree((*ds)->sc));
   PetscCall(PetscHeaderDestroy(ds));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@C
@@ -939,7 +939,7 @@ PetscErrorCode DSRegister(const char *name,PetscErrorCode (*function)(DS))
   PetscFunctionBegin;
   PetscCall(DSInitializePackage());
   PetscCall(PetscFunctionListAdd(&DSList,name,function));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode DSCreate_HEP(DS);
@@ -966,7 +966,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS);
 PetscErrorCode DSRegisterAll(void)
 {
   PetscFunctionBegin;
-  if (DSRegisterAllCalled) PetscFunctionReturn(0);
+  if (DSRegisterAllCalled) PetscFunctionReturn(PETSC_SUCCESS);
   DSRegisterAllCalled = PETSC_TRUE;
   PetscCall(DSRegister(DSHEP,DSCreate_HEP));
   PetscCall(DSRegister(DSNHEP,DSCreate_NHEP));
@@ -979,5 +979,5 @@ PetscErrorCode DSRegisterAll(void)
   PetscCall(DSRegister(DSGSVD,DSCreate_GSVD));
   PetscCall(DSRegister(DSPEP,DSCreate_PEP));
   PetscCall(DSRegister(DSNEP,DSCreate_NEP));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

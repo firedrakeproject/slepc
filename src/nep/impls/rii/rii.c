@@ -47,7 +47,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   NEPCheckUnsupported(nep,NEP_FEATURE_REGION | NEP_FEATURE_TWOSIDED);
   PetscCall(NEPAllocateSolution(nep,0));
   PetscCall(NEPSetWorkVecs(nep,2));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSolve_RII(NEP nep)
@@ -200,7 +200,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   PetscCall(VecDestroy(&u));
   PetscCall(VecDestroy(&r));
   PetscCall(VecDestroy(&delta));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPSetFromOptions_RII(NEP nep,PetscOptionItems *PetscOptionsObject)
@@ -233,7 +233,7 @@ PetscErrorCode NEPSetFromOptions_RII(NEP nep,PetscOptionItems *PetscOptionsObjec
 
   if (!ctx->ksp) PetscCall(NEPRIIGetKSP(nep,&ctx->ksp));
   PetscCall(KSPSetFromOptions(ctx->ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIISetMaximumIterations_RII(NEP nep,PetscInt its)
@@ -246,7 +246,7 @@ static PetscErrorCode NEPRIISetMaximumIterations_RII(NEP nep,PetscInt its)
     PetscCheck(its>0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of iterations must be >0");
     ctx->max_inner_it = its;
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -270,7 +270,7 @@ PetscErrorCode NEPRIISetMaximumIterations(NEP nep,PetscInt its)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,its,2);
   PetscTryMethod(nep,"NEPRIISetMaximumIterations_C",(NEP,PetscInt),(nep,its));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIIGetMaximumIterations_RII(NEP nep,PetscInt *its)
@@ -279,7 +279,7 @@ static PetscErrorCode NEPRIIGetMaximumIterations_RII(NEP nep,PetscInt *its)
 
   PetscFunctionBegin;
   *its = ctx->max_inner_it;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -303,7 +303,7 @@ PetscErrorCode NEPRIIGetMaximumIterations(NEP nep,PetscInt *its)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(its,2);
   PetscUseMethod(nep,"NEPRIIGetMaximumIterations_C",(NEP,PetscInt*),(nep,its));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIISetLagPreconditioner_RII(NEP nep,PetscInt lag)
@@ -313,7 +313,7 @@ static PetscErrorCode NEPRIISetLagPreconditioner_RII(NEP nep,PetscInt lag)
   PetscFunctionBegin;
   PetscCheck(lag>=0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Lag must be non-negative");
   ctx->lag = lag;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -345,7 +345,7 @@ PetscErrorCode NEPRIISetLagPreconditioner(NEP nep,PetscInt lag)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,lag,2);
   PetscTryMethod(nep,"NEPRIISetLagPreconditioner_C",(NEP,PetscInt),(nep,lag));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIIGetLagPreconditioner_RII(NEP nep,PetscInt *lag)
@@ -354,7 +354,7 @@ static PetscErrorCode NEPRIIGetLagPreconditioner_RII(NEP nep,PetscInt *lag)
 
   PetscFunctionBegin;
   *lag = ctx->lag;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -378,7 +378,7 @@ PetscErrorCode NEPRIIGetLagPreconditioner(NEP nep,PetscInt *lag)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(lag,2);
   PetscUseMethod(nep,"NEPRIIGetLagPreconditioner_C",(NEP,PetscInt*),(nep,lag));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIISetConstCorrectionTol_RII(NEP nep,PetscBool cct)
@@ -387,7 +387,7 @@ static PetscErrorCode NEPRIISetConstCorrectionTol_RII(NEP nep,PetscBool cct)
 
   PetscFunctionBegin;
   ctx->cctol = cct;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -419,7 +419,7 @@ PetscErrorCode NEPRIISetConstCorrectionTol(NEP nep,PetscBool cct)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(nep,cct,2);
   PetscTryMethod(nep,"NEPRIISetConstCorrectionTol_C",(NEP,PetscBool),(nep,cct));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIIGetConstCorrectionTol_RII(NEP nep,PetscBool *cct)
@@ -428,7 +428,7 @@ static PetscErrorCode NEPRIIGetConstCorrectionTol_RII(NEP nep,PetscBool *cct)
 
   PetscFunctionBegin;
   *cct = ctx->cctol;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -452,7 +452,7 @@ PetscErrorCode NEPRIIGetConstCorrectionTol(NEP nep,PetscBool *cct)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(cct,2);
   PetscUseMethod(nep,"NEPRIIGetConstCorrectionTol_C",(NEP,PetscBool*),(nep,cct));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIISetHermitian_RII(NEP nep,PetscBool herm)
@@ -461,7 +461,7 @@ static PetscErrorCode NEPRIISetHermitian_RII(NEP nep,PetscBool herm)
 
   PetscFunctionBegin;
   ctx->herm = herm;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -493,7 +493,7 @@ PetscErrorCode NEPRIISetHermitian(NEP nep,PetscBool herm)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(nep,herm,2);
   PetscTryMethod(nep,"NEPRIISetHermitian_C",(NEP,PetscBool),(nep,herm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIIGetHermitian_RII(NEP nep,PetscBool *herm)
@@ -502,7 +502,7 @@ static PetscErrorCode NEPRIIGetHermitian_RII(NEP nep,PetscBool *herm)
 
   PetscFunctionBegin;
   *herm = ctx->herm;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -527,7 +527,7 @@ PetscErrorCode NEPRIIGetHermitian(NEP nep,PetscBool *herm)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(herm,2);
   PetscUseMethod(nep,"NEPRIIGetHermitian_C",(NEP,PetscBool*),(nep,herm));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIISetDeflationThreshold_RII(NEP nep,PetscReal deftol)
@@ -536,7 +536,7 @@ static PetscErrorCode NEPRIISetDeflationThreshold_RII(NEP nep,PetscReal deftol)
 
   PetscFunctionBegin;
   ctx->deftol = deftol;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -570,7 +570,7 @@ PetscErrorCode NEPRIISetDeflationThreshold(NEP nep,PetscReal deftol)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,deftol,2);
   PetscTryMethod(nep,"NEPRIISetDeflationThreshold_C",(NEP,PetscReal),(nep,deftol));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIIGetDeflationThreshold_RII(NEP nep,PetscReal *deftol)
@@ -579,7 +579,7 @@ static PetscErrorCode NEPRIIGetDeflationThreshold_RII(NEP nep,PetscReal *deftol)
 
   PetscFunctionBegin;
   *deftol = ctx->deftol;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -603,7 +603,7 @@ PetscErrorCode NEPRIIGetDeflationThreshold(NEP nep,PetscReal *deftol)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidRealPointer(deftol,2);
   PetscUseMethod(nep,"NEPRIIGetDeflationThreshold_C",(NEP,PetscReal*),(nep,deftol));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIISetKSP_RII(NEP nep,KSP ksp)
@@ -615,7 +615,7 @@ static PetscErrorCode NEPRIISetKSP_RII(NEP nep,KSP ksp)
   PetscCall(KSPDestroy(&ctx->ksp));
   ctx->ksp = ksp;
   nep->state = NEP_STATE_INITIAL;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -639,7 +639,7 @@ PetscErrorCode NEPRIISetKSP(NEP nep,KSP ksp)
   PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(nep,1,ksp,2);
   PetscTryMethod(nep,"NEPRIISetKSP_C",(NEP,KSP),(nep,ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode NEPRIIGetKSP_RII(NEP nep,KSP *ksp)
@@ -657,7 +657,7 @@ static PetscErrorCode NEPRIIGetKSP_RII(NEP nep,KSP *ksp)
     PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = ctx->ksp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -682,7 +682,7 @@ PetscErrorCode NEPRIIGetKSP(NEP nep,KSP *ksp)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(ksp,2);
   PetscUseMethod(nep,"NEPRIIGetKSP_C",(NEP,KSP*),(nep,ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
@@ -703,7 +703,7 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
     PetscCall(KSPView(ctx->ksp,viewer));
     PetscCall(PetscViewerASCIIPopTab(viewer));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPReset_RII(NEP nep)
@@ -712,7 +712,7 @@ PetscErrorCode NEPReset_RII(NEP nep)
 
   PetscFunctionBegin;
   PetscCall(KSPReset(ctx->ksp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode NEPDestroy_RII(NEP nep)
@@ -734,7 +734,7 @@ PetscErrorCode NEPDestroy_RII(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetDeflationThreshold_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
@@ -772,5 +772,5 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetDeflationThreshold_C",NEPRIIGetDeflationThreshold_RII));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NEPRIISetKSP_RII));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NEPRIIGetKSP_RII));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

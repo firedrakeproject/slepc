@@ -63,7 +63,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps,PetscOptionItems *PetscOptionsObject
     if (flg) PetscCall(EPSGDSetDoubleExpansion(eps,op));
 
   PetscOptionsHeadEnd();
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSSetUp_GD(EPS eps)
@@ -79,7 +79,7 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   PetscCall(STGetKSP(eps->st,&ksp));
   PetscCall(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t));
   PetscCheck(t,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSGD only works with KSPPREONLY");
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSView_GD(EPS eps,PetscViewer viewer)
@@ -105,7 +105,7 @@ PetscErrorCode EPSView_GD(EPS eps,PetscViewer viewer)
     PetscCall(PetscViewerASCIIPrintf(viewer,"  size of the subspace after restarting: %" PetscInt_FMT "\n",opi));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  number of vectors after restarting from the previous iteration: %" PetscInt_FMT "\n",opi0));
   }
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode EPSDestroy_GD(EPS eps)
@@ -124,7 +124,7 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetInitialSize_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetDoubleExpansion_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetDoubleExpansion_C",NULL));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -151,7 +151,7 @@ PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscBool krylovstart)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,krylovstart,2);
   PetscTryMethod(eps,"EPSGDSetKrylovStart_C",(EPS,PetscBool),(eps,krylovstart));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -177,7 +177,7 @@ PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(krylovstart,2);
   PetscUseMethod(eps,"EPSGDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -203,7 +203,7 @@ PetscErrorCode EPSGDSetBlockSize(EPS eps,PetscInt blocksize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,blocksize,2);
   PetscTryMethod(eps,"EPSGDSetBlockSize_C",(EPS,PetscInt),(eps,blocksize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -228,7 +228,7 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(blocksize,2);
   PetscUseMethod(eps,"EPSGDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -257,7 +257,7 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscValidLogicalCollectiveInt(eps,minv,2);
   PetscValidLogicalCollectiveInt(eps,plusk,3);
   PetscTryMethod(eps,"EPSGDSetRestart_C",(EPS,PetscInt,PetscInt),(eps,minv,plusk));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -282,7 +282,7 @@ PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscUseMethod(eps,"EPSGDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -315,7 +315,7 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,initialsize,2);
   PetscTryMethod(eps,"EPSGDSetInitialSize_C",(EPS,PetscInt),(eps,initialsize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -347,7 +347,7 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(initialsize,2);
   PetscUseMethod(eps,"EPSGDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -373,7 +373,7 @@ PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,borth,2);
   PetscTryMethod(eps,"EPSGDSetBOrth_C",(EPS,PetscBool),(eps,borth));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -398,7 +398,7 @@ PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(borth,2);
   PetscUseMethod(eps,"EPSGDGetBOrth_C",(EPS,PetscBool*),(eps,borth));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool doubleexp)
@@ -407,7 +407,7 @@ static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool doubleexp)
 
   PetscFunctionBegin;
   data->doubleexp = doubleexp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -437,7 +437,7 @@ PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool doubleexp)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,doubleexp,2);
   PetscTryMethod(eps,"EPSGDSetDoubleExpansion_C",(EPS,PetscBool),(eps,doubleexp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *doubleexp)
@@ -446,7 +446,7 @@ static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *doubleexp)
 
   PetscFunctionBegin;
   *doubleexp = data->doubleexp;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*@
@@ -471,7 +471,7 @@ PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *doubleexp)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(doubleexp,2);
   PetscUseMethod(eps,"EPSGDGetDoubleExpansion_C",(EPS,PetscBool*),(eps,doubleexp));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
@@ -517,5 +517,5 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetInitialSize_C",EPSXDGetInitialSize_XD));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetDoubleExpansion_C",EPSGDSetDoubleExpansion_GD));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetDoubleExpansion_C",EPSGDGetDoubleExpansion_GD));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }

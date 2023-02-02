@@ -31,7 +31,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   svd->leftbasis = PETSC_TRUE;
   PetscCall(SVDAllocateSolution(svd,0));
   PetscCall(DSAllocate(svd->ds,PetscMax(N,PetscMax(M,P))));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_LAPACK(SVD svd)
@@ -94,7 +94,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
 
   PetscCall(MatDestroy(&mat));
   PetscCall(PetscFree(w));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
@@ -165,7 +165,7 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   PetscCall(MatDestroy(&A));
   PetscCall(MatDestroy(&B));
   PetscCall(PetscFree(w));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSolve_LAPACK_HSVD(SVD svd)
@@ -235,14 +235,14 @@ PetscErrorCode SVDSolve_LAPACK_HSVD(SVD svd)
 
   PetscCall(MatDestroy(&mat));
   PetscCall(PetscFree(w));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 PetscErrorCode SVDSetDSType_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(DSSetType(svd->ds,svd->OPb?DSGSVD:svd->omega?DSHSVD:DSSVD));
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
@@ -253,5 +253,5 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
   svd->ops->solveg    = SVDSolve_LAPACK_GSVD;
   svd->ops->solveh    = SVDSolve_LAPACK_HSVD;
   svd->ops->setdstype = SVDSetDSType_LAPACK;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(PETSC_SUCCESS);
 }
