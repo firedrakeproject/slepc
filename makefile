@@ -30,8 +30,8 @@ all:
 	+@${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ${PETSC_ARCH}/lib/slepc/conf/make.log
 	@ln -sf ${PETSC_ARCH}/lib/slepc/conf/make.log make.log
 	+@${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-local 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;
-	@egrep '(out of memory allocating.*after a total of|gfortran: fatal error: Killed signal terminated program f951|f95: fatal error: Killed signal terminated program f951)' ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ${PETSC_ARCH}/lib/slepc/conf/memoryerror.log > /dev/null
-	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ./${PETSC_ARCH}/lib/slepc/conf/error.log > /dev/null
+	@grep -E '(out of memory allocating.*after a total of|gfortran: fatal error: Killed signal terminated program f951|f95: fatal error: Killed signal terminated program f951)' ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ${PETSC_ARCH}/lib/slepc/conf/memoryerror.log > /dev/null
+	@grep -E -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ./${PETSC_ARCH}/lib/slepc/conf/error.log > /dev/null
 	+@if test -s ${PETSC_ARCH}/lib/slepc/conf/memoryerror.log; then \
            printf ${PETSC_TEXT_HILIGHT}"**************************ERROR*************************************\n" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
            echo "  Error during compile, you need to increase the memory allocated to the VM and rerun " 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
@@ -128,7 +128,7 @@ check_build:
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10
 	+@if [ ! "${MPI_IS_MPIUNI}" ]; then cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_mpi; fi
-	+@egrep "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
+	+@grep -E "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
          if test -s .ftn.log; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest7f; \
          fi ; ${RM} .ftn.log
@@ -283,8 +283,8 @@ deletefortranstubs:
 countfortranfunctions:
 	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto` \
 	`find ${SLEPC_DIR}/src -name ftn-custom`; do cd $$D; \
-	egrep '^void' *.c | \
-	cut -d'(' -f1 | tr -s  ' ' | cut -d' ' -f3 | uniq | egrep -v "(^$$|Petsc)" | \
+	grep -E '^void' *.c | \
+	cut -d'(' -f1 | tr -s  ' ' | cut -d' ' -f3 | uniq | grep -E -v "(^$$|Petsc)" | \
 	sed "s/_$$//"; done | sort > /tmp/countfortranfunctions
 
 countcfunctions:

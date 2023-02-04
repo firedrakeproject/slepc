@@ -147,7 +147,7 @@ def main(ctags):
     ctagfile = None
   flist = []
   if os.path.isdir('.git'):
-    output = subprocess.check_output('git ls-files | egrep -v \(^\(docs/\|share/slepc/datafiles/\)\|/output/\|\.\(png\|pdf\|ps\|ppt\|jpg\|tex\)$\)', shell=True)
+    output = subprocess.check_output('git ls-files | grep -E -v \(^\(docs/\|share/slepc/datafiles/\)\|/output/\|\.\(png\|pdf\|ps\|ppt\|jpg\|tex\)$\)', shell=True)
     flist = output.decode(sys.getfilesystemencoding()).splitlines()
   else:
     for dirpath, dirnames, filenames in os.walk(os.getcwd()):
