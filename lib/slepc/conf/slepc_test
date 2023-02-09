@@ -56,4 +56,9 @@ LDLIBS += $(SLEPC_LIB)
 % : %.cxx
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-
+help:
+	-@echo ""
+	-@echo "make applicationname - compiles applicationname.[c,cxx,F,F90] file into an executable"
+	-@echo "make clean - delete any object files and executables in the current directory"
+	-@echo "make slepc_libs - rebuilds any needed changes to the SLEPc libraries"
+	-@echo ""
