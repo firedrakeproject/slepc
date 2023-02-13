@@ -89,6 +89,8 @@ class Primme(package.Package):
           self.havepackage = True
           self.packageflags = ' '.join(l+f)
           self.location = includes[0] if self.packageincludes else i
+          if not self.location:
+            self.location = self.DefaultIncludePath(petsc,'primme.h')
           return
 
     self.log.Exit('Unable to link with PRIMME library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs)+' [NOTE: make sure PRIMME version is 2.0 at least]')
@@ -168,5 +170,6 @@ class Primme(package.Package):
       self.iversion = major + '.' + minor
       if major=='3':
         slepcconf.write('#define SLEPC_HAVE_PRIMME3 1\n')
-    except: pass
+    except Exception as e:
+      self.log.write('Error while determining version of PRIMME:\n'+str(e))
 
