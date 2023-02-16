@@ -437,6 +437,7 @@ help-nontest:
 	-@echo "   deletefortranstubs - delete the generated Fortran stubs/interface definitions"
 	-@echo "   checkbadSource - check the source code for violations of coding standards"
 	-@echo "   abitest - Compare ABI/API of two versions of SLEPc library with the old one defined by SLEPC_DIR_ABI_OLD and PETSC_{DIR,ARCH}_ABI_OLD"
+	-@echo "   reconfigure - delete libraries and Fortran module files and run the previously run configure again"
 	-@echo "   "
 
 help-test:

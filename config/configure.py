@@ -49,7 +49,7 @@ def WriteReconfigScript(reconfig,slepcdir,usedargs):
   reconfig.write('import os, sys\n')
   if usedargs:
     reconfig.write('sys.argv.extend(\''+usedargs+'\'.split())\n')
-  reconfig.write('execfile(os.path.join(\''+slepcdir+'\',\'config\',\'configure.py\'))\n')
+  reconfig.write('exec(open(os.path.join(\''+slepcdir+'\',\'config\',\'configure.py\')).read())\n')
 
 def ResetConfigureHash(hashfile,log):
   ''' Removes the configure hash file '''

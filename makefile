@@ -171,7 +171,7 @@ allclean:
 
 clean:: allclean
 
-reconfigure:
+reconfigure: allclean
 	@unset MAKEFLAGS && ${PYTHON} ${PETSC_ARCH}/lib/slepc/conf/reconfigure-${PETSC_ARCH}.py
 
 #
