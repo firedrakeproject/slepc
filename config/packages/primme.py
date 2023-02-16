@@ -61,14 +61,17 @@ class Primme(package.Package):
   def Check(self,slepcconf,slepcvars,petsc,archdir):
     code = self.SampleCode(petsc)
     if self.packagedir:
-      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
-      incdirs = [os.path.join(self.packagedir,'include'),self.packagedir]
+      if os.path.isdir(os.path.join(os.sep,'usr','lib64')):
+        dirs = ['',os.path.join(self.packagedir,'lib64'),self.packagedir,os.path.join(self.packagedir,'lib')]
+      else:
+        dirs = ['',os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
+      incdirs = ['',os.path.join(self.packagedir,'include'),self.packagedir]
     else:
-      dirs = self.GenerateGuesses('Primme',archdir)
+      dirs = self.GenerateGuesses('Primme',archdir) + self.GenerateGuesses('Primme',archdir,'lib64')
       incdirs = self.GenerateGuesses('Primme',archdir,'include')
 
     libs = [self.packagelibs] if self.packagelibs else ['-lprimme']
-    includes = [self.packageincludes] if self.packageincludes else ['.']
+    includes = [self.packageincludes] if self.packageincludes else []
 
     for d in dirs:
       for i in incdirs:
@@ -77,10 +80,10 @@ class Primme(package.Package):
             l = [self.slflag + d] + ['-L' + d] + libs
           else:
             l = ['-L' + d] + libs
-          f = ['-I' + i]
+          f = (['-I' + i] if i else [])
         else:
           l = libs
-          f = ['-I' + includes[0]]
+          f = []
         (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
         if result:
           slepcconf.write('#define SLEPC_HAVE_PRIMME 1\n')

@@ -29,7 +29,10 @@ class Slicot(package.Package):
     libs = self.packagelibs if self.packagelibs else [['-lslicot']]
 
     if self.packagedir:
-      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
+      if os.path.isdir(os.path.join(os.sep,'usr','lib64')):
+        dirs = ['',os.path.join(self.packagedir,'lib64'),self.packagedir,os.path.join(self.packagedir,'lib')]
+      else:
+        dirs = ['',os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
     else:
       dirs = self.GenerateGuesses('slicot',archdir)
 
