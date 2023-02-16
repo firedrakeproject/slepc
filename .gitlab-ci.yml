@@ -108,6 +108,7 @@ variables:
     when: always
     paths:
     - arch-*/lib/slepc/conf/*.log
+    - arch-*/lib/slepc/conf/slepc*
     - arch-*/lib/pkgconfig/slepc.pc
     - arch-*/tests/testresults.xml
     - arch-*/tests/test_*_tap.log
@@ -228,6 +229,7 @@ gnu-lint:
     when: always
     paths:
     - arch-*/lib/slepc/conf/*.log
+    - arch-*/lib/slepc/conf/slepc*
     - arch-*/lib/pkgconfig/slepc.pc
     - arch-*/tests/testresults.xml
     - arch-*/tests/test_*_tap.log
