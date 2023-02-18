@@ -39,7 +39,7 @@ ST Object: 1 MPI process
     Mat Object: (st_) 1 MPI process
       type: seqaij
       rows=1225, cols=1225
-      total: nonzeros=5985, allocated nonzeros=6125
+      total: nonzeros=5985, allocated nonzeros=5985
       total number of mallocs used during MatSetValues calls =0
         not using I-node routines
  BLOPEX: using block size 4

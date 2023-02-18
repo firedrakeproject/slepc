@@ -61,7 +61,7 @@ ST Object: 1 MPI process
     Mat Object: (st_) 1 MPI process
       type: seqaij
       rows=6, cols=6
-      total: nonzeros=6, allocated nonzeros=30
+      total: nonzeros=6, allocated nonzeros=6
       total number of mallocs used during MatSetValues calls =0
         not using I-node routines
  Polynomial eigensolve converged (12 eigenpairs) due to CONVERGED_TOL; iterations 1
