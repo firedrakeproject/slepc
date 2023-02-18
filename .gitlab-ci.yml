@@ -17,7 +17,6 @@ variables:
   GIT_STRATEGY: fetch
   GIT_CLEAN_FLAGS: -ffdxq
   TIMEOUT: 600
-  PETSC_OPTIONS: -checkfunctionlist
 
 #
 # The most basic template that most tests will expand upon. In particular merge requests and branch pushes DO NOT trigger testing
