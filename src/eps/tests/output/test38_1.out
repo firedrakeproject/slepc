@@ -57,7 +57,7 @@ ST Object: 1 MPI process
     Mat Object: (st_) 1 MPI process
       type: seqaij
       rows=100, cols=100
-      total: nonzeros=460, allocated nonzeros=500
+      total: nonzeros=460, allocated nonzeros=460
       total number of mallocs used during MatSetValues calls=0
         not using I-node routines
  EPSLYAPII ranks: for Lyapunov solver=30, after compression=10

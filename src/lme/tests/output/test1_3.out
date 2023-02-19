@@ -2,13 +2,12 @@
 
 Lyapunov equation, N=100 (10x10 grid)
 
-[0] <mat> MatSetUp(): Warning not preallocating matrix storage
-[0] <mat> MatAssemblyEnd_SeqAIJ(): Matrix size: 100 X 100; storage space: 40 unneeded,460 used
+[0] <mat> MatSetUp_Seq_Hash(): Using hash-based MatSetValues() for MATSEQAIJ because no preallocation provided
+[0] <mat> MatAssemblyEnd_SeqAIJ(): Matrix size: 100 X 100; storage space: 0 unneeded,460 used
 [0] <mat> MatAssemblyEnd_SeqAIJ(): Number of mallocs during MatSetValues() is 0
 [0] <mat> MatAssemblyEnd_SeqAIJ(): Maximum nonzeros in any row is 5
 [0] <mat> MatCheckCompressedRow(): Found the ratio (num_zerorows 0)/(num_localrows 100) < 0.6. Do not use CompressedRow routines.
 [0] <mat> MatSeqAIJCheckInode(): Found 100 nodes out of 100 rows. Not using Inode routines
-[0] <mat> MatSetUp(): Warning not preallocating matrix storage
  Equation type set to 1
  Equation type changed to 0
  Solver being used: krylov

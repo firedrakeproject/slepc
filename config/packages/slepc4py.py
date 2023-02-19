@@ -105,8 +105,8 @@ class Slepc4py(package.Package):
       slepcrules.write('slepc4py-install:\n')
 
     rule =  'slepc4pytest:\n'
-    rule += '\t@echo "*** Testing slepc4py ***"\n'
-    rule += '\t@PYTHONPATH=%s:%s ${PYTHON} %s --verbose\n' % (destdir,pythonpath,os.path.join('src','binding','slepc4py','test','runtests.py'))
+    rule += '\t@echo "*** Testing slepc4py on ${PETSC4PY_NP} processes ***"\n'
+    rule += '\t@PYTHONPATH=%s:%s PETSC_OPTIONS="{PETSC_OPTIONS} -check_pointer_intensity 0 -error_output_stdout -malloc_dump ${PETSC_TEST_OPTIONS}" ${MPIEXEC} -n ${PETSC4PY_NP} ${PYTHON} %s --verbose\n' % (destdir,pythonpath,os.path.join('src','binding','slepc4py','test','runtests.py'))
     rule += '\t@echo "====================================="\n\n'
     slepcrules.write(rule)
 

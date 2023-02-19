@@ -111,7 +111,7 @@ endif
 $(generatedtest) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH_DIR) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
-ifneq ($(filter-out clean check info slepc_libs all checkbadSource checkbadFileChange allfortranstubs alletags get%,$(MAKECMDGOALS:clean%=clean)),)
+ifneq ($(filter-out help clean check info slepc_libs all checkbadSource checkbadFileChange allfortranstubs alletags get%,$(MAKECMDGOALS:clean%=clean)),)
 include $(generatedtest)
 endif
 
@@ -413,7 +413,7 @@ help: help-make ${helpdeps}
 
 help-make:
 	-@echo
-	-@echo "Basic usage:"
+	-@echo "SLEPc makefile basic usage:"
 	-@echo "   make  rule <V=1 for verbose output> <other options>"
 	-@echo
 
@@ -429,6 +429,7 @@ help-nontest:
 	-@echo "   getcxxflags - print the C++ compiler flags PETSc is using"
 	-@echo "   getfortranflags - print the Fortran compiler flags PETSc is using"
 	-@echo "   "
+	-@echo "   slepc4pytest - run the entire slepc4py test suite"
 	-@echo "   alltests - run the entire SLEPc test suite"
 	-@echo "   test - use \"make -f gmakefile.test help\" for help on running the extensive tests"
 	-@echo
