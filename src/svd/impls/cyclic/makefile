@@ -14,6 +14,5 @@ SOURCEH  = cyclic.h
 LIBBASE  = libslepcsvd
 DIRS     = cycliccuda
 MANSEC   = SVD
-LOCDIR   = src/svd/impls/cyclic/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

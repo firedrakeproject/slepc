@@ -10,7 +10,6 @@
 
 LIBBASE  = libslepcsvd
 DIRS     = elemental primme scalapack
-LOCDIR   = src/svd/impls/external/
 MANSEC   = SVD
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

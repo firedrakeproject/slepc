@@ -15,6 +15,5 @@ SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = BV
-LOCDIR   = src/sys/classes/bv/interface/cuda/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

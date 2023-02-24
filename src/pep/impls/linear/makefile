@@ -14,6 +14,5 @@ SOURCEH  = linear.h
 LIBBASE  = libslepcpep
 DIRS     =
 MANSEC   = PEP
-LOCDIR   = src/pep/impls/linear/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

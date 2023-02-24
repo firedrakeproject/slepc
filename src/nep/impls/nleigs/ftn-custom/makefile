@@ -14,6 +14,5 @@ SOURCEF  =
 SOURCEH  =
 DIRS     =
 LIBBASE  = libslepcnep
-LOCDIR   = src/nep/impls/nleigs/ftn-custom/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

@@ -10,7 +10,6 @@
 
 LIBBASE  = libslepcmfn
 DIRS     = krylov expokit
-LOCDIR   = src/mfn/impls/
 MANSEC   = MFN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

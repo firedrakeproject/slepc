@@ -14,7 +14,6 @@ SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
 MANSEC   = sys
-LOCDIR   = src/sys/magma/
 DIRS     =
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

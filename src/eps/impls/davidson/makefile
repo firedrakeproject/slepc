@@ -13,7 +13,6 @@ SOURCEF  =
 SOURCEH  = davidson.h
 LIBBASE  = libslepceps
 DIRS     = gd jd
-LOCDIR   = src/eps/impls/davidson/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

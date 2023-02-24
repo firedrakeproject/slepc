@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepcmfn
 DIRS     =
 MANSEC   = MFN
-LOCDIR   = src/mfn/interface/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

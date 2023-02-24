@@ -13,7 +13,6 @@ SOURCEF  =
 SOURCEH  = nepdefl.h
 LIBBASE  = libslepcnep
 DIRS     = rii slp narnoldi interpol ciss nleigs
-LOCDIR   = src/nep/impls/
 MANSEC   = NEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

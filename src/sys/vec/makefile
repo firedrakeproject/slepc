@@ -14,6 +14,5 @@ SOURCEH  = veccomp0.h
 LIBBASE  = libslepcsys
 DIRS     = tests
 MANSEC   = sys
-LOCDIR   = src/sys/vec/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

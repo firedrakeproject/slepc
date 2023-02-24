@@ -363,7 +363,6 @@ Downloaded package %s from: %s is not a tarball.
         makefile.write('checklink: checklink.o\n')
         makefile.write('\t${CLINKER} -o checklink checklink.o ${LINKFLAGS} ${PETSC_SNES_LIB}\n')
         makefile.write('\t@${RM} -f checklink checklink.o\n')
-        makefile.write('LOCDIR = ./\n')
         makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','variables')+'\n')
         makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','rules')+'\n')
     except:

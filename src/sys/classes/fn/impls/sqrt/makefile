@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = FN
-LOCDIR   = src/sys/classes/fn/impls/sqrt/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

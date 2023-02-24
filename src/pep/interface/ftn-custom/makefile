@@ -14,6 +14,5 @@ SOURCEF  =
 SOURCEH  =
 DIRS     =
 LIBBASE  = libslepcpep
-LOCDIR   = src/pep/interface/ftn-custom/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

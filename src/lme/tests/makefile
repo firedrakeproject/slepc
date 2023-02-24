@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-LOCDIR     = src/lme/tests/
 MANSEC     = LME
 TESTS      = test1 test2
 

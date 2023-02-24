@@ -14,6 +14,5 @@ SOURCEF  =
 SOURCEH  =
 DIRS     =
 LIBBASE  = libslepceps
-LOCDIR   = src/eps/impls/krylov/krylovschur/ftn-custom/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

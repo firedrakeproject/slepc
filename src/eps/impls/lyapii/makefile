@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepceps
 DIRS     =
 MANSEC   = EPS
-LOCDIR   = src/eps/impls/lyapii/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

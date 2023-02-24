@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-LOCDIR     = src/svd/tutorials/
 MANSEC     = SVD
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

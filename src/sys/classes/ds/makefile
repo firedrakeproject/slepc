@@ -10,7 +10,6 @@
 
 SOURCEH  = ../../../../include/slepc/private/dsimpl.h ../../../../include/slepcds.h
 DIRS     = interface impls tests f90-mod
-LOCDIR   = src/sys/classes/ds/
 MANSEC   = DS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

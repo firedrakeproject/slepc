@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-LOCDIR     = src/sys/classes/rg/tests/
 MANSEC     = RG
 TESTS      = test1 test1f test2 test3
 

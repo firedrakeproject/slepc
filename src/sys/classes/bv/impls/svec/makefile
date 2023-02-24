@@ -14,6 +14,5 @@ SOURCEH  = svec.h
 LIBBASE  = libslepcsys
 DIRS     = sveccuda
 MANSEC   = BV
-LOCDIR   = src/sys/classes/bv/impls/svec/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

@@ -15,7 +15,6 @@ DOCS     =
 LIBBASE  =
 LINCLUDE = ${SOURCEH}
 DIRS     =
-LOCDIR   = docs/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

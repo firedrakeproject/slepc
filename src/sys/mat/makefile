@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     = tests
 MANSEC   = sys
-LOCDIR   = src/sys/mat/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

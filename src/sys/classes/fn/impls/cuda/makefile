@@ -15,6 +15,5 @@ SOURCEH  = fnutilcuda.h
 LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = FN
-LOCDIR   = src/sys/classes/fn/impls/cuda/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

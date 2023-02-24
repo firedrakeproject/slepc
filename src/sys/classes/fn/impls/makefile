@@ -13,7 +13,6 @@ SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     = combine exp log phi rational sqrt invsqrt cuda
-LOCDIR   = src/sys/classes/fn/impls/
 MANSEC   = FN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

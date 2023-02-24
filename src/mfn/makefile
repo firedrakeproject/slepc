@@ -10,7 +10,6 @@
 
 SOURCEH  = ../../include/slepc/private/mfnimpl.h ../../include/slepcmfn.h
 DIRS     = interface impls tests tutorials f90-mod
-LOCDIR   = src/mfn/
 MANSEC   = MFN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
