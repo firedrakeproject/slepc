@@ -204,7 +204,7 @@ gnu-lint:
     - bash -c "${PYTHON} ./configure --with-debugging=0 --with-strict-petscerrorcode --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O3' ${PETSC_CONFIG_OPTS}"
     - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}"
     - if [ ! -z ${SLEPC4PY+x} ]; then export PYTHONPATH=$PETSC_DIR/$PETSC_ARCH/lib:$SLEPC_DIR/$PETSC_ARCH/lib; fi
-    - if [ ! -z ${INSTALL+x} ]; then make install; PETSC_DIR=$INSTALL_DIR; unset PETSC_ARCH; fi
+    - if [ ! -z ${INSTALL+x} ]; then make install-lib; PETSC_DIR=$INSTALL_DIR; unset PETSC_ARCH; fi
     - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
     - echo -e "section_start:`date +%s`:build_slepc\r\e[0KSLEPc configure and make"
     - cd $SLEPC_DIR
