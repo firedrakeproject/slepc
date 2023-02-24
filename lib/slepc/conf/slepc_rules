@@ -97,7 +97,7 @@ petsc_manualpages_buildcite:
               base=`basename $$f`; \
               makef=$${f%$${base}}makefile; \
               if [ -f $${makef} ]; then \
-                LMANSEC=`grep SUBMANSEC $${makef} | cut -d= -f2 | tr -d " \t"`; \
+                LMANSEC=`grep SUBMANSEC $${makef} | grep -v BFORTSUBMANSEC | cut -d= -f2 | tr -d " \t"`; \
                 if [ "$${LMANSEC}" = "" ]; then LMANSEC=`grep MANSEC $${makef} | cut -d= -f2 | tr -d " \t"`; fi; \
                 if [ "$${LMANSEC}" != "" ]; then \
                   if [ ! -d $${petscidx_tmp}/$${LMANSEC} ]; then ${MKDIR} $${petscidx_tmp}/$${LMANSEC}; fi; \
