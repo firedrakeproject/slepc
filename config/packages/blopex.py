@@ -69,7 +69,6 @@ class Blopex(package.Package):
           slepcvars.write('BLOPEX_INCLUDE = ' + ' '.join(f) + '\n')
           self.havepackage = True
           self.packageflags = ' '.join(l+f)
-          self.location = includes[0] if self.packageincludes else i
           return
 
     self.log.Exit('Unable to link with BLOPEX library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs))

@@ -66,7 +66,10 @@ class Arpack(package.Package):
         libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]
 
     if self.packagedir:
-      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
+      if os.path.isdir(os.path.join(os.sep,'usr','lib64')):
+        dirs = ['',os.path.join(self.packagedir,'lib64'),self.packagedir,os.path.join(self.packagedir,'lib')]
+      else:
+        dirs = ['',os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
     else:
       dirs = self.GenerateGuesses('Arpack',archdir) + self.GenerateGuesses('Arpack',archdir,'lib64')
     self.FortranLib(slepcconf,slepcvars,dirs,libs,functions)

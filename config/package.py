@@ -492,3 +492,15 @@ Downloaded package %s from: %s is not a tarball.
     with open(os.path.join(builddir,fname),'w') as mfile:
       mfile.write(cont)
 
+  def DefaultIncludePath(self,petsc,file):
+    (result,output) = self.RunCommand('echo | '+petsc.cpp+' -Wp,-v -')
+    if not result:
+      import re
+      dirs = re.findall('^ .*',output,re.MULTILINE)
+      for s in dirs:
+        d = s[1:]
+        if os.path.isfile(os.path.join(d,file)):
+          self.log.write('Found '+os.path.join(d,file))
+          return d
+    return '/usr/include'
+
