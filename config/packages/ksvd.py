@@ -26,9 +26,8 @@ class Ksvd(package.Package):
 
 
   def Precondition(self,slepc,petsc):
-    pkg = self.packagename.upper()
-    if not 'mkl' in petsc.packages:
-      self.log.Exit('The KSVD interface requires that PETSc has been built with Intel MKL (libraries and includes)')
+    self.elpa  = self.Require('elpa')
+    self.polar = self.Require('polar')
     if hasattr(self,'download') and self.download and not hasattr(petsc,'cmake'):
       self.log.Exit('The KSVD interface requires CMake for building')
     package.Package.Precondition(self,slepc,petsc)
@@ -71,7 +70,7 @@ class Ksvd(package.Package):
         else:
           l = libs
           f = []
-        (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
+        (result, output) = self.Link([],[],' '.join(l+f+self.elpa.libflags+self.polar.libflags),code,' '.join(f+[self.elpa.includeflags]),petsc.language)
         if result:
           slepcconf.write('#define SLEPC_HAVE_KSVD 1\n')
           slepcvars.write('KSVD_LIB = ' + ' '.join(l) + '\n')
@@ -164,7 +163,7 @@ class Ksvd(package.Package):
       else:
         l = '-L' + ldir + ' -lksvd'
       f = '-I' + incdir
-      (result, output) = self.Link([],[],l+' '+f,code,f,petsc.language)
+      (result, output) = self.Link([],[],l+' '+f+' '+self.elpa.libflags+' '+self.polar.libflags,code,f+' '+self.elpa.includeflags,petsc.language)
       if result: break
 
     if not result:

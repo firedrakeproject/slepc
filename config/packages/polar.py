@@ -28,7 +28,7 @@ class Polar(package.Package):
   def Precondition(self,slepc,petsc):
     pkg = self.packagename.upper()
     if not 'mkl' in petsc.packages:
-      self.log.Exit('The POLAR interface requires that PETSc has been built with Intel MKL (libraries and includes)')
+      self.log.Exit('The '+pkg+' interface requires that PETSc has been built with Intel MKL (libraries and includes)')
     if hasattr(self,'download') and self.download and not hasattr(petsc,'cmake'):
       self.log.Exit('The POLAR interface requires CMake for building')
     package.Package.Precondition(self,slepc,petsc)
@@ -73,9 +73,11 @@ class Polar(package.Package):
           f = []
         (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
         if result:
+          self.libflags = ' '.join(l)
+          self.includeflags = ' '.join(f)
           slepcconf.write('#define SLEPC_HAVE_POLAR 1\n')
-          slepcvars.write('POLAR_LIB = ' + ' '.join(l) + '\n')
-          slepcvars.write('POLAR_INCLUDE = ' + ' '.join(f) + '\n')
+          slepcvars.write('POLAR_LIB = ' + self.libflags + '\n')
+          slepcvars.write('POLAR_INCLUDE = ' + self.includeflags + '\n')
           self.havepackage = True
           self.packageflags = ' '.join(l+f)
           return
@@ -128,9 +130,11 @@ class Polar(package.Package):
       self.log.Exit('Unable to link with downloaded POLAR')
 
     # Write configuration files
+    self.libflags = l
+    self.includeflags = f
     slepcconf.write('#define SLEPC_HAVE_POLAR 1\n')
-    slepcvars.write('POLAR_LIB = ' + l + '\n')
-    slepcvars.write('POLAR_INCLUDE = ' + f + '\n')
+    slepcvars.write('POLAR_LIB = ' + self.libflags + '\n')
+    slepcvars.write('POLAR_INCLUDE = ' + self.includeflags + '\n')
 
     self.havepackage = True
     self.packageflags = l+' '+f

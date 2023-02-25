@@ -137,10 +137,15 @@ slepc4py  = slepc4py.Slepc4py(argdb,log)
 slicot    = slicot.Slicot(argdb,log)
 hpddm     = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, elpa, evsl, hpddm, ksvd, polar, primme, slicot, trlan]
+# The next list sorts the packages in a way that dependencies of X appear before X.
+# SLEPc's configure does not build a graph of package dependencies, every dependency is searched linearly
+externalwithdeps = [arpack, blopex, elpa, evsl, hpddm, polar, ksvd, primme, slicot, trlan]
+# List of packages in alphabetical order
+externalpackages = sorted(externalwithdeps, key=lambda p: p.packagename.upper())
+
 petscpackages    = [lapack, elemental, feast, scalapack]
 specialpackages  = [slepc, petsc, slepc4py, sowing]
-checkpackages    = specialpackages + petscpackages + externalpackages
+checkpackages    = specialpackages + petscpackages + externalwithdeps
 
 # Print help if requested and check for wrong command-line options
 if showhelp:
