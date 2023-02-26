@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 #!/bin/env python
-#
-# Reads in all the generated manual pages, and Creates the index
-# for the manualpages, ordering the indices into sections based
-# on the 'Level of Difficulty'
-#
-#  Usage:
-#    wwwindex.py PETSC_DIR LOC
-#
-from __future__ import print_function
+
+""" Reads in all the generated manual pages, and creates the index
+for the manualpages, ordering the indices into sections based
+on the 'Level of Difficulty'.
+
+ Usage:
+   wwwindex.py PETSC_DIR LOC
+"""
+
 import os
+import sys
+import re
 import glob
 import posixpath
-from sys import *
 import subprocess
 
 # This routine reorders the entries int he list in such a way, so that
@@ -35,18 +36,13 @@ def maketranspose(data,ncol):
 # Now use the level info, and print a html formatted index
 # table. Can also provide a header file, whose contents are
 # first copied over.
-def printindex(outfilename,headfilename,levels,titles,tables):
+def printindex(outfilename, headfilename, levels, titles, tables):
       # Read in the header file
       headbuf = ''
       if posixpath.exists(headfilename) :
-            try:
-                  fd = open(headfilename,'r')
-            except:
-                  print('Error reading file',headfilename)
-                  exit()
-            headbuf = fd.read()
-            headbuf = headbuf.replace('PETSC_DIR','../../../')
-            fd.close()
+            with open(headfilename, "r") as fd:
+                headbuf = fd.read()
+                headbuf = headbuf.replace('PETSC_DIR', '../../../')
       else:
             print('Header file \'' + headfilename + '\' does not exist')
 
@@ -155,14 +151,8 @@ def printsingleindex(outfilename,alphabet_dict):
 # String 'Level:' and return the level info.
 # Also adds the BOLD HTML format to Level field
 def modifylevel(filename,secname):
-      import re
-      try:
-            fd = open(filename,'r')
-      except:
-            print('Error! Cannot open file:',filename)
-            exit()
-      buf    = fd.read()
-      fd.close()
+      with open(filename, "r") as fd:
+          buf = fd.read()
 
       re_level = re.compile(r'(Level:)\s+(\w+)')
       m = re_level.search(buf)
@@ -172,21 +162,16 @@ def modifylevel(filename,secname):
       else:
             print('Error! No level info in file:', filename)
 
-      # Now takeout the level info, and move it to the end,
-      # and also add the bold format.
+      # Reformat level and location
       tmpbuf = re_level.sub('',buf)
       re_loc = re.compile('(<FONT COLOR="#883300">Location: </FONT>)')
       tmpbuf = re_loc.sub('</B><H3><FONT COLOR="#883300">Level</FONT></H3>' + level + r'<BR>\n<H3><FONT COLOR="#883300">Location</FONT></H3>\n',tmpbuf)
 
       # Modify .c#,.h#,.cu#,.cxx# to .c.html#,.h.html#,.cu.html#,.cxx.html#
-      re_loc = re.compile('.c#')
-      tmpbuf = re_loc.sub('.c.html#',tmpbuf)
-      re_loc = re.compile('.h#')
-      tmpbuf = re_loc.sub('.h.html#',tmpbuf)
-      re_loc = re.compile('.cu#')
-      tmpbuf = re_loc.sub('.cu.html#',tmpbuf)
-      re_loc = re.compile('.cxx#')
-      tmpbuf = re_loc.sub('.cxx.html#',tmpbuf)
+      tmpbuf = re.sub('.c#', '.c.html#', tmpbuf)
+      tmpbuf = re.sub('.h#', '.h.html#', tmpbuf)
+      tmpbuf = re.sub('.cu#', '.cu.html#', tmpbuf)
+      tmpbuf = re.sub('.cxx#', '.cxx.html#', tmpbuf)
 
       re_loc = re.compile('</BODY></HTML>')
       outbuf = re_loc.sub('<BR><BR><A HREF="./index.html">Index of all ' + secname + ' routines</A>\n<BR><A HREF="../../../docs/manual.html">Table of Contents for all manual pages</A>\n<BR><A HREF="../singleindex.html">Index of all manual pages</A>\n</BODY></HTML>',tmpbuf)
@@ -195,14 +180,9 @@ def modifylevel(filename,secname):
       outbuf = re_loc.sub(' <a href="\\1">\\1 </a> ',outbuf)
 
       # write the modified manpage
-      try:
-            #fd = open(filename[:-1],'w')
-            fd = open(filename,'w')
-      except:
-            print('Error! Cannot write to file:',filename)
-            exit()
-      fd.write(outbuf)
-      fd.close()
+      with open(filename, "w") as fd:
+          fd.write(outbuf)
+
       return level
 
 # Go through each manpage file, present in dirname,
@@ -245,9 +225,7 @@ def addtolist(dirname,singlelist):
 # This routine creates a dictionary, with entries such that each
 # key is the alphabet, and the vaue corresponds to this key is a dictionary
 # of FunctionName/PathToFile Pair.
-
 def createdict(singlelist):
-
       newdict = {}
       for filename in singlelist:
             path,name     = posixpath.split(filename)
@@ -263,9 +241,8 @@ def createdict(singlelist):
       return newdict
 
 
-# Gets the list of man* dirs present in the doc dir.
-# Each dir will have an index created for it.
 def getallmandirs(dirs):
+      """ Gets the list of man* dirs present in the doc dir. Each dir will have an index created for it. """
       mandirs = []
       for filename in dirs:
             path,name = posixpath.split(filename)
@@ -278,17 +255,17 @@ def getallmandirs(dirs):
 # Extracts PETSC_DIR from the command line and
 # starts genrating index for all the manpages.
 def main():
-      arg_len = len(argv)
+      arg_len = len(sys.argv)
 
       if arg_len < 3:
             print('Error! Insufficient arguments.')
-            print('Usage:', argv[0], 'PETSC_DIR','LOC')
+            print('Usage:', sys.argv[0], 'PETSC_DIR','LOC')
             exit()
 
-      PETSC_DIR = argv[1]
-      LOC       = argv[2]
-      HEADERDIR = (argv[3] if arg_len > 3 else 'doc/classic/manualpages-sec')
-      #fd        = os.popen('/bin/ls -d '+ PETSC_DIR + '/docs/manualpages/*')
+      PETSC_DIR = sys.argv[1]
+      LOC       = sys.argv[2]
+      HEADERDIR = (sys.argv[3] if arg_len > 3 else 'doc/classic/manualpages-sec')
+      #fd        = os.popen('/bin/ls -d '+ PETSC_DIR + '/manualpages/*')
       #buf       = fd.read()
       #dirs      = split(strip(buf),'\n')
       dirs      = glob.glob(LOC + '/docs/manualpages/*')
@@ -313,11 +290,10 @@ def main():
             printindex(outfilename,headfilename,levels,titles,table)
 
       alphabet_dict = createdict(singlelist)
-      outfilename   = LOC + '/docs/manualpages' + '/singleindex.html'
+      outfilename   = LOC + '/docs/manualpages/singleindex.html'
       printsingleindex (outfilename,alphabet_dict)
 
-# The classes in this file can also
-# be used in other python-programs by using 'import'
-if __name__ ==  '__main__':
+
+if __name__ == '__main__':
       main()
 

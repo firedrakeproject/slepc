@@ -88,7 +88,7 @@ petsc_manualpages_buildcite:
             LMANSEC=`grep SUBMANSEC $${petscidx_tmp}/$${f} | sed s'?[ ]*/\*[ ]*SUBMANSEC[ ]*=[ ]*\([a-zA-Z]*\)[ ]*\*/?\1?'g`; \
             if [ "$${LMANSEC}" = "" ]; then LMANSEC="MissingSUBMANSEC"; fi; \
             if [ ! -d $${petscidx_tmp}/$${LMANSEC} ]; then ${MKDIR} $${petscidx_tmp}/$${LMANSEC}; fi; \
-            ${DOCTEXT} -html -indexdir "https://petsc.org/$${petscbranch}/docs/manualpages/$${LMANSEC}" \
+            ${DOCTEXT} -html -indexdir "https://petsc.org/$${petscbranch}/manualpages/$${LMANSEC}" \
               -index $${petscidx_tmp}/petscmanualpages.cit \
               -mpath $${petscidx_tmp}/$${LMANSEC} $${doctext_common_def} $${petscidx_tmp}/$${f}; \
           done; \
@@ -101,7 +101,7 @@ petsc_manualpages_buildcite:
                 if [ "$${LMANSEC}" = "" ]; then LMANSEC=`grep MANSEC $${makef} | cut -d= -f2 | tr -d " \t"`; fi; \
                 if [ "$${LMANSEC}" != "" ]; then \
                   if [ ! -d $${petscidx_tmp}/$${LMANSEC} ]; then ${MKDIR} $${petscidx_tmp}/$${LMANSEC}; fi; \
-                  ${DOCTEXT} -html -indexdir "https://petsc.org/$${petscbranch}/docs/manualpages/$${LMANSEC}" \
+                  ${DOCTEXT} -html -indexdir "https://petsc.org/$${petscbranch}/manualpages/$${LMANSEC}" \
                     -index $${petscidx_tmp}/petscmanualpages.cit \
                     -mpath $${petscidx_tmp}/$${LMANSEC} $${doctext_common_def} $${f}; \
                 fi; \
