@@ -133,10 +133,10 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscUseTypeMethod(nep,setup);
 
   /* set tolerance if not yet set */
-  if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
+  if (nep->tol==(PetscReal)PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
   if (nep->refine) {
-    if (nep->rtol==PETSC_DEFAULT) nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
-    if (nep->rits==PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
+    if (nep->rtol==(PetscReal)PETSC_DEFAULT) nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
+    if (nep->rits==(PetscReal)PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
   }
 
   /* fill sorting criterion context */

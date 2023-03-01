@@ -341,7 +341,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscUseTypeMethod(svd,setup);
 
   /* set tolerance if not yet set */
-  if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
+  if (svd->tol==(PetscReal)PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
 
   /* fill sorting criterion context */
   PetscCall(DSGetSlepcSC(svd->ds,&sc));

@@ -485,7 +485,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   PetscCheck(pep->inta<pep->intb,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues unless you provide a computational interval with PEPSetInterval()");
   PetscCheck(pep->intb<PETSC_MAX_REAL || pep->inta>PETSC_MIN_REAL,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
   PEPCheckUnsupportedCondition(pep,PEP_FEATURE_STOPPING,PETSC_TRUE," (with spectrum slicing)");
-  if (pep->tol==PETSC_DEFAULT) {
+  if (pep->tol==(PetscReal)PETSC_DEFAULT) {
 #if defined(PETSC_USE_REAL_SINGLE)
     pep->tol = SLEPC_DEFAULT_TOL;
 #else

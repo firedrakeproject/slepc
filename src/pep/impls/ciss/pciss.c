@@ -613,13 +613,13 @@ static PetscErrorCode PEPCISSSetThreshold_CISS(PEP pep,PetscReal delta,PetscReal
   PEP_CISS *ctx = (PEP_CISS*)pep->data;
 
   PetscFunctionBegin;
-  if (delta == PETSC_DEFAULT) {
+  if (delta == (PetscReal)PETSC_DEFAULT) {
     ctx->delta = SLEPC_DEFAULT_TOL*1e-4;
   } else {
     PetscCheck(delta>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The delta argument must be > 0.0");
     ctx->delta = delta;
   }
-  if (spur == PETSC_DEFAULT) {
+  if (spur == (PetscReal)PETSC_DEFAULT) {
     ctx->spurious_threshold = PetscSqrtReal(SLEPC_DEFAULT_TOL);
   } else {
     PetscCheck(spur>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");

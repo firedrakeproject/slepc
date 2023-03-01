@@ -298,7 +298,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,tol,2);
   PetscValidLogicalCollectiveInt(eps,maxits,3);
-  if (tol == PETSC_DEFAULT) {
+  if (tol == (PetscReal)PETSC_DEFAULT) {
     eps->tol   = PETSC_DEFAULT;
     eps->state = EPS_STATE_INITIAL;
   } else {
@@ -1093,7 +1093,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
     PetscCheck(its>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
     eps->balance_its = its;
   }
-  if (cutoff==PETSC_DECIDE || cutoff==PETSC_DEFAULT) eps->balance_cutoff = 1e-8;
+  if (cutoff==(PetscReal)PETSC_DECIDE || cutoff==(PetscReal)PETSC_DEFAULT) eps->balance_cutoff = 1e-8;
   else {
     PetscCheck(cutoff>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of cutoff. Must be > 0");
     eps->balance_cutoff = cutoff;

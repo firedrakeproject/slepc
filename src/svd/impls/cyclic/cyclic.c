@@ -399,7 +399,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     if (mpd==PETSC_DEFAULT && svd->mpd!=PETSC_DEFAULT) mpd = svd->mpd;
     PetscCall(EPSSetDimensions(cyclic->eps,nev,ncv,mpd));
     PetscCall(EPSGetTolerances(cyclic->eps,&tol,&maxit));
-    if (tol==PETSC_DEFAULT) tol = svd->tol==PETSC_DEFAULT? SLEPC_DEFAULT_TOL/10.0: svd->tol;
+    if (tol==(PetscReal)PETSC_DEFAULT) tol = svd->tol==(PetscReal)PETSC_DEFAULT? SLEPC_DEFAULT_TOL/10.0: svd->tol;
     if (maxit==PETSC_DEFAULT && svd->max_it!=PETSC_DEFAULT) maxit = svd->max_it;
     PetscCall(EPSSetTolerances(cyclic->eps,tol,maxit));
     switch (svd->conv) {
@@ -467,7 +467,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   PetscCall(EPSGetDimensions(cyclic->eps,NULL,&svd->ncv,&svd->mpd));
   svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
   PetscCall(EPSGetTolerances(cyclic->eps,NULL,&svd->max_it));
-  if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
+  if (svd->tol==(PetscReal)PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
 
   svd->leftbasis = PETSC_TRUE;
   PetscCall(SVDAllocateSolution(svd,0));

@@ -97,7 +97,7 @@ PetscErrorCode LMESetUp(LME lme)
   PetscUseTypeMethod(lme,setup);
 
   /* set tolerance if not yet set */
-  if (lme->tol==PETSC_DEFAULT) lme->tol = SLEPC_DEFAULT_TOL;
+  if (lme->tol==(PetscReal)PETSC_DEFAULT) lme->tol = SLEPC_DEFAULT_TOL;
 
   PetscCall(PetscLogEventEnd(LME_SetUp,lme,0,0,0));
   lme->setupcalled = 1;

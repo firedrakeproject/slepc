@@ -949,7 +949,7 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
     default:
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown refinement type");
   }
-  if (eta == PETSC_DEFAULT) {
+  if (eta == (PetscReal)PETSC_DEFAULT) {
     bv->orthog_eta = 0.7071;
   } else {
     PetscCheck(eta>0.0 && eta<=1.0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");
@@ -1875,7 +1875,7 @@ PetscErrorCode BVSetDefiniteTolerance(BV bv,PetscReal deftol)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveReal(bv,deftol,2);
-  if (deftol == PETSC_DEFAULT) bv->deftol = 10*PETSC_MACHINE_EPSILON;
+  if (deftol == (PetscReal)PETSC_DEFAULT) bv->deftol = 10*PETSC_MACHINE_EPSILON;
   else {
     PetscCheck(deftol>0.0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of deftol. Must be > 0");
     bv->deftol = deftol;

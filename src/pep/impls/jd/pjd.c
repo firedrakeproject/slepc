@@ -1467,7 +1467,7 @@ PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
   PetscFunctionBegin;
-  if (keep==PETSC_DEFAULT) pjd->keep = 0.5;
+  if (keep==(PetscReal)PETSC_DEFAULT) pjd->keep = 0.5;
   else {
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     pjd->keep = keep;
@@ -1543,7 +1543,7 @@ PetscErrorCode PEPJDSetFix_JD(PEP pep,PetscReal fix)
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
   PetscFunctionBegin;
-  if (fix == PETSC_DEFAULT || fix == PETSC_DECIDE) pjd->fix = 0.01;
+  if (fix == (PetscReal)PETSC_DEFAULT || fix == (PetscReal)PETSC_DECIDE) pjd->fix = 0.01;
   else {
     PetscCheck(fix>=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value, must be >0");
     pjd->fix = fix;

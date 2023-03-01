@@ -30,7 +30,7 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
 
   PetscFunctionBegin;
   ctx->center = center;
-  if (radius == PETSC_DEFAULT) {
+  if (radius == (PetscReal)PETSC_DEFAULT) {
     ctx->radius = 1.0;
   } else {
     PetscCheck(radius>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
@@ -38,14 +38,14 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
   }
   PetscCheck(vscale>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
   ctx->vscale = vscale;
-  if (start_ang == PETSC_DEFAULT) {
+  if (start_ang == (PetscReal)PETSC_DEFAULT) {
     ctx->start_ang = 0.0;
   } else {
     PetscCheck(start_ang>=0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be >= 0.0");
     PetscCheck(start_ang<=1.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be <= 1.0");
     ctx->start_ang = start_ang;
   }
-  if (end_ang == PETSC_DEFAULT) {
+  if (end_ang == (PetscReal)PETSC_DEFAULT) {
     ctx->end_ang = 1.0;
   } else {
     PetscCheck(end_ang>=0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be >= 0.0");
@@ -55,7 +55,7 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
 #if !defined(PETSC_USE_COMPLEX)
   PetscCheck(ctx->start_ang+ctx->end_ang==1.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
 #endif
-  if (width == PETSC_DEFAULT) {
+  if (width == (PetscReal)PETSC_DEFAULT) {
     ctx->width = 0.1;
   } else {
     PetscCheck(width>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The width argument must be > 0.0");

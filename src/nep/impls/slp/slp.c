@@ -55,8 +55,8 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   PetscCall(EPSSetDimensions(ctx->eps,1,PETSC_DECIDE,PETSC_DECIDE));
   PetscCall(EPSSetWhichEigenpairs(ctx->eps,EPS_LARGEST_MAGNITUDE));
   PetscCall(EPSSetTolerances(ctx->eps,SlepcDefaultTol(nep->tol)/10.0,nep->max_it));
-  if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
-  if (ctx->deftol==PETSC_DEFAULT) ctx->deftol = nep->tol;
+  if (nep->tol==(PetscReal)PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
+  if (ctx->deftol==(PetscReal)PETSC_DEFAULT) ctx->deftol = nep->tol;
 
   if (nep->twosided) {
     nep->ops->solve = NEPSolve_SLP_Twosided;
@@ -276,7 +276,7 @@ static PetscErrorCode NEPSLPSetDeflationThreshold_SLP(NEP nep,PetscReal deftol)
   NEP_SLP *ctx = (NEP_SLP*)nep->data;
 
   PetscFunctionBegin;
-  if (deftol == PETSC_DEFAULT) {
+  if (deftol == (PetscReal)PETSC_DEFAULT) {
     ctx->deftol = PETSC_DEFAULT;
     nep->state  = NEP_STATE_INITIAL;
   } else {

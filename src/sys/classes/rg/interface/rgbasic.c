@@ -723,11 +723,9 @@ PetscErrorCode RGSetScale(RG rg,PetscReal sfactor)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidLogicalCollectiveReal(rg,sfactor,2);
-  if (sfactor == PETSC_DEFAULT || sfactor == PETSC_DECIDE) rg->sfactor = 1.0;
-  else {
-    PetscCheck(sfactor>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of scaling factor. Must be > 0");
-    rg->sfactor = sfactor;
-  }
+  if (sfactor == (PetscReal)PETSC_DEFAULT || sfactor == (PetscReal)PETSC_DECIDE) sfactor = 1.0;
+  PetscCheck(sfactor>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of scaling factor. Must be > 0");
+  rg->sfactor = sfactor;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

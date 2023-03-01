@@ -286,7 +286,7 @@ PetscErrorCode LMESetTolerances(LME lme,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidLogicalCollectiveReal(lme,tol,2);
   PetscValidLogicalCollectiveInt(lme,maxits,3);
-  if (tol == PETSC_DEFAULT) {
+  if (tol == (PetscReal)PETSC_DEFAULT) {
     lme->tol = PETSC_DEFAULT;
     lme->setupcalled = 0;
   } else {

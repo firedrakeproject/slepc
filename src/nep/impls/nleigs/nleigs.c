@@ -880,8 +880,8 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   k = ctx->ddmaxit;
   PetscCall(PetscMalloc4(k,&ctx->s,k,&ctx->xi,k,&ctx->beta,k,&ctx->D));
   nep->data = ctx;
-  if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
-  if (ctx->ddtol==PETSC_DEFAULT) ctx->ddtol = nep->tol/10.0;
+  if (nep->tol==(PetscReal)PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
+  if (ctx->ddtol==(PetscReal)PETSC_DEFAULT) ctx->ddtol = nep->tol/10.0;
   if (!ctx->keep) ctx->keep = 0.5;
 
   /* Compute Leja-Bagby points and scaling values */
@@ -1371,7 +1371,7 @@ static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
   NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
+  if (keep==(PetscReal)PETSC_DEFAULT) ctx->keep = 0.5;
   else {
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;
@@ -1521,7 +1521,7 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  if (tol == PETSC_DEFAULT) {
+  if (tol == (PetscReal)PETSC_DEFAULT) {
     ctx->ddtol = PETSC_DEFAULT;
     nep->state = NEP_STATE_INITIAL;
   } else {
