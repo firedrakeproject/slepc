@@ -10,10 +10,8 @@
 #requirespackage 'PETSC_HAVE_CUDA'
 
 SOURCECU = fnutilcuda.cu
-SOURCEF  =
 SOURCEH  = fnutilcuda.h
 LIBBASE  = libslepcsys
-DIRS     =
 MANSEC   = FN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

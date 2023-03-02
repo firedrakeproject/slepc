@@ -10,10 +10,7 @@
 #requiresscalar    complex
 
 SOURCEC  = nciss.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcnep
-DIRS     =
 MANSEC   = NEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

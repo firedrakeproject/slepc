@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = pepmon.c pepbasic.c pepview.c pepdefault.c pepregis.c pepopts.c pepsetup.c pepsolve.c peprefine.c dlregispep.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcpep
-DIRS     =
 MANSEC   = PEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

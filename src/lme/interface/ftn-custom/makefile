@@ -10,9 +10,6 @@
 #requiresdefine   'PETSC_HAVE_FORTRAN'
 
 SOURCEC  = zlmef.c
-SOURCEF  =
-SOURCEH  =
-DIRS     =
 LIBBASE  = libslepclme
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

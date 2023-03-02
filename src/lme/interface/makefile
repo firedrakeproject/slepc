@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = lmemon.c lmebasic.c lmeregis.c lmeopts.c lmedense.c lmesetup.c lmesolve.c dlregislme.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepclme
-DIRS     =
 MANSEC   = LME
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

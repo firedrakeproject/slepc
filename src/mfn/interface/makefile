@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = mfnmon.c mfnbasic.c mfnregis.c mfnopts.c mfnsetup.c mfnsolve.c dlregismfn.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcmfn
-DIRS     =
 MANSEC   = MFN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

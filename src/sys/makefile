@@ -9,8 +9,6 @@
 #
 
 SOURCEC  = slepcinit.c slepcutil.c slepcsc.c slepccontour.c dlregisslepc.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
 MANSEC   = sys
 DIRS     = f90-mod vec mat magma classes tests tutorials

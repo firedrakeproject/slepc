@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = dsgsvd.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     =
 MANSEC   = DS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

@@ -10,10 +10,7 @@
 #requirespackage 'PETSC_HAVE_CUDA'
 
 SOURCECU = bvorthogcuda.cu
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     =
 MANSEC   = BV
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

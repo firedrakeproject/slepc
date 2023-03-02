@@ -9,7 +9,6 @@
 #
 #requiresdefine   'PETSC_HAVE_FORTRAN'
 
-SOURCEC    =
 SOURCEF90  = slepcrgmod.F90
 SOURCEH    = slepcrg.h slepcrg.h90
 LIBBASE    = libslepcsys

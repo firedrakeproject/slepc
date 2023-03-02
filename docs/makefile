@@ -8,13 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  =
-SOURCEF  =
-SOURCEH  =
-DOCS     =
-LIBBASE  =
 LINCLUDE = ${SOURCEH}
-DIRS     =
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

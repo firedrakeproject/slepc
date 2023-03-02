@@ -9,10 +9,8 @@
 #
 
 SOURCEC  = nleigs.c nleigs-fullb.c
-SOURCEF  =
 SOURCEH  = nleigs.h
 LIBBASE  = libslepc
-DIRS     =
 MANSEC   = NEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

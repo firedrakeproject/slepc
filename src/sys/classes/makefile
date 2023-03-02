@@ -8,9 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  =
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
 MANSEC   = sys
 DIRS     = fn ds bv st rg

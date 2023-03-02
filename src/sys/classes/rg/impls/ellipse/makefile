@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = rgellipse.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     =
 MANSEC   = RG
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

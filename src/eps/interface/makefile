@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = epsmon.c epsbasic.c epsview.c epsdefault.c epsregis.c epsopts.c epssetup.c epssolve.c dlregiseps.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepceps
-DIRS     =
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

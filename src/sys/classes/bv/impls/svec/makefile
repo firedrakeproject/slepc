@@ -9,7 +9,6 @@
 #
 
 SOURCEC  = svec.c
-SOURCEF  =
 SOURCEH  = svec.h
 LIBBASE  = libslepcsys
 DIRS     = sveccuda

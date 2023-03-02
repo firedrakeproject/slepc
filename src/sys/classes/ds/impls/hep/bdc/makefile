@@ -10,10 +10,7 @@
 #requiresscalar    real
 
 SOURCEC  = dibtdc.c dlaed3m.c dmerg2.c dsbtdc.c dsrtdf.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     =
 MANSEC   = DS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

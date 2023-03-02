@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = gd.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepceps
-DIRS     =
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

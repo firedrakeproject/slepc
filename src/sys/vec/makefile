@@ -9,7 +9,6 @@
 #
 
 SOURCEC  = veccomp.c pool.c vecutil.c
-SOURCEF  =
 SOURCEH  = veccomp0.h
 LIBBASE  = libslepcsys
 DIRS     = tests

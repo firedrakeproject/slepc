@@ -10,10 +10,8 @@
 #requiresdefine  'SLEPC_HAVE_TRLAN'
 
 SOURCEC  = trlan.c
-SOURCEF  =
 SOURCEH  = trlan.h
 LIBBASE  = libslepceps
-DIRS     =
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

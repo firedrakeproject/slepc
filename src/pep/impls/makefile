@@ -9,8 +9,6 @@
 #
 
 SOURCEC  = peputils.c
-SOURCEF  =
-SOURCEH  = 
 LIBBASE  = libslepcpep
 DIRS     = linear krylov jd ciss
 MANSEC   = PEP

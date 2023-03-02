@@ -10,10 +10,7 @@
 #requirespackage 'PETSC_HAVE_MAGMA'
 
 SOURCEC  = slepcmagma.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
 MANSEC   = sys
-DIRS     =
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

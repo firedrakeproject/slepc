@@ -9,10 +9,8 @@
 #
 
 SOURCEC  = linear.c qeplin.c
-SOURCEF  =
 SOURCEH  = linear.h
 LIBBASE  = libslepcpep
-DIRS     =
 MANSEC   = PEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

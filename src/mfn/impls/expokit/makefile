@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = mfnexpokit.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcmfn
-DIRS     =
 MANSEC   = MFN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

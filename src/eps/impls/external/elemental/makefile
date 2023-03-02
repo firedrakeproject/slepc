@@ -9,12 +9,8 @@
 #
 #requiresdefine  'SLEPC_HAVE_ELEMENTAL'
 
-SOURCEC   =
 SOURCECXX = elemental.cxx
-SOURCEF   =
-SOURCEH   =
 LIBBASE   = libslepceps
-DIRS      =
 MANSEC    = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

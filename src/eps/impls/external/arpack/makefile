@@ -10,10 +10,8 @@
 #requiresdefine  'SLEPC_HAVE_ARPACK'
 
 SOURCEC  = arpack.c
-SOURCEF  =
 SOURCEH  = arpack.h
 LIBBASE  = libslepceps
-DIRS     =
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

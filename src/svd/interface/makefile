@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = svdregis.c svdbasic.c svddefault.c svdview.c svdopts.c svdsetup.c svdsolve.c svdmon.c dlregissvd.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsvd
-DIRS     =
 MANSEC   = SVD
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
