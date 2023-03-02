@@ -10,7 +10,6 @@
 
 LIBBASE  = libslepcsys
 DIRS     = ellipse interval polygon ring
-LOCDIR   = src/sys/classes/rg/impls/
 MANSEC   = RG
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

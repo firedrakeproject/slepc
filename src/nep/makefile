@@ -10,7 +10,6 @@
 
 SOURCEH  = ../../include/slepc/private/nepimpl.h ../../include/slepcnep.h
 DIRS     = interface impls tests tutorials f90-mod
-LOCDIR   = src/nep/
 MANSEC   = NEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

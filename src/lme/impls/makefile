@@ -10,7 +10,6 @@
 
 LIBBASE  = libslepclme
 DIRS     = krylov
-LOCDIR   = src/lme/impls/
 MANSEC   = LME
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepcnep
 DIRS     =
 MANSEC   = NEP
-LOCDIR   = src/nep/interface/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

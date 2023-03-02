@@ -10,7 +10,6 @@
 
 SOURCEH  = ../../../../include/slepc/private/bvimpl.h ../../../../include/slepcbv.h
 DIRS     = interface impls tests f90-mod
-LOCDIR   = src/sys/classes/bv/
 MANSEC   = BV
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

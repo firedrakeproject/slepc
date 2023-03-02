@@ -10,7 +10,6 @@
 
 LIBBASE  = libslepceps
 DIRS     = arpack blopex elemental elpa evsl feast primme scalapack trlan
-LOCDIR   = src/eps/impls/external/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

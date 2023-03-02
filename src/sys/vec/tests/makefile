@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-LOCDIR     = src/sys/vec/tests/
 MANSEC     = sys
 TESTS      = test1
 

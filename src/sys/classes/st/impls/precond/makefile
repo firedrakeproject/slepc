@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = ST
-LOCDIR   = src/sys/classes/st/impls/precond/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

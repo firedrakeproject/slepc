@@ -15,6 +15,5 @@ SOURCEH   =
 LIBBASE   = libslepcsvd
 DIRS      =
 MANSEC    = SVD
-LOCDIR    = src/svd/impls/external/scalapack/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

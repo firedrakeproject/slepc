@@ -15,6 +15,5 @@ SOURCEH  =
 LIBBASE  = libslepcnep
 DIRS     =
 MANSEC   = NEP
-LOCDIR   = src/nep/impls/ciss/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

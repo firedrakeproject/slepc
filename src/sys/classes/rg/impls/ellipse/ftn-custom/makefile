@@ -14,6 +14,5 @@ SOURCEF  =
 SOURCEH  =
 DIRS     =
 LIBBASE  = libslepcsys
-LOCDIR   = src/sys/classes/rg/impls/ellipse/ftn-custom/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

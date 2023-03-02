@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-LOCDIR     = src/nep/tutorials/nlevp/
 MANSEC     = NEP
 TESTS      = loaded_string gun
 

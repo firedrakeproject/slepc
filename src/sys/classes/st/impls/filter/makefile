@@ -14,6 +14,5 @@ SOURCEH  = filter.h
 LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = ST
-LOCDIR   = src/sys/classes/st/impls/filter/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

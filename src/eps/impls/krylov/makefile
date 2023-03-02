@@ -13,7 +13,6 @@ SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepceps
 DIRS     = arnoldi lanczos krylovschur
-LOCDIR   = src/eps/impls/krylov/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

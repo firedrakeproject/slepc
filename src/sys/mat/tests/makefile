@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-LOCDIR     = src/sys/mat/tests/
 MANSEC     = sys
 TESTS      = test1
 

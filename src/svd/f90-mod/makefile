@@ -14,7 +14,6 @@ SOURCEF90  = slepcsvdmod.F90
 SOURCEH    = slepcsvd.h slepcsvd.h90
 LIBBASE    = libslepcsvd
 MANSEC     = SVD
-LOCDIR     = src/svd/f90-mod/
 CLEANFILES = *.mod
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

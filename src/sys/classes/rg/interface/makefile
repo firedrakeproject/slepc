@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = RG
-LOCDIR   = src/sys/classes/rg/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

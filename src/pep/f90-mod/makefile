@@ -14,7 +14,6 @@ SOURCEF90  = slepcpepmod.F90
 SOURCEH    = slepcpep.h slepcpep.h90
 LIBBASE    = libslepcpep
 MANSEC     = PEP
-LOCDIR     = src/pep/f90-mod/
 CLEANFILES = *.mod
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

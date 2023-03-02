@@ -14,6 +14,5 @@ SOURCEH  = nleigs.h
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = NEP
-LOCDIR   = src/nep/impls/nleigs/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

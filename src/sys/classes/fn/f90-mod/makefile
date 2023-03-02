@@ -14,7 +14,6 @@ SOURCEF90  = slepcfnmod.F90
 SOURCEH    = slepcfn.h slepcfn.h90
 LIBBASE    = libslepcsys
 MANSEC     = FN
-LOCDIR     = src/sys/classes/fn/f90-mod/
 CLEANFILES = *.mod
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

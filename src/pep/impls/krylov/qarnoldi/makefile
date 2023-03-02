@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepcpep
 DIRS     =
 MANSEC   = PEP
-LOCDIR   = src/pep/impls/krylov/qarnoldi/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

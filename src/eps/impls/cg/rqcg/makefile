@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepceps
 DIRS     =
 MANSEC   = EPS
-LOCDIR   = src/eps/impls/cg/rqcg/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

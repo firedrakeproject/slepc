@@ -10,7 +10,6 @@
 
 SOURCEH  = ../../include/slepc/private/epsimpl.h ../../include/slepceps.h
 DIRS     = interface impls tests tutorials f90-mod
-LOCDIR   = src/eps/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

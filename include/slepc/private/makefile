@@ -13,6 +13,5 @@ SOURCEF  =
 SOURCEH  = epsimpl.h stimpl.h svdimpl.h pepimpl.h nepimpl.h vecimplslepc.h mfnimpl.h lmeimpl.h dsimpl.h fnimpl.h rgimpl.h bvimpl.h slepcimpl.h slepccontour.h
 LIBBASE  = libslepcsys
 DIRS     =
-LOCDIR   = include/slepc/private/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

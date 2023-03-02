@@ -16,6 +16,5 @@ SOURCEH   =
 LIBBASE   = libslepcsvd
 DIRS      =
 MANSEC    = SVD
-LOCDIR    = src/svd/impls/external/elemental/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

@@ -9,7 +9,6 @@
 #
 
 DIRS       = nlevp
-LOCDIR     = src/nep/tutorials/
 MANSEC     = NEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

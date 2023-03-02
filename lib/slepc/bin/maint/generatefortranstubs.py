@@ -72,6 +72,7 @@ def FixDir(petscdir,dir,verbose):
 
   submansec = 'unknown'
   mansec = 'unknown'
+  bfortsubmansec = 'unknown'
   cnames = []
   hnames = []
   parentdir = os.path.abspath(os.path.join(dir,'..'))
@@ -93,24 +94,27 @@ def FixDir(petscdir,dir,verbose):
     fd.close()
     cppflags = ""
     libbase = ""
-    locdir = ""
     for line in inbuf.splitlines():
       if line.find('CPPFLAGS') >=0:
         cppflags = line
       if line.find('LIBBASE') >=0:
         libbase = line
-      elif line.find('LOCDIR') >=0:
-        locdir = line.rstrip() + 'ftn-auto/'
       elif line.find('SUBMANSEC') >=0:
         submansec = line.split('=')[1].lower().strip()
+      elif line.find('BFORTSUBMANSEC') >=0:
+        bfortsubmansec = line.split('=')[1].lower().strip()
       elif line.find('MANSEC') >=0:
         submansec = line.split('=')[1].lower().strip()
       if line.find('MANSEC') >=0 and not line.find('SUBMANSEC') >=0:
         mansec = line.split('=')[1].lower().strip()
 
+    if not bfortsubmansec == 'unknown':
+      submansec = bfortsubmansec
+
     # now assemble the makefile
     outbuf  =  '\n'
     outbuf +=  "#requiresdefine   'PETSC_HAVE_FORTRAN'\n"
+    outbuf +=  'ALL: lib\n'
     outbuf +=   cppflags + '\n'
     outbuf +=  'CFLAGS   =\n'
     outbuf +=  'FFLAGS   =\n'
@@ -119,7 +123,6 @@ def FixDir(petscdir,dir,verbose):
     outbuf +=  'SOURCEH  = ' +' '.join(hnames)+ '\n'
     outbuf +=  'DIRS     =\n'
     outbuf +=  libbase + '\n'
-    outbuf +=  locdir + '\n'
     outbuf +=  'include ${SLEPC_DIR}/lib/slepc/conf/slepc_common\n'
 
     ff = open(os.path.join(dir, 'makefile'), 'w')

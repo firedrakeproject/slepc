@@ -15,6 +15,5 @@ SOURCEH   =
 LIBBASE   = libslepceps
 DIRS      =
 MANSEC    = EPS
-LOCDIR    = src/eps/impls/external/scalapack/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

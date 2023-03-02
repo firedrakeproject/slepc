@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = FN
-LOCDIR   = src/sys/classes/fn/interface/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

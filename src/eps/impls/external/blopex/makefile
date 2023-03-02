@@ -15,6 +15,5 @@ SOURCEH  = blopex.h petsc-interface.h
 LIBBASE  = libslepceps
 DIRS     =
 MANSEC   = EPS
-LOCDIR   = src/eps/impls/external/blopex/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

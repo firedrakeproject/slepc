@@ -14,6 +14,5 @@ SOURCEH  =
 LIBBASE  = libslepclme
 DIRS     =
 MANSEC   = LME
-LOCDIR   = src/lme/impls/krylov/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
