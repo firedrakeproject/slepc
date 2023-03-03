@@ -550,7 +550,7 @@ static PetscErrorCode EPSEVSLSetPolParameters_EVSL(EPS eps,PetscInt max_deg,Pets
     PetscCheck(max_deg>2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The max_deg argument must be > 2");
     ctx->max_deg = max_deg;
   }
-  if (thresh == PETSC_DECIDE || thresh == PETSC_DEFAULT) ctx->thresh = 0.8;
+  if (thresh == (PetscReal)PETSC_DECIDE || thresh == (PetscReal)PETSC_DEFAULT) ctx->thresh = 0.8;
   else {
     PetscCheck(thresh>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The thresh argument must be > 0.0");
     ctx->thresh = thresh;

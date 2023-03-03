@@ -127,7 +127,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     i = pep->npart;
     PetscCall(PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg2));
     r = pep->rtol;
-    PetscCall(PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:pep->rtol,&r,&flg3));
+    PetscCall(PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol==(PetscReal)PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:pep->rtol,&r,&flg3));
     j = pep->rits;
     PetscCall(PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg4));
     scheme = pep->scheme;
@@ -294,7 +294,7 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,tol,2);
   PetscValidLogicalCollectiveInt(pep,maxits,3);
-  if (tol == PETSC_DEFAULT) {
+  if (tol == (PetscReal)PETSC_DEFAULT) {
     pep->tol   = PETSC_DEFAULT;
     pep->state = PEP_STATE_INITIAL;
   } else {
@@ -1030,7 +1030,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
   pep->scale = scale;
   if (scale==PEP_SCALE_SCALAR || scale==PEP_SCALE_BOTH) {
     PetscValidLogicalCollectiveReal(pep,alpha,3);
-    if (alpha == PETSC_DEFAULT || alpha == PETSC_DECIDE) {
+    if (alpha == (PetscReal)PETSC_DEFAULT || alpha == (PetscReal)PETSC_DECIDE) {
       pep->sfactor = 0.0;
       pep->sfactor_set = PETSC_FALSE;
     } else {
@@ -1058,7 +1058,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
     PetscValidLogicalCollectiveReal(pep,lambda,7);
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) pep->sits = 5;
     else pep->sits = its;
-    if (lambda==PETSC_DECIDE || lambda==PETSC_DEFAULT) pep->slambda = 1.0;
+    if (lambda == (PetscReal)PETSC_DECIDE || lambda == (PetscReal)PETSC_DEFAULT) pep->slambda = 1.0;
     else {
       PetscCheck(lambda>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of lambda. Must be > 0");
       pep->slambda = lambda;
@@ -1229,7 +1229,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
       PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
       pep->npart = npart;
     }
-    if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
+    if (tol == (PetscReal)PETSC_DEFAULT || tol == (PetscReal)PETSC_DECIDE) {
       pep->rtol = PETSC_DEFAULT;
     } else {
       PetscCheck(tol>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");

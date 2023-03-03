@@ -26,7 +26,7 @@ static PetscErrorCode RGEllipseSetParameters_Ellipse(RG rg,PetscScalar center,Pe
 
   PetscFunctionBegin;
   ctx->center = center;
-  if (radius == PETSC_DEFAULT) {
+  if (radius == (PetscReal)PETSC_DEFAULT) {
     ctx->radius = 1.0;
   } else {
     PetscCheck(radius>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");

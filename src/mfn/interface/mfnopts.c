@@ -185,7 +185,7 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveReal(mfn,tol,2);
   PetscValidLogicalCollectiveInt(mfn,maxits,3);
-  if (tol == PETSC_DEFAULT) {
+  if (tol == (PetscReal)PETSC_DEFAULT) {
     mfn->tol = PETSC_DEFAULT;
     mfn->setupcalled = 0;
   } else {

@@ -385,7 +385,7 @@ PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  if (fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
+  if (fix == (PetscReal)PETSC_DEFAULT || fix == (PetscReal)PETSC_DECIDE) fix = 0.01;
   PetscCheck(fix>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value, must be >0");
   data->fix = fix;
   PetscFunctionReturn(PETSC_SUCCESS);

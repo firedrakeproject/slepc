@@ -471,7 +471,7 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
 
   PetscFunctionBegin;
-  if (restart==PETSC_DEFAULT) restart = 0.9;
+  if (restart==(PetscReal)PETSC_DEFAULT) restart = 0.9;
   PetscCheck(restart>=0.1 && restart<=1.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument %g must be in the range [0.1,1.0]",(double)restart);
   if (restart != ctx->restart) {
     ctx->restart = restart;

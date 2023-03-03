@@ -109,7 +109,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     i = nep->npart;
     PetscCall(PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg2));
     r = nep->rtol;
-    PetscCall(PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg3));
+    PetscCall(PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==(PetscReal)PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg3));
     j = nep->rits;
     PetscCall(PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg4));
     scheme = nep->scheme;
@@ -268,7 +268,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,tol,2);
   PetscValidLogicalCollectiveInt(nep,maxits,3);
-  if (tol == PETSC_DEFAULT) {
+  if (tol == (PetscReal)PETSC_DEFAULT) {
     nep->tol   = PETSC_DEFAULT;
     nep->state = NEP_STATE_INITIAL;
   } else {
@@ -1012,7 +1012,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
       PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
       nep->npart = npart;
     }
-    if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
+    if (tol == (PetscReal)PETSC_DEFAULT || tol == (PetscReal)PETSC_DECIDE) {
       nep->rtol = PETSC_DEFAULT;
     } else {
       PetscCheck(tol>0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");

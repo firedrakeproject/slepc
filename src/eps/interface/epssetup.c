@@ -362,7 +362,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
 
   /* set tolerance if not yet set */
-  if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
+  if (eps->tol==(PetscReal)PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
 
   /* set up sorting criterion */
   PetscTryTypeMethod(eps,setupsort);

@@ -106,7 +106,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveReal(svd,tol,2);
   PetscValidLogicalCollectiveInt(svd,maxits,3);
-  if (tol == PETSC_DEFAULT) {
+  if (tol == (PetscReal)PETSC_DEFAULT) {
     svd->tol   = PETSC_DEFAULT;
     svd->state = SVD_STATE_INITIAL;
   } else {

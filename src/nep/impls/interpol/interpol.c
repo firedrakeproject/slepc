@@ -61,8 +61,8 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   }
   PetscCall(PEPSetDimensions(ctx->pep,nep->nev,nep->ncv,nep->mpd));
   PetscCall(PEPGetTolerances(ctx->pep,&tol,&its));
-  if (tol==PETSC_DEFAULT) tol = SlepcDefaultTol(nep->tol);
-  if (ctx->tol==PETSC_DEFAULT) ctx->tol = tol;
+  if (tol==(PetscReal)PETSC_DEFAULT) tol = SlepcDefaultTol(nep->tol);
+  if (ctx->tol==(PetscReal)PETSC_DEFAULT) ctx->tol = tol;
   if (its==PETSC_DEFAULT) its = nep->max_it;
   PetscCall(PEPSetTolerances(ctx->pep,tol,its));
   PetscCall(NEPGetTrackAll(nep,&trackall));
@@ -254,7 +254,7 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
-  if (tol == PETSC_DEFAULT) {
+  if (tol == (PetscReal)PETSC_DEFAULT) {
     ctx->tol   = PETSC_DEFAULT;
     nep->state = NEP_STATE_INITIAL;
   } else {

@@ -58,7 +58,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   PetscUseTypeMethod(mfn,setup);
 
   /* set tolerance if not yet set */
-  if (mfn->tol==PETSC_DEFAULT) mfn->tol = SLEPC_DEFAULT_TOL;
+  if (mfn->tol==(PetscReal)PETSC_DEFAULT) mfn->tol = SLEPC_DEFAULT_TOL;
 
   PetscCall(PetscLogEventEnd(MFN_SetUp,mfn,0,0,0));
   mfn->setupcalled = 1;

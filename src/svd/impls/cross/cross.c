@@ -213,7 +213,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     }
     PetscCall(EPSSetWhichEigenpairs(cross->eps,which));
     PetscCall(EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd));
-    PetscCall(EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it));
+    PetscCall(EPSSetTolerances(cross->eps,svd->tol==(PetscReal)PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it));
     switch (svd->conv) {
     case SVD_CONV_ABS:
       PetscCall(EPSSetConvergenceTest(cross->eps,EPS_CONV_ABS));break;
@@ -246,7 +246,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   PetscCall(EPSSetUp(cross->eps));
   PetscCall(EPSGetDimensions(cross->eps,NULL,&svd->ncv,&svd->mpd));
   PetscCall(EPSGetTolerances(cross->eps,NULL,&svd->max_it));
-  if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
+  if (svd->tol==(PetscReal)PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
 
   svd->leftbasis = PETSC_FALSE;
   PetscCall(SVDAllocateSolution(svd,0));
