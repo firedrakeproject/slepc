@@ -97,7 +97,8 @@ info:
 	-@echo "------------------------------------------"
 	-@echo "Using mpiexec: ${MPIEXEC}"
 	-@echo "------------------------------------------"
-	-@echo "Using MAKEFLAGS: -j$(MAKE_NP) -l$(MAKE_LOAD) $(MAKEFLAGS)"
+	-@echo "Using MAKE: ${MAKE}"
+	-@echo "Default MAKEFLAGS: MAKE_NP:${MAKE_NP} MAKE_LOAD:${MAKE_LOAD} MAKEFLAGS:${MAKEFLAGS}"
 	-@echo "=========================================="
 
 #
