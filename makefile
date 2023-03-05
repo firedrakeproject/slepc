@@ -66,17 +66,17 @@ info:
 	-@echo "Using PETSc directory: ${PETSC_DIR}"
 	-@echo "Using PETSc arch: ${PETSC_ARCH}"
 	-@echo "-----------------------------------------"
-	-@grep "define SLEPC_VERSION" ${SLEPC_DIR}/include/slepcversion.h | ${SED} "s/........//"
+	-@grep "define SLEPC_VERSION" ${SLEPC_DIR}/include/slepcversion.h | ${SED} "s/........//" | head -n 7
 	-@echo "-----------------------------------------"
 	-@echo "Using SLEPc configure options: ${SLEPC_CONFIGURE_OPTIONS}"
 	-@echo "Using SLEPc configuration flags:"
-	-@grep "\#define " ${SLEPCCONF_H}
+	-@grep "\#define " ${SLEPCCONF_H} | tail -n +2
 	-@echo "-----------------------------------------"
-	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//"
+	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//" | head -n 7
 	-@echo "-----------------------------------------"
 	-@echo "Using PETSc configure options: ${CONFIGURE_OPTIONS}"
 	-@echo "Using PETSc configuration flags:"
-	-@grep "\#define " ${PETSCCONF_H}
+	-@grep "\#define " ${PETSCCONF_H} | tail -n +2
 	-@echo "-----------------------------------------"
 	-@echo "Using C/C++ include paths: ${SLEPC_CC_INCLUDES}"
 	-@echo "Using C/C++ compiler: ${PCC} ${PCC_FLAGS} ${COPTFLAGS} ${CFLAGS}"
