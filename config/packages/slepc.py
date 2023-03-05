@@ -113,22 +113,24 @@ class SLEPc(package.Package):
       (status, output) = self.RunCommand('git help')
       if status:
         self.log.Warn('SLEPC_DIR appears to be a git working copy, but git is not found in PATH')
-        self.gitrev = 'N/A'
-        self.gitdate = 'N/A'
-        self.branch = 'N/A'
+        self.gitrev = 'unknown'
+        self.gitdate = 'unknown'
+        self.branch = 'unknown'
       else:
         (status, output) = self.RunCommand('git rev-parse')
         if status:
           self.log.Warn('SLEPC_DIR appears to be a git working copy, but the .git folder is missing')
-          self.gitrev = 'N/A'
-          self.gitdate = 'N/A'
-          self.branch = 'N/A'
+          self.gitrev = 'unknown'
+          self.gitdate = 'unknown'
+          self.branch = 'unknown'
         else:
           (status, self.gitrev) = self.RunCommand('git describe')
           if not self.gitrev:
             (status, self.gitrev) = self.RunCommand('git log -1 --pretty=format:%H')
           (status, self.gitdate) = self.RunCommand('git log -1 --pretty=format:%ci')
           (status, self.branch) = self.RunCommand('git describe --contains --all HEAD')
+          if status:
+            self.branch = 'unknown'
 
   def CreateFile(self,basedir,fname):
     ''' Create file basedir/fname and return path string '''
