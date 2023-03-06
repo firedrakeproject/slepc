@@ -26,7 +26,7 @@ def get_version():
     pardir = [os.path.pardir] * 2
     topdir = os.path.join(here, *pardir)
     srcdir = os.path.join(topdir, 'src')
-    with open(os.path.join(srcdir, '__init__.py')) as f:
+    with open(os.path.join(srcdir, 'slepc4py', '__init__.py')) as f:
         m = re.search(r"__version__\s*=\s*'(.*)'", f.read())
         return m.groups()[0]
 
@@ -59,7 +59,7 @@ main_doc = 'index'
 
 # General information about the project.
 project = u'SLEPc for Python'
-copyright = u'2022, Lisandro Dalcin and Jose Roman'
+copyright = u'2023, Lisandro Dalcin and Jose Roman'
 author = u'Lisandro Dalcin'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -76,7 +76,7 @@ release = pkg_version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

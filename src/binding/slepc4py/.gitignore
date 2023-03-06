@@ -14,6 +14,6 @@ __pycache__
 
 *.egg
 .eggs/
-slepc4py.egg-info/
-slepc4py.SLEPc.c
-slepc4py.SLEPc*.h
+src/slepc4py.egg-info
+src/slepc4py/SLEPc.c
+src/slepc4py/SLEPc*.h

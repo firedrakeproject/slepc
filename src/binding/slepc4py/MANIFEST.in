@@ -1,10 +1,14 @@
-include setup*.py *.cfg *.rst
+include setup*.py *.toml *.cfg *.rst
 
 recursive-include demo [M,m]akefile* *.py
-recursive-include conf *.py *.cfg
+recursive-include conf *.py *.sh *.cfg
 recursive-include src  *.py *.pyx *.px[di] *.h *.c *.i *.cfg
 recursive-include test *.py
 recursive-include *    [M,m]akefile
+
+exclude src/slepc4py/SLEPc.c
+exclude src/slepc4py/SLEPc.h
+exclude src/slepc4py/SLEPc_api.h
 
 include docs/*.html
 include docs/*.pdf

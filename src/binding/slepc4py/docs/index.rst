@@ -18,7 +18,7 @@ Online Documentation
 .. _API Reference:      apiref/index.html
 
 .. _Sphinx:    https://www.sphinx-doc.org/
-.. _Epydoc:    http://epydoc.sourceforge.net/
+.. _Epydoc:    https://epydoc.sourceforge.net/
 
 
 Discussion and Support
@@ -30,11 +30,10 @@ Discussion and Support
 Downloads and Development
 -------------------------
 
-+ Project Site:    https://gitlab.com/slepc/slepc
-+ Source Releases: https://gitlab.com/slepc/slepc/-/tags/
-+ Issue Tracker:   https://gitlab.com/slepc/slepc/issues/
-+ Git Repository:  https://gitlab.com/slepc/slepc.git
-
++ Issue Tracker:  https://gitlab.com/slepc/slepc/-/issues
++ Git Repository: https://gitlab.com/slepc/slepc.git
++ The source code is in ``src/binding/slepc4py``
++ Previous source releases: https://pypi.org/project/slepc4py/
 
 Citations
 ---------

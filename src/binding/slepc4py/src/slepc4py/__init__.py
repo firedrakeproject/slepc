@@ -20,9 +20,9 @@ a large, sparse, rectangular matrix.
 .. _PETSc: https://petsc.org
 """
 
-__author__    = 'Lisandro Dalcin'
-__version__   = '3.18.2'
-__credits__   = 'SLEPc Team <slepc-maint@upv.es>'
+__author__  = 'Lisandro Dalcin'
+__version__ = '3.18.2'
+__credits__ = 'SLEPc Team <slepc-maint@upv.es>'
 
 # -----------------------------------------------------------------------------
 
@@ -56,9 +56,9 @@ def get_include():
 
       import petscc4py, slepc4py
       Extension('extension_name', ...
-		include_dirs=[...,
-			      petsc4py.get_include(),
-			      slepc4py.get_include(),])
+                include_dirs=[...,
+                              petsc4py.get_include(),
+                              slepc4py.get_include(),])
     """
     from os.path import dirname, join
     return join(dirname(__file__), 'include')

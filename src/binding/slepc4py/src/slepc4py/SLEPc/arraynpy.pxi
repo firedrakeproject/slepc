@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------
 
-cdef extern from "slepc4py/numpy.h":
+cdef extern from "<petsc4py/numpy.h>":
 
     int import_array "_import_array" () except -1
 
@@ -51,7 +51,7 @@ cdef extern from "slepc4py/numpy.h":
     ndarray PyArray_SimpleNewFromData(int,npy_intp[],int,void*)
 
 
-cdef extern from "petsc4py/numpy.h":
+cdef extern from "<petsc4py/numpy.h>":
 
     enum: NPY_INT
     enum: NPY_DOUBLE

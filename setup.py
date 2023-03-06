@@ -133,7 +133,7 @@ def build(dry_run=False):
     status = os.system(" ".join(command))
     if status != 0: raise RuntimeError(status)
 
-def install(dest_dir, dry_run=False):
+def install(dry_run=False):
     log.info('SLEPc: install')
     # Run SLEPc install
     if dry_run: return
@@ -168,22 +168,23 @@ class cmd_install(_install):
         _install.finalize_options(self)
         self.install_lib = self.install_platlib
         self.install_libbase = self.install_lib
+        self.old_and_unmanageable = True
 
     def run(self):
         root_dir = os.path.abspath(self.install_lib)
-        dest_dir = prefix = os.path.join(root_dir, 'slepc')
+        prefix = os.path.join(root_dir, 'slepc')
         #
         #
         ctx = context().enter()
         try:
             config(prefix, self.dry_run)
             build(self.dry_run)
-            install(dest_dir, self.dry_run)
+            install(self.dry_run)
         finally:
             ctx.exit()
         #
         self.outputs = []
-        for dirpath, _, filenames in os.walk(dest_dir):
+        for dirpath, _, filenames in os.walk(prefix):
             for fn in filenames:
                 self.outputs.append(os.path.join(dirpath, fn))
         #

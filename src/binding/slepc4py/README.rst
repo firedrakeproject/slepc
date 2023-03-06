@@ -21,13 +21,13 @@ Dependencies
 
 * A matching version of petsc4py_.
 
-* To work with the in-development version, you need to install Cython_.
+* To work with the in-development version, you need Cython_.
 
 .. _Python:   https://www.python.org
 .. _NumPy:    https://www.numpy.org
 .. _SLEPc:    https://slepc.upv.es
 .. _PETSc:    https://petsc.org
-.. _petsc4py: https://gitlab.com/petsc/petsc4py
+.. _petsc4py: https://gitlab.com/petsc/petsc
 .. _Cython:   https://cython.org
 
 Documentation
