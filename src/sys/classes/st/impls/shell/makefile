@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = shell.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     =
 MANSEC   = ST
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

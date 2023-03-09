@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = pjd.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcpep
-DIRS     =
 MANSEC   = PEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

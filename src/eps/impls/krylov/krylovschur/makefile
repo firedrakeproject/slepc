@@ -9,10 +9,8 @@
 #
 
 SOURCEC  = krylovschur.c ks-slice.c ks-indef.c ks-twosided.c
-SOURCEF  =
 SOURCEH  = krylovschur.h
 LIBBASE  = libslepceps
-DIRS     =
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

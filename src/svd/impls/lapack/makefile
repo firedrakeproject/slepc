@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = svdlapack.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsvd
-DIRS     =
 MANSEC   = SVD
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

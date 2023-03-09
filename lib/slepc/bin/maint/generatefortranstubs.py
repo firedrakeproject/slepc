@@ -116,12 +116,8 @@ def FixDir(petscdir,dir,verbose):
     outbuf +=  "#requiresdefine   'PETSC_HAVE_FORTRAN'\n"
     outbuf +=  'ALL: lib\n'
     outbuf +=   cppflags + '\n'
-    outbuf +=  'CFLAGS   =\n'
-    outbuf +=  'FFLAGS   =\n'
     outbuf +=  'SOURCEC  = ' +' '.join(cnames)+ '\n'
-    outbuf +=  'SOURCEF  =\n'
     outbuf +=  'SOURCEH  = ' +' '.join(hnames)+ '\n'
-    outbuf +=  'DIRS     =\n'
     outbuf +=  libbase + '\n'
     outbuf +=  'include ${SLEPC_DIR}/lib/slepc/conf/slepc_common\n'
 

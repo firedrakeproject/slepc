@@ -9,7 +9,6 @@
 #
 
 SOURCEC  = cyclic.c
-SOURCEF  =
 SOURCEH  = cyclic.h
 LIBBASE  = libslepcsvd
 DIRS     = cycliccuda

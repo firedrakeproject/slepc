@@ -9,8 +9,6 @@
 #
 
 SOURCEC  = dshep.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     = bdc
 MANSEC   = DS

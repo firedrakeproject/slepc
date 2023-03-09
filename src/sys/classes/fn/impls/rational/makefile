@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = fnrational.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     =
 MANSEC   = FN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

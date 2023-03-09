@@ -9,8 +9,6 @@
 #
 
 SOURCEC  = dsutil.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     = hep nhep ghep ghiep gnhep nhepts svd gsvd hsvd pep nep
 MANSEC   = DS

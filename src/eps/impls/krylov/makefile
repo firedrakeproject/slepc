@@ -9,8 +9,6 @@
 #
 
 SOURCEC  = epskrylov.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepceps
 DIRS     = arnoldi lanczos krylovschur
 MANSEC   = EPS

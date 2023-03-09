@@ -9,8 +9,6 @@
 #
 
 SOURCEC  = matutil.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     = tests
 MANSEC   = sys

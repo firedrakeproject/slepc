@@ -9,10 +9,7 @@
 #
 
 SOURCEC  = lmekrylov.c
-SOURCEF  =
-SOURCEH  =
 LIBBASE  = libslepclme
-DIRS     =
 MANSEC   = LME
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

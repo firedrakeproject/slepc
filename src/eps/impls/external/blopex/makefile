@@ -10,10 +10,8 @@
 #requiresdefine  'SLEPC_HAVE_BLOPEX'
 
 SOURCEC  = blopex.c slepc-interface.c petsc-interface.c
-SOURCEF  =
 SOURCEH  = blopex.h petsc-interface.h
 LIBBASE  = libslepceps
-DIRS     =
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
