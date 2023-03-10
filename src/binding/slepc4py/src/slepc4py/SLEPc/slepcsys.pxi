@@ -1,4 +1,5 @@
-cdef extern from * :
+cdef extern from * nogil:
+
     enum: PETSC_DECIDE
     enum: PETSC_DEFAULT
     enum: PETSC_DETERMINE

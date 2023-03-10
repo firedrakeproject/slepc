@@ -1,3 +1,11 @@
+# --------------------------------------------------------------------
+
+cdef extern from * nogil:
+    """
+    #include "lib-slepc/compat.h"
+    #include "lib-slepc/custom.h"
+    """
+
 # -----------------------------------------------------------------------------
 
 from petsc4py.PETSc import COMM_NULL
@@ -23,7 +31,7 @@ from petsc4py.PETSc cimport KSP, PC
 
 # -----------------------------------------------------------------------------
 
-cdef extern from *:
+cdef extern from * nogil:
     ctypedef char const_char "const char"
 
 cdef inline object bytes2str(const_char p[]):
@@ -55,7 +63,7 @@ include "allocate.pxi"
 
 # Vile hack for raising a exception and not contaminating traceback
 
-cdef extern from *:
+cdef extern from * nogil:
     void PyErr_SetObject(object, object)
     void *PyExc_RuntimeError
 
@@ -71,22 +79,13 @@ cdef inline PetscErrorCode SETERR(PetscErrorCode ierr) with gil:
 
 # -----------------------------------------------------------------------------
 
-cdef extern from "compat.h": pass
-cdef extern from "custom.h": pass
-
-cdef extern from *:
+cdef extern from * nogil:
     ctypedef long   PetscInt
     ctypedef double PetscReal
     ctypedef double PetscScalar
     ctypedef PetscInt    const_PetscInt    "const PetscInt"
     ctypedef PetscReal   const_PetscReal   "const PetscReal"
     ctypedef PetscScalar const_PetscScalar "const PetscScalar"
-
-cdef extern from "scalar.h":
-    object      PyPetscScalar_FromPetscScalar(PetscScalar)
-    PetscScalar PyPetscScalar_AsPetscScalar(object) except? <PetscScalar>-1.0
-    PetscReal   PyPetscScalar_AsPetscComplexReal(object) except? <PetscReal>-1.0
-    PetscReal   PyPetscScalar_AsPetscComplexImag(object) except? <PetscReal>-1.0
 
 cdef inline object toBool(PetscBool value):
     return True if value else False
@@ -103,17 +102,33 @@ cdef inline object toReal(PetscReal value):
 cdef inline PetscReal asReal(object value) except? -1:
     return value
 
+cdef extern from "<petsc4py/pyscalar.h>":
+    object      PyPetscScalar_FromPetscScalar(PetscScalar)
+    PetscScalar PyPetscScalar_AsPetscScalar(object) except? <PetscScalar>-1.0
+
 cdef inline object toScalar(PetscScalar value):
     return PyPetscScalar_FromPetscScalar(value)
 cdef inline PetscScalar asScalar(object value) except? <PetscScalar>-1.0:
     return PyPetscScalar_AsPetscScalar(value)
 
+cdef extern from "Python.h":
+     PyObject *PyErr_Occurred()
+     ctypedef struct Py_complex:
+         double real
+         double imag
+     Py_complex PyComplex_AsCComplex(object)
+
 cdef inline object toComplex(PetscScalar rvalue, PetscScalar ivalue):
-    return complex(toScalar(rvalue),toScalar(ivalue))
+    return complex(toScalar(rvalue), toScalar(ivalue))
+
 cdef inline PetscReal asComplexReal(object value) except? <PetscReal>-1.0:
-    return PyPetscScalar_AsPetscComplexReal(value)
+    cdef Py_complex cval = PyComplex_AsCComplex(value)
+    return <PetscReal>cval.real
+
 cdef inline PetscReal asComplexImag(object value) except? <PetscReal>-1.0:
-    return PyPetscScalar_AsPetscComplexImag(value)
+    cdef Py_complex cval = PyComplex_AsCComplex(value)
+    if cval.real == -1.0 and PyErr_Occurred() != NULL: cval.imag = -1.0
+    return <PetscReal>cval.imag
 
 # --------------------------------------------------------------------
 
@@ -131,7 +146,7 @@ ComplexType = PyArray_TypeObjectFromType(NPY_PETSC_COMPLEX)
 
 # -----------------------------------------------------------------------------
 
-cdef extern from "string.h"  nogil:
+cdef extern from "<string.h>"  nogil:
     void* memset(void*,int,size_t)
     void* memcpy(void*,void*,size_t)
     char* strdup(char*)
@@ -183,7 +198,7 @@ cdef extern from "Python.h":
     int Py_AtExit(void (*)())
     void PySys_WriteStderr(char*,...)
 
-cdef extern from "stdio.h" nogil:
+cdef extern from "<stdio.h>" nogil:
     ctypedef struct FILE
     FILE *stderr
     int fprintf(FILE *, char *, ...)
@@ -201,7 +216,7 @@ cdef int initialize(object args) except PETSC_ERR_PYTHON:
 
 from petsc4py.PETSc cimport PyPetscType_Register
 
-cdef extern from *:
+cdef extern from * nogil:
     PetscErrorCode SlepcInitializePackageAll()
     ctypedef int PetscClassId
     PetscClassId SLEPC_ST_CLASSID  "ST_CLASSID"

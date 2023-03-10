@@ -3,7 +3,7 @@
 
 # -----------------------------------------------------------------------------
 
-cdef extern from "slepc.h":
+cdef extern from "<slepc.h>":
 
     struct _p_ST
     ctypedef _p_ST* SlepcST "ST"

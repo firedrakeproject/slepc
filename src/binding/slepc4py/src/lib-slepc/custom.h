@@ -14,6 +14,7 @@ static PetscErrorCode SlepcInitializePackageAll(void)
   PetscCall(SVDInitializePackage());
   PetscCall(PEPInitializePackage());
   PetscCall(NEPInitializePackage());
+  PetscCall(LMEInitializePackage());
   PetscCall(MFNInitializePackage());
   PetscCall(STInitializePackage());
   PetscCall(BVInitializePackage());

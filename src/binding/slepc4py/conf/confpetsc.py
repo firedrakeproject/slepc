@@ -1,26 +1,37 @@
 # --------------------------------------------------------------------
 
-__all__ = ['PetscConfig',
-           'setup', 'Extension',
-           'config', 'build', 'build_src', 'build_ext',
-           'clean', 'test', 'sdist',
-           'log',
-           ]
-
-# --------------------------------------------------------------------
-
-import sys, os
 import re
+import os
+import sys
+import glob
+import copy
+import warnings
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 try:
     import setuptools
 except ImportError:
     setuptools = None
 
+if setuptools:
+    from setuptools import setup as _setup
+    from setuptools import Extension as _Extension
+    from setuptools import Command
+else:
+    from distutils.core import setup as _setup
+    from distutils.core import Extension as _Extension
+    from distutils.core import Command
+
 def import_command(cmd):
     try:
         from importlib import import_module
     except ImportError:
-        import_module = lambda n:  __import__(n, fromlist=[None])
+        def import_module(n):
+            return __import__(n, fromlist=[None])
     try:
         if not setuptools: raise ImportError
         mod = import_module('setuptools.command.' + cmd)
@@ -29,31 +40,136 @@ def import_command(cmd):
         mod = import_module('distutils.command.' + cmd)
         return getattr(mod, cmd)
 
-if setuptools:
-    from setuptools import setup
-    from setuptools import Extension as _Extension
-    from setuptools import Command
-else:
-    from distutils.core import setup
-    from distutils.core import Extension as _Extension
-    from distutils.core import Command
-
 _config    = import_command('config')
 _build     = import_command('build')
 _build_ext = import_command('build_ext')
 _install   = import_command('install')
-_clean     = import_command('clean')
-_sdist     = import_command('sdist')
 
-from distutils import sysconfig
 from distutils import log
-from distutils.util import split_quoted, execute
+from distutils import sysconfig
+from distutils.util import execute
+from distutils.util import split_quoted
 from distutils.errors import DistutilsError
+
+try:
+    from setuptools import dep_util
+except ImportError:
+    from distutils import dep_util
+
+try:
+    from packaging.version import Version
+except ImportError:
+    try:
+        from setuptools.extern.packaging.version import Version
+    except ImportError:
+        from distutils.version import StrictVersion as Version
+
+# --------------------------------------------------------------------
+
+# Cython
+
+CYTHON = '0.29.32'
+
+def cython_req():
+    return CYTHON
+
+def cython_chk(VERSION, verbose=True):
+    #
+    def warn(message):
+        if not verbose: return
+        ruler, ws, nl = "*"*80, " " ,"\n"
+        pyexe = sys.executable
+        advise = "$ %s -m pip install --upgrade cython" % pyexe
+        def printer(*s): sys.stderr.write(" ".join(s)+"\n")
+        printer(ruler, nl)
+        printer(ws, message, nl)
+        printer(ws, ws, advise, nl)
+        printer(ruler)
+    #
+    try:
+        import Cython
+    except ImportError:
+        warn("You need Cython to generate C source files.")
+        return False
+    #
+    CYTHON_VERSION = Cython.__version__
+    m = re.match(r"(\d+\.\d+(?:\.\d+)?).*", CYTHON_VERSION)
+    if not m:
+        warn("Cannot parse Cython version string {0!r}"
+             .format(CYTHON_VERSION))
+        return False
+    REQUIRED = Version(VERSION)
+    PROVIDED = Version(m.groups()[0])
+    if PROVIDED < REQUIRED:
+        warn("You need Cython >= {0} (you have version {1})"
+             .format(VERSION, CYTHON_VERSION))
+        return False
+    #
+    if verbose:
+        log.info("using Cython %s" % CYTHON_VERSION)
+    return True
+
+def cython_run(
+    source, target=None,
+    depends=(), includes=(),
+    workdir=None, force=False,
+    VERSION="0.0",
+):
+    if target is None:
+        target = os.path.splitext(source)[0]+'.c'
+    cwd = os.getcwd()
+    try:
+        if workdir:
+            os.chdir(workdir)
+        alldeps = [source]
+        for dep in depends:
+            alldeps += glob.glob(dep)
+        if not (force or dep_util.newer_group(alldeps, target)):
+            log.debug("skipping '%s' -> '%s' (up-to-date)",
+                      source, target)
+            return
+    finally:
+        os.chdir(cwd)
+    require = 'Cython >= %s' % VERSION
+    if setuptools and not cython_chk(VERSION, verbose=False):
+        if sys.modules.get('Cython'):
+            removed = getattr(sys.modules['Cython'], '__version__', '')
+            log.info("removing Cython %s from sys.modules" % removed)
+            pkgname = re.compile(r'cython(\.|$)', re.IGNORECASE)
+            for modname in list(sys.modules.keys()):
+                if pkgname.match(modname):
+                    del sys.modules[modname]
+        try:
+            install_setup_requires = setuptools._install_setup_requires
+            with warnings.catch_warnings():
+                if hasattr(setuptools, 'SetuptoolsDeprecationWarning'):
+                    category = setuptools.SetuptoolsDeprecationWarning
+                    warnings.simplefilter('ignore', category)
+                log.info("fetching build requirement '%s'" % require)
+                install_setup_requires(dict(setup_requires=[require]))
+        except Exception:
+            log.info("failed to fetch build requirement '%s'" % require)
+    if not cython_chk(VERSION):
+        raise DistutilsError("unsatisfied build requirement '%s'" % require)
+    #
+    log.info("cythonizing '%s' -> '%s'", source, target)
+    from cythonize import cythonize
+    args = []
+    if workdir:
+        args += ['--working', workdir]
+    args += [source]
+    if target:
+        args += ['--output-file', target]
+    err = cythonize(args)
+    if err:
+        raise DistutilsError(
+            "Cython failure: '%s' -> '%s'" % (source, target)
+        )
+
 
 # --------------------------------------------------------------------
 
 def fix_config_vars(names, values):
-    import os, re
     values = list(values)
     if 'CONDA_BUILD' in os.environ:
         return values
@@ -61,14 +177,14 @@ def fix_config_vars(names, values):
         if 'ARCHFLAGS' in os.environ:
             ARCHFLAGS = os.environ['ARCHFLAGS']
             for i, flag in enumerate(list(values)):
-                flag, count = re.subn('-arch\s+\w+', ' ', flag)
+                flag, count = re.subn('-arch\s+\w+', ' ', str(flag))
                 if count and ARCHFLAGS:
                     flag = flag + ' ' + ARCHFLAGS
                 values[i] = flag
         if 'SDKROOT' in os.environ:
             SDKROOT = os.environ['SDKROOT']
             for i, flag in enumerate(list(values)):
-                flag, count = re.subn('-isysroot [^ \t]*', ' ', flag)
+                flag, count = re.subn('-isysroot [^ \t]*', ' ', str(flag))
                 if count and SDKROOT:
                     flag = flag + ' ' + '-isysroot ' + SDKROOT
                 values[i] = flag
@@ -162,10 +278,6 @@ class PetscConfig:
         with open(petscvariables) as f:
             contents += f.read()
         #
-        try:
-            from cStringIO import StringIO
-        except ImportError:
-            from io import StringIO
         confstr  = 'PETSC_DIR  = %s\n' % PETSC_DIR
         confstr += 'PETSC_ARCH = %s\n' % PETSC_ARCH
         confstr += contents
@@ -308,6 +420,7 @@ cmd_petsc_opts = [
      "define PETSC_ARCH, overriding environmental variables"),
     ]
 
+
 class config(_config):
 
     Configure = PetscConfig
@@ -426,21 +539,34 @@ class build(_build):
         [('build_src', lambda *args: True)] + \
         _build.sub_commands
 
+
 class build_src(Command):
     description = "build C sources from Cython files"
+
     user_options = [
         ('force', 'f',
          "forcibly build everything (ignore file timestamps)"),
         ]
+
     boolean_options = ['force']
+
     def initialize_options(self):
         self.force = False
+
     def finalize_options(self):
         self.set_undefined_options('build',
                                    ('force', 'force'),
                                    )
+
     def run(self):
-        pass
+        sources = getattr(self, 'sources', [])
+        for source in sources:
+            cython_run(
+                force=self.force,
+                VERSION=cython_req(),
+                **source
+            )
+
 
 class build_ext(_build_ext):
 
@@ -479,7 +605,6 @@ class build_ext(_build_ext):
                 self.rpath.remove(pylib_dir)
 
     def _copy_ext(self, ext):
-        from copy import deepcopy
         extclass = ext.__class__
         fullname = self.get_ext_fullname(ext.name)
         modpath = str.split(fullname, '.')
@@ -487,7 +612,7 @@ class build_ext(_build_ext):
         name = modpath[-1]
         sources = list(ext.sources)
         newext = extclass(name, sources)
-        newext.__dict__.update(deepcopy(ext.__dict__))
+        newext.__dict__.update(copy.deepcopy(ext.__dict__))
         newext.name = name
         return pkgpath, newext
 
@@ -521,17 +646,21 @@ class build_ext(_build_ext):
             config.log_info()
             pkgpath, newext = self._copy_ext(ext)
             config.configure(newext, self.compiler)
-            name =  self.distribution.get_name()
-            version = self.distribution.get_version()
-            distdir = "%s-%s/" % (name, version)
             self._build_ext_arch(newext, pkgpath, ARCH)
+
+    def run(self):
+        self.build_sources()
+        _build_ext.run(self)
+
+    def build_sources(self):
+        if 'build_src' in self.distribution.cmdclass:
+            self.run_command('build_src')
 
     def build_extensions(self, *args, **kargs):
         self.PETSC_ARCH_LIST = []
         _build_ext.build_extensions(self, *args,**kargs)
         if not self.PETSC_ARCH_LIST: return
         self.build_configuration(self.PETSC_ARCH_LIST)
-
 
     def build_configuration(self, arch_list):
         #
@@ -551,13 +680,39 @@ class build_ext(_build_ext):
                 verbose=self.verbose, dry_run=self.dry_run)
 
     def get_config_data(self, arch_list):
-        template = """\
-PETSC_DIR  = %(PETSC_DIR)s
-PETSC_ARCH = %(PETSC_ARCH)s
-"""
-        variables = {'PETSC_DIR'  : strip_prefix(self.DESTDIR, self.petsc_dir),
-                     'PETSC_ARCH' : os.path.pathsep.join(arch_list)}
+        DESTDIR = self.DESTDIR
+        template = "\n".join([
+            "PETSC_DIR  = %(PETSC_DIR)s",
+            "PETSC_ARCH = %(PETSC_ARCH)s",
+        ]) + "\n"
+        variables = {
+            'PETSC_DIR'  : strip_prefix(DESTDIR, self.petsc_dir),
+            'PETSC_ARCH' : os.path.pathsep.join(arch_list),
+        }
         return template, variables
+
+    def copy_extensions_to_source(self):
+        build_py = self.get_finalized_command('build_py')
+        for ext in self.extensions:
+            inp_file, reg_file = self._get_inplace_equivalent(build_py, ext)
+
+            arch_list = ['']
+            if isinstance(ext, Extension) and self.petsc_arch:
+                arch_list = self.petsc_arch[:]
+
+            file_pairs = []
+            inp_head, inp_tail = os.path.split(inp_file)
+            reg_head, reg_tail = os.path.split(reg_file)
+            for arch in arch_list:
+                inp_file = os.path.join(inp_head, arch, inp_tail)
+                reg_file = os.path.join(reg_head, arch, reg_tail)
+                file_pairs.append((inp_file, reg_file))
+
+            for inp_file, reg_file in file_pairs:
+                if os.path.exists(reg_file) or not ext.optional:
+                    dest_dir, _ = os.path.split(inp_file)
+                    self.mkpath(dest_dir)
+                    self.copy_file(reg_file, inp_file, level=self.verbose)
 
     def get_outputs(self):
         self.check_extensions_list(self.extensions)
@@ -568,8 +723,7 @@ PETSC_ARCH = %(PETSC_ARCH)s
             if isinstance(ext, Extension) and self.petsc_arch:
                 head, tail = os.path.split(filename)
                 for arch in self.petsc_arch:
-                    outfile = os.path.join(self.build_lib,
-                                           head, arch, tail)
+                    outfile = os.path.join(self.build_lib, head, arch, tail)
                     outputs.append(outfile)
             else:
                 outfile = os.path.join(self.build_lib, filename)
@@ -577,44 +731,41 @@ PETSC_ARCH = %(PETSC_ARCH)s
         outputs = list(set(outputs))
         return outputs
 
+
 class install(_install):
-    def run(self):
-        _install.run(self)
 
-class clean(_clean):
-    def run(self):
-        _clean.run(self)
-        from distutils.dir_util import remove_tree
-        if self.all:
-            # remove the <package>.egg_info directory
-            try:
-                egg_info = self.get_finalized_command('egg_info').egg_info
-                if os.path.exists(egg_info):
-                    remove_tree(egg_info, dry_run=self.dry_run)
-                else:
-                    log.debug("'%s' does not exist -- can't clean it",
-                              egg_info)
-            except DistutilsError:
-                pass
-
-class test(Command):
-    description = "run the test suite"
-    user_options = [('args=', None, "options")]
     def initialize_options(self):
-        self.args = None
-    def finalize_options(self):
-        if self.args:
-            self.args = split_quoted(self.args)
-        else:
-            self.args = []
-    def run(self):
-        pass
+        with warnings.catch_warnings():
+            if setuptools:
+                if hasattr(setuptools, 'SetuptoolsDeprecationWarning'):
+                    category = setuptools.SetuptoolsDeprecationWarning
+                    warnings.simplefilter('ignore', category)
+            _install.initialize_options(self)
+        self.old_and_unmanageable = True
 
-class sdist(_sdist):
-    def run(self):
-        build_src = self.get_finalized_command('build_src')
-        build_src.run()
-        _sdist.run(self)
+
+cmdclass_list = [
+    config,
+    build,
+    build_src,
+    build_ext,
+    install,
+]
+
+# --------------------------------------------------------------------
+
+def setup(**attrs):
+    cmdclass = attrs.setdefault('cmdclass', {})
+    for cmd in cmdclass_list:
+        cmdclass.setdefault(cmd.__name__, cmd)
+    build_src.sources = attrs.pop('cython_sources', None)
+    use_setup_requires = False  # handle Cython requirement ourselves
+    if setuptools and build_src.sources and use_setup_requires:
+        version = cython_req()
+        if not cython_chk(version, verbose=False):
+            reqs = attrs.setdefault('setup_requires', [])
+            reqs += ['Cython>='+version]
+    return _setup(**attrs)
 
 # --------------------------------------------------------------------
 
@@ -630,7 +781,7 @@ if setuptools:
                 finally:
                     log.set_threshold(level)
         mod_egg_info.FileList = FileList
-    except:
+    except (ImportError, AttributeError):
         pass
 
 # --------------------------------------------------------------------

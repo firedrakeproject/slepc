@@ -11,22 +11,21 @@ MPIEXEC = mpiexec
 
 .PHONY: config build test
 config:
-	${PYTHON} setup.py config ${CONFIGOPT}
+	${PYTHON} setup.py config ${CONFIGOPT} ${opt}
 build:
-	${PYTHON} setup.py build ${BUILDOPT}
+	${PYTHON} setup.py build ${BUILDOPT} ${opt}
 test:
-	${VALGRIND} ${PYTHON} ${PWD}/test/runtests.py
+	${VALGRIND} ${PYTHON} ${PWD}/test/runtests.py ${TESTOPT} ${opt}
 test-%:
-	${MPIEXEC} -n $* ${VALGRIND} ${PYTHON} ${PWD}/test/runtests.py
+	${MPIEXEC} -n $* ${VALGRIND} ${PYTHON} ${PWD}/test/runtests.py ${TESTOPT} ${opt}
 
 .PHONY: srcbuild srcclean
 srcbuild:
-	${PYTHON} setup.py build_src ${SRCOPT}
+	${PYTHON} setup.py build_src ${SRCOPT} ${opt}
 srcclean:
-	-${RM} src/${package}.${MODULE}.c
-	-${RM} src/include/${package}/${package}.${MODULE}.h
-	-${RM} src/include/${package}/${package}.${MODULE}_api.h
-	-${RM} src/lib${package}/lib${package}.[ch]
+	-${RM} src/${package}/${MODULE}.c
+	-${RM} src/${package}/${MODULE}.h
+	-${RM} src/${package}/${MODULE}_api.h
 
 .PHONY: clean distclean fullclean
 clean:
@@ -114,7 +113,7 @@ docsclean:
 # ----
 
 .PHONY: sdist
-sdist: srcbuild docs
+sdist: docs
 	${PYTHON} setup.py sdist ${SDISTOPT}
 
 # ----

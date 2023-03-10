@@ -22,7 +22,7 @@ environmental variable, or a configuration file.
 # -----------------------------------------------------------------------------
 
 from petsc4py.lib import ImportPETSc
-from petsc4py.lib import Import, getPathArch, getInitArgs
+from petsc4py.lib import Import, getPathArch, getInitArgs  # noqa: F401
 
 
 def ImportSLEPc(arch=None):
@@ -30,14 +30,16 @@ def ImportSLEPc(arch=None):
     Import the SLEPc extension module for a given configuration name.
     """
     path, arch = getPathArchSLEPc(arch)
-    PETSc = ImportPETSc(arch)
+    PETSc = ImportPETSc(arch)  # noqa: F841
     return Import('slepc4py', 'SLEPc', path, arch)
+
 
 def getPathArchSLEPc(arch=None):
     """
     Undocumented.
     """
-    import sys, os
+    import os
+    import sys
     PETSc = sys.modules.get('petsc4py.PETSc')
     arch = getattr(PETSc, '__arch__', arch)
     path = os.path.dirname(__file__)

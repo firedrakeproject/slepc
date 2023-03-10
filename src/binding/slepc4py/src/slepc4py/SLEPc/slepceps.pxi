@@ -347,7 +347,7 @@ cdef PetscErrorCode EPS_Arbitrary(
     (arbitrary, args, kargs) = <object>ctx
     cdef Vec Vr = ref_Vec(xr)
     cdef Vec Vi = ref_Vec(xi)
-    r = arbitrary(toComplex(er,ei), Vr, Vi, args, **kargs)
+    r = arbitrary(toComplex(er, ei), Vr, Vi, args, **kargs)
     if sizeof(PetscScalar) == sizeof(PetscReal):
         rr[0] = asComplexReal(r)
         ri[0] = asComplexImag(r)

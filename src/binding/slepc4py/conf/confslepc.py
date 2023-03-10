@@ -1,35 +1,21 @@
-# --------------------------------------------------------------------
+import os
+import sys
 
-__all__ = ['setup',
-           'Extension',
-           'config',
-           'build',
-           'build_src',
-           'build_ext',
-           'install',
-           'clean',
-           'test',
-           'sdist',
-           ]
+from confpetsc import setup as _setup
+from confpetsc import Extension
+from confpetsc import config     as _config
+from confpetsc import build      as _build
+from confpetsc import build_src  as _build_src
+from confpetsc import build_ext  as _build_ext
+from confpetsc import install    as _install
 
-# --------------------------------------------------------------------
+from confpetsc import log
+from confpetsc import makefile
+from confpetsc import strip_prefix
+from confpetsc import split_quoted
+from confpetsc import DistutilsError
 
-import sys, os
-
-from conf.baseconf import PetscConfig
-from conf.baseconf import setup, Extension, log, strip_prefix
-from conf.baseconf import config     as _config
-from conf.baseconf import build      as _build
-from conf.baseconf import build_src  as _build_src
-from conf.baseconf import build_ext  as _build_ext
-from conf.baseconf import install    as _install
-from conf.baseconf import clean      as _clean
-from conf.baseconf import test       as _test
-from conf.baseconf import sdist      as _sdist
-from conf.baseconf import makefile
-
-from distutils.errors import DistutilsError
-from distutils.util import split_quoted
+from confpetsc import PetscConfig
 
 # --------------------------------------------------------------------
 
@@ -58,7 +44,7 @@ class SlepcConfig(PetscConfig):
             'minor'  : re.compile(r"#define\s+SLEPC_VERSION_MINOR\s+(\d+)"),
             'micro'  : re.compile(r"#define\s+SLEPC_VERSION_SUBMINOR\s+(\d+)"),
             'release': re.compile(r"#define\s+SLEPC_VERSION_RELEASE\s+(-*\d+)"),
-            }
+        }
         slepcversion_h = os.path.join(slepc_dir, 'include', 'slepcversion.h')
         with open(slepcversion_h, 'rt') as f: data = f.read()
         major = int(version_re['major'].search(data).groups()[0])
@@ -93,8 +79,13 @@ class SlepcConfig(PetscConfig):
         self.configdict['SLEPC_DIR'] = SLEPC_DIR
         self.configdict['SLEPC_LIB'] = slepc_confdict['SLEPC_LIB']
         dirlist = []
-        for external in [ 'ARPACK_LIB', 'BLOPEX_LIB', 'ELPA_LIB', 'EVSL_LIB', 'HPDDM_LIB', 'PRIMME_LIB', 'SLICOT_LIB', 'TRLAN_LIB' ]:
-            for entry in [lib[2:] for lib in split_quoted(slepc_confdict[external]) if lib.startswith('-L')]:
+        for external in [
+            'ARPACK_LIB', 'BLOPEX_LIB', 'ELPA_LIB',
+            'EVSL_LIB', 'HPDDM_LIB', 'PRIMME_LIB',
+            'SLICOT_LIB', 'TRLAN_LIB',
+        ]:
+            flags = split_quoted(slepc_confdict[external])
+            for entry in [lib[2:] for lib in flags if lib.startswith('-L')]:
                 if entry not in dirlist:
                     dirlist.append(entry)
         self.configdict['SLEPC_EXTERNAL_LIB_DIR'] = dirlist
@@ -105,21 +96,26 @@ class SlepcConfig(PetscConfig):
         PETSC_ARCH = self.PETSC_ARCH
         SLEPC_DESTDIR = self.SLEPC_DESTDIR
         # take into account the case of prefix PETSc with non-prefix SLEPc
-        SLEPC_ARCH_DIR = PETSC_ARCH if PETSC_ARCH else os.environ.get('PETSC_ARCH', '')
+        SLEPC_ARCH_DIR = PETSC_ARCH or os.environ.get('PETSC_ARCH', '')
         # includes and libraries
         SLEPC_INCLUDE = [
             os.path.join(SLEPC_DIR, SLEPC_ARCH_DIR, 'include'),
             os.path.join(SLEPC_DIR, 'include'),
-            ]
+        ]
         SLEPC_LIB_DIR = [
             os.path.join(SLEPC_DIR, SLEPC_ARCH_DIR, 'lib'),
             os.path.join(SLEPC_DIR, 'lib'),
-            ] + self.SLEPC_EXTERNAL_LIB_DIR
+        ] + self.SLEPC_EXTERNAL_LIB_DIR
         slepc_cfg = { }
         slepc_cfg['include_dirs'] = SLEPC_INCLUDE
         slepc_cfg['library_dirs'] = SLEPC_LIB_DIR
-        slepc_cfg['libraries'] = [lib[2:] for lib in split_quoted(self.SLEPC_LIB) if lib.startswith('-l')]
-        slepc_cfg['runtime_library_dirs'] = [strip_prefix(SLEPC_DESTDIR, d) for d in SLEPC_LIB_DIR]
+        slepc_cfg['libraries'] = [
+            lib[2:] for lib in split_quoted(self.SLEPC_LIB)
+            if lib.startswith('-l')
+        ]
+        slepc_cfg['runtime_library_dirs'] = [
+            strip_prefix(SLEPC_DESTDIR, d) for d in SLEPC_LIB_DIR
+        ]
         self._configure_ext(extension, slepc_cfg, preppend=True)
         if self['BUILDSHAREDLIB'] == 'no':
             from petsc4py.lib import ImportPETSc
@@ -148,6 +144,7 @@ cmd_slepc_opts = [
     ('slepc-dir=', None,
      "define SLEPC_DIR, overriding environmental variable.")
     ]
+
 
 class config(_config):
 
@@ -188,6 +185,7 @@ class config(_config):
         return slepc_dir
     get_slepc_dir = staticmethod(get_slepc_dir)
 
+
 class build(_build):
 
     user_options = _build.user_options + cmd_slepc_opts
@@ -224,31 +222,41 @@ class build_ext(_build_ext):
         return config.Configure(self.slepc_dir, self.petsc_dir, arch)
 
     def get_config_data(self, arch_list):
-        template = """\
-SLEPC_DIR  = %(SLEPC_DIR)s
-PETSC_DIR  = %(PETSC_DIR)s
-PETSC_ARCH = %(PETSC_ARCH)s
-"""
-        SLEPC_DESTDIR = None
+        DESTDIR = None
         for arch in arch_list:
             conf = self.get_config_arch(arch)
-            SLEPC_DESTDIR = conf.SLEPC_DESTDIR # all archs will have same value
-        variables = {'SLEPC_DIR'  : strip_prefix(SLEPC_DESTDIR, self.slepc_dir),
-                     'PETSC_DIR'  : self.petsc_dir,
-                     'PETSC_ARCH' : os.path.pathsep.join(arch_list)}
+            DESTDIR = conf.SLEPC_DESTDIR # all archs will have same value
+        template = "\n".join([
+            "SLEPC_DIR  = %(SLEPC_DIR)s",
+            "PETSC_DIR  = %(PETSC_DIR)s",
+            "PETSC_ARCH = %(PETSC_ARCH)s",
+        ]) + "\n"
+        variables = {
+            'SLEPC_DIR'  : strip_prefix(DESTDIR, self.slepc_dir),
+            'PETSC_DIR'  : self.petsc_dir,
+            'PETSC_ARCH' : os.path.pathsep.join(arch_list)
+        }
         return template, variables
 
 
 class install(_install):
     pass
 
-class clean(_clean):
-    pass
 
-class test(_test):
-    pass
+cmdclass_list = [
+    config,
+    build,
+    build_src,
+    build_ext,
+    install,
+]
 
-class sdist(_sdist):
-    pass
+# --------------------------------------------------------------------
+
+def setup(**attrs):
+    cmdclass = attrs.setdefault('cmdclass', {})
+    for cmd in cmdclass_list:
+        cmdclass.setdefault(cmd.__name__, cmd)
+    return _setup(**attrs)
 
 # --------------------------------------------------------------------
