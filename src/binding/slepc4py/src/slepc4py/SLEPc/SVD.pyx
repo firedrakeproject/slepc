@@ -15,6 +15,7 @@ class SVDType(object):
     (should be enabled during installation of SLEPc)
 
     - `SCALAPACK`:
+    - `KSVD`:
     - `ELEMENTAL`:
     - `PRIMME`:
     """
@@ -25,6 +26,7 @@ class SVDType(object):
     TRLANCZOS  = S_(SVDTRLANCZOS)
     RANDOMIZED = S_(SVDRANDOMIZED)
     SCALAPACK  = S_(SVDSCALAPACK)
+    KSVD       = S_(SVDKSVD)
     ELEMENTAL  = S_(SVDELEMENTAL)
     PRIMME     = S_(SVDPRIMME)
 

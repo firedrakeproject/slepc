@@ -47,6 +47,7 @@ typedef const char* SVDType;
 #define SVDTRLANCZOS   "trlanczos"
 #define SVDRANDOMIZED  "randomized"
 #define SVDSCALAPACK   "scalapack"
+#define SVDKSVD        "ksvd"
 #define SVDELEMENTAL   "elemental"
 #define SVDPRIMME      "primme"
 

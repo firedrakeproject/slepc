@@ -7,9 +7,9 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
+#requiresdefine  'SLEPC_HAVE_KSVD'
 
-LIBBASE  = libslepcsvd
-DIRS     = elemental primme scalapack ksvd
-MANSEC   = SVD
+LIBBASE   = libslepcsvd
+MANSEC    = SVD
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
