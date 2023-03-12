@@ -293,4 +293,32 @@ SLEPC_EXTERN PetscErrorCode SVDPRIMMEGetBlockSize(SVD,PetscInt*);
 SLEPC_EXTERN PetscErrorCode SVDPRIMMESetMethod(SVD,SVDPRIMMEMethod);
 SLEPC_EXTERN PetscErrorCode SVDPRIMMEGetMethod(SVD,SVDPRIMMEMethod*);
 
+/*E
+    SVDKSVDEigenMethod - determines the method to solve the eigenproblem within KSVD
+
+    Level: advanced
+
+.seealso: SVDKSVDSetEigenMethod(), SVDKSVDGetEigenMethod()
+E*/
+typedef enum { SVD_KSVD_EIGEN_MRRR=1,
+               SVD_KSVD_EIGEN_DC,
+               SVD_KSVD_EIGEN_ELPA } SVDKSVDEigenMethod;
+SLEPC_EXTERN const char *SVDKSVDEigenMethods[];
+
+/*E
+    SVDKSVDPolarMethod - determines the method to compute the polar decomposition within KSVD
+
+    Level: advanced
+
+.seealso: SVDKSVDSetPolarMethod(), SVDKSVDGetPolarMethod()
+E*/
+typedef enum { SVD_KSVD_POLAR_QDWH=1,
+               SVD_KSVD_POLAR_ZOLOPD } SVDKSVDPolarMethod;
+SLEPC_EXTERN const char *SVDKSVDPolarMethods[];
+
+SLEPC_EXTERN PetscErrorCode SVDKSVDSetEigenMethod(SVD,SVDKSVDEigenMethod);
+SLEPC_EXTERN PetscErrorCode SVDKSVDGetEigenMethod(SVD,SVDKSVDEigenMethod*);
+SLEPC_EXTERN PetscErrorCode SVDKSVDSetPolarMethod(SVD,SVDKSVDPolarMethod);
+SLEPC_EXTERN PetscErrorCode SVDKSVDGetPolarMethod(SVD,SVDKSVDPolarMethod*);
+
 #endif

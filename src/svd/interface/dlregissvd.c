@@ -15,6 +15,8 @@ static PetscBool SVDPackageInitialized = PETSC_FALSE;
 const char *SVDTRLanczosGBidiags[] = {"SINGLE","UPPER","LOWER","SVDTRLanczosGBidiag","SVD_TRLANCZOS_GBIDIAG_",NULL};
 const char *SVDErrorTypes[] = {"ABSOLUTE","RELATIVE","SVDErrorType","SVD_ERROR_",NULL};
 const char *SVDPRIMMEMethods[] = {"","HYBRID","NORMALEQUATIONS","AUGMENTED","SVDPRIMMEMethod","SVD_PRIMME_",NULL};
+const char *SVDKSVDEigenMethods[] = {"","MRRR","DC","ELPA","SVDKSVDEigenMethod","SVD_KSVD_EIGEN_",NULL};
+const char *SVDKSVDPolarMethods[] = {"","QDWH","ZOLOPD","SVDKSVDPolarMethod","SVD_KSVD_POLAR_",NULL};
 const char *const SVDConvergedReasons_Shifted[] = {"","","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","CONVERGED_MAXIT","SVDConvergedReason","SVD_",NULL};
 const char *const*SVDConvergedReasons = SVDConvergedReasons_Shifted + 4;
 

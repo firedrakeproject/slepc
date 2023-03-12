@@ -16,7 +16,9 @@
 #include <ksvd.h>
 
 typedef struct {
-  Mat As;        /* converted matrix */
+  Mat                As;        /* converted matrix */
+  SVDKSVDEigenMethod eigen;
+  SVDKSVDPolarMethod polar;
 } SVD_KSVD;
 
 PetscErrorCode SVDSetUp_KSVD(SVD svd)
@@ -36,6 +38,10 @@ PetscErrorCode SVDSetUp_KSVD(SVD svd)
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
   PetscCall(SVDAllocateSolution(svd,0));
 
+  /* default methods */
+  if (!ctx->eigen) ctx->eigen = SVD_KSVD_EIGEN_MRRR;
+  if (!ctx->polar) ctx->polar = SVD_KSVD_POLAR_QDWH;
+
   /* convert matrix */
   PetscCall(MatDestroy(&ctx->As));
   PetscCall(MatConvert(svd->OP,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->As));
@@ -50,6 +56,7 @@ PetscErrorCode SVDSolve_KSVD(SVD svd)
   PetscScalar    *work,minlwork;
   PetscBLASInt   info,lwork=-1,*iwork,liwork=-1,minliwork,one=1;
   PetscInt       M,N,m,n,mn;
+  char           *eigen;
 #if defined(PETSC_USE_COMPLEX)
   PetscBLASInt   lrwork;
   PetscReal      *rwork,dummy;
@@ -74,15 +81,23 @@ PetscErrorCode SVDSolve_KSVD(SVD svd)
   PetscCall(MatAssemblyEnd(Q,MAT_FINAL_ASSEMBLY));
   q = (Mat_ScaLAPACK*)Q->data;
 
+  /* configure solver */
+  setPolarAlgorithm((int)ctx->polar);
+  switch (ctx->eigen) {
+    case SVD_KSVD_EIGEN_MRRR: eigen = "r"; break;
+    case SVD_KSVD_EIGEN_DC:   eigen = "d"; break;
+    case SVD_KSVD_EIGEN_ELPA: eigen = "e"; break;
+  }
+
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   /* allocate workspace */
-  PetscStackCallExternalVoid("pdgeqsvd",pdgeqsvd("V","V","r",a->M,a->N,a->loc,one,one,a->desc,svd->sigma,z->loc,one,one,z->desc,q->loc,one,one,q->desc,&minlwork,lwork,&minliwork,liwork,&info));
+  PetscStackCallExternalVoid("pdgeqsvd",pdgeqsvd("V","V",eigen,a->M,a->N,a->loc,one,one,a->desc,svd->sigma,z->loc,one,one,z->desc,q->loc,one,one,q->desc,&minlwork,lwork,&minliwork,liwork,&info));
   PetscCheck(!info,PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"Error in KSVD subroutine pdgeqsvd: info=%d",(int)info);
   PetscCall(PetscBLASIntCast((PetscInt)minlwork,&lwork));
   PetscCall(PetscBLASIntCast(minliwork,&liwork));
   PetscCall(PetscMalloc2(lwork,&work,liwork,&iwork));
   /* call computational routine */
-  PetscStackCallExternalVoid("pdgeqsvd",pdgeqsvd("V","V","r",a->M,a->N,a->loc,one,one,a->desc,svd->sigma,z->loc,one,one,z->desc,q->loc,one,one,q->desc,work,lwork,iwork,liwork,&info));
+  PetscStackCallExternalVoid("pdgeqsvd",pdgeqsvd("V","V",eigen,a->M,a->N,a->loc,one,one,a->desc,svd->sigma,z->loc,one,one,z->desc,q->loc,one,one,q->desc,work,lwork,iwork,liwork,&info));
   PetscCheck(!info,PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"Error in KSVD subroutine pdgeqsvd: info=%d",(int)info);
   PetscCall(PetscFree2(work,iwork));
   PetscCall(PetscFPTrapPop());
@@ -111,6 +126,10 @@ PetscErrorCode SVDDestroy_KSVD(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(svd->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDKSVDSetEigenMethod_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDKSVDGetEigenMethod_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDKSVDSetPolarMethod_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDKSVDGetPolarMethod_C",NULL));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -120,6 +139,178 @@ PetscErrorCode SVDReset_KSVD(SVD svd)
 
   PetscFunctionBegin;
   PetscCall(MatDestroy(&ctx->As));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+PetscErrorCode SVDView_KSVD(SVD svd,PetscViewer viewer)
+{
+  PetscBool      isascii;
+  SVD_KSVD       *ctx = (SVD_KSVD*)svd->data;
+  PetscMPIInt    rank;
+
+  PetscFunctionBegin;
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  if (isascii) {
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  eigensolver method: %s\n",SVDKSVDEigenMethods[ctx->eigen]));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  polar decomposition method: %s\n",SVDKSVDPolarMethods[ctx->polar]));
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+PetscErrorCode SVDSetFromOptions_KSVD(SVD svd,PetscOptionItems *PetscOptionsObject)
+{
+  SVD_KSVD           *ctx = (SVD_KSVD*)svd->data;
+  SVDKSVDEigenMethod eigen;
+  SVDKSVDPolarMethod polar;
+  PetscBool          flg;
+
+  PetscFunctionBegin;
+  PetscOptionsHeadBegin(PetscOptionsObject,"SVD KSVD Options");
+
+    PetscCall(PetscOptionsEnum("-svd_ksvd_eigen_method","Method for solving the internal eigenvalue problem","SVDKSVDSetEigenMethod",SVDKSVDEigenMethods,(PetscEnum)ctx->eigen,(PetscEnum*)&eigen,&flg));
+    if (flg) PetscCall(SVDKSVDSetEigenMethod(svd,eigen));
+    PetscCall(PetscOptionsEnum("-svd_ksvd_polar_method","Method for computing the polar decomposition","SVDKSVDSetPolarMethod",SVDKSVDPolarMethods,(PetscEnum)ctx->polar,(PetscEnum*)&polar,&flg));
+    if (flg) PetscCall(SVDKSVDSetPolarMethod(svd,polar));
+
+  PetscOptionsHeadEnd();
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode SVDKSVDSetEigenMethod_KSVD(SVD svd,SVDKSVDEigenMethod eigen)
+{
+  SVD_KSVD *ctx = (SVD_KSVD*)svd->data;
+
+  PetscFunctionBegin;
+  ctx->eigen = eigen;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   SVDKSVDSetEigenMethod - Sets the method to solve the internal eigenproblem within the KSVD solver.
+
+   Logically Collective
+
+   Input Parameters:
++  svd - the singular value solver context
+-  eigen - method that will be used by KSVD for the eigenproblem
+
+   Options Database Key:
+.  -svd_ksvd_eigen_method - Sets the method for the KSVD eigensolver
+
+   If not set, the method defaults to SVD_KSVD_EIGEN_MRRR.
+
+   Level: advanced
+
+.seealso: SVDKSVDGetEigenMethod(), SVDKSVDEigenMethod
+@*/
+PetscErrorCode SVDKSVDSetEigenMethod(SVD svd,SVDKSVDEigenMethod eigen)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(svd,eigen,2);
+  PetscTryMethod(svd,"SVDKSVDSetEigenMethod_C",(SVD,SVDKSVDEigenMethod),(svd,eigen));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode SVDKSVDGetEigenMethod_KSVD(SVD svd,SVDKSVDEigenMethod *eigen)
+{
+  SVD_KSVD *ctx = (SVD_KSVD*)svd->data;
+
+  PetscFunctionBegin;
+  *eigen = ctx->eigen;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   SVDKSVDGetEigenMethod - Gets the method for the KSVD eigensolver.
+
+   Not Collective
+
+   Input Parameter:
+.  svd - the singular value solver context
+
+   Output Parameter:
+.  eigen - method that will be used by KSVD for the eigenproblem
+
+   Level: advanced
+
+.seealso: SVDKSVDSetEigenMethod(), SVDKSVDEigenMethod
+@*/
+PetscErrorCode SVDKSVDGetEigenMethod(SVD svd,SVDKSVDEigenMethod *eigen)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(eigen,2);
+  PetscUseMethod(svd,"SVDKSVDGetEigenMethod_C",(SVD,SVDKSVDEigenMethod*),(svd,eigen));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode SVDKSVDSetPolarMethod_KSVD(SVD svd,SVDKSVDPolarMethod polar)
+{
+  SVD_KSVD *ctx = (SVD_KSVD*)svd->data;
+
+  PetscFunctionBegin;
+  ctx->polar = polar;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   SVDKSVDSetPolarMethod - Sets the method to compute the polar decomposition within the KSVD solver.
+
+   Logically Collective
+
+   Input Parameters:
++  svd - the singular value solver context
+-  polar - method that will be used by KSVD for the polar decomposition
+
+   Options Database Key:
+.  -svd_ksvd_polar_method - Sets the method for the KSVD polar decomposition
+
+   If not set, the method defaults to SVD_KSVD_POLAR_QDWH.
+
+   Level: advanced
+
+.seealso: SVDKSVDGetPolarMethod(), SVDKSVDPolarMethod
+@*/
+PetscErrorCode SVDKSVDSetPolarMethod(SVD svd,SVDKSVDPolarMethod polar)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(svd,polar,2);
+  PetscTryMethod(svd,"SVDKSVDSetPolarMethod_C",(SVD,SVDKSVDPolarMethod),(svd,polar));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode SVDKSVDGetPolarMethod_KSVD(SVD svd,SVDKSVDPolarMethod *polar)
+{
+  SVD_KSVD *ctx = (SVD_KSVD*)svd->data;
+
+  PetscFunctionBegin;
+  *polar = ctx->polar;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   SVDKSVDGetPolarMethod - Gets the method for the KSVD polar decomposition.
+
+   Not Collective
+
+   Input Parameter:
+.  svd - the singular value solver context
+
+   Output Parameter:
+.  polar - method that will be used by KSVD for the polar decomposition
+
+   Level: advanced
+
+.seealso: SVDKSVDSetPolarMethod(), SVDKSVDPolarMethod
+@*/
+PetscErrorCode SVDKSVDGetPolarMethod(SVD svd,SVDKSVDPolarMethod *polar)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(polar,2);
+  PetscUseMethod(svd,"SVDKSVDGetPolarMethod_C",(SVD,SVDKSVDPolarMethod*),(svd,polar));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -133,7 +324,14 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_KSVD(SVD svd)
 
   svd->ops->solve          = SVDSolve_KSVD;
   svd->ops->setup          = SVDSetUp_KSVD;
+  svd->ops->setfromoptions = SVDSetFromOptions_KSVD;
   svd->ops->destroy        = SVDDestroy_KSVD;
   svd->ops->reset          = SVDReset_KSVD;
+  svd->ops->view           = SVDView_KSVD;
+
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDKSVDSetEigenMethod_C",SVDKSVDSetEigenMethod_KSVD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDKSVDGetEigenMethod_C",SVDKSVDGetEigenMethod_KSVD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDKSVDSetPolarMethod_C",SVDKSVDSetPolarMethod_KSVD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDKSVDGetPolarMethod_C",SVDKSVDGetPolarMethod_KSVD));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

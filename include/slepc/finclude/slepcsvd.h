@@ -27,6 +27,8 @@
 #define SVDStop             PetscEnum
 #define SVDPRIMMEMethod     PetscEnum
 #define SVDTRLanczosGBidiag PetscEnum
+#define SVDKSVDEigenMethod  PetscEnum
+#define SVDKSVDPolarMethod  PetscEnum
 
 #define SVDCROSS      'cross'
 #define SVDCYCLIC     'cyclic'
