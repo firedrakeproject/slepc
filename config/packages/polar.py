@@ -95,6 +95,36 @@ class Polar(package.Package):
     if result:
       self.log.Exit('Unable to download CMake module files needed for POLAR')
 
+    # Patch pdgeqdwh.c to avoid output even with verbose=false
+    fname = os.path.join(builddir,'src','pdgeqdwh.c')
+    oldcode1 = '''if (myrank_mpi == 0) { fprintf(stderr, "\\nItConv %d itcqr %d itcpo %d norm_est %2.4e Li %2.4e \\n", itconv, itcqr, itcpo, norm_est, Li); fprintf(stderr, "It Facto Conv\\n");}'''
+    newcode1 = '''if (verbose && myrank_mpi == 0) { fprintf(stderr, "\\nItConv %d itcqr %d itcpo %d norm_est %2.4e Li %2.4e \\n", itconv, itcqr, itcpo, norm_est, Li); fprintf(stderr, "It Facto Conv\\n");}'''
+    oldcode2 = '''if (myrank_mpi == 0) {
+        fprintf(stderr, "#\\n");'''
+    newcode2 = '''if (verbose && myrank_mpi == 0) {
+        fprintf(stderr, "#\\n");'''
+    with open(fname,'r') as file:
+      sourcecode = file.read()
+    sourcecode = sourcecode.replace(oldcode1,newcode1).replace(oldcode2,newcode2)
+    with open(fname,'w') as file:
+      file.write(sourcecode)
+
+    # Patch pdgezolopd.c to avoid output even with verbose=false
+    fname = os.path.join(builddir,'src','pdgezolopd.c')
+    oldcode1 = '''if ( myrank_mpi == 0 ){ 
+        fprintf(stderr, " The number of subproblems to be solved independently is %d'''
+    newcode1 = '''if (verbose && myrank_mpi == 0 ){ 
+        fprintf(stderr, " The number of subproblems to be solved independently is %d'''
+    oldcode2 = '''if ( myrank_mpi == 0 ) {
+        fprintf(stderr, "#\\n");'''
+    newcode2 = '''if (verbose && myrank_mpi == 0 ) {
+        fprintf(stderr, "#\\n");'''
+    with open(fname,'r') as file:
+      sourcecode = file.read()
+    sourcecode = sourcecode.replace(oldcode1,newcode1).replace(oldcode2,newcode2)
+    with open(fname,'w') as file:
+      file.write(sourcecode)
+
     # Build package
     builddir = slepc.CreateDir(builddir,'build')
     confopt = ['-DCMAKE_INSTALL_PREFIX='+prefixdir, '-DCMAKE_INSTALL_NAME_DIR:STRING="'+os.path.join(prefixdir,'lib')+'"', '-DCMAKE_C_COMPILER="'+petsc.cc+'"', '-DCMAKE_C_FLAGS:STRING="'+petsc.getCFlags()+'"']
