@@ -671,7 +671,7 @@ intel-c-mkl-libs:
   variables:
     LOAD_MODULES: icc mpi mkl
     PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa --download-arpack --download-primme --download-blopex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa --download-arpack --download-primme --download-blopex --download-polar --download-ksvd
 
 nvidia-c-complex-nompi:
   extends:
