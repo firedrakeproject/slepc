@@ -51,8 +51,8 @@ slepc_manualpages:
 slepc_manexamples:
 	-@base=$$(basename $$(pwd)); \
         if [ "$${base}" = "tutorials" -o "$${base}" = "nlevp" ] ; then \
-          echo "Generating manual example links" ; \
           slepc_dir=$$(realpath ${SLEPC_DIR}); LOCDIR=$$(pwd | sed s"?$${slepc_dir}/??g")/; \
+          echo "Generating manual example links in $${LOCDIR}" ; \
           for i in ${EXAMPLESALL} foo ; do \
             if [ "$$i" != "foo" ] ; then \
               a=`cat $$i | ${MAPNAMES} -map ${LOC}/docs/manualpages/manualpages.cit \
@@ -64,7 +64,7 @@ slepc_manexamples:
                   if [ $$l -eq 0 ] ; then \
                     echo "<P><H3><FONT COLOR=\"#883300\">Examples</FONT></H3>" >> $$b; \
                   fi; \
-                  echo  "<A HREF=\"../../../BB\">BB</A><BR>" | sed s?BB?$${LOCDIR}$$i.html?g >> $$b; \
+                  echo  "<A HREF=\"../../../XX\">BB</A><BR>" | sed s?XX?$${LOCDIR}$$i.html?g | sed s?BB?$${LOCDIR}$$i?g >> $$b; \
                   grep -v /BODY $$b > ltmp; \
                   echo "</BODY></HTML>" >> ltmp; \
                   mv -f ltmp $$b; \
