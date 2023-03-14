@@ -17,7 +17,7 @@ class HPDDM(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'hpddm'
     self.downloadable   = True
-    self.gitcommit      = 'a1c8b432ec967c9c4cbbc761e3228ed60ae601d7'
+    self.gitcommit      = '6de1168878a50fd9ee55e80758cc9a6820d7b1f1'
     # self.version        = '2.2.2'
     obj = self.version if hasattr(self,'version') else self.gitcommit
     self.url            = 'https://github.com/hpddm/hpddm/archive/'+('v'+obj if hasattr(self,'version') else obj)+'.tar.gz'
@@ -32,8 +32,8 @@ class HPDDM(package.Package):
       self.log.Exit(pkg+' requires C++11')
     if not petsc.buildsharedlib:
       self.log.Exit(pkg+' requires a shared library build')
-    if self.packagename in petsc.packages:
-      self.log.Exit(pkg+' requires PETSc to be built without '+pkg)
+    if 'slepc' in petsc.packages:
+      self.log.Exit(pkg+' requires PETSc to be built without SLEPc')
     package.Package.Precondition(self,slepc,petsc)
 
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
@@ -50,14 +50,22 @@ class HPDDM(package.Package):
     l = self.slflag+d+' -L'+d+' -lpetsc'
     d = libdir
     cmd = petsc.cxx+' '+petsc.getCXXFlags()+' -I'+os.path.join('.','include')+' -I'+os.path.join(petsc.dir,petsc.arch,'include')+' -I'+os.path.join(slepc.dir,'include')+' -I'+os.path.join(archdir,'include')+' -I'+os.path.join(petsc.dir,'include')+' -DPETSC_HAVE_SLEPC=1 -DSLEPC_LIB_DIR="'+d+'"'
-    (result,output) = self.RunCommand('cd '+builddir+'&&'+cmd+' '+os.path.join('interface','petsc','ksp','hpddm.cxx')+' -c -o '+os.path.join('interface','ksphpddm.o')+'&&'+cmd+' '+os.path.join('interface','petsc','pc','pchpddm.cxx')+' -c -o '+os.path.join('interface','pchpddm.o')+'&&'+cmd+' '+os.path.join('interface','hpddm_petsc.cpp')+' -c -o '+os.path.join('interface','hpddm_petsc.o'))
+    line = 'cd '+builddir+' && '+cmd+' '
+    if self.packagename not in petsc.packages: # KSPHPDDM and PCHPDDM sources have not been compiled by PETSc which was configured without --download-hpddm, so do it here
+      line = line+os.path.join('interface','petsc','ksp','hpddm.cxx')+' -c -o '+os.path.join('interface','ksphpddm.o')+' && '+cmd+' '+os.path.join('interface','petsc','pc','pchpddm.cxx')+' -c -o '+os.path.join('interface','pchpddm.o')+' && '+cmd+' '
+    line = line+os.path.join('interface','hpddm_petsc.cpp')+' -c -o '+os.path.join('interface','hpddm_petsc.o')
+    (result,output) = self.RunCommand(line)
     if result:
       self.log.Exit('Compilation of HPDDM failed')
-    (result,output) = self.RunCommand('cd '+builddir+'&& make -f SONAME_SL_LINKER soname && make -f SONAME_SL_LINKER sl_linker')
+    (result,output) = self.RunCommand('cd '+builddir+' && make -f SONAME_SL_LINKER soname && make -f SONAME_SL_LINKER sl_linker')
     if result:
       self.log.Exit('Calling PETSc SONAME_FUNCTION or SL_LINKER_FUNCTION failed')
     lines = output.splitlines()
-    (result,output) = self.RunCommand('cd '+builddir+'&& '+petsc.cxx+' '+petsc.getCXXFlags()+' '+os.path.join('interface','hpddm_petsc.o')+' '+os.path.join('interface','pchpddm.o')+' '+os.path.join('interface','ksphpddm.o')+' -o '+lines[0]+' '+lines[1]+' '+l+' && ln -sf '+lines[0]+' '+os.path.join(d,'libhpddm_petsc.'+petsc.sl_linker_suffix))
+    line = 'cd '+builddir+' && '+petsc.cxx+' '+petsc.getCXXFlags()+' '+os.path.join('interface','hpddm_petsc.o')
+    if self.packagename not in petsc.packages: # link KSPHPDDM and PCHPDDM objects in libhpddm_petsc since it was not done when building libpetsc
+      line = line+' '+os.path.join('interface','pchpddm.o')+' '+os.path.join('interface','ksphpddm.o')
+    line = line+' -o '+lines[0]+' '+lines[1]+' '+l+' && ln -sf '+lines[0]+' '+os.path.join(d,'libhpddm_petsc.'+petsc.sl_linker_suffix)
+    (result,output) = self.RunCommand(line)
     if result:
       self.log.Exit('Installation of HPDDM failed')
     for root,dirs,files in os.walk(os.path.join(builddir,'include')):
@@ -71,4 +79,3 @@ class HPDDM(package.Package):
     slepcvars.write('HPDDM_INCLUDE = '+f+'\n')
     self.packageflags = l+' '+f
     self.havepackage = True
-

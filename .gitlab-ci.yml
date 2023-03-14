@@ -710,8 +710,8 @@ intel-c-mkl-install:
   variables:
     LOAD_MODULES: icc mpi mkl
     MAKE_FFLAGS: -warn errors
-    PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --prefix=../install
+    PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install --download-hpddm
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --prefix=../install --download-hpddm
     INSTALL: 1
 
 clang-c-single:
