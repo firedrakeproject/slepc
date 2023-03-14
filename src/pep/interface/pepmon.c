@@ -58,8 +58,8 @@ PetscErrorCode PEPMonitor(PEP pep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Input Parameters of monitor:
-
+   Calling sequence of monitor:
+$  PetscErrorCode monitor(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *mctx)
 +  pep    - polynomial eigensolver context obtained from PEPCreate()
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs

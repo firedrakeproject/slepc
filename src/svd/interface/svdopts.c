@@ -323,12 +323,12 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
-.  func    - a pointer to the convergence test function
+.  conv    - a pointer to the convergence test function
 .  ctx     - context for private data for the convergence routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Input Parameters of func:
-
+   Calling sequence of conv:
+$  PetscErrorCode conv(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
 +   svd    - singular value solver context obtained from SVDCreate()
 .   sigma  - computed singular value
 .   res    - residual norm associated to the singular triplet
@@ -343,18 +343,18 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 
 .seealso: SVDSetConvergenceTest(), SVDSetTolerances()
 @*/
-PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*conv)(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->convergeddestroy) PetscCall((*svd->convergeddestroy)(svd->convergedctx));
-  svd->convergeduser    = func;
+  svd->convergeduser    = conv;
   svd->convergeddestroy = destroy;
   svd->convergedctx     = ctx;
-  if (func == SVDConvergedAbsolute) svd->conv = SVD_CONV_ABS;
-  else if (func == SVDConvergedRelative) svd->conv = SVD_CONV_REL;
-  else if (func == SVDConvergedNorm) svd->conv = SVD_CONV_NORM;
-  else if (func == SVDConvergedMaxIt) svd->conv = SVD_CONV_MAXIT;
+  if (conv == SVDConvergedAbsolute) svd->conv = SVD_CONV_ABS;
+  else if (conv == SVDConvergedRelative) svd->conv = SVD_CONV_REL;
+  else if (conv == SVDConvergedNorm) svd->conv = SVD_CONV_NORM;
+  else if (conv == SVDConvergedMaxIt) svd->conv = SVD_CONV_MAXIT;
   else {
     svd->conv      = SVD_CONV_USER;
     svd->converged = svd->convergeduser;
@@ -447,12 +447,12 @@ PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
-.  func    - pointer to the stopping test function
+.  stop    - pointer to the stopping test function
 .  ctx     - context for private data for the stopping routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Input Parameters of func:
-
+   Calling sequence of stop:
+$  PetscErrorCode stop(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx)
 +   svd    - singular value solver context obtained from SVDCreate()
 .   its    - current number of iterations
 .   max_it - maximum number of iterations
@@ -471,15 +471,15 @@ PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
 
 .seealso: SVDSetStoppingTest(), SVDStoppingBasic()
 @*/
-PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*stop)(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->stoppingdestroy) PetscCall((*svd->stoppingdestroy)(svd->stoppingctx));
-  svd->stoppinguser    = func;
+  svd->stoppinguser    = stop;
   svd->stoppingdestroy = destroy;
   svd->stoppingctx     = ctx;
-  if (func == SVDStoppingBasic) svd->stop = SVD_STOP_BASIC;
+  if (stop == SVDStoppingBasic) svd->stop = SVD_STOP_BASIC;
   else {
     svd->stop     = SVD_STOP_USER;
     svd->stopping = svd->stoppinguser;

@@ -532,11 +532,11 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
 
    Input Parameters:
 +  pep  - eigensolver context obtained from PEPCreate()
-.  func - a pointer to the comparison function
+.  comp - a pointer to the comparison function
 -  ctx  - a context pointer (the last parameter to the comparison function)
 
-   Input Parameters of func:
-
+   Calling sequence of comp:
+$  PetscErrorCode comp(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
 +   ar     - real part of the 1st eigenvalue
 .   ai     - imaginary part of the 1st eigenvalue
 .   br     - real part of the 2nd eigenvalue
@@ -554,11 +554,11 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
 
 .seealso: PEPSetWhichEigenpairs(), PEPWhich
 @*/
-PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx),void* ctx)
+PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*comp)(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  pep->sc->comparison    = func;
+  pep->sc->comparison    = comp;
   pep->sc->comparisonctx = ctx;
   pep->which             = PEP_WHICH_USER;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -754,12 +754,12 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
 
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
-.  func    - a pointer to the convergence test function
+.  conv    - a pointer to the convergence test function
 .  ctx     - context for private data for the convergence routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Input Parameters of func:
-
+   Calling sequence of conv:
+$  PetscErrorCode conv(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 +   pep    - eigensolver context obtained from PEPCreate()
 .   eigr   - real part of the eigenvalue
 .   eigi   - imaginary part of the eigenvalue
@@ -775,17 +775,17 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
 
 .seealso: PEPSetConvergenceTest(), PEPSetTolerances()
 @*/
-PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*conv)(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (pep->convergeddestroy) PetscCall((*pep->convergeddestroy)(pep->convergedctx));
-  pep->convergeduser    = func;
+  pep->convergeduser    = conv;
   pep->convergeddestroy = destroy;
   pep->convergedctx     = ctx;
-  if (func == PEPConvergedRelative) pep->conv = PEP_CONV_REL;
-  else if (func == PEPConvergedNorm) pep->conv = PEP_CONV_NORM;
-  else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
+  if (conv == PEPConvergedRelative) pep->conv = PEP_CONV_REL;
+  else if (conv == PEPConvergedNorm) pep->conv = PEP_CONV_NORM;
+  else if (conv == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
   else {
     pep->conv      = PEP_CONV_USER;
     pep->converged = pep->convergeduser;
@@ -873,12 +873,12 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
 
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
-.  func    - pointer to the stopping test function
+.  stop    - pointer to the stopping test function
 .  ctx     - context for private data for the stopping routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Input Parameters of func:
-
+   Calling sequence of stop:
+$  PetscErrorCode stop(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx)
 +   pep    - eigensolver context obtained from PEPCreate()
 .   its    - current number of iterations
 .   max_it - maximum number of iterations
@@ -897,15 +897,15 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
 
 .seealso: PEPSetStoppingTest(), PEPStoppingBasic()
 @*/
-PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*func)(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*stop)(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (pep->stoppingdestroy) PetscCall((*pep->stoppingdestroy)(pep->stoppingctx));
-  pep->stoppinguser    = func;
+  pep->stoppinguser    = stop;
   pep->stoppingdestroy = destroy;
   pep->stoppingctx     = ctx;
-  if (func == PEPStoppingBasic) pep->stop = PEP_STOP_BASIC;
+  if (stop == PEPStoppingBasic) pep->stop = PEP_STOP_BASIC;
   else {
     pep->stop     = PEP_STOP_USER;
     pep->stopping = pep->stoppinguser;

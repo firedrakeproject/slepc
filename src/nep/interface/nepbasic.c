@@ -659,8 +659,8 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
 
-   Input Parameters of fun:
-
+   Calling sequence of fun:
+$  PetscErrorCode fun(NEP nep,PetscScalar lambda,Mat T,Mat P,void *ctx)
 +  nep    - the NEP context
 .  lambda - the scalar argument where T(.) must be evaluated
 .  T      - matrix that will contain T(lambda)
@@ -746,8 +746,8 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
 
-   Input Parameters of jac:
-
+   Calling sequence of jac:
+$  PetscErrorCode jac(NEP nep,PetscScalar lambda,Mat J,void *ctx)
 +  nep    - the NEP context
 .  lambda - the scalar argument where T'(.) must be evaluated
 .  J      - matrix that will contain T'(lambda)

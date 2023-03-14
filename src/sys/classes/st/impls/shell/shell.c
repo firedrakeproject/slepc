@@ -166,8 +166,8 @@ static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec
 +  st    - the spectral transformation context
 -  apply - the application-provided transformation routine
 
-   Input Parameters of apply:
-
+   Calling sequence of apply:
+$  PetscErrorCode apply(ST st,Vec xin,Vec xout)
 +  st   - the spectral transformation context
 .  xin  - input vector
 -  xout - output vector
@@ -203,8 +203,8 @@ static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*appl
 +  st    - the spectral transformation context
 -  applytrans - the application-provided transformation routine
 
-   Input Parameters of applytrans:
-
+   Calling sequence of applytrans:
+$  PetscErrorCode applytrans(ST st,Vec xin,Vec xout)
 +  st   - the spectral transformation context
 .  xin  - input vector
 -  xout - output vector
@@ -241,8 +241,8 @@ static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backt
 +  st     - the spectral transformation context
 -  backtr - the application-provided backtransform routine
 
-   Input Parameters of backtr:
-
+   Calling sequence of backtr:
+$  PetscErrorCode backtr(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 +  st   - the spectral transformation context
 .  n    - number of eigenvalues to be backtransformed
 .  eigr - pointer ot the real parts of the eigenvalues to transform back

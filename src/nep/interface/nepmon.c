@@ -58,8 +58,8 @@ PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Input Parameters of monitor:
-
+   Calling sequence of monitor:
+$  PetscErrorCode monitor(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *mctx)
 +  nep    - nonlinear eigensolver context obtained from NEPCreate()
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs
