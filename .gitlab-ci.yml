@@ -390,12 +390,11 @@ gnu-c-complex-multilib:
 intel-c-complex-mkl:
   extends:
     - .stage-2
-    - .linux_test
+    - .linux_test_nofflags
   tags:
     - compiler:intel, name:sejmet
   variables:
     LOAD_MODULES: icc mpi mkl
-    MAKE_FFLAGS: -warn errors
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
@@ -569,12 +568,11 @@ clang-c-complex:
 intel-cxx-mkl:
   extends:
     - .stage-3
-    - .linux_test
+    - .linux_test_nofflags
   tags:
     - compiler:intel, name:maat
   variables:
     LOAD_MODULES: icc mpi mkl
-    MAKE_FFLAGS: -warn errors
     PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++ --with-memalign=64
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
@@ -634,12 +632,11 @@ gnu-c-complex-coverage:
 intel-c-complex-int64-mkl:
   extends:
     - .stage-3
-    - .linux_test
+    - .linux_test_nofflags
   tags:
     - compiler:intel, name:sejmet
   variables:
     LOAD_MODULES: icc mpi mkl
-    MAKE_FFLAGS: -warn errors
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-64-bit-indices --with-64-bit-blas-indices
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-sowing
 
@@ -668,12 +665,11 @@ gnu-c-complex-valgrind:
 intel-c-mkl-libs:
   extends:
     - .stage-3
-    - .linux_test
+    - .linux_test_nofflags
   tags:
     - compiler:intel, name:sejmet
   variables:
     LOAD_MODULES: icc mpi mkl
-    MAKE_FFLAGS: -warn errors
     PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa --download-arpack --download-primme --download-blopex
 
@@ -704,12 +700,11 @@ nvidia-cxx-mpi:
 intel-c-mkl-install:
   extends:
     - .stage-3
-    - .linux_test
+    - .linux_test_nofflags
   tags:
     - compiler:intel, name:igai
   variables:
     LOAD_MODULES: icc mpi mkl
-    MAKE_FFLAGS: -warn errors
     PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install --download-hpddm
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --prefix=../install --download-hpddm
     INSTALL: 1
@@ -768,12 +763,11 @@ gnu-c-complex128:
 intel-c-int64-nompi-mkl:
   extends:
     - .stage-3
-    - .linux_test
+    - .linux_test_nofflags
   tags:
     - compiler:intel, name:igai
   variables:
     LOAD_MODULES: icc mpi mkl
-    MAKE_FFLAGS: -warn errors
     PETSC_CONFIG_OPTS: --with-cc=icc --with-fc=ifort --with-cxx=icpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-64-bit-indices --with-64-bit-blas-indices --with-mpi=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
 
