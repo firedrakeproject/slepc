@@ -9,7 +9,6 @@
 #
 #requiresscalar    complex
 
-SOURCEC  = pciss.c
 LIBBASE  = libslepcpep
 MANSEC   = PEP
 

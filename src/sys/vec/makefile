@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = veccomp.c pool.c vecutil.c
 LIBBASE  = libslepcsys
 DIRS     = tests
 MANSEC   = sys

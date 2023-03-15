@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = power.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

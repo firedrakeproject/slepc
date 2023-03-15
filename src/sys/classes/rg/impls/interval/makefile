@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = rginterval.c
 LIBBASE  = libslepcsys
 MANSEC   = RG
 

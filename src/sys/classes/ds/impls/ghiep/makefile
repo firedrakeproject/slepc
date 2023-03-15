@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = dsghiep.c invit.c hz.c
 LIBBASE  = libslepcsys
 MANSEC   = DS
 

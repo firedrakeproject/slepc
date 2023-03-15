@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = mfnkrylov.c
 LIBBASE  = libslepcmfn
 MANSEC   = MFN
 

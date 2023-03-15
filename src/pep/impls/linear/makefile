@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = linear.c qeplin.c
 LIBBASE  = libslepcpep
 MANSEC   = PEP
 

@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = cyclic.c
 LIBBASE  = libslepcsvd
 DIRS     = cycliccuda
 MANSEC   = SVD

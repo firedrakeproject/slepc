@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = krylovschur.c ks-slice.c ks-indef.c ks-twosided.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

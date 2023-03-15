@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_TRLAN'
 
-SOURCEC  = trlan.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

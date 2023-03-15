@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = svec.c
 LIBBASE  = libslepcsys
 DIRS     = sveccuda
 MANSEC   = BV

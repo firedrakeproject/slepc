@@ -9,7 +9,6 @@
 #
 #requirespackage 'PETSC_HAVE_CUDA'
 
-SOURCECU = sveccuda.cu
 LIBBASE  = libslepcsys
 MANSEC   = BV
 

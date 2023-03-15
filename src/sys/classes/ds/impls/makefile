@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = dsutil.c
 LIBBASE  = libslepcsys
 DIRS     = hep nhep ghep ghiep gnhep nhepts svd gsvd hsvd pep nep
 MANSEC   = DS

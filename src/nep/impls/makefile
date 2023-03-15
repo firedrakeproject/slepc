@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = nepdefl.c
 LIBBASE  = libslepcnep
 DIRS     = rii slp narnoldi interpol ciss nleigs
 MANSEC   = NEP

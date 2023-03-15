@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = qarnoldi.c
 LIBBASE  = libslepcpep
 MANSEC   = PEP
 

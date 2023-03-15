@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = lyapii.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

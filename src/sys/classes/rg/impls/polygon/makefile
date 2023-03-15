@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = rgpolygon.c
 LIBBASE  = libslepcsys
 MANSEC   = RG
 

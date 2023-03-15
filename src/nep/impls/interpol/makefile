@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = interpol.c
 LIBBASE  = libslepcnep
 MANSEC   = NEP
 

@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = cayley.c
 LIBBASE  = libslepcsys
 MANSEC   = ST
 

@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = stoar.c qslice.c
 LIBBASE  = libslepcpep
 MANSEC   = PEP
 

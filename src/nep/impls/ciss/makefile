@@ -9,7 +9,6 @@
 #
 #requiresscalar    complex
 
-SOURCEC  = nciss.c
 LIBBASE  = libslepcnep
 MANSEC   = NEP
 

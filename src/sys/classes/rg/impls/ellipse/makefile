@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = rgellipse.c
 LIBBASE  = libslepcsys
 MANSEC   = RG
 

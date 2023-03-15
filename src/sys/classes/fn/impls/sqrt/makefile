@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = fnsqrt.c
 LIBBASE  = libslepcsys
 MANSEC   = FN
 

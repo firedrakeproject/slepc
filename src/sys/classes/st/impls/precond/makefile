@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = precond.c
 LIBBASE  = libslepcsys
 MANSEC   = ST
 

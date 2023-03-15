@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = lanczos.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

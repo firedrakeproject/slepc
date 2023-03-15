@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = rgbasic.c rgregis.c
 LIBBASE  = libslepcsys
 MANSEC   = RG
 

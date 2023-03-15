@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = nepmon.c nepbasic.c nepview.c nepdefault.c nepregis.c nepopts.c nepsetup.c nepsolve.c neprefine.c nepresolv.c dlregisnep.c
 LIBBASE  = libslepcnep
 MANSEC   = NEP
 

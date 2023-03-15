@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = shell.c
 LIBBASE  = libslepcsys
 MANSEC   = ST
 

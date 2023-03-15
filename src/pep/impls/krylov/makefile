@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = pepkrylov.c
 LIBBASE  = libslepcpep
 DIRS     = qarnoldi toar stoar
 MANSEC   = PEP

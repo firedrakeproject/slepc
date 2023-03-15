@@ -9,7 +9,6 @@
 #
 #requiresdefine   'PETSC_HAVE_FORTRAN'
 
-SOURCEF90  = slepcpepmod.F90
 LIBBASE    = libslepcpep
 MANSEC     = PEP
 CLEANFILES = *.mod

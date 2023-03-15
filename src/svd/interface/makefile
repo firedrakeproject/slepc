@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = svdregis.c svdbasic.c svddefault.c svdview.c svdopts.c svdsetup.c svdsolve.c svdmon.c dlregissvd.c
 LIBBASE  = libslepcsvd
 MANSEC   = SVD
 

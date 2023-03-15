@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_SCALAPACK'
 
-SOURCEC   = svdscalap.c
 LIBBASE   = libslepcsvd
 MANSEC    = SVD
 

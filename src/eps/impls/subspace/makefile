@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = subspace.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = lobpcg.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

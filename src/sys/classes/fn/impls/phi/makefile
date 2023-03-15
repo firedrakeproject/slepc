@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = fnphi.c
 LIBBASE  = libslepcsys
 MANSEC   = FN
 

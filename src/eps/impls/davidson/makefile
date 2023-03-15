@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = davidson.c dvdcalcpairs.c dvdimprovex.c dvdinitv.c dvdschm.c dvdtestconv.c dvdupdatev.c dvdutils.c dvdgd2.c
 LIBBASE  = libslepceps
 DIRS     = gd jd
 MANSEC   = EPS

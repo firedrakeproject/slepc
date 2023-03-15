@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_PRIMME'
 
-SOURCEC  = primme.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_ARPACK'
 
-SOURCEC  = arpack.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

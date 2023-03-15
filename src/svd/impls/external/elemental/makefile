@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_ELEMENTAL'
 
-SOURCECXX = svdelemen.cxx
 LIBBASE   = libslepcsvd
 MANSEC    = SVD
 

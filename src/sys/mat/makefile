@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = matutil.c
 LIBBASE  = libslepcsys
 DIRS     = tests
 MANSEC   = sys

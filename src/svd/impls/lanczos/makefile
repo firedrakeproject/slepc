@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = gklanczos.c
 LIBBASE  = libslepcsvd
 MANSEC   = SVD
 

@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = filter.c filtlan.c
 LIBBASE  = libslepcsys
 MANSEC   = ST
 

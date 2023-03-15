@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = nleigs.c nleigs-fullb.c
 LIBBASE  = libslepc
 MANSEC   = NEP
 
