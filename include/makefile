@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-LIBBASE  = libslepcsys
 DIRS     = slepc/finclude slepc/private
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
