@@ -79,10 +79,16 @@ info:
 	-@grep "\#define " ${PETSCCONF_H} | tail -n +2
 	-@echo "-----------------------------------------"
 	-@echo "Using C/C++ include paths: ${SLEPC_CC_INCLUDES}"
-	-@echo "Using C/C++ compiler: ${PCC} ${PCC_FLAGS} ${COPTFLAGS} ${CFLAGS}"
+	-@echo "Using C compile: ${PETSC_CCOMPILE_SINGLE}"
+	-@if [ "${CXX}" != "" ]; then \
+           echo "Using C++ compile: ${PETSC_CXXCOMPILE_SINGLE}";\
+         fi
 	-@if [ "${FC}" != "" ]; then \
 	   echo "Using Fortran include/module paths: ${SLEPC_FC_INCLUDES}";\
-	   echo "Using Fortran compiler: ${FC} ${FC_FLAGS} ${FFLAGS} ${FPP_FLAGS}";\
+	   echo "Using Fortran compile: ${PETSC_FCOMPILE_SINGLE}";\
+         fi
+	-@if [ "${CUDAC}" != "" ]; then \
+	   echo "Using CUDA compile: ${PETSC_CUCOMPILE_SINGLE}";\
          fi
 	-@echo "-----------------------------------------"
 	-@echo "Using C/C++ linker: ${PCC_LINKER}"
