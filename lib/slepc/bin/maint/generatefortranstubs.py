@@ -117,7 +117,6 @@ def FixDir(petscdir,dir,verbose):
     outbuf +=  'ALL: lib\n'
     outbuf +=   cppflags + '\n'
     outbuf +=  'SOURCEC  = ' +' '.join(cnames)+ '\n'
-    outbuf +=  'SOURCEH  = ' +' '.join(hnames)+ '\n'
     outbuf +=  libbase + '\n'
     outbuf +=  'include ${SLEPC_DIR}/lib/slepc/conf/slepc_common\n'
 

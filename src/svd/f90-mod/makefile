@@ -10,7 +10,6 @@
 #requiresdefine   'PETSC_HAVE_FORTRAN'
 
 SOURCEF90  = slepcsvdmod.F90
-SOURCEH    = slepcsvd.h slepcsvd.h90
 LIBBASE    = libslepcsvd
 MANSEC     = SVD
 CLEANFILES = *.mod

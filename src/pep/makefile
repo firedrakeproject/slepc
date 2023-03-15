@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEH  = ../../include/slepc/private/pepimpl.h ../../include/slepcpep.h
 DIRS     = interface impls tests tutorials f90-mod
 MANSEC   = PEP
 

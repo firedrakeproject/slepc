@@ -9,7 +9,6 @@
 #
 
 SOURCEC  = krylovschur.c ks-slice.c ks-indef.c ks-twosided.c
-SOURCEH  = krylovschur.h
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

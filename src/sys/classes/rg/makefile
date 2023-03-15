@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEH  = ../../../../include/slepc/private/rgimpl.h ../../../../include/slepcrg.h ../../../../include/slepcrgtypes.h
 DIRS     = interface impls tests f90-mod
 MANSEC   = RG
 

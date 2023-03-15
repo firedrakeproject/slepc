@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEH  = ../../../../include/slepc/private/dsimpl.h ../../../../include/slepcds.h
 DIRS     = interface impls tests f90-mod
 MANSEC   = DS
 

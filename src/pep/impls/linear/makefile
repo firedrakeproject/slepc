@@ -9,7 +9,6 @@
 #
 
 SOURCEC  = linear.c qeplin.c
-SOURCEH  = linear.h
 LIBBASE  = libslepcpep
 MANSEC   = PEP
 

@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEH  = ../../include/slepc/private/svdimpl.h ../../include/slepcsvd.h
 DIRS     = interface impls tests tutorials f90-mod
 MANSEC   = SVD
 

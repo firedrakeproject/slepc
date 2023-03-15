@@ -10,7 +10,6 @@
 #requiresdefine  'SLEPC_HAVE_BLOPEX'
 
 SOURCEC  = blopex.c slepc-interface.c petsc-interface.c
-SOURCEH  = blopex.h petsc-interface.h
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

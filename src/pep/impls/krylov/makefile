@@ -9,7 +9,6 @@
 #
 
 SOURCEC  = pepkrylov.c
-SOURCEH  = pepkrylov.h
 LIBBASE  = libslepcpep
 DIRS     = qarnoldi toar stoar
 MANSEC   = PEP

@@ -9,7 +9,6 @@
 #
 
 SOURCEC  = nleigs.c nleigs-fullb.c
-SOURCEH  = nleigs.h
 LIBBASE  = libslepc
 MANSEC   = NEP
 

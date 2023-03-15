@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEH  = ../../include/slepc/private/mfnimpl.h ../../include/slepcmfn.h
 DIRS     = interface impls tests tutorials f90-mod
 MANSEC   = MFN
 

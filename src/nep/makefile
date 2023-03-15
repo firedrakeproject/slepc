@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEH  = ../../include/slepc/private/nepimpl.h ../../include/slepcnep.h
 DIRS     = interface impls tests tutorials f90-mod
 MANSEC   = NEP
 
