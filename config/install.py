@@ -173,7 +173,7 @@ class Installer:
       if not name.startswith('arch') and os.path.isdir(srcname) and os.path.isfile(os.path.join(srcname,'makefile')):
         os.mkdir(dstname)
         nret = self.copyExamples(srcname,dstname)
-        if name == 'tests' or name == 'tutorials' or name == 'nlevp':
+        if name == 'tests' or name == 'tutorials' or name == 'nlevp' or name == 'cnetwork':
           self.copyexamplefiles(srcname,dstname)
           if os.path.isdir(os.path.join(srcname,'output')):
             os.mkdir(os.path.join(dstname,'output'))
