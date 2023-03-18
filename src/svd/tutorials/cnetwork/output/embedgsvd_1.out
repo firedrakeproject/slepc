@@ -1,0 +1,9 @@
+
+Graph with 22 vertices and 78 edges.
+
+Computing spectral radius...
+Done, rho=3.7509, setting decay parameter beta=3.00072
+
+ All requested generalized singular values computed up to the required tolerance:
+     4.38032, 2.24944, 1.58547, 1.36566
+

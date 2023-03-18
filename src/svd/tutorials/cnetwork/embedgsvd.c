@@ -131,3 +131,13 @@ int main(int argc,char **argv)
   PetscCall(SlepcFinalize());
   return 0;
 }
+/*TEST
+
+   build:
+      depends: network.o
+
+   test:
+      args: -graph ${SLEPC_DIR}/share/slepc/datafiles/graphs/out.moreno_taro_taro -svd_nsv 4 -terse
+      filter: sed -e 's/4.38031/4.38032/'
+
+TEST*/
