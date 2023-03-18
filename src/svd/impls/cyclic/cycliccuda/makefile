@@ -9,7 +9,6 @@
 #
 #requirespackage 'PETSC_HAVE_CUDA'
 
-SOURCECU = cycliccuda.cu
 LIBBASE  = libslepcsvd
 MANSEC   = SVD
 

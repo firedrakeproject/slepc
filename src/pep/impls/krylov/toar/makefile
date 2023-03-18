@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = ptoar.c nrefine.c
 LIBBASE  = libslepcpep
 MANSEC   = PEP
 

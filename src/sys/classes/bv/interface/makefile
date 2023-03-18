@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = bvbasic.c bvfunc.c bvops.c bvglobal.c bvblas.c bvlapack.c bvorthog.c bvbiorthog.c bvkrylov.c bvcontour.c bvregis.c
 LIBBASE  = libslepcsys
 DIRS     = cuda
 MANSEC   = BV

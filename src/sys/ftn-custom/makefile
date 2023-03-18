@@ -9,7 +9,6 @@
 #
 #requiresdefine   'PETSC_HAVE_FORTRAN'
 
-SOURCEC  = zslepcutil.c zslepc_start.c zslepc_startf.c
 LIBBASE  = libslepcsys
 MANSEC   = sys
 

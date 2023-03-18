@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEH  = ../../../../include/slepc/private/fnimpl.h ../../../../include/slepcfn.h
 DIRS     = interface impls tests f90-mod
 MANSEC   = FN
 

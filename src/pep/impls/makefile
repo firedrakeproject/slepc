@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = peputils.c
 LIBBASE  = libslepcpep
 DIRS     = linear krylov jd ciss
 MANSEC   = PEP

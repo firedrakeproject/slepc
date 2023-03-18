@@ -9,7 +9,6 @@
 #
 #requiresscalar    real
 
-SOURCEC  = dibtdc.c dlaed3m.c dmerg2.c dsbtdc.c dsrtdf.c
 LIBBASE  = libslepcsys
 MANSEC   = DS
 

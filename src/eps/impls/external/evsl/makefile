@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_EVSL'
 
-SOURCEC   = evsl.c
 LIBBASE   = libslepceps
 MANSEC    = EPS
 

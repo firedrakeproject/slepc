@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = rgring.c
 LIBBASE  = libslepcsys
 MANSEC   = RG
 

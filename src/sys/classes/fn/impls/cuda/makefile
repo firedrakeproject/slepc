@@ -9,8 +9,6 @@
 #
 #requirespackage 'PETSC_HAVE_CUDA'
 
-SOURCECU = fnutilcuda.cu
-SOURCEH  = fnutilcuda.h
 LIBBASE  = libslepcsys
 MANSEC   = FN
 

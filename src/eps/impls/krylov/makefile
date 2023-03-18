@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = epskrylov.c
 LIBBASE  = libslepceps
 DIRS     = arnoldi lanczos krylovschur
 MANSEC   = EPS

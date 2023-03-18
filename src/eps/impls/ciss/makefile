@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = ciss.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

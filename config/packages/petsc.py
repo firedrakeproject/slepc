@@ -31,10 +31,10 @@ class PETSc(package.Package):
     conf += 'CC_FLAGS=' + self.cc_flags + '\n'
     if hasattr(self,'fc'):
       conf += 'FC=' + self.fc + '\n'
-      conf += 'FC_FLAGS=' + self.fc_flags + '\n'
+      conf += 'FC_FLAGS=' + (self.fc_flags if hasattr(self,'fc_flags') else '') + '\n'
     if hasattr(self,'cxx'):
       conf += 'CXX=' + self.cxx + '\n'
-      conf += 'CXX_FLAGS=' + self.cxx_flags + '\n'
+      conf += 'CXX_FLAGS=' + (self.cxx_flags if hasattr(self,'cxx_flags') else '') + '\n'
     conf += 'PETSc configure options:\n'
     args = sorted(set(self.configure_options.split()))
     conf += '\n'.join('    '+a for a in args) + '\n'
@@ -259,12 +259,18 @@ class PETSc(package.Package):
     return ' '.join(outflags)
 
   def getCXXFlags(self):
-    outflags = self.removeWarningFlags(self.cxx_flags.split())
-    return ' '.join(outflags)
+    if hasattr(self,'cxx_flags'):
+      outflags = self.removeWarningFlags(self.cxx_flags.split())
+      return ' '.join(outflags)
+    else:
+      return ''
 
   def getFFlags(self):
-    outflags = self.removeWarningFlags(self.fc_flags.split())
-    if self.isGfortran100plus():
-      outflags.append('-fallow-argument-mismatch')
-    return ' '.join(outflags)
+    if hasattr(self,'fc_flags'):
+      outflags = self.removeWarningFlags(self.fc_flags.split())
+      if self.isGfortran100plus():
+        outflags.append('-fallow-argument-mismatch')
+      return ' '.join(outflags)
+    else:
+      return ''
 

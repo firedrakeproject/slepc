@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = dsghep.c
 LIBBASE  = libslepcsys
 MANSEC   = DS
 

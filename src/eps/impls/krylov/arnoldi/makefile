@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = arnoldi.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = dsgsvd.c
 LIBBASE  = libslepcsys
 MANSEC   = DS
 

@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = vecs.c
 LIBBASE  = libslepcsys
 MANSEC   = BV
 

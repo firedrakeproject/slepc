@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = svdlapack.c
 LIBBASE  = libslepcsvd
 MANSEC   = SVD
 

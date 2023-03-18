@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = mfnmon.c mfnbasic.c mfnregis.c mfnopts.c mfnsetup.c mfnsolve.c dlregismfn.c
 LIBBASE  = libslepcmfn
 MANSEC   = MFN
 

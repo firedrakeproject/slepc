@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = lmemon.c lmebasic.c lmeregis.c lmeopts.c lmedense.c lmesetup.c lmesolve.c dlregislme.c
 LIBBASE  = libslepclme
 MANSEC   = LME
 

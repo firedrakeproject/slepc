@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = pjd.c
 LIBBASE  = libslepcpep
 MANSEC   = PEP
 

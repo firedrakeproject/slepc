@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = contig.c
 LIBBASE  = libslepcsys
 MANSEC   = BV
 

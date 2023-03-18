@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = bvmat.c
 LIBBASE  = libslepcsys
 MANSEC   = BV
 

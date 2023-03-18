@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_FEAST'
 
-SOURCEC  = feast.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

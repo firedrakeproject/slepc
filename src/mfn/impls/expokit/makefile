@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = mfnexpokit.c
 LIBBASE  = libslepcmfn
 MANSEC   = MFN
 

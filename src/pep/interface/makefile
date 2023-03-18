@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = pepmon.c pepbasic.c pepview.c pepdefault.c pepregis.c pepopts.c pepsetup.c pepsolve.c peprefine.c dlregispep.c
 LIBBASE  = libslepcpep
 MANSEC   = PEP
 

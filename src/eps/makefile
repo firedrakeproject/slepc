@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEH  = ../../include/slepc/private/epsimpl.h ../../include/slepceps.h
 DIRS     = interface impls tests tutorials f90-mod
 MANSEC   = EPS
 

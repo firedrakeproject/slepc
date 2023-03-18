@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = slp.c slp-twosided.c
 LIBBASE  = libslepcnep
 MANSEC   = NEP
 

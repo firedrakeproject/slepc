@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = fnutil.c
 LIBBASE  = libslepcsys
 DIRS     = combine exp log phi rational sqrt invsqrt cuda
 MANSEC   = FN

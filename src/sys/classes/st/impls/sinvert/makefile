@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = sinvert.c
 LIBBASE  = libslepcsys
 MANSEC   = ST
 

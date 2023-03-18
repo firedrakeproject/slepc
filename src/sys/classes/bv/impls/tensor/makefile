@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = bvtensor.c
 LIBBASE  = libslepcsys
 MANSEC   = BV
 

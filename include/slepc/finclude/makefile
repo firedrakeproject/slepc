@@ -7,9 +7,5 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-#requiresdefine   'PETSC_HAVE_FORTRAN'
-
-SOURCEH   = slepc.h slepceps.h slepcst.h slepcsvd.h slepcpep.h slepcnep.h slepcmfn.h slepclme.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcsys.h
-LIBBASE   = libslepcsys
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

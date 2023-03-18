@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = fnrational.c
 LIBBASE  = libslepcsys
 MANSEC   = FN
 

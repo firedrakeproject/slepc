@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = rsvd.c
 LIBBASE  = libslepcsvd
 MANSEC   = SVD
 

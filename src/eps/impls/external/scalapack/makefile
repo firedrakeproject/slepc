@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_SCALAPACK'
 
-SOURCEC   = scalapack.c
 LIBBASE   = libslepceps
 MANSEC    = EPS
 

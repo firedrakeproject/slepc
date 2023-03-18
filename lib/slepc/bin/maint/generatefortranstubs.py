@@ -114,10 +114,7 @@ def FixDir(petscdir,dir,verbose):
     # now assemble the makefile
     outbuf  =  '\n'
     outbuf +=  "#requiresdefine   'PETSC_HAVE_FORTRAN'\n"
-    outbuf +=  'ALL: lib\n'
     outbuf +=   cppflags + '\n'
-    outbuf +=  'SOURCEC  = ' +' '.join(cnames)+ '\n'
-    outbuf +=  'SOURCEH  = ' +' '.join(hnames)+ '\n'
     outbuf +=  libbase + '\n'
     outbuf +=  'include ${SLEPC_DIR}/lib/slepc/conf/slepc_common\n'
 
@@ -263,7 +260,7 @@ def processf90interfaces(petscdir,verbose):
                 if plist: ibuf = ibuf.replace(')',')\n       import '+','.join(set(plist)),1)
                 fd.write(ibuf)
         shutil.rmtree(tmpDir)
-#  # FixDir(petscdir,os.path.join(petscdir,'include','slepc','finclude','ftn-auto-interfaces'),verbose)
+  # FixDir(petscdir,os.path.join(petscdir,'include','slepc','finclude','ftn-auto-interfaces'),verbose)
   return
 
 def main(petscdir,bfort,dir,verbose):
@@ -285,4 +282,3 @@ if __name__ ==  '__main__':
     main(petscdir,sys.argv[1],os.getcwd(),verbose)
   else:
     processf90interfaces(petscdir,verbose)
-

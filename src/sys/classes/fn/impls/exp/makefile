@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = fnexp.c
 LIBBASE  = libslepcsys
 MANSEC   = FN
 

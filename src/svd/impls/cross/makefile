@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = cross.c
 LIBBASE  = libslepcsvd
 MANSEC   = SVD
 

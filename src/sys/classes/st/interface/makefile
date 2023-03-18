@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = stfunc.c stset.c stsolve.c stsles.c stregis.c stshellmat.c
 LIBBASE  = libslepcsys
 MANSEC   = ST
 

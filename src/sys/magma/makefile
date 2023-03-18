@@ -9,7 +9,6 @@
 #
 #requirespackage 'PETSC_HAVE_MAGMA'
 
-SOURCEC  = slepcmagma.c
 LIBBASE  = libslepcsys
 MANSEC   = sys
 

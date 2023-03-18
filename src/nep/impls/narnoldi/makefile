@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = narnoldi.c
 LIBBASE  = libslepcnep
 MANSEC   = NEP
 

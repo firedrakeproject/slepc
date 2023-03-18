@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = lapack.c
 LIBBASE  = libslepceps
 MANSEC   = EPS
 

@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_PRIMME'
 
-SOURCEC  = svdprimme.c
 LIBBASE  = libslepcsvd
 MANSEC   = SVD
 

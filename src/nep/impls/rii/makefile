@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = rii.c
 LIBBASE  = libslepcnep
 MANSEC   = NEP
 

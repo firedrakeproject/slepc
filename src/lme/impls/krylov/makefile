@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = lmekrylov.c
 LIBBASE  = libslepclme
 MANSEC   = LME
 

@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_ELPA'
 
-SOURCEC   = elpa.c
 LIBBASE   = libslepceps
 MANSEC    = EPS
 

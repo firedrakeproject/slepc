@@ -9,7 +9,6 @@
 #
 #requiresdefine   'PETSC_HAVE_FORTRAN'
 
-SOURCEC  = zkrylovschurf.c
 LIBBASE  = libslepceps
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

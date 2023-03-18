@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_ELEMENTAL'
 
-SOURCECXX = elemental.cxx
 LIBBASE   = libslepceps
 MANSEC    = EPS
 
