@@ -58,8 +58,8 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Input Parameters of monitor:
-
+   Calling sequence of monitor:
+$  PetscErrorCode monitor(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *mctx)
 +  eps    - eigensolver context obtained from EPSCreate()
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs
@@ -92,7 +92,7 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
 
 .seealso: EPSMonitorFirst(), EPSMonitorAll(), EPSMonitorCancel()
 @*/
-PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal* errest,PetscInt nest,void *mctx),void *mctx,PetscErrorCode (*monitordestroy)(void**))
+PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *mctx),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);

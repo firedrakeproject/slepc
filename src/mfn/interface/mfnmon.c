@@ -58,8 +58,8 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Input Parameters of monitor:
-
+   Calling sequence of monitor:
+$  PetscErrorCode monitor(MFN mfn,PetscInt its,PetscReal errest,void *mctx)
 +  mfn    - matrix function context obtained from MFNCreate()
 .  its    - iteration number
 .  errest - error estimate

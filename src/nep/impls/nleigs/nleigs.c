@@ -1304,8 +1304,8 @@ static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErro
 -  ctx - [optional] user-defined context for private data for the function
          (may be NULL, in which case NEP retains any previously set value)
 
-   Input Parameters of fun:
-
+   Calling sequence of fun:
+$  PetscErrorCode fun(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *ctx)
 +   nep   - the NEP context
 .   maxnp - on input number of requested points in the discretization (can be set)
 .   xi    - computed values of the discretization

@@ -496,11 +496,11 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
 
    Input Parameters:
 +  nep  - eigensolver context obtained from NEPCreate()
-.  func - a pointer to the comparison function
+.  comp - a pointer to the comparison function
 -  ctx  - a context pointer (the last parameter to the comparison function)
 
-   Input Parameters of func:
-
+   Calling sequence of comp:
+$  PetscErrorCode comp(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
 +   ar     - real part of the 1st eigenvalue
 .   ai     - imaginary part of the 1st eigenvalue
 .   br     - real part of the 2nd eigenvalue
@@ -518,11 +518,11 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
 
 .seealso: NEPSetWhichEigenpairs(), NEPWhich
 @*/
-PetscErrorCode NEPSetEigenvalueComparison(NEP nep,PetscErrorCode (*func)(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx),void* ctx)
+PetscErrorCode NEPSetEigenvalueComparison(NEP nep,PetscErrorCode (*comp)(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  nep->sc->comparison    = func;
+  nep->sc->comparison    = comp;
   nep->sc->comparisonctx = ctx;
   nep->which             = NEP_WHICH_USER;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -660,12 +660,12 @@ PetscErrorCode NEPGetTwoSided(NEP nep,PetscBool *twosided)
 
    Input Parameters:
 +  nep     - nonlinear eigensolver context obtained from NEPCreate()
-.  func    - a pointer to the convergence test function
+.  conv    - a pointer to the convergence test function
 .  ctx     - context for private data for the convergence routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Input Parameters of func:
-
+   Calling sequence of conv:
+$  PetscErrorCode conv(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 +   nep    - nonlinear eigensolver context obtained from NEPCreate()
 .   eigr   - real part of the eigenvalue
 .   eigi   - imaginary part of the eigenvalue
@@ -681,17 +681,17 @@ PetscErrorCode NEPGetTwoSided(NEP nep,PetscBool *twosided)
 
 .seealso: NEPSetConvergenceTest(), NEPSetTolerances()
 @*/
-PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*conv)(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nep->convergeddestroy) PetscCall((*nep->convergeddestroy)(nep->convergedctx));
-  nep->convergeduser    = func;
+  nep->convergeduser    = conv;
   nep->convergeddestroy = destroy;
   nep->convergedctx     = ctx;
-  if (func == NEPConvergedRelative) nep->conv = NEP_CONV_REL;
-  else if (func == NEPConvergedNorm) nep->conv = NEP_CONV_NORM;
-  else if (func == NEPConvergedAbsolute) nep->conv = NEP_CONV_ABS;
+  if (conv == NEPConvergedRelative) nep->conv = NEP_CONV_REL;
+  else if (conv == NEPConvergedNorm) nep->conv = NEP_CONV_NORM;
+  else if (conv == NEPConvergedAbsolute) nep->conv = NEP_CONV_ABS;
   else {
     nep->conv      = NEP_CONV_USER;
     nep->converged = nep->convergeduser;
@@ -778,12 +778,12 @@ PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
 
    Input Parameters:
 +  nep     - nonlinear eigensolver context obtained from NEPCreate()
-.  func    - pointer to the stopping test function
+.  stop    - pointer to the stopping test function
 .  ctx     - context for private data for the stopping routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Input Parameters of func:
-
+   Calling sequence of stop:
+$  PetscErrorCode stop(NEP nep,PetscInt its,PetscInt max_its,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx)
 +   nep    - nonlinear eigensolver context obtained from NEPCreate()
 .   its    - current number of iterations
 .   max_its - maximum number of iterations
@@ -802,15 +802,15 @@ PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
 
 .seealso: NEPSetStoppingTest(), NEPStoppingBasic()
 @*/
-PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP nep,PetscInt its,PetscInt max_its,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*stop)(NEP nep,PetscInt its,PetscInt max_its,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nep->stoppingdestroy) PetscCall((*nep->stoppingdestroy)(nep->stoppingctx));
-  nep->stoppinguser    = func;
+  nep->stoppinguser    = stop;
   nep->stoppingdestroy = destroy;
   nep->stoppingctx     = ctx;
-  if (func == NEPStoppingBasic) nep->stop = NEP_STOP_BASIC;
+  if (stop == NEPStoppingBasic) nep->stop = NEP_STOP_BASIC;
   else {
     nep->stop     = NEP_STOP_USER;
     nep->stopping = nep->stoppinguser;

@@ -538,8 +538,8 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 .  func - a pointer to the comparison function
 -  ctx  - a context pointer (the last parameter to the comparison function)
 
-   Input Parameters of func:
-
+   Calling sequence of func:
+$  PetscErrorCode func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
 +   ar     - real part of the 1st eigenvalue
 .   ai     - imaginary part of the 1st eigenvalue
 .   br     - real part of the 2nd eigenvalue
@@ -579,8 +579,8 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscSc
 .  func - a pointer to the evaluation function
 -  ctx  - a context pointer (the last parameter to the evaluation function)
 
-   Input Parameters of func:
-
+   Calling sequence of func:
+$  PetscErrorCode func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar *ri,void *ctx)
 +   er     - real part of the current eigenvalue approximation
 .   ei     - imaginary part of the current eigenvalue approximation
 .   xr     - real part of the current eigenvector approximation
@@ -635,8 +635,8 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
 .  ctx     - context for private data for the convergence routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Input Parameters of func:
-
+   Calling sequence of func:
+$  PetscErrorCode func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 +   eps    - eigensolver context obtained from EPSCreate()
 .   eigr   - real part of the eigenvalue
 .   eigi   - imaginary part of the eigenvalue
@@ -754,8 +754,8 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
 .  ctx     - context for private data for the stopping routine (may be null)
 -  destroy - a routine for destroying the context (may be null)
 
-   Input Parameters of func:
-
+   Calling sequence of func:
+$  PetscErrorCode func(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
 +   eps    - eigensolver context obtained from EPSCreate()
 .   its    - current number of iterations
 .   max_it - maximum number of iterations

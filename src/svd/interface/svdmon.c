@@ -58,8 +58,8 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Input Parameters of monitor:
-
+   Calling sequence of monitor:
+$  PetscErrorCode monitor(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *mctx)
 +  svd    - singular value solver context obtained from SVDCreate()
 .  its    - iteration number
 .  nconv  - number of converged singular triplets

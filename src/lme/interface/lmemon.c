@@ -58,8 +58,8 @@ PetscErrorCode LMEMonitor(LME lme,PetscInt it,PetscReal errest)
              monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
-   Input Parameters of monitor:
-
+   Calling sequence of monitor:
+$  PetscErrorCode monitor(LME lme,PetscInt its,PetscReal errest,void*mctx)
 +  lme    - linear matrix equation solver context obtained from LMECreate()
 .  its    - iteration number
 .  errest - error estimate
