@@ -93,3 +93,5 @@ native    SVDStop
 native    SVDConvergedReason
 native    SVDTRLanczosGBidiag
 native    SVDPRIMMEMethod
+native    SVDKSVDEigenMethod
+native    SVDKSVDPolarMethod

@@ -44,7 +44,7 @@
 PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 {
   const char     *type=NULL;
-  PetscBool      isascii,isshell;
+  PetscBool      isascii,isshell,isexternal;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -96,8 +96,9 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     if (svd->nini) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(svd->nini)));
     if (svd->ninil) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %" PetscInt_FMT "\n",PetscAbs(svd->ninil)));
   } else PetscTryTypeMethod(svd,view,viewer);
-  PetscCall(PetscObjectTypeCompareAny((PetscObject)svd,&isshell,SVDCROSS,SVDCYCLIC,SVDSCALAPACK,SVDELEMENTAL,SVDPRIMME,""));
-  if (!isshell) {
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)svd,&isshell,SVDCROSS,SVDCYCLIC,""));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)svd,&isexternal,SVDSCALAPACK,SVDKSVD,SVDELEMENTAL,SVDPRIMME,""));
+  if (!isshell && !isexternal) {
     PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
     if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,NULL));
     PetscCall(BVView(svd->V,viewer));

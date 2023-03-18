@@ -22,6 +22,8 @@ urlparse_local.uses_netloc.extend(['bk', 'ssh', 'svn'])
 
 class Package:
 
+  packages = []    # list of packages processed and added so far
+
   def __init__(self,argdb,log):
     self.installable     = False  # an already installed package can be picked --with-xxx-dir
     self.downloadable    = False  # package can be downloaded and installed with --download-xxx
@@ -131,6 +133,7 @@ class Package:
         self.log.write('Version number for '+name+' is '+self.iversion)
       except AttributeError:
         pass
+      if self.havepackage: Package.packages.append(self)
     else: # not requested
       if hasattr(self,'SkipInstall'):
         self.SkipInstall(slepcrules)
@@ -152,6 +155,12 @@ class Package:
       self.log.Exit(package+' cannot be used with 64-bit integers')
     if self.downloadpackage and self.fortran and not hasattr(petsc,'fc'):
       self.log.Exit('Option --download-'+self.packagename+' requires a Fortran compiler')
+
+  def Require(self,packagename):
+    for p in Package.packages:
+      if p.packagename.upper() == packagename.upper():
+        return p
+    self.log.Exit('The package '+self.packagename.upper()+' requires configuring also with '+packagename.upper()+". Run configure --help for details on how to install it")
 
   def DistilLibList(self,packagelibs,petsc):
     libs = []

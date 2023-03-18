@@ -125,7 +125,7 @@ class PETSc(package.Package):
           elif k == 'BUILDSHAREDLIB' and v=='yes':
             self.buildsharedlib = True
           else:
-            if k in ['AR','AR_FLAGS','AR_LIB_SUFFIX','BFORT','BLASLAPACK_LIB','CC','CC_FLAGS','CC_LINKER_SLFLAG','CMAKE','CONFIGURE_OPTIONS','CPP','CXX','CXX_FLAGS','FC_FLAGS','MAKE','MAKE_NP','PREFIXDIR','RANLIB','SCALAPACK_LIB','SL_LINKER_SUFFIX']:
+            if k in ['AR','AR_FLAGS','AR_LIB_SUFFIX','BFORT','BLASLAPACK_LIB','CC','CC_FLAGS','CC_LINKER_SLFLAG','CMAKE','CONFIGURE_OPTIONS','CPP','CXX','CXX_FLAGS','FC_FLAGS','MAKE','MAKE_NP','PREFIXDIR','RANLIB','SCALAPACK_LIB','SEDINPLACE','SL_LINKER_SUFFIX']:
               setattr(self,k.lower(),v)
     except:
       self.log.Exit('Cannot process file ' + petscvariables)

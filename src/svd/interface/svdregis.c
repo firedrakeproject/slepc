@@ -19,6 +19,9 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Randomized(SVD);
 #if defined(SLEPC_HAVE_SCALAPACK)
 SLEPC_EXTERN PetscErrorCode SVDCreate_ScaLAPACK(SVD);
 #endif
+#if defined(SLEPC_HAVE_KSVD)
+SLEPC_EXTERN PetscErrorCode SVDCreate_KSVD(SVD);
+#endif
 #if defined(SLEPC_HAVE_ELEMENTAL)
 SLEPC_EXTERN PetscErrorCode SVDCreate_Elemental(SVD);
 #endif
@@ -48,6 +51,9 @@ PetscErrorCode SVDRegisterAll(void)
   PetscCall(SVDRegister(SVDRANDOMIZED,SVDCreate_Randomized));
 #if defined(SLEPC_HAVE_SCALAPACK)
   PetscCall(SVDRegister(SVDSCALAPACK,SVDCreate_ScaLAPACK));
+#endif
+#if defined(SLEPC_HAVE_KSVD)
+  PetscCall(SVDRegister(SVDKSVD,SVDCreate_KSVD));
 #endif
 #if defined(SLEPC_HAVE_ELEMENTAL)
   PetscCall(SVDRegister(SVDELEMENTAL,SVDCreate_Elemental));

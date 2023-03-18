@@ -8,6 +8,7 @@ cdef extern from * nogil:
     SlepcSVDType SVDTRLANCZOS
     SlepcSVDType SVDRANDOMIZED
     SlepcSVDType SVDSCALAPACK
+    SlepcSVDType SVDKSVD
     SlepcSVDType SVDELEMENTAL
     SlepcSVDType SVDPRIMME
 

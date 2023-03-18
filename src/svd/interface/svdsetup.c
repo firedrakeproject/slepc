@@ -264,7 +264,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     PetscCall(MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg));
     if (!flg) svd->expltrans = PETSC_FALSE;
     else {
-      PetscCall(PetscObjectTypeCompareAny((PetscObject)svd,&flg,SVDLAPACK,SVDSCALAPACK,SVDELEMENTAL,""));
+      PetscCall(PetscObjectTypeCompareAny((PetscObject)svd,&flg,SVDLAPACK,SVDSCALAPACK,SVDKSVD,SVDELEMENTAL,""));
       if (flg) svd->expltrans = PETSC_FALSE;
     }
   }

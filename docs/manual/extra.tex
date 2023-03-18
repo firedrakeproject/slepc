@@ -493,6 +493,15 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\item[Installation.] The \slepc wrapper to \elpa can be activated at configure time with the option \texttt{-{}-download\_elpa}, in which case \scalapack support must have been enabled during the configuration of \petsc.
 	\end{description}
 
+\subsection*{\underline{\ksvd}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Sukkari:2019:QDW}.
+	\item[Website.] \url{https://github.com/ecrc/ksvd/}.
+	\item[Summary.] \ksvd is a high performance software framework for computing a dense SVD on distributed-memory manycore systems. The \ksvd solver relies on the polar decomposition (PD) based on the QR Dynamically-Weighted Halley (QDWH) and ZOLO-PD algorithms.
+	\item[Installation.] The option \texttt{-{}-download-ksvd} is available in \slepc's configure for easy installation, which in turn requires adding \texttt{-{}-download-polar} and \texttt{-{}-download-elpa}.
+	\end{description}
+
 \subsection*{\underline{\elemental}}
 	\begin{description}
 	\setlength{\itemsep}{0pt}

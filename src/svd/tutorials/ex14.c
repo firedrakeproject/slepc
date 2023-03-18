@@ -121,7 +121,16 @@ int main(int argc,char **argv)
          suffix: 1_elemental
          nsize: {{1 2 3}}
          args: -svd_nsv 4 -svd_type elemental
+         output_file: output/ex14_1_scalapack.out
+         filter: sed -e "s/elemental/scalapack/"
          requires: elemental
+      test:
+         suffix: 1_ksvd
+         nsize: 6
+         args: -svd_nsv 4 -svd_type ksvd -svd_ksvd_eigen_method {{mrrr elpa}} -svd_ksvd_polar_method {{qdwh zolopd}}
+         output_file: output/ex14_1_scalapack.out
+         filter: sed -e "s/ksvd/scalapack/"
+         requires: elpa polar ksvd
       test:
          suffix: 2
          args: -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.5 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -svd_view
