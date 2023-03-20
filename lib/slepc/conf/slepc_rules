@@ -211,21 +211,12 @@ ${SLEPC_DIR}/${PETSC_ARCH}/tests/testfiles:
 	@${MKDIR} -p ${SLEPC_DIR}/${PETSC_ARCH}/tests && touch -t 197102020000 ${SLEPC_DIR}/${PETSC_ARCH}/tests/testfiles
 
 slepc_libs: ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files ${SLEPC_DIR}/${PETSC_ARCH}/tests/testfiles
-	+@r=`echo "${MAKEFLAGS}" | grep ' \-j'`; \
-        if [ "$$?" = 0 ]; then \
-          make_j="";\
-          echo "Skipping adding -jMAKE_NP option as -j option is already specified"; \
-        else \
-          make_j="-j${MAKE_NP}"; \
-        fi; \
-	r=`echo "${MAKEFLAGS}" | grep ' \-l'`; \
-        if [ "$$?" = 0 ]; then \
-          make_l="";\
-          echo "Skipping adding -lMAKE_LOAD option as -l option is already specified"; \
-        else \
-          make_l="-l${MAKE_LOAD}"; \
-        fi; \
-        cd ${SLEPC_DIR} && ${OMAKE_PRINTDIR} -f gmakefile $${make_j} $${make_l} ${MAKE_PAR_OUT_FLG} V=${V} slepc_libs
+	+@r=`echo "${MAKEFLAGS}" | grep ' -j'`; \
+        if [ "$$?" = 0 ]; then make_j=""; else make_j="-j${MAKE_NP}"; fi; \
+        r=`echo "${MAKEFLAGS}" | grep ' -l'`; \
+        if [ "$$?" = 0 ]; then make_l=""; else make_l="-l${MAKE_LOAD}"; fi; \
+        cmd="${OMAKE_PRINTDIR} -f gmakefile $${make_j} $${make_l} ${MAKE_PAR_OUT_FLG} V=${V} slepc_libs"; \
+        cd ${SLEPC_DIR} && echo $${cmd} && exec $${cmd}
 
 getlinklibs_slepc:
 	-@echo ${SLEPC_LIB}

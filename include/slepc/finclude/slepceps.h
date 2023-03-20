@@ -58,6 +58,7 @@
 #define EPSFEAST       'feast'
 #define EPSSCALAPACK   'scalapack'
 #define EPSELEMENTAL   'elemental'
+#define EPSEVSL        'evsl'
 
 #endif
 
