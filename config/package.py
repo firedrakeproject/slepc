@@ -366,14 +366,14 @@ Downloaded package %s from: %s is not a tarball.
       self.log.Exit('Cannot create temporary directory')
     try:
       with open(os.path.join(tmpdir,'makefile'),'w') as makefile:
-        if cflags!='':
-          if clanguage=='c++': makefile.write('CXXFLAGS='+cflags+'\n')
-          else: makefile.write('CFLAGS='+cflags+'\n')
         makefile.write('checklink: checklink.o\n')
         makefile.write('\t${CLINKER} -o checklink checklink.o ${LINKFLAGS} ${PETSC_SNES_LIB}\n')
         makefile.write('\t@${RM} -f checklink checklink.o\n')
         makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','variables')+'\n')
         makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','rules')+'\n')
+        if cflags:
+          if clanguage=='c++': makefile.write('CXXFLAGS='+cflags+'\n')
+          else: makefile.write('CFLAGS='+cflags+'\n')
     except:
       self.log.Exit('Cannot create makefile in temporary directory')
 
