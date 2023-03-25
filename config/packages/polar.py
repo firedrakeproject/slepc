@@ -97,12 +97,12 @@ class Polar(package.Package):
 
     # Patch pdgeqdwh.c to avoid output even with verbose=false
     fname = os.path.join(builddir,'src','pdgeqdwh.c')
-    oldcode1 = '''if (myrank_mpi == 0) { fprintf(stderr, "\\nItConv %d itcqr %d itcpo %d norm_est %2.4e Li %2.4e \\n", itconv, itcqr, itcpo, norm_est, Li); fprintf(stderr, "It Facto Conv\\n");}'''
-    newcode1 = '''if (verbose && myrank_mpi == 0) { fprintf(stderr, "\\nItConv %d itcqr %d itcpo %d norm_est %2.4e Li %2.4e \\n", itconv, itcqr, itcpo, norm_est, Li); fprintf(stderr, "It Facto Conv\\n");}'''
-    oldcode2 = '''if (myrank_mpi == 0) {
-        fprintf(stderr, "#\\n");'''
-    newcode2 = '''if (verbose && myrank_mpi == 0) {
-        fprintf(stderr, "#\\n");'''
+    oldcode1 = r'''if (myrank_mpi == 0) { fprintf(stderr, "\nItConv %d itcqr %d itcpo %d norm_est %2.4e Li %2.4e \n", itconv, itcqr, itcpo, norm_est, Li); fprintf(stderr, "It Facto Conv\n");}'''
+    newcode1 = r'''if (verbose && myrank_mpi == 0) { fprintf(stderr, "\nItConv %d itcqr %d itcpo %d norm_est %2.4e Li %2.4e \n", itconv, itcqr, itcpo, norm_est, Li); fprintf(stderr, "It Facto Conv\n");}'''
+    oldcode2 = r'''if (myrank_mpi == 0) {
+        fprintf(stderr, "#\n");'''
+    newcode2 = r'''if (verbose && myrank_mpi == 0) {
+        fprintf(stderr, "#\n");'''
     with open(fname,'r') as file:
       sourcecode = file.read()
     sourcecode = sourcecode.replace(oldcode1,newcode1).replace(oldcode2,newcode2)
@@ -115,10 +115,10 @@ class Polar(package.Package):
         fprintf(stderr, " The number of subproblems to be solved independently is %d'''
     newcode1 = '''if (verbose && myrank_mpi == 0 ){ 
         fprintf(stderr, " The number of subproblems to be solved independently is %d'''
-    oldcode2 = '''if ( myrank_mpi == 0 ) {
-        fprintf(stderr, "#\\n");'''
-    newcode2 = '''if (verbose && myrank_mpi == 0 ) {
-        fprintf(stderr, "#\\n");'''
+    oldcode2 = r'''if ( myrank_mpi == 0 ) {
+        fprintf(stderr, "#\n");'''
+    newcode2 = r'''if (verbose && myrank_mpi == 0 ) {
+        fprintf(stderr, "#\n");'''
     with open(fname,'r') as file:
       sourcecode = file.read()
     sourcecode = sourcecode.replace(oldcode1,newcode1).replace(oldcode2,newcode2)
