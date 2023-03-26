@@ -8,4 +8,5 @@ if sys.version_info < (3,4):
   print('*******************************************************************************')
   sys.exit(4)
 
-exec(open(os.path.join(os.path.dirname(__file__), 'config', 'configure.py')).read())
+with open(os.path.join(os.path.dirname(__file__), 'config', 'configure.py')) as f:
+  exec(f.read())
