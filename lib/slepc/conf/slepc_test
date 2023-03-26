@@ -7,58 +7,5 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
+#   Empty file for backward compatibility. The rules in this file have been moved to slepc_rules
 
-TESTMODE = testexamples
-ALLTESTS_CHECK_FAILURES = no
-ALLTESTS_MAKEFILE = ${SLEPC_DIR}/gmakefile.test
-alltests: chk_in_slepcdir ${SLEPC_DIR}/${PETSC_ARCH}/tests/testfiles
-	-@${RM} -rf ${PETSC_ARCH}/lib/slepc/conf/alltests.log alltests.log
-	+@if [ -f ${SLEPC_DIR}/share/slepc/examples/gmakefile.test ] ; then \
-            ALLTESTS_MAKEFILE=${SLEPC_DIR}/share/slepc/examples/gmakefile.test ; \
-            ALLTESTSLOG=alltests.log ;\
-          else \
-            ALLTESTS_MAKEFILE=${SLEPC_DIR}/gmakefile.test; \
-            ALLTESTSLOG=${PETSC_ARCH}/lib/slepc/conf/alltests.log ;\
-            ln -s $${ALLTESTSLOG} alltests.log ;\
-          fi; \
-          ${OMAKE} allgtest ALLTESTS_MAKEFILE=$${ALLTESTS_MAKEFILE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} MPIEXEC="${MPIEXEC}" DATAFILESPATH=${DATAFILESPATH} 2>&1 | tee $${ALLTESTSLOG};\
-          if [ x${ALLTESTS_CHECK_FAILURES} = xyes ]; then \
-            cat $${ALLTESTSLOG} | grep -E '(^not ok|not remade because of errors|^# No tests run)' | wc -l | grep '^[ ]*0$$' > /dev/null; \
-          fi;
-
-allgtests-tap: allgtest-tap
-	+@${OMAKE} -f ${ALLTESTS_MAKEFILE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check-test-errors
-
-allgtest-tap: ${SLEPC_DIR}/${PETSC_ARCH}/tests/testfiles
-	+@MAKEFLAGS="-j$(MAKE_TEST_NP) -l$(MAKE_LOAD) $(MAKEFLAGS)" ${OMAKE} -f ${ALLTESTS_MAKEFILE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test OUTPUT=1
-
-allgtest: ${SLEPC_DIR}/${PETSC_ARCH}/tests/testfiles
-	+@MAKEFLAGS="-j$(MAKE_TEST_NP) -l$(MAKE_LOAD) $(MAKEFLAGS)" ${OMAKE} -k -f ${ALLTESTS_MAKEFILE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test V=0 2>&1 | grep -E -v '^(ok [^#]*(# SKIP|# TODO|$$)|[A-Za-z][A-Za-z0-9_]*\.(c|F|cxx|F90).$$)'
-
-test:
-	+${OMAKE} -f ${ALLTESTS_MAKEFILE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test
-cleantest:
-	+${OMAKE} -f ${ALLTESTS_MAKEFILE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cleantest
-
-ifeq ($(RM),true)
-.SECONDARY: $(%.o) $(%f.o) $(%f90.o)
-endif
-
-LINK.c = $(CLINKER) $(SLEPC_CCPPFLAGS) $(CCPPFLAGS) $(LDFLAGS) $(EXEFLAGS)
-LINK.o = $(CLINKER) $(LDFLAGS) $(EXEFLAGS)
-LINK.F = $(FLINKER) $(SLEPC_FCPPFLAGS) $(FCPPFLAGS) $(LDFLAGS)
-LINK.cc = $(CXXLINKER) $(SLEPC_CXXPPFLAGS) $(CXXCPPFLAGS) $(LDFLAGS)
-
-LDLIBS += $(SLEPC_LIB)
-
-% : %.F90
-	$(LINK.F) $^ $(LOADLIBES) $(LDLIBS) -o $@
-% : %.cxx
-	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
-
-help:
-	-@echo ""
-	-@echo "make applicationname - compiles applicationname.[c,cxx,F,F90] file into an executable"
-	-@echo "make clean - delete any object files and executables in the current directory"
-	-@echo "make slepc_libs - rebuilds any needed changes to the SLEPc libraries"
-	-@echo ""
