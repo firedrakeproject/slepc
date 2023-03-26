@@ -314,4 +314,5 @@ for pkg in checkpackages:
   pkg.ShowInfo()
 log.write('\nFinishing Configure Run at '+time.ctime(time.time()))
 log.write('='*80)
+log.Close()
 Epilog(slepc,petsc)

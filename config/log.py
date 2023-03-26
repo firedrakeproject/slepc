@@ -14,6 +14,7 @@ import os, sys
 class Log:
 
   def __init__(self):
+    self.fd = None
     self.lastfailed = False
 
   def Open(self,slepcdir,confdir,fname):
@@ -27,12 +28,12 @@ class Log:
 
   def Println(self,string):
     print(string)
-    if hasattr(self,'fd'):
+    if self.fd:
       self.fd.write(string+'\n')
 
   def Print(self,string):
     print(string, end=' ')
-    if hasattr(self,'fd'):
+    if self.fd:
       self.fd.write(string+' ')
 
   def NewSection(self,string):
@@ -43,22 +44,24 @@ class Log:
     else:
       print('done\n'+string, end=' ')
     sys.stdout.flush()
-    self.fd.write('='*80+'\n'+string+'\n')
+    if self.fd:
+      self.fd.write('='*80+'\n'+string+'\n')
     self.lastfailed = False
 
   def write(self,string):
-    self.fd.write(string+'\n')
+    if self.fd:
+      self.fd.write(string+'\n')
 
   def Warn(self,string):
     msg = '\nxxx'+'='*74+'xxx\nWARNING: '+string+'\nxxx'+'='*74+'xxx'
     print(msg)
-    if hasattr(self,'fd'):
+    if self.fd:
       self.fd.write(msg+'\n')
 
   def Exit(self,string):
     msg = '\nERROR: '+string
     print(msg)
-    if hasattr(self,'fd'):
+    if self.fd:
       self.fd.write(msg+'\n')
       self.fd.close()
       msg = 'ERROR: See "' + self.filename + '" file for details'
@@ -69,3 +72,6 @@ class Log:
   def setLastFailed(self):
     self.lastfailed = True
 
+  def Close(self):
+    if self.fd:
+      self.fd.close()
