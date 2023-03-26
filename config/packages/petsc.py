@@ -239,7 +239,7 @@ class PETSc(package.Package):
     try:
       (result, output) = self.RunCommand(self.fc+' --version',)
       import re
-      strmatch = re.match('GNU Fortran\s+\(.*\)\s+(\d+)\.(\d+)',output)
+      strmatch = re.match(r'GNU Fortran\s+\(.*\)\s+(\d+)\.(\d+)',output)
       if strmatch:
         VMAJOR,VMINOR = strmatch.groups()
         if (int(VMAJOR),int(VMINOR)) >= (10,0):

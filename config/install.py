@@ -380,7 +380,7 @@ for dir in dirs:
   def outputInstallDone(self):
     arch=self.arch
     if arch.startswith('installed-'): arch='""'
-    print('''\
+    print('''
 ====================================
 Install complete.
 Now to check if the libraries are working do (in current directory):
@@ -390,7 +390,7 @@ make SLEPC_DIR=%s PETSC_DIR=%s PETSC_ARCH=%s check
     return
 
   def outputDestDirDone(self):
-    print('''\
+    print('''
 ====================================
 Copy to DESTDIR %s is now complete.
 Before use - please copy/install over to specified prefix: %s
