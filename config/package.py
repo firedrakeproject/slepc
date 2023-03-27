@@ -252,7 +252,7 @@ class Package:
         socket.setdefaulttimeout(sav_timeout)
       except Exception as e:
         socket.setdefaulttimeout(sav_timeout)
-        failureMessage = '''
+        failureMessage = '''\
 Unable to download package %s from: %s
 * If URL specified manually - perhaps there is a typo?
 * If your network is disconnected - please reconnect and rerun ./configure
@@ -273,7 +273,7 @@ Unable to download package %s from: %s
           os.remove(os.path.join(root,name))
         for name in dirs:
           os.rmdir(os.path.join(root,name))
-    failureMessage = '''
+    failureMessage = '''\
 Downloaded package %s from: %s is not a tarball.
 [or installed python cannot process compressed files]
 * If you are behind a firewall - please fix your proxy and rerun ./configure
