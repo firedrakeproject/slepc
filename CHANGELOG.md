@@ -1,6 +1,6 @@
 # Changelog of SLEPc versions
 
-## [unreleased]
+## [3.19] - 2023-03-31
 
 ### Added
 
@@ -436,7 +436,8 @@
 - Classical and modified Gram-Schmidt orthogonalization use iterative refinement, with user options
   for parameter adjustment.
 
-[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.18...main
+[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.19...main
+[3.19]: https://gitlab.com/slepc/slepc/compare/v3.18...v3.19
 [3.18]: https://gitlab.com/slepc/slepc/compare/v3.17...v3.18
 [3.17]: https://gitlab.com/slepc/slepc/compare/v3.16...v3.17
 [3.16]: https://gitlab.com/slepc/slepc/compare/v3.15...v3.16
