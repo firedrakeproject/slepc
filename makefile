@@ -268,6 +268,18 @@ info:
 	-@echo "Default MAKEFLAGS: MAKE_NP:${MAKE_NP} MAKE_LOAD:${MAKE_LOAD} MAKEFLAGS:${MAKEFLAGS}"
 	-@echo "=========================================="
 
+check_usermakefile:
+	-@echo "Testing compile with user makefile"
+	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
+	@cd src/eps/tutorials; ${RUN_TEST} clean-legacy
+	@cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10
+	@grep -E "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
+         if test -s .ftn.log; then \
+          cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10f90; \
+         fi; ${RM} .ftn.log;
+	@cd src/eps/tutorials; ${RUN_TEST} clean-legacy
+	-@echo "Completed compile with user makefile"
+
 # ******** Rules for generating tag files **************************************************************
 
 alletags:
