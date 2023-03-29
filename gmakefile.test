@@ -121,30 +121,44 @@ else
   cc_name := CC
 endif
 
-SLEPC_COMPILE.c = $(call quiet,$(cc_name)) -c $(PCC_FLAGS) $($(CLANGUAGE)FLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(C_DEPFLAGS)
-SLEPC_COMPILE.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
-SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(MPICXX_INCLUDES) $(CUDAC_FLAGS) $(CUDAPP_FLAGS) $(CUDAFLAGS) --compiler-options="$(SLEPC_CC_INCLUDES) ${PETSC_CXXCPPFLAGS} $(CUDACPPFLAGS) $(CUDA_CXXFLAGS)"
-SLEPC_COMPILE.hip.cpp = $(call quiet,HIPC) -c $(MPICXX_INCLUDES) $(HIPC_FLAGS) $(HIPPP_FLAGS) $(HIPFLAGS) $(HIPPPFLAGS) $(HIPOPTFLAGS) $(HIPC_DEPFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(HIP_DEPFLAGS)
-SLEPC_COMPILE.sycl.cxx = $(call quiet,SYCLC) -c $(MPICXX_INCLUDES) $(SYCLC_FLAGS) $(SYCLPP_FLAGS) $(SYCLFLAGS) $(SYCLPPFLAGS) $(SYCLOPTFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(SYCL_DEPFLAGS)
-SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(MPICXX_INCLUDES) $(CUDAC_FLAGS) --compiler-options="${PETSC_CXXCPPFLAGS} $(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
-SLEPC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
+PETSC_COMPILE.c = $(call quiet,$(cc_name)) -c $(PCC_FLAGS) $($(CLANGUAGE)FLAGS) $(CCPPFLAGS) $(C_DEPFLAGS)
+PETSC_COMPILE.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(CXX_DEPFLAGS)
+PETSC_COMPILE.cu = $(call quiet,CUDAC) -c $(MPICXX_INCLUDES) $(CUDAC_FLAGS) $(CUDAPP_FLAGS) $(CUDAFLAGS) $(CUDA_HOSTFLAGS)
+PETSC_COMPILE.hip.cpp = $(call quiet,HIPC) -c $(MPICXX_INCLUDES) $(HIPC_FLAGS) $(HIPPP_FLAGS) $(HIPFLAGS) $(HIPPPFLAGS) $(HIPOPTFLAGS) $(HIPC_DEPFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(HIP_DEPFLAGS)
+PETSC_COMPILE.sycl.cxx = $(call quiet,SYCLC) -c $(MPICXX_INCLUDES) $(SYCLC_FLAGS) $(SYCLPP_FLAGS) $(SYCLFLAGS) $(SYCLPPFLAGS) $(SYCLOPTFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SYCL_DEPFLAGS)
+PETSC_GENDEPS.cu = ${CUDA_PETSC_GENDEPS}
+PETSC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
 
 ifneq ($(KOKKOS_USE_CUDA_COMPILER),)
   # Kokkos requires nvcc to be in PATH and the C++ compiler to be given in an environmental variable
   KOKC = PATH=`dirname $(CUDAC)`:$(PATH) NVCC_WRAPPER_DEFAULT_COMPILER="$(CUDA_CXX)" $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda
-  SLEPC_COMPILE.kokkos.cxx = $(call quiet,KOKC) -c $(CUDAC_FLAGS) ${PETSC_CCPPFLAGS} $(CUDACPPFLAGS) $(CUDA_CXXFLAGS) $(MPICXX_INCLUDES) $(SLEPC_CC_INCLUDES)
+  KOKKOS_COMPILE = $(call quiet,KOKC) -c $(CUDAC_FLAGS) ${PETSC_CXXCPPFLAGS} $(CUDACPPFLAGS) $(CUDA_CXXFLAGS) $(MPICXX_INCLUDES)
+else ifneq ($(KOKKOS_USE_CUDACLANG_COMPILER),)
+  KOKKOS_COMPILE = $(PETSC_COMPILE.cu)
 else ifneq ($(KOKKOS_USE_HIP_COMPILER),)
-  SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.hip.cpp)
+  KOKKOS_COMPILE = $(PETSC_COMPILE.hip.cpp)
 else ifneq ($(KOKKOS_USE_SYCL_COMPILER),)
-  SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.sycl.cxx)
+  KOKKOS_COMPILE = $(PETSC_COMPILE.sycl.cxx)
 else
-  SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.cxx)
+  KOKKOS_COMPILE = $(PETSC_COMPILE.cxx)
 endif
+# https://github.com/kokkos/kokkos/pull/5473 used a C++17 feature, inline static variables.
+# We found -fvisibility=hidden could hide these variables such that the supposed globally unique
+# variables become local to each file including them and thus have multiple copies (see an example
+# at the end of PR5473). It might be a gcc bug thus we also filed at https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107535
+# See also an older bug report related to visibility, https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59693
+#
+# Our workaround here is to git rid of -fvisibility=hidden from Kokkos compiler options, so that petsc
+# files including Kokkos headers won't be affected by this flag.
+#
+# The solution is not ideal in the sense we have to duplicate the same workaround to any external libraries
+# using C++17 inline static variables. We have to wait for GNU to clarify this issue.
+PETSC_COMPILE.kokkos.cxx = $(filter-out -fvisibility=hidden,$(KOKKOS_COMPILE))
 
 ifneq ($(RAJA_USE_CUDA_COMPILER),)
-  SLEPC_COMPILE.raja.cxx  = ${CUDAC} $(MPICXX_INCLUDES) ${CUDAC_FLAGS} ${CUFLAGS} -x cu -Xcudafe "--display_error_number" -c --compiler-options="${SLEPC_CC_INCLUDES} ${PETSC_CXXCPPFLAGS} ${PETSC_CC_INCLUDES} ${CUDA_CXXFLAGS}" --expt-extended-lambda --expt-relaxed-constexpr
+  PETSC_COMPILE.raja.cxx  = ${CUDAC} $(MPICXX_INCLUDES) ${CUDAC_FLAGS} -x cu -Xcudafe "--display_error_number" -c --compiler-options="${PETSC_CXXCPPFLAGS} ${PETSC_CC_INCLUDES} ${CUDA_CXXFLAGS}" --expt-extended-lambda --expt-relaxed-constexpr
 else
-  SLEPC_COMPILE.raja.cxx = ${CXX} -o $*.o -c ${CXX_FLAGS} ${CXXFLAGS} ${CXXCPPFLAGS}
+  PETSC_COMPILE.raja.cxx = ${CXX} -o $*.o -c ${CXX_FLAGS} ${CXXFLAGS} ${CXXCPPFLAGS}
 endif
 
 testlangs := c cu cxx F F90 kokkos.cxx hip.cpp sycl.cxx raja.cxx
@@ -160,26 +174,26 @@ $(generatedtest) : $(testsrcs)
 $(testsrcs) :
 
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.c | $$(@D)/.DIR
-	$(SLEPC_COMPILE.c) $(abspath $<) -o $@
+	$(PETSC_COMPILE.c) $(abspath $<) -o $@
 
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.kokkos.cxx | $$(@D)/.DIR
-	$(SLEPC_COMPILE.kokkos.cxx) $(abspath $<) -o $@
+	$(PETSC_COMPILE.kokkos.cxx) $(abspath $<) -o $@
 
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.sycl.cxx | $$(@D)/.DIR
-	$(SLEPC_COMPILE.sycl.cxx) $(abspath $<) -o $@
+	$(PETSC_COMPILE.sycl.cxx) $(abspath $<) -o $@
 
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.raja.cxx | $$(@D)/.DIR
-	$(SLEPC_COMPILE.raja.cxx) $(abspath $<) -o $@
+	$(PETSC_COMPILE.raja.cxx) $(abspath $<) -o $@
 
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.cxx | $$(@D)/.DIR
-	$(SLEPC_COMPILE.cxx) $(abspath $<) -o $@
+	$(PETSC_COMPILE.cxx) $(abspath $<) -o $@
 
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.cu | $$(@D)/.DIR
-	$(SLEPC_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
-	@$(SLEPC_GENDEPS.cu) $(abspath $<) -o $(@:%.o=%.d) # Generate the dependencies for later
+	$(PETSC_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
+	@$(PETSC_GENDEPS.cu) $(abspath $<) -o $(@:%.o=%.d) # Generate the dependencies for later
 
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.hip.cpp | $$(@D)/.DIR
-	$(SLEPC_COMPILE.hip.cpp) $(abspath $<) -o $@
+	$(PETSC_COMPILE.hip.cpp) $(abspath $<) -o $@
 
 # Test modules go in the same directory as the target *.o
 TESTMODDIR = $(@D)
@@ -188,7 +202,7 @@ $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.F | $$(@D)/.DIR
 ifeq ($(FC_MODULE_OUTPUT_FLAG),)
 	$(call quiet,FCMOD) $(TESTMODDIR) && $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS) -I$(dir $<) $(abspath $<) -o $(abspath $@)
 else
-	$(SLEPC_COMPILE.F) -I$(dir $<) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(TESTMODDIR) $(FC_MODULE_FLAG)$(TESTMODDIR)
+	$(PETSC_COMPILE.F) -I$(dir $<) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(TESTMODDIR) $(FC_MODULE_FLAG)$(TESTMODDIR)
 endif
 	-@$(GFORTRAN_DEP_CLEANUP)
 
@@ -196,7 +210,7 @@ $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.F90 | $$(@D)/.DIR
 ifeq ($(FC_MODULE_OUTPUT_FLAG),)
 	$(call quiet,FCMOD) $(TESTMODDIR) && $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS) -I$(dir $<) $(abspath $<) -o $(abspath $@)
 else
-	$(SLEPC_COMPILE.F) -I$(dir $<) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(TESTMODDIR) $(FC_MODULE_FLAG)$(TESTMODDIR)
+	$(PETSC_COMPILE.F) -I$(dir $<) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(TESTMODDIR) $(FC_MODULE_FLAG)$(TESTMODDIR)
 endif
 	-@$(GFORTRAN_DEP_CLEANUP)
 
@@ -445,7 +459,7 @@ help-nontest:
 
 help-test:
 	-@echo "Test usage:"
-	-@echo "   make -f gmakefile.test test <options>"
+	-@echo "   ${OMAKE} test <options>"
 	-@echo
 	-@echo "Options:"
 	-@echo "  NO_RM=1           Do not remove the executables after running"
@@ -475,27 +489,27 @@ help-test:
 	-@echo
 	-@echo "Tests can be generated by searching with multiple methods"
 	-@echo "  For general searching (using config/query_tests.py):"
-	-@echo "    make -f ${makefile} test search='sys*ex2*'"
+	-@echo "    ${OMAKE} test search='sys*ex2*'"
 	-@echo "   or the shortcut using s"
-	-@echo "    make -f ${makefile} test s='sys*ex2*'"
+	-@echo "    ${OMAKE} test s='sys*ex2*'"
 	-@echo "  You can also use the full path to a file directory"
-	-@echo "    make -f ${makefile} test s='src/sys/tests/'"
+	-@echo "    ${OMAKE} test s='src/sys/tests/'"
 	-@echo
 	-@echo "  To search for fields from the original test definitions:"
-	-@echo "    make -f ${makefile} test query='requires' queryval='*MPI_PROCESS_SHARED_MEMORY*'"
+	-@echo "    ${OMAKE} test query='requires' queryval='*MPI_PROCESS_SHARED_MEMORY*'"
 	-@echo "   or the shortcut using q and qv"
-	-@echo "    make -f ${makefile} test q='requires' qv='*MPI_PROCESS_SHARED_MEMORY*'"
+	-@echo "    ${OMAKE} test q='requires' qv='*MPI_PROCESS_SHARED_MEMORY*'"
 	-@echo "  To filter results from other searches, use searchin"
-	-@echo "    make -f ${makefile} test s='src/sys/tests/' searchin='*options*'"
+	-@echo "    ${OMAKE} test s='src/sys/tests/' searchin='*options*'"
 	-@echo
 	-@echo "  To re-run the last tests which failed:"
-	-@echo "    make -f ${makefile} test test-fail='1'"
+	-@echo "    ${OMAKE} test test-fail='1'"
 	-@echo
 	-@echo "  To see which targets match a given pattern (useful for doing a specific target):"
-	-@echo "    make -f ${makefile} print-test search=sys*"
+	-@echo "    ${OMAKE} print-test search=sys*"
 	-@echo
 	-@echo "  To build an executable, give full path to location:"
-	-@echo '    make -f ${makefile} $${PETSC_ARCH}/tests/sys/tests/ex1'
+	-@echo '    ${OMAKE} $${PETSC_ARCH}/tests/sys/tests/ex1'
 	-@echo "  or make the test with NO_RM=1"
 	-@echo
 

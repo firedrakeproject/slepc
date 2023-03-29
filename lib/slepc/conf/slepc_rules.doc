@@ -8,6 +8,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+# Override PETSc variable to have examples listed in order
+EXAMPLESALL = `(ls *.c *.cxx *.F *.F90 *.cu *.cpp | sort -V) 2> /dev/null`
+
 # Performs the specified action on all directories
 slepc_tree: ${ACTION}
 	-@for dir in `ls -d ${DIRS} | grep -v "\."` ; do (cd $$dir ; ${OMAKE} ACTION=${ACTION} PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} slepc_tree); done

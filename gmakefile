@@ -144,7 +144,7 @@ define ARCHIVE_RECIPE_DEFAULT
 endef
 
 %.$(AR_LIB_SUFFIX) : $$(obj) | $$(@D)/.DIR
-	$(if $(findstring win32fe lib,$(AR)),$(ARCHIVE_RECIPE_WIN32FE_LIB),$(if $(findstring yes,$(AR_ARGFILE)),$(if $(GMAKE4),$(ARCHIVE_RECIPE_ARGFILE),$(ARCHIVE_RECIPE_DEFAULT)),$(ARCHIVE_RECIPE_DEFAULT)))
+	$(if $(findstring win_lib,$(AR)),$(ARCHIVE_RECIPE_WIN32FE_LIB),$(if $(findstring yes,$(AR_ARGFILE)),$(if $(GMAKE4),$(ARCHIVE_RECIPE_ARGFILE),$(ARCHIVE_RECIPE_DEFAULT)),$(ARCHIVE_RECIPE_DEFAULT)))
 
 # with-single-library=0
 libpkg = $(foreach pkg, $1, $(LIBDIR)/libslepc$(pkg).$(SL_LINKER_SUFFIX))
@@ -186,30 +186,30 @@ $(call soname_function,%) : $(call libname_function,%)
 .PRECIOUS: $(call soname_function,%)
 
 $(OBJDIR)/%.o : src/%.sycl.cxx | $$(@D)/.DIR
-	$(SLEPC_COMPILE.sycl.cxx) $(abspath $<) -o $@
+	$(PETSC_COMPILE.sycl.cxx) $(abspath $<) -o $@
 
 $(OBJDIR)/%.o : src/%.c | $$(@D)/.DIR
-	$(SLEPC_COMPILE.c) $(abspath $<) -o $@
+	$(PETSC_COMPILE.c) $(abspath $<) -o $@
 
 $(OBJDIR)/%.o : src/%.kokkos.cxx | $$(@D)/.DIR
-	$(SLEPC_COMPILE.kokkos.cxx) $(abspath $<) -o $@
+	$(PETSC_COMPILE.kokkos.cxx) $(abspath $<) -o $@
 
 $(OBJDIR)/%.o : src/%.cxx | $$(@D)/.DIR
-	$(SLEPC_COMPILE.cxx) $(abspath $<) -o $@
+	$(PETSC_COMPILE.cxx) $(abspath $<) -o $@
 
 $(OBJDIR)/%.o : src/%.hip.cpp | $$(@D)/.DIR
-	$(SLEPC_COMPILE.hip.cpp) $(abspath $<) -o $@
+	$(PETSC_COMPILE.hip.cpp) $(abspath $<) -o $@
 
 $(OBJDIR)/%.o : src/%.cu | $$(@D)/.DIR
-	$(SLEPC_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
-	@$(SLEPC_GENDEPS.cu) $(abspath $<) -o $(@:%.o=%.d) # Generate the dependencies for later
+	$(PETSC_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
+	@$(PETSC_GENDEPS.cu) $(abspath $<) -o $(@:%.o=%.d) # Generate the dependencies for later
 
 FCMOD = cd
 $(OBJDIR)/%.o : src/%.F | $$(@D)/.DIR
 ifeq ($(FC_MODULE_OUTPUT_FLAG),)
 	$(call quiet,FCMOD) $(MODDIR) && $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS) $(abspath $<) -o $(abspath $@)
 else
-	$(SLEPC_COMPILE.F) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(MODDIR)
+	$(PETSC_COMPILE.F) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(MODDIR)
 endif
 	-@$(GFORTRAN_DEP_CLEANUP)
 
@@ -217,7 +217,7 @@ $(OBJDIR)/%.o : src/%.F90 | $$(@D)/.DIR
 ifeq ($(FC_MODULE_OUTPUT_FLAG),)
 	$(call quiet,FCMOD) $(MODDIR) && $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS) $(abspath $<) -o $(abspath $@)
 else
-	$(SLEPC_COMPILE.F) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(MODDIR)
+	$(PETSC_COMPILE.F) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(MODDIR)
 endif
 	-@$(GFORTRAN_DEP_CLEANUP)
 
