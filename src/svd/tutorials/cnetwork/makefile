@@ -8,7 +8,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS       = cnetwork
 MANSEC     = SVD
+TESTS      = embedgsvd
+
+embedgsvd: embedgsvd.o network.o
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
