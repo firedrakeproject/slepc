@@ -1,0 +1,12 @@
+
+Hyperbolic singular value problem.
+
+
+ Matrix dimensions: (110+80)x100, using signature Omega=blkdiag(I_110,-I_80)
+
+ Matrix created. 222 rotations applied. nnz=2743. Density: 0.1444
+
+ All requested singular values computed up to the required tolerance:
+     1.00000, 0.93260, 0.86975, 0.81113, 0.75646
+
+Level of orthogonality below the tolerance
