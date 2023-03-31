@@ -426,6 +426,7 @@ gnu-cxx-int64:
 pip-install:
   extends: .test
   stage: stage-2
+  allow_failure: true   # set this after release before the new petsc4py version is uploaded to pypi
   tags:
     - pip, name:jepri
   before_script:
