@@ -116,7 +116,7 @@ class SlepcConfig(PetscConfig):
         slepc_cfg['runtime_library_dirs'] = [
             strip_prefix(SLEPC_DESTDIR, d) for d in SLEPC_LIB_DIR
         ]
-        self._configure_ext(extension, slepc_cfg, preppend=True)
+        self._configure_ext(extension, slepc_cfg, append=True)
         if self['BUILDSHAREDLIB'] == 'no':
             from petsc4py.lib import ImportPETSc
             PETSc = ImportPETSc(PETSC_ARCH)
