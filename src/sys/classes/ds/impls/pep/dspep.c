@@ -90,6 +90,12 @@ static PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScal
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+#if defined(SLEPC_MISSING_LAPACK_GGEV3)
+#define LAPGEEV "ggev"
+#else
+#define LAPGEEV "ggev3"
+#endif
+
 static PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_PEP            *ctx = (DS_PEP*)ds->data;
@@ -184,11 +190,11 @@ static PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
 #if defined(PETSC_USE_COMPLEX)
   rwork = ds->rwork;
-  PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,beta,U,&ldd,W,&ldd,work,&lwork,rwork,&info));
+  PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("V","V",&nd,A,&ldd,B,&ldd,wr,beta,U,&ldd,W,&ldd,work,&lwork,rwork,&info));
 #else
-  PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,U,&ldd,W,&ldd,work,&lwork,&info));
+  PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,U,&ldd,W,&ldd,work,&lwork,&info));
 #endif
-  SlepcCheckLapackInfo("ggev",info);
+  SlepcCheckLapackInfo(LAPGEEV,info);
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
 

@@ -114,15 +114,18 @@ class Lapack(package.Package):
             nf = i[1:]
           slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
 
-    # check ggsvd3 separately, if it is missing check for ggsvd (deprecated in recent lapack)
-    for f in ['ggsvd3','ggsvd']:
-      i = prefix + f
-      self.log.write('=== Checking LAPACK '+i+' function...')
-      if not self.LinkBlasLapack([self.Mangle(i)],[],'',petsc):
-        if f == 'ggsvd': # do not warn if ggsvd3 is missing
-          if hasattr(self,'missing'): self.missing.append(i)
-          else: self.missing = [i]
-        nf = i[1:]
-        slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
-      else: break
+    # check for pairs of advanced and basic subroutines
+    # if advanced is missing (only available in recent Lapack) then check the basic one
+    for pair in [['ggsvd3','ggsvd'],['ggev3','ggev'],['gges3','']]:   # gges is checked in PETSc
+      for f in pair:
+        if not f: continue
+        i = prefix + f
+        self.log.write('=== Checking LAPACK '+i+' function...')
+        if not self.LinkBlasLapack([self.Mangle(i)],[],'',petsc):
+          if f == pair[1]: # do not warn if advanced routine is missing
+            if hasattr(self,'missing'): self.missing.append(i)
+            else: self.missing = [i]
+          nf = i[1:]
+          slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
+        else: break
 

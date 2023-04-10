@@ -189,6 +189,12 @@ static PetscErrorCode NEPNLEIGSRationalSingularities(NEP nep,PetscInt *ndptx,Pet
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+#if defined(SLEPC_MISSING_LAPACK_GGEV3)
+#define LAPGEEV "ggev"
+#else
+#define LAPGEEV "ggev3"
+#endif
+
 /*  Adaptive Anderson-Antoulas algorithm */
 static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar *ds,PetscScalar *F,PetscInt *ndptx,PetscScalar *dxi)
 {
@@ -270,11 +276,11 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
   C[0] = 0.0; C[k+1+(k+1)*ndpt] = 1.0;
   n_++;
 #if defined(PETSC_USE_COMPLEX)
-  PetscCallBLAS("LAPACKggev",LAPACKggev_("N","N",&n_,A,&lda_,C,&lda_,D,N,NULL,&lda_,NULL,&lda_,work,&lwork,rwork,&info));
+  PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","N",&n_,A,&lda_,C,&lda_,D,N,NULL,&lda_,NULL,&lda_,work,&lwork,rwork,&info));
 #else
-  PetscCallBLAS("LAPACKggev",LAPACKggev_("N","N",&n_,A,&lda_,C,&lda_,D,VT,N,NULL,&lda_,NULL,&lda_,work,&lwork,&info));
+  PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","N",&n_,A,&lda_,C,&lda_,D,VT,N,NULL,&lda_,NULL,&lda_,work,&lwork,&info));
 #endif
-  SlepcCheckLapackInfo("ggev",info);
+  SlepcCheckLapackInfo(LAPGEEV,info);
   cont = 0.0;
   for (i=0;i<n_;i++) if (N[i]!=0.0) {
     dxi[cont++] = D[i]/N[i];

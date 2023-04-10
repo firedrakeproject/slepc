@@ -148,6 +148,12 @@ static PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScal
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+#if defined(SLEPC_MISSING_LAPACK_GGEV3)
+#define LAPGEEV "ggev"
+#else
+#define LAPGEEV "ggev3"
+#endif
+
 static PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
@@ -208,11 +214,11 @@ static PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* compute eigenvalue correction mu and eigenvector u */
 #if defined(PETSC_USE_COMPLEX)
     rwork = ds->rwork;
-    PetscCallBLAS("LAPACKggev",LAPACKggev_("N","V",&n,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
+    PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","V",&n,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
 #else
-    PetscCallBLAS("LAPACKggev",LAPACKggev_("N","V",&n,A,&ld,B,&ld,alpha,alphai,beta,NULL,&ld,W,&ld,work,&lwork,&info));
+    PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","V",&n,A,&ld,B,&ld,alpha,alphai,beta,NULL,&ld,W,&ld,work,&lwork,&info));
 #endif
-    SlepcCheckLapackInfo("ggev",info);
+    SlepcCheckLapackInfo(LAPGEEV,info);
 
     /* find smallest eigenvalue */
     j = 0;
@@ -489,7 +495,8 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rowA,&sone,U,&rowA,Z,&rowA,&szero,Q,&rk_));
   PetscCall(PetscArrayzero(Z,n*mid*n*mid));
   for (j=0;j<rk;j++) Z[j+j*rk_] = sigma[j];
-  PetscCallBLAS("LAPACKggev",LAPACKggev_("N","V",&rk_,Q,&rk_,Z,&rk_,alpha,beta,NULL,&ld,V,&rk_,work,&lwork,rwork,&info));
+  PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","V",&rk_,Q,&rk_,Z,&rk_,alpha,beta,NULL,&ld,V,&rk_,work,&lwork,rwork,&info));
+  SlepcCheckLapackInfo(LAPGEEV,info);
   for (i=0;i<rk;i++) wr[i] = (center+radius*alpha[i]/beta[i])*rgscale;
   PetscCall(PetscMalloc1(rk,&inside));
   PetscCall(RGCheckInside(ctx->rg,rk,wr,wi,inside));

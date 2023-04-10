@@ -495,6 +495,12 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+#if defined(SLEPC_MISSING_LAPACK_GGES3)
+#define LAPGGES "gges"
+#else
+#define LAPGGES "gges3"
+#endif
+
 static PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscScalar    *work,*beta,a;
@@ -514,23 +520,23 @@ static PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Z],&Z));
 #if !defined(PETSC_USE_COMPLEX)
-  PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,&info));
+  PetscCallBLAS("LAPACK" LAPGGES,LAPACKggesalt_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,&info));
   PetscCall(PetscBLASIntCast((PetscInt)a,&lwork));
   PetscCall(DSAllocateWork_Private(ds,lwork+ld,0,0));
   beta = ds->work;
   work = beta+ds->n;
   PetscCall(PetscBLASIntCast(ds->lwork-ds->n,&lwork));
-  PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,NULL,&info));
+  PetscCallBLAS("LAPACK" LAPGGES,LAPACKggesalt_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,NULL,&info));
 #else
-  PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,NULL,&info));
+  PetscCallBLAS("LAPACK" LAPGGES,LAPACKggesalt_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,NULL,&info));
   PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork));
   PetscCall(DSAllocateWork_Private(ds,lwork+ld,8*ld,0));
   beta = ds->work;
   work = beta+ds->n;
   PetscCall(PetscBLASIntCast(ds->lwork-ds->n,&lwork));
-  PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,NULL,&info));
+  PetscCallBLAS("LAPACK" LAPGGES,LAPACKggesalt_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,NULL,&info));
 #endif
-  SlepcCheckLapackInfo("gges",info);
+  SlepcCheckLapackInfo(LAPGGES,info);
   for (i=0;i<n;i++) {
     if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
     else wr[i] /= beta[i];
