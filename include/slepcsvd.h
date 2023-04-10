@@ -142,14 +142,14 @@ SLEPC_EXTERN PetscErrorCode SVDGetProblemType(SVD,SVDProblemType*);
 SLEPC_EXTERN PetscErrorCode SVDIsGeneralized(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDIsHyperbolic(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDSetOperators(SVD,Mat,Mat);
-PETSC_DEPRECATED_FUNCTION("Use SVDSetOperators()") static inline PetscErrorCode SVDSetOperator(SVD svd,Mat A) {return SVDSetOperators(svd,A,NULL);}
+PETSC_DEPRECATED_FUNCTION("Use SVDSetOperators()") static inline PetscErrorCode SVDSetOperator(SVD svd,Mat A) {return SVDSetOperators(svd,A,PETSC_NULLPTR);}
 SLEPC_EXTERN PetscErrorCode SVDGetOperators(SVD,Mat*,Mat*);
-PETSC_DEPRECATED_FUNCTION("Use SVDGetOperators()") static inline PetscErrorCode SVDGetOperator(SVD svd,Mat *A) {return SVDGetOperators(svd,A,NULL);}
+PETSC_DEPRECATED_FUNCTION("Use SVDGetOperators()") static inline PetscErrorCode SVDGetOperator(SVD svd,Mat *A) {return SVDGetOperators(svd,A,PETSC_NULLPTR);}
 SLEPC_EXTERN PetscErrorCode SVDSetSignature(SVD,Vec);
 SLEPC_EXTERN PetscErrorCode SVDGetSignature(SVD,Vec*);
 SLEPC_EXTERN PetscErrorCode SVDSetInitialSpaces(SVD,PetscInt,Vec[],PetscInt,Vec[]);
-PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") static inline PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt nr,Vec *isr) {return SVDSetInitialSpaces(svd,nr,isr,0,NULL);}
-PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") static inline PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt nl,Vec *isl) {return SVDSetInitialSpaces(svd,0,NULL,nl,isl);}
+PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") static inline PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt nr,Vec *isr) {return SVDSetInitialSpaces(svd,nr,isr,0,PETSC_NULLPTR);}
+PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") static inline PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt nl,Vec *isl) {return SVDSetInitialSpaces(svd,0,PETSC_NULLPTR,nl,isl);}
 SLEPC_EXTERN PetscErrorCode SVDSetImplicitTranspose(SVD,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDGetImplicitTranspose(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDSetDimensions(SVD,PetscInt,PetscInt,PetscInt);
