@@ -156,37 +156,18 @@ static PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScal
 
 static PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
+  PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta,a;
   PetscScalar    sigma,lambda,mu,re,re2,sone=1.0,szero=0.0;
-  PetscBLASInt   info,n,ld,lrwork=0,lwork,one=1,zero=0;
+  PetscBLASInt   info,n,ld,lwork,one=1,zero=0;
   PetscInt       it,pos,j,maxit=100,result;
   PetscReal      norm,tol,done=1.0;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
-#else
+#if !defined(PETSC_USE_COMPLEX)
   PetscReal      *alphai,im,im2;
 #endif
 
   PetscFunctionBegin;
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
-#if defined(PETSC_USE_COMPLEX)
-  PetscCall(PetscBLASIntCast(2*ds->n+2*ds->n,&lwork));
-  PetscCall(PetscBLASIntCast(8*ds->n,&lrwork));
-#else
-  PetscCall(PetscBLASIntCast(3*ds->n+8*ds->n,&lwork));
-#endif
-  PetscCall(DSAllocateWork_Private(ds,lwork,lrwork,0));
-  alpha = ds->work;
-  beta = ds->work + ds->n;
-#if defined(PETSC_USE_COMPLEX)
-  work = ds->work + 2*ds->n;
-  lwork -= 2*ds->n;
-#else
-  alphai = ds->work + 2*ds->n;
-  work = ds->work + 3*ds->n;
-  lwork -= 3*ds->n;
-#endif
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_B));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
@@ -194,6 +175,25 @@ static PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&W));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_X],&X));
+
+  /* workspace query and memory allocation */
+  lwork = -1;
+#if defined(PETSC_USE_COMPLEX)
+  PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","V",&n,A,&ld,B,&ld,NULL,NULL,NULL,&ld,W,&ld,&a,&lwork,NULL,&info));
+  PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork));
+  PetscCall(DSAllocateWork_Private(ds,lwork+2*ds->n,8*ds->n,0));
+  alpha = ds->work;
+  beta  = ds->work + ds->n;
+  work  = ds->work + 2*ds->n;
+#else
+  PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","V",&n,A,&ld,B,&ld,NULL,NULL,NULL,NULL,&ld,W,&ld,&a,&lwork,&info));
+  PetscCall(PetscBLASIntCast((PetscInt)a,&lwork));
+  PetscCall(DSAllocateWork_Private(ds,lwork+3*ds->n,0,0));
+  alpha  = ds->work;
+  beta   = ds->work + ds->n;
+  alphai = ds->work + 2*ds->n;
+  work   = ds->work + 3*ds->n;
+#endif
 
   sigma = 0.0;
   if (ds->sc->comparison==SlepcCompareTargetMagnitude || ds->sc->comparison==SlepcCompareTargetReal) sigma = *(PetscScalar*)ds->sc->comparisonctx;
@@ -213,8 +213,7 @@ static PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
     /* compute eigenvalue correction mu and eigenvector u */
 #if defined(PETSC_USE_COMPLEX)
-    rwork = ds->rwork;
-    PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","V",&n,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
+    PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","V",&n,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,ds->rwork,&info));
 #else
     PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","V",&n,A,&ld,B,&ld,alpha,alphai,beta,NULL,&ld,W,&ld,work,&lwork,&info));
 #endif
@@ -365,7 +364,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *alpha,*beta,*Q,*Z,*X,*U,*V,*W,*work,*Rc,*R,*w,*z,*zn,*S;
-  PetscScalar    sone=1.0,szero=0.0,center;
+  PetscScalar    sone=1.0,szero=0.0,center,a;
   PetscReal      *rwork,norm,radius,vscale,rgscale,*sigma;
   PetscBLASInt   info,n,*perm,p,pp,ld,lwork,k_,rk_,colA,rowA,one=1;
   PetscInt       mid,lds,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,lrwork,*inside,kstart=0,kend=nnod;
@@ -399,10 +398,14 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   p    = n;   /* maximum number of columns for the probing matrix */
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   PetscCall(PetscBLASIntCast(mid*n,&rowA));
-  PetscCall(PetscBLASIntCast(5*rowA,&lwork));
-  nw   = n*(2*p+7*mid)+3*nnod+2*mid*n*p;
-  lrwork = mid*n*6+8*n;
-  PetscCall(DSAllocateWork_Private(ds,nw,lrwork,n+1));
+  nw     = 2*n*(p+mid)+3*nnod+2*mid*n*p;
+  lrwork = 9*mid*n;
+
+  /* workspace query and memory allocation */
+  lwork = -1;
+  PetscCallBLAS("LAPACK" LAPGEEV,LAPACKggevalt_("N","V",&rowA,Q,&rowA,Z,&rowA,NULL,NULL,NULL,&ld,V,&rowA,&a,&lwork,NULL,&info));
+  PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork));
+  PetscCall(DSAllocateWork_Private(ds,lwork+nw,lrwork,n+1));
 
   sigma = ds->rwork;
   rwork = ds->rwork+mid*n;
@@ -415,7 +418,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   alpha = ds->work+nwu;    nwu += mid*n;
   beta  = ds->work+nwu;    nwu += mid*n;
   S     = ds->work+nwu;    nwu += 2*mid*n*p;
-  work  = ds->work+nwu;    /*nwu += mid*n*5;*/
+  work  = ds->work+nwu;
 
   /* Compute quadrature parameters */
   PetscCall(RGComputeQuadrature(ctx->rg,RG_QUADRULE_TRAPEZOIDAL,nnod,z,zn,w));
