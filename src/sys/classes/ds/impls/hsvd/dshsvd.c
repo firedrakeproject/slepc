@@ -342,14 +342,12 @@ static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 
     /* compute eigenvalues */
     lwork = (n+6)*ld;
-    PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if defined(PETSC_USE_COMPLEX)
     PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,ds->rwork+rwu,&info));
 #else
     PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,&info));
 #endif
     SlepcCheckLapackInfo("syev",info);
-    PetscCall(PetscFPTrapPop());
     for (i=l;i<PetscMin(n,m);i++) d[i] = PetscSqrtReal(PetscAbsReal(dd[i]));
 
     /* Build left singular vectors: U=A*V*Sigma^-1 */

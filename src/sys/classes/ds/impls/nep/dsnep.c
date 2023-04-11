@@ -328,12 +328,10 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
           PetscCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,U+n*(n+1),&one));
           PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&W));
           /* solve system  */
-          PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
           PetscCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n1,&n1,U,&n1,perm,&info));
           SlepcCheckLapackInfo("getrf",info);
           PetscCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n1,&one,U,&n1,perm,R,&n1,&info));
           SlepcCheckLapackInfo("getrs",info);
-          PetscCall(PetscFPTrapPop());
           wr[j] -= R[n];
           for (i=0;i<n;i++) X[j*ld+i] -= R[i];
           /* normalization */
@@ -437,12 +435,10 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 
     /* LU factorization */
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&W));
-    PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
     PetscCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,W,&ld,perm,&info));
     SlepcCheckLapackInfo("getrf",info);
     PetscCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n,&p,W,&ld,perm,R,&n,&info));
     SlepcCheckLapackInfo("getrs",info);
-    PetscCall(PetscFPTrapPop());
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&W));
 
     /* Moments computation */
@@ -472,10 +468,8 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
           for (i=0;i<n;i++) Q[off+j*rowA+i] = S[((jj+ii)*n+j)*n+i];
       }
     }
-    PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
     PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&rowA,&colA,Q,&rowA,sigma,U,&rowA,V,&colA,work,&lwork,rwork,&info));
     SlepcCheckLapackInfo("gesvd",info);
-    PetscCall(PetscFPTrapPop());
 
     rk = colA;
     for (i=1;i<colA;i++) if (sigma[i]/sigma[0]<PETSC_MACHINE_EPSILON*1e4) {rk = i; break;}
