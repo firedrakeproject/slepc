@@ -28,8 +28,8 @@ class HPDDM(package.Package):
 
   def Precondition(self,slepc,petsc):
     pkg = self.packagename.upper()
-    if not petsc.cxxdialectcxx11:
-      self.log.Exit(pkg+' requires C++11')
+    if petsc.maxcxxdialect == '':
+      self.log.Exit(pkg+' requires a functioning C++ compiler')
     if not petsc.buildsharedlib:
       self.log.Exit(pkg+' requires a shared library build')
     if 'slepc' in petsc.packages:
