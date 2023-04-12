@@ -139,7 +139,7 @@ class PETSc(package.Package):
     self.blaslapackint64 = False
     self.fortran = False
     self.language = 'c'
-    self.cxxdialectcxx11 = False
+    self.maxcxxdialect = ''
     self.packages = []
     try:
       with open(petscconf_h) as f:
@@ -165,14 +165,16 @@ class PETSc(package.Package):
             self.fortran = True
           elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_CLANGUAGE_CXX' and l[2]=='1':
             self.language = 'c++'
-          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX11' and l[2]=='1':
-            self.cxxdialectcxx11 = True
           elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
             self.arch = l[2].strip('"')
           else:
             for p in ['elemental','hpddm','mkl_libs','mkl_includes','mkl_pardiso','scalapack','slepc']:
               if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_'+p.upper() and l[2]=='1':
                 self.packages.append(p)
+            for p in ['20','17','14','11']:
+              if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX'+p and l[2]=='1' and (self.maxcxxdialect=='' or p>self.maxcxxdialect):
+                self.maxcxxdialect = p
+                break
       if 'mkl_libs' in self.packages and 'mkl_includes' in self.packages:
         self.packages.remove('mkl_libs')
         self.packages.remove('mkl_includes')
