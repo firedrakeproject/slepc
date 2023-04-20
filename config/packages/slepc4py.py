@@ -73,7 +73,7 @@ class Slepc4py(package.Package):
     rule =  'slepc4pybuild:\n'
     rule += '\t@echo "*** Building slepc4py ***"\n'
     rule += '\t@${RM} -f '+os.path.join(confdir,'slepc4py.errorflg')+'\n'
-    rule += '\t@cd '+builddir+' && \\\n'
+    rule += '\t@cd '+builddir+' && ${RM} -rf build && \\\n'
     rule += '\t   %s ${PYTHON} setup.py build 2>&1 || \\\n' % envvars
     rule += '\t   (echo "**************************ERROR*************************************" && \\\n'
     rule += '\t   echo "Error building slepc4py." && \\\n'
