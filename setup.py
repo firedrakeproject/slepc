@@ -16,9 +16,19 @@ nonlinear eigenvalue problems
    To install ``PETSc``, ``SLEPc``, ``petsc4py``, and ``slepc4py``
    (``mpi4py`` is optional but highly recommended) use::
 
-     $ pip install numpy mpi4py
-     $ pip install petsc petsc4py
-     $ pip install slepc slepc4py
+     $ python -m pip install numpy mpi4py  (or pip install numpy mpi4py)
+     $ python -m pip install petsc petsc4py (or pip install petsc petsc4py)
+     $ python -m pip install slepc slepc4py (or pip install slepc slepc4py)
+
+.. tip::
+
+  You can also install the in-development versions with::
+
+    $ python -m pip install Cython numpy mpi4py
+    $ python -m pip install --no-deps https://gitlab.com/petsc/petsc/-/archive/main/petsc-main.tar.gz
+    $ python -m pip install --no-deps https://gitlab.com/slepc/slepc/-/archive/main/slepc-main.tar.gz
+
+  Provide any ``SLEPc`` ./configure options using the environmental variable ``SLEPC_CONFIGURE_OPTIONS``.
 
 """
 
@@ -51,34 +61,33 @@ metadata = {
 CONFIGURE_OPTIONS = []
 
 def bootstrap():
-    from os.path import join, isdir, abspath
     # Set SLEPC_DIR
-    SLEPC_DIR  = abspath(os.getcwd())
+    SLEPC_DIR  = os.path.abspath(os.getcwd())
     os.environ['SLEPC_DIR']  = SLEPC_DIR
     # Check PETSC_DIR/PETSC_ARCH
     PETSC_DIR  = os.environ.get('PETSC_DIR',  "")
     PETSC_ARCH = os.environ.get('PETSC_ARCH', "")
-    if not (PETSC_DIR and isdir(PETSC_DIR)):
+    if not (PETSC_DIR and os.path.isdir(PETSC_DIR)):
         PETSC_DIR = None
         try: del os.environ['PETSC_DIR']
         except KeyError: pass
         PETSC_ARCH = None
         try: del os.environ['PETSC_ARCH']
         except KeyError: pass
-    elif not (PETSC_ARCH and isdir(join(PETSC_DIR, PETSC_ARCH))):
+    elif not (PETSC_ARCH and os.path.isdir(os.path.join(PETSC_DIR, PETSC_ARCH))):
         PETSC_ARCH = None
         try: del os.environ['PETSC_ARCH']
         except KeyError: pass
     # Generate package __init__.py file
     from distutils.dir_util import mkpath
-    pkgdir = os.path.join(SLEPC_DIR, 'pypi')
-    pkgfile = os.path.join(pkgdir, '__init__.py')
+    pkgdir = os.path.join('config', 'pypi')
     if not os.path.exists(pkgdir): mkpath(pkgdir)
-    fh = open(pkgfile, 'wt')
+    pkgfile = os.path.join(pkgdir, '__init__.py')
+    fh = open(pkgfile, 'w')
     fh.write(init_py)
     fh.close()
     # Configure options
-    options = os.environ.get('PETSC_CONFIGURE_OPTIONS', '')
+    options = os.environ.get('SLEPC_CONFIGURE_OPTIONS', '')
     CONFIGURE_OPTIONS.extend(split_quoted(options))
     #
     if not PETSC_DIR:
@@ -116,8 +125,9 @@ def config(prefix, dry_run=False):
     # Run SLEPc configure
     if dry_run: return
     os.environ['PETSC_DIR'] = get_petsc_dir()
+    os.environ['PETSC_ARCH'] = get_petsc_arch()
     python = sys.executable
-    command = [python, './configure', '--prefix='+prefix]
+    command = [python, './configure'] + options
     status = os.system(" ".join(command))
     if status != 0: raise RuntimeError(status)
 
@@ -173,7 +183,6 @@ class cmd_install(_install):
     def run(self):
         root_dir = os.path.abspath(self.install_lib)
         prefix = os.path.join(root_dir, 'slepc')
-        #
         #
         ctx = context().enter()
         try:
@@ -246,7 +255,7 @@ setup(name='slepc',
       description=description.pop(0),
       long_description='\n'.join(description),
       classifiers= classifiers.split('\n')[1:-1],
-      keywords = ['SLEPc','PETSc', 'MPI'],
+      keywords = ['SLEPc', 'PETSc', 'MPI'],
       platforms=['POSIX'],
       license='BSD',
 
@@ -259,6 +268,6 @@ setup(name='slepc',
       maintainer_email='dalcinl@gmail.com',
 
       packages = ['slepc'],
-      package_dir = {'slepc': 'pypi'},
+      package_dir = {'slepc': 'config/pypi'},
       cmdclass={'install': cmd_install},
       **metadata)
