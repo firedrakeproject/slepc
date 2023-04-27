@@ -540,10 +540,6 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
  */
 static PetscErrorCode FNLogmPade(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
 {
-#if !defined(PETSC_HAVE_COMPLEX)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This function requires C99 or C++ complex support");
-#else
   PetscBLASInt   k,sdim,lwork,info;
   PetscScalar    *wr,*wi=NULL,*W,*Q,*Troot,*L,*work,one=1.0,zero=0.0,alpha;
   PetscInt       i,j,s=0,m=0,*blockformat;
@@ -606,7 +602,6 @@ static PetscErrorCode FNLogmPade(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASIn
   PetscCall(PetscFree(rwork));
 #endif
   PetscFunctionReturn(PETSC_SUCCESS);
-#endif
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Log_Higham(FN fn,Mat A,Mat B)

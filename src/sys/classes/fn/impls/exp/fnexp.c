@@ -125,6 +125,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+#if defined(PETSC_HAVE_COMPLEX)
 /*
  * Set scaling factor (s) and Pade degree (k,m)
  */
@@ -154,7 +155,6 @@ static PetscErrorCode sexpm_params(PetscReal nrm,PetscInt *s,PetscInt *k,PetscIn
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#if defined(PETSC_HAVE_COMPLEX)
 /*
  * Partial fraction form coefficients.
  * If query, the function returns the size necessary to store the coefficients.
