@@ -98,7 +98,8 @@ int main(int argc,char **argv)
   PetscCall(PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile));
   if (checkfile) {
 #if defined(PETSC_HAVE_COMPLEX)
-  PetscComplex *eigs,eval;
+    PetscComplex *eigs,eval;
+
     PetscCall(EPSGetConverged(eps,&nconv));
     PetscCall(PetscMalloc1(nconv,&eigs));
     PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
