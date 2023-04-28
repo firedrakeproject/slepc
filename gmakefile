@@ -254,4 +254,53 @@ allobj.d := $(srcs.o:%.o=%.d)
 # do-nothing build of PETSc (much worse for larger projects)
 $(allobj.d) : ;
 
+gmakeinfo:
+	-@echo "=========================================="
+	-@echo Starting make run on `hostname` at `date +'%a, %d %b %Y %H:%M:%S %z'`
+	-@echo Machine characteristics: `uname -a`
+	-@echo "-----------------------------------------"
+	-@echo "Using SLEPc directory: ${SLEPC_DIR}"
+	-@echo "Using PETSc directory: ${PETSC_DIR}"
+	-@echo "Using PETSc arch: ${PETSC_ARCH}"
+	-@echo "-----------------------------------------"
+	-@grep "define SLEPC_VERSION" ${SLEPC_DIR}/include/slepcversion.h | ${SED} "s/........//" | head -n 7
+	-@echo "-----------------------------------------"
+	-@echo "Using SLEPc configure options: ${SLEPC_CONFIGURE_OPTIONS}"
+	-@echo "Using SLEPc configuration flags:"
+	-@grep "\#define " ${SLEPCCONF_H} | tail -n +2
+	-@echo "-----------------------------------------"
+	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//" | head -n 7
+	-@echo "-----------------------------------------"
+	-@echo "Using PETSc configure options: ${CONFIGURE_OPTIONS}"
+	-@echo "Using PETSc configuration flags:"
+	-@grep "\#define " ${PETSCCONF_H} | tail -n +2
+	-@echo "-----------------------------------------"
+	-@echo "Using C/C++ include paths: ${SLEPC_CC_INCLUDES}"
+	-@echo "Using C compile: ${PETSC_CCOMPILE_SINGLE}"
+	-@if [ "${CXX}" != "" ]; then \
+           echo "Using C++ compile: ${PETSC_CXXCOMPILE_SINGLE}";\
+         fi
+	-@if [ "${FC}" != "" ]; then \
+	   echo "Using Fortran include/module paths: ${SLEPC_FC_INCLUDES}";\
+	   echo "Using Fortran compile: ${PETSC_FCOMPILE_SINGLE}";\
+         fi
+	-@if [ "${CUDAC}" != "" ]; then \
+	   echo "Using CUDA compile: ${PETSC_CUCOMPILE_SINGLE}";\
+         fi
+	-@echo "-----------------------------------------"
+	-@echo "Using C/C++ linker: ${PCC_LINKER}"
+	-@echo "Using C/C++ flags: ${PCC_LINKER_FLAGS}"
+	-@if [ "${FC}" != "" ]; then \
+	   echo "Using Fortran linker: ${FC_LINKER}";\
+	   echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
+         fi
+	-@echo "-----------------------------------------"
+	-@echo "Using libraries: ${SLEPC_LIB}"
+	-@echo "------------------------------------------"
+	-@echo "Using mpiexec: ${MPIEXEC}"
+	-@echo "------------------------------------------"
+	-@echo "Using MAKE: ${MAKE}"
+	-@echo "Default MAKEFLAGS: MAKE_NP:${MAKE_NP} MAKE_LOAD:${MAKE_LOAD} MAKEFLAGS:${MAKEFLAGS}"
+	-@echo "=========================================="
+
 -include $(allobj.d)
