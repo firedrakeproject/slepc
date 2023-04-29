@@ -10,12 +10,6 @@
 
 include ${PETSC_DIR}/lib/petsc/conf/rules.utils
 
-getlinklibs_slepc:
-	-@echo ${SLEPC_LIB}
-
-getincludedirs_slepc:
-	-@echo ${SLEPC_CC_INCLUDES}
-
 vermin_slepc:
 	@vermin -vvv -t=3.4- ${VERMIN_OPTIONS} ${SLEPC_DIR}/config
 
