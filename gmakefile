@@ -254,6 +254,12 @@ allobj.d := $(srcs.o:%.o=%.d)
 # do-nothing build of PETSc (much worse for larger projects)
 $(allobj.d) : ;
 
+gmakegetlinklibs_slepc:
+	-@echo ${SLEPC_LIB}
+
+gmakegetincludedirs_slepc:
+	-@echo ${SLEPC_CC_INCLUDES}
+
 gmakeinfo:
 	-@echo "=========================================="
 	-@echo Starting make run on `hostname` at `date +'%a, %d %b %Y %H:%M:%S %z'`
