@@ -99,17 +99,17 @@ class PETSc(package.Package):
         suggest = os.path.basename(self.arch)
         if not suggest: suggest = os.path.basename(self.arch[0:-1])
         self.log.Exit('Variable PETSC_ARCH must not be a full path\nYou set PETSC_ARCH=%s, maybe you meant PETSC_ARCH=%s'% (self.arch,suggest))
-      petscvariables = os.path.join(self.dir,self.arch,'lib','petsc','conf','petscvariables')
+      self.petscvariables = os.path.join(self.dir,self.arch,'lib','petsc','conf','petscvariables')
       petscconf_h = os.path.join(self.dir,self.arch,'include','petscconf.h')
     else:
       self.isinstall = True
-      petscvariables = os.path.join(self.dir,'lib','petsc','conf','petscvariables')
+      self.petscvariables = os.path.join(self.dir,'lib','petsc','conf','petscvariables')
       petscconf_h = os.path.join(self.dir,'include','petscconf.h')
 
     self.buildsharedlib = False
     self.bfort = 'nobfortinpetsc'
     try:
-      with open(petscvariables) as f:
+      with open(self.petscvariables) as f:
         for l in f.readlines():
           r = l.split('=',1)
           if len(r)!=2: continue
@@ -128,7 +128,7 @@ class PETSc(package.Package):
             if k in ['AR','AR_FLAGS','AR_LIB_SUFFIX','BFORT','BLASLAPACK_LIB','CC','CC_FLAGS','CC_LINKER_SLFLAG','CMAKE','CONFIGURE_OPTIONS','CPP','CXX','CXX_FLAGS','FC_FLAGS','MAKE','MAKE_NP','PREFIXDIR','RANLIB','SCALAPACK_LIB','SEDINPLACE','SL_LINKER_SUFFIX']:
               setattr(self,k.lower(),v)
     except:
-      self.log.Exit('Cannot process file ' + petscvariables)
+      self.log.Exit('Cannot process file ' + self.petscvariables)
 
     self.ind64 = False
     self.mpiuni = False

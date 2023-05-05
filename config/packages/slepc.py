@@ -41,6 +41,7 @@ class SLEPc(package.Package):
       self.prefixdir = os.path.realpath(os.path.normpath(self.prefixdir))
 
   def Process(self,slepcconf,slepcvars,slepcrules,slepc,petsc,archdir=''):
+    slepcvars.write('include '+petsc.petscvariables+'\n')
     slepcvars.write('SLEPC_CONFIGURE_OPTIONS = '+' '.join(sys.argv[1:])+'\n')
     slepcvars.write('SLEPC_INSTALLDIR = '+slepc.prefixdir+'\n')
     if petsc.isinstall:
