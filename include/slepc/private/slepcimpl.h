@@ -62,6 +62,7 @@ static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscS
 #if defined(PETSC_USE_COMPLEX)
   re = PetscRealPart(eigr);
   im = PetscImaginaryPart(eigr);
+  (void)eigi;
 #else
   re = eigr;
   im = eigi;
@@ -97,6 +98,8 @@ static inline PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec 
   vname[count-1] = 'i';
   PetscCall(PetscObjectSetName((PetscObject)xi,vname));
   PetscCall(VecView(xi,viewer));
+#else
+  (void)xi;
 #endif
   PetscFunctionReturn(PETSC_SUCCESS);
 }
