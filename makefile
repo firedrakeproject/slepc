@@ -114,7 +114,7 @@ RUN_TEST = ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_D
 check_install: check
 check:
 	-@echo "Running check examples to verify correct installation"
-	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
+	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR}, and PETSC_ARCH=${PETSC_ARCH}"
 	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
            echo "Running with batch filesystem, cannot run make check"; \
         elif [ "${MPIEXEC}" = "/bin/false" ]; then \
@@ -145,7 +145,7 @@ check_build:
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest5_blopex; \
          fi
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
-	-@echo "Completed test examples"
+	-@echo "Completed SLEPc test examples"
 
 # ******** Rules for make install **********************************************************************
 
@@ -227,7 +227,7 @@ info:
 
 check_usermakefile:
 	-@echo "Testing compile with user makefile"
-	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
+	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR}, and PETSC_ARCH=${PETSC_ARCH}"
 	@cd src/eps/tutorials; ${RUN_TEST} clean-legacy
 	@cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10
 	@grep -E "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
@@ -390,7 +390,7 @@ checkbadfortranstubs:
 # Compare ABI/API of two versions of PETSc library with the old one defined by PETSC_{DIR,ARCH}_ABI_OLD
 abitest:
 	@if [ "x${SLEPC_DIR_ABI_OLD}" = "x" ] || [ "x${PETSC_ARCH_ABI_OLD}" = "x" ] || [ "x${PETSC_DIR_ABI_OLD}" = "x" ]; \
-		then printf "You must set environment variables SLEPC_DIR_ABI_OLD, PETSC_ARCH_ABI_OLD and PETSC_DIR_ABI_OLD to run abitest\n"; \
+		then printf "You must set environment variables SLEPC_DIR_ABI_OLD, PETSC_ARCH_ABI_OLD, and PETSC_DIR_ABI_OLD to run abitest\n"; \
 		exit 1; \
 	fi;
 	-@echo "Comparing ABI/API of the following two SLEPc versions (you must have already configured and built them using GCC and with -g):"
