@@ -34,7 +34,6 @@
    SlepcInitialize() in the main (Fortran) program is sufficient.
 
 .seealso:  SlepcInitialize()
-
 @*/
 
 PetscErrorCode SlepcInitializeFortran(void)

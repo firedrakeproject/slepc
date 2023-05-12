@@ -10,6 +10,6 @@
 
 LIBBASE  = libslepcsys
 MANSEC   = sys
-DIRS     = f90-mod vec mat magma classes tests tutorials
+DIRS     = f90-mod vec mat magma classes tests tutorials ftn-custom
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
