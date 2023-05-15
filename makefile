@@ -27,7 +27,7 @@ DIRS = src include
 
 # Include the rest of makefiles
 include ./${PETSC_ARCH}/lib/slepc/conf/slepcvariables
-include ./${PETSC_ARCH}/lib/slepc/conf/slepcvariables  # include twice, required in prefix builds
+include ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/slepcvariables  # required in prefix builds
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules.doc
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules.utils
