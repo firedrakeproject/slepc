@@ -250,7 +250,7 @@ PetscErrorCode SlepcCitationsInitialize(void)
 
    Level: beginner
 
-.seealso: SlepcFinalize(), PetscInitialize()
+.seealso: SlepcFinalize(), PetscInitialize(), SlepcInitializeFortran()
 @*/
 PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const char help[])
 {
