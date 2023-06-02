@@ -43,6 +43,7 @@ cdef extern from * nogil:
         SVD_CONVERGED_MAXIT
         SVD_DIVERGED_ITS
         SVD_DIVERGED_BREAKDOWN
+        SVD_DIVERGED_SYMMETRY_LOST
         SVD_CONVERGED_ITERATING
 
     ctypedef PetscErrorCode (*SlepcSVDCtxDel)(void*)

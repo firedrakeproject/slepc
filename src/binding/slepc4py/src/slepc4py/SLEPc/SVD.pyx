@@ -94,20 +94,22 @@ class SVDConvergedReason(object):
     """
     SVD convergence reasons
 
-    - `CONVERGED_TOL`:       All eigenpairs converged to requested tolerance.
-    - `CONVERGED_USER`:      User-defined convergence criterion satisfied.
-    - `CONVERGED_MAXIT`:     Maximum iterations completed in case MAXIT convergence criterion.
-    - `DIVERGED_ITS`:        Maximum number of iterations exceeded.
-    - `DIVERGED_BREAKDOWN`:  Solver failed due to breakdown.
-    - `CONVERGED_ITERATING`: Iteration not finished yet.
+    - `CONVERGED_TOL`:          All eigenpairs converged to requested tolerance.
+    - `CONVERGED_USER`:         User-defined convergence criterion satisfied.
+    - `CONVERGED_MAXIT`:        Maximum iterations completed in case MAXIT convergence criterion.
+    - `DIVERGED_ITS`:           Maximum number of iterations exceeded.
+    - `DIVERGED_BREAKDOWN`:     Solver failed due to breakdown.
+    - `DIVERGED_SYMMETRY_LOST`: Underlying indefinite eigensolver was not able to keep symmetry.
+    - `CONVERGED_ITERATING`:    Iteration not finished yet.
     """
-    CONVERGED_TOL       = SVD_CONVERGED_TOL
-    CONVERGED_USER      = SVD_CONVERGED_USER
-    CONVERGED_MAXIT     = SVD_CONVERGED_MAXIT
-    DIVERGED_ITS        = SVD_DIVERGED_ITS
-    DIVERGED_BREAKDOWN  = SVD_DIVERGED_BREAKDOWN
-    CONVERGED_ITERATING = SVD_CONVERGED_ITERATING
-    ITERATING           = SVD_CONVERGED_ITERATING
+    CONVERGED_TOL          = SVD_CONVERGED_TOL
+    CONVERGED_USER         = SVD_CONVERGED_USER
+    CONVERGED_MAXIT        = SVD_CONVERGED_MAXIT
+    DIVERGED_ITS           = SVD_DIVERGED_ITS
+    DIVERGED_BREAKDOWN     = SVD_DIVERGED_BREAKDOWN
+    DIVERGED_SYMMETRY_LOST = SVD_DIVERGED_SYMMETRY_LOST
+    CONVERGED_ITERATING    = SVD_CONVERGED_ITERATING
+    ITERATING              = SVD_CONVERGED_ITERATING
 
 class SVDTRLanczosGBidiag(object):
     """

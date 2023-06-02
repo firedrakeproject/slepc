@@ -228,7 +228,8 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 .  SVD_CONVERGED_USER - converged due to a user-defined condition
 .  SVD_CONVERGED_MAXIT - reached the maximum number of iterations with SVD_CONV_MAXIT criterion
 .  SVD_DIVERGED_ITS - required more than max_it iterations to reach convergence
--  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
+.  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
+-  SVD_DIVERGED_SYMMETRY_LOST - underlying indefinite eigensolver was not able to keep symmetry
 
    Can only be called after the call to SVDSolve() is complete.
 
