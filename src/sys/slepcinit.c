@@ -88,7 +88,7 @@ static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
   PetscCall(SlepcGetVersion(version,256));
   PetscCall((*PetscHelpPrintf)(comm,"%s\n",version));
   PetscCall((*PetscHelpPrintf)(comm,SLEPC_AUTHOR_INFO));
-  PetscCall((*PetscHelpPrintf)(comm,"See docs/manual.html for help.\n"));
+  PetscCall((*PetscHelpPrintf)(comm,"See https://slepc.upv.es/documentation/ for help.\n"));
   PetscCall((*PetscHelpPrintf)(comm,"SLEPc libraries linked from %s\n",SLEPC_LIB_DIR));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
