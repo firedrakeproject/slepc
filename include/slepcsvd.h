@@ -127,6 +127,7 @@ typedef enum {/* converged */
               /* diverged */
               SVD_DIVERGED_ITS                 = -1,
               SVD_DIVERGED_BREAKDOWN           = -2,
+              SVD_DIVERGED_SYMMETRY_LOST       = -3,
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
 SLEPC_EXTERN const char *const*SVDConvergedReasons;
 
