@@ -149,7 +149,7 @@ int main(int argc,char **argv)
          requires: hpddm
       test:
          suffix: feast
-         args: -eps_type feast -eps_interval 1.1,1.25 -eps_ncv 64
+         args: -eps_type feast -eps_interval 1.1,1.25 -eps_ncv 64 -options_left 0
          requires: feast
 
    testset:
