@@ -161,7 +161,7 @@ class PETSc(package.Package):
             self.blaslapackmangling = 'caps'
           elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_64BIT_BLAS_INDICES' and l[2]=='1':
             self.blaslapackint64 = True
-          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_FORTRAN' and l[2]=='1':
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_FORTRAN_BINDINGS' and l[2]=='1':
             self.fortran = True
           elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_CLANGUAGE_CXX' and l[2]=='1':
             self.language = 'c++'

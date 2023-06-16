@@ -113,7 +113,7 @@ def FixDir(petscdir,dir,verbose):
 
     # now assemble the makefile
     outbuf  =  '\n'
-    outbuf +=  "#requiresdefine   'PETSC_HAVE_FORTRAN'\n"
+    outbuf +=  "#requiresdefine   'PETSC_USE_FORTRAN_BINDINGS'\n"
     outbuf +=   cppflags + '\n'
     outbuf +=  libbase + '\n'
     outbuf +=  'include ${SLEPC_DIR}/lib/slepc/conf/slepc_common\n'
