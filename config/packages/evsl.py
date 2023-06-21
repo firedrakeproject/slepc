@@ -87,7 +87,7 @@ class Evsl(package.Package):
     if hasattr(petsc,'fc'):
       confopt = confopt + ['F77="'+petsc.fc+'"', 'FFLAGS="'+petsc.getFFlags()+'"', 'FC="'+petsc.fc+'"', 'FCFLAGS="'+petsc.getFFlags()+'"']
     if petsc.buildsharedlib:
-      confopt = confopt + ['--enable-shared']
+      confopt.append('--enable-shared')
     if 'mkl_pardiso' in petsc.packages and 'MKLROOT' in os.environ:
       confopt = confopt + ['--with-mkl-pardiso', '--with-intel-mkl']
     (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+' '.join(confopt)+' '+self.buildflags+' && '+petsc.make+' && '+petsc.make+' install')
