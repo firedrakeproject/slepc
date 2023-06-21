@@ -138,13 +138,13 @@ class Ksvd(package.Package):
     # Build package
     builddir = slepc.CreateDir(builddir,'build')
     confopt = ['-DCMAKE_INSTALL_PREFIX='+prefixdir, '-DCMAKE_INSTALL_NAME_DIR:STRING="'+os.path.join(prefixdir,'lib')+'"', '-DCMAKE_C_COMPILER="'+petsc.cc+'"', '-DCMAKE_C_FLAGS:STRING="'+petsc.getCFlags()+'"', '-DELPA_INCDIR="'+os.path.join(incdir,'elpa-2022.11.001')+'"', '-DELPA_LIBDIR="'+libdir+'"', '-DPOLAR_DIR="'+prefixdir+'"', '-DBLAS_LIBRARIES="'+petsc.blaslapack_lib+'"']
-    confopt = confopt + ['-DCMAKE_BUILD_TYPE='+ ('Debug' if petsc.debug else 'Release')]
+    confopt.append('-DCMAKE_BUILD_TYPE='+('Debug' if petsc.debug else 'Release'))
     if petsc.buildsharedlib:
       confopt = confopt + ['-DBUILD_SHARED_LIBS=ON', '-DCMAKE_INSTALL_RPATH:PATH='+os.path.join(prefixdir,'lib')]
     else:
-      confopt = confopt + ['-DBUILD_SHARED_LIBS=OFF']
+      confopt.append('-DBUILD_SHARED_LIBS=OFF')
     if 'MSYSTEM' in os.environ:
-      confopt = confopt + ['-G "MSYS Makefiles"']
+      confopt.append('-G "MSYS Makefiles"')
     (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.cmake+' '+' '.join(confopt)+' '+self.buildflags+' .. && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
     if result:
       self.log.Exit('Installation of KSVD failed')
