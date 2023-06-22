@@ -137,7 +137,7 @@ class Ksvd(package.Package):
 
     # Build package
     builddir = slepc.CreateDir(builddir,'build')
-    confopt = ['-DCMAKE_INSTALL_PREFIX='+prefixdir, '-DCMAKE_INSTALL_NAME_DIR:STRING="'+os.path.join(prefixdir,'lib')+'"', '-DCMAKE_C_COMPILER="'+petsc.cc+'"', '-DCMAKE_C_FLAGS:STRING="'+petsc.getCFlags()+'"', '-DELPA_INCDIR="'+os.path.join(incdir,'elpa-2022.11.001')+'"', '-DELPA_LIBDIR="'+libdir+'"', '-DPOLAR_DIR="'+prefixdir+'"', '-DBLAS_LIBRARIES="'+petsc.blaslapack_lib+'"']
+    confopt = ['-DCMAKE_INSTALL_PREFIX='+prefixdir, '-DCMAKE_INSTALL_NAME_DIR:STRING="'+os.path.join(prefixdir,'lib')+'"', '-DCMAKE_C_COMPILER="'+petsc.cc+'"', '-DCMAKE_C_FLAGS:STRING="'+petsc.getCFlags()+'"', '-DELPA_INCDIR="'+os.path.join(incdir,'elpa-'+self.elpa.version)+'"', '-DELPA_LIBDIR="'+libdir+'"', '-DPOLAR_DIR="'+prefixdir+'"', '-DBLAS_LIBRARIES="'+petsc.blaslapack_lib+'"']
     confopt.append('-DCMAKE_BUILD_TYPE='+('Debug' if petsc.debug else 'Release'))
     if petsc.buildsharedlib:
       confopt = confopt + ['-DBUILD_SHARED_LIBS=ON', '-DCMAKE_INSTALL_RPATH:PATH='+os.path.join(prefixdir,'lib')]
