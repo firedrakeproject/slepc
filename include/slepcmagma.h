@@ -31,7 +31,7 @@ SLEPC_EXTERN PetscErrorCode SlepcMagmaInit(void);
 
 #if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_REAL_SINGLE)
-#define magma_xgeev(a,b,c,d,e,f,g,h,i,j,k,l.m.n) magma_cgeev((a),(b),(c),(magmaFloatComplex*)(d),(e),(magmaFloatComplex*)(f),(magmaFloatComplex*)(g),(h),(magmaFloatComplex*)(i),(j),(magmaFloatComplex*)(k),(l),(m),(n))
+#define magma_xgeev(a,b,c,d,e,f,g,h,i,j,k,l,m,n) magma_cgeev((a),(b),(c),(magmaFloatComplex*)(d),(e),(magmaFloatComplex*)(f),(magmaFloatComplex*)(g),(h),(magmaFloatComplex*)(i),(j),(magmaFloatComplex*)(k),(l),(m),(n))
 #define magma_xgesv_gpu(a,b,c,d,e,f,g,h)         magma_cgesv_gpu((a),(b),(magmaFloatComplex_ptr)(c),(d),(e),(magmaFloatComplex_ptr)(f),(g),(h))
 #define magma_xgetrf_gpu(a,b,c,d,e,f)   magma_cgetrf_gpu((a),(b),(magmaFloatComplex_ptr)(c),(d),(e),(f))
 #define magma_xgetri_gpu(a,b,c,d,e,f,g) magma_cgetri_gpu((a),(magmaFloatComplex_ptr)(b),(c),(d),(magmaFloatComplex_ptr)(e),(f),(g))
