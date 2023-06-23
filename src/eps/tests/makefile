@@ -24,7 +24,7 @@ testtest5_blopex: test5.PETSc
 	else \
 	  echo "Possible error running BLOPEX src/eps/tests/test5 with 1 MPI process"; \
 	  cat $${test}.tmp; \
-          touch ${SLEPC_DIR}/check_error; \
+          touch ../../../check_error; \
 	fi; \
 	${RM} $${test}.tmp
 
@@ -36,7 +36,7 @@ testtest7f: test7f.PETSc
 	else \
 	  echo "Possible error running Fortran src/eps/tests/test7f with 1 MPI process"; \
 	  cat $${test}.tmp; \
-          touch ${SLEPC_DIR}/check_error; \
+          touch ../../../check_error; \
 	fi; \
 	${RM} $${test}.tmp
 
@@ -49,7 +49,7 @@ testtest10: test10.PETSc
 	else \
 	  echo "Possible error running C/C++ src/eps/tests/test10 with 1 MPI process"; \
 	  cat $${test}.tmp; \
-          touch ${SLEPC_DIR}/check_error; \
+          touch ../../../check_error; \
 	fi; \
 	${RM} $${test}.tmp
 
@@ -62,7 +62,7 @@ testtest10_mpi: test10.PETSc
 	else \
 	  echo "Possible error running C/C++ src/eps/tests/test10 with 2 MPI process"; \
 	  cat $${test}.tmp; \
-          touch ${SLEPC_DIR}/check_error; \
+          touch ../../../check_error; \
 	fi; \
 	${RM} $${test}.tmp
 
@@ -75,7 +75,7 @@ testtest10_cuda: test10.PETSc
 	else \
 	  echo "Possible error running C/C++ src/eps/tests/test10 with CUDA"; \
 	  cat $${test}.tmp; \
-          touch ${SLEPC_DIR}/check_error; \
+          touch ../../../check_error; \
 	fi; \
 	${RM} $${test}.tmp;
 
