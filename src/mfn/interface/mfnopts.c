@@ -115,7 +115,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     PetscCall(MFNMonitorSetFromOptions(mfn,"-mfn_monitor","error_estimate",NULL));
 
     /* -----------------------------------------------------------------------*/
-    PetscCall(PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",NULL));
+    PetscCall(PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",&set));
 
     PetscTryTypeMethod(mfn,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)mfn,PetscOptionsObject));

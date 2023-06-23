@@ -185,12 +185,12 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     PetscCall(NEPMonitorSetFromOptions(nep,"-nep_monitor_conv","convergence_history",NULL,PETSC_FALSE));
 
     /* -----------------------------------------------------------------------*/
-    PetscCall(PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",NULL));
-    PetscCall(PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",NULL));
-    PetscCall(PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",NULL));
-    PetscCall(PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPConvergedReasonView",NULL));
-    PetscCall(PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",NULL));
-    PetscCall(PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",NULL));
+    PetscCall(PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",&set));
+    PetscCall(PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",&set));
+    PetscCall(PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",&set));
+    PetscCall(PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPConvergedReasonView",&set));
+    PetscCall(PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",&set));
+    PetscCall(PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",&set));
 
     PetscTryTypeMethod(nep,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)nep,PetscOptionsObject));
