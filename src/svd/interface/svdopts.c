@@ -691,13 +691,13 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     PetscCall(SVDMonitorSetFromOptions(svd,"-svd_monitor_conditioning","conditioning",NULL,PETSC_FALSE));
 
     /* -----------------------------------------------------------------------*/
-    PetscCall(PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",NULL));
-    PetscCall(PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",NULL));
-    PetscCall(PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",NULL));
-    PetscCall(PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDConvergedReasonView",NULL));
-    PetscCall(PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",NULL));
-    PetscCall(PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL));
-    PetscCall(PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",NULL));
+    PetscCall(PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",&set));
+    PetscCall(PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",&set));
+    PetscCall(PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",&set));
+    PetscCall(PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDConvergedReasonView",&set));
+    PetscCall(PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",&set));
+    PetscCall(PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",&set));
+    PetscCall(PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",&set));
 
     PetscTryTypeMethod(svd,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)svd,PetscOptionsObject));

@@ -128,7 +128,7 @@ PetscErrorCode LMESetFromOptions(LME lme)
     PetscCall(LMEMonitorSetFromOptions(lme,"-lme_monitor","error_estimate",NULL));
 
     /* -----------------------------------------------------------------------*/
-    PetscCall(PetscOptionsName("-lme_view","Print detailed information on solver used","LMEView",NULL));
+    PetscCall(PetscOptionsName("-lme_view","Print detailed information on solver used","LMEView",&set));
 
     PetscTryTypeMethod(lme,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)lme,PetscOptionsObject));
