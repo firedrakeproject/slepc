@@ -183,7 +183,6 @@ slepc_html:
                   cmess=`grep "static\( const\)\? char help" $${file} | cut -d\" -f2 | cut -d\. -f1`; \
                 fi; \
                 echo "<a href=\"$${file}.html\">$${file}: $${cmess}</a><br>" >> $${loc}/index.html;\
-                ${PYTHON} ${PETSC_DIR}/lib/petsc/bin/maint/latexinexamples.py $${loc}/$${file}.html;\
               fi; \
             done ;\
           else \
