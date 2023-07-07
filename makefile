@@ -37,7 +37,6 @@ include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules.utils
 
 OMAKE_SELF = $(OMAKE) -f makefile
 OMAKE_SELF_PRINTDIR = $(OMAKE_PRINTDIR) -f makefile
-PETSCCONF_H = ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h
 
 # ******** Rules for make all **************************************************************************
 
@@ -134,7 +133,11 @@ check_build:
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10
 	+@if [ ! "${MPI_IS_MPIUNI}" ]; then cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_mpi; fi
-	+@grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
+	+@if [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h | tee .ftn.log > /dev/null; \
+         else \
+           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
+         fi; \
          if test -s .ftn.log; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest7f; \
          fi ; ${RM} .ftn.log
@@ -230,7 +233,11 @@ check_usermakefile:
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR}, and PETSC_ARCH=${PETSC_ARCH}"
 	@cd src/eps/tutorials; ${RUN_TEST} clean-legacy
 	@cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10
-	@grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
+	@if [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h | tee .ftn.log > /dev/null; \
+         else \
+           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
+         fi; \
          if test -s .ftn.log; then \
           cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10f90; \
          fi; ${RM} .ftn.log;
