@@ -96,12 +96,22 @@ chk_slepcdir:
 
 allfortranstubs:
 	-@${RM} -rf ${PETSC_ARCH}/include/slepc/finclude/ftn-auto/*-tmpdir
-	@${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/generatefortranstubs.py ${BFORT} ${VERBOSE}
-	-@${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/generatefortranstubs.py -merge ${VERBOSE}
+	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py ${BFORT} ${VERBOSE}
+	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py -merge ${VERBOSE}
+	-@${RM} -rf ${PETSC_ARCH}/include/slepc/finclude/ftn-auto/*-tmpdir
+
+#copy of allfortranstubs with PETSC_ARCH=''
+allfortranstubstarball:
+	-@${RM} -rf include/slepc/finclude/ftn-auto/*-tmpdir
+	@PETSC_ARCH='' ${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py ${BFORT} ${VERBOSE}
+	-@PETSC_ARCH='' ${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py -merge ${VERBOSE}
 	-@${RM} -rf include/slepc/finclude/ftn-auto/*-tmpdir
 
 deletefortranstubs:
-	-@find . -type d -name ftn-auto | xargs rm -rf
+	-@find src -type d -name ftn-auto* | xargs rm -rf
+	-@if [ -x ${PETSC_ARCH} ]; then \
+          find ${PETSC_ARCH}/src -type d -name ftn-auto* | xargs rm -rf ;\
+        fi
 
 reconfigure: allclean
 	@unset MAKEFLAGS && ${PYTHON} ${PETSC_ARCH}/lib/slepc/conf/reconfigure-${PETSC_ARCH}.py
