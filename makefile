@@ -101,7 +101,7 @@ allfortranstubs:
 	-@${RM} -rf ${PETSC_ARCH}/include/slepc/finclude/ftn-auto/*-tmpdir
 
 #copy of allfortranstubs with PETSC_ARCH=''
-allfortranstubstarball:
+allfortranstubsinplace:
 	-@${RM} -rf include/slepc/finclude/ftn-auto/*-tmpdir
 	@PETSC_ARCH='' ${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py ${BFORT} ${VERBOSE}
 	-@PETSC_ARCH='' ${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py -merge ${VERBOSE}
