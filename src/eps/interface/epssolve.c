@@ -121,6 +121,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
 PetscErrorCode EPSSolve(EPS eps)
 {
   PetscInt       i;
+  PetscBool      hasname;
   STMatMode      matmode;
   Mat            A,B;
 
@@ -185,9 +186,19 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscCall(EPSErrorViewFromOptions(eps));
   PetscCall(EPSValuesViewFromOptions(eps));
   PetscCall(EPSVectorsViewFromOptions(eps));
-  PetscCall(EPSGetOperators(eps,&A,&B));
-  PetscCall(MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0"));
-  if (eps->isgeneralized) PetscCall(MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1"));
+
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-eps_view_mat0",&hasname));
+  if (hasname) {
+    PetscCall(EPSGetOperators(eps,&A,NULL));
+    PetscCall(MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0"));
+  }
+  if (eps->isgeneralized) {
+    PetscCall(PetscOptionsHasName(NULL,NULL,"-eps_view_mat1",&hasname));
+    if (hasname) {
+      PetscCall(EPSGetOperators(eps,NULL,&B));
+      PetscCall(MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1"));
+    }
+  }
 
   /* Remove deflation and initial subspaces */
   if (eps->nds) {

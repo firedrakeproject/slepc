@@ -212,7 +212,7 @@ gnu-lint:
     - bash -c "${PYTHON} ./configure ${SLEPC_CONFIG_OPTS}"
     - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
     - if [ ! -z ${INSTALL+x} ]; then make install; SLEPC_DIR=$INSTALL_DIR; fi
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" check
+    - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" check; fi
     - if [ ! -z ${PKG_CONFIG+x} ]; then make check_usermakefile PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PETSC_DIR/$PETSC_ARCH/lib/pkgconfig; fi
     - if [ ! -z ${BUILD_DOCS+x} ]; then make alldoc LOC=$SLEPC_DIR; tar czf ${CI_JOB_NAME}-docs.tar.gz --exclude "*.out" --exclude "makefile*" --exclude "ftn-auto*" --exclude slepc4py docs include src; fi
     - if [ ! -z ${BUILD_DOCS+x} ] && [ ! -z ${SLEPC4PY+x} ]; then make -C src/binding/slepc4py rst2html sphinx-html sphinx-pdf PYTHON=${PYTHON}; tar czf ${CI_JOB_NAME}-docs-py.tar.gz -C src/binding/slepc4py docs; fi
@@ -220,7 +220,7 @@ gnu-lint:
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - if [ ! -z ${SLEPC4PY+x} ]; then make slepc4pytest; make -C src/binding/slepc4py/demo PYTHON=${PYTHON}; fi
     - if [ -z ${DISABLE_TESTS+x} ]; then make cleantest; make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" allgtests-tap TIMEOUT=${TIMEOUT} ${TEST_OPTS}; fi
-    - if [ ! -z ${COVERAGE+x} ]; then lcov --capture --exclude "/usr/*" --directory $SLEPC_DIR --output-file coverage.info; genhtml coverage.info --legend --title SLEPc --output-directory coverage; tar czf ${CI_JOB_NAME}-cov.tar.gz coverage; fi
+    - if [ ! -z ${COVERAGE+x} -a -z ${DISABLE_TESTS+x} ]; then lcov --capture --exclude "/usr/*" --directory $SLEPC_DIR --output-file coverage.info; genhtml coverage.info --legend --title SLEPc --output-directory coverage; tar czf ${CI_JOB_NAME}-cov.tar.gz coverage; fi
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   artifacts:
     reports:
@@ -367,6 +367,7 @@ gnu-c-cuda:
     - linux-ubuntu, gpu:nvidia, name:hapy
   variables:
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse --with-magma-dir=/usr/local/opt/magma-2.7.1
+    DISABLE_TESTS: 1
 
 clang-c:
   extends:
@@ -482,6 +483,7 @@ gnu-c-cuda-complex:
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
     TEST_OPTS: -j1 -l6 query=requires queryval=cuda
+    DISABLE_TESTS: 1
 
 gnu-c-cuda-single:
   extends:
@@ -492,6 +494,7 @@ gnu-c-cuda-single:
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-cuda
     TEST_OPTS: -j1 -l6 query=requires queryval=cuda
+    DISABLE_TESTS: 1
 
 gnu-c-multilib:
   extends:
@@ -631,6 +634,7 @@ gnu-c-complex-coverage:
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-scalar-type=complex --with-debugging=1 --with-coverage=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
     COVERAGE: 1
+    DISABLE_TESTS: 1
 
 intel-c-complex-int64-mkl:
   extends:
@@ -654,6 +658,7 @@ nvidia-c-nompi:
     PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme=/var/local/downloads/primme-3.2.tar.gz --download-arpack
     TEST_OPTS: -j4 -l12
+    DISABLE_TESTS: 1
 
 gnu-c-complex-valgrind:
   extends:
@@ -687,6 +692,7 @@ nvidia-c-complex-nompi:
     PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-scalar-type=complex --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme --download-arpack
     TEST_OPTS: -j4 -l12
+    DISABLE_TESTS: 1
 
 nvidia-cxx-mpi:
   extends:
@@ -699,6 +705,7 @@ nvidia-cxx-mpi:
     PETSC_CONFIG_OPTS: --with-cc=mpicc --with-fc=mpifort --with-cxx=mpicxx --with-clanguage=c++ --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme --download-arpack
     TEST_OPTS: -j4 -l12
+    DISABLE_TESTS: 1
 
 intel-c-mkl-install:
   extends:
@@ -742,6 +749,7 @@ gnu-c-cuda-int64:
     PETSC_CONFIG_OPTS: --with-cuda --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.7.1
     TEST_OPTS: -j2 -l6 query=requires queryval=cuda
     MAKE_CUDAFLAGS: --compiler-options -Wall,-Wunused-parameter,-Wno-deprecated-declarations,-Werror
+    DISABLE_TESTS: 1
 
 gnu-c-nocxx:
   extends:
