@@ -207,7 +207,7 @@ int main(int argc,char **argv)
       timeoutfactor: 2
 
    test:
-      suffix: 3  # test problem (A,A)
+      suffix: 3 # test problem (A,A)
       args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -eps_nev 4 -terse
       requires: double !complex !defined(PETSC_USE_64BIT_INDICES)
 
