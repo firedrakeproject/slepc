@@ -47,6 +47,7 @@ variables:
     - nproc
     - lscpu
     - ccache --zero-stats
+    - if [ ! -z ${LOAD_MODULES+x} ]; then module load ${LOAD_MODULES}; module list; fi
     - printf "PYTHON:${PYTHON}\n"
   script:
     - printf "PETSC_CONFIG_OPTS:${PETSC_CONFIG_OPTS}\n"
@@ -122,8 +123,9 @@ variables:
 gnu-c-single-nofort:
   extends: .stage-1
   tags:
-    - linux-ubuntu, name:hapy
+    - name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fc=0 --with-precision=single
     TEST_SEARCH: eps_tests-test10_1
 
@@ -364,8 +366,9 @@ gnu-c-cuda:
     - .stage-2
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia, name:hapy
+    - gpu:nvidia, name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse --with-magma-dir=/usr/local/opt/magma-2.7.1
     DISABLE_TESTS: 1
 
@@ -479,8 +482,9 @@ gnu-c-cuda-complex:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia, name:hapy
+    - gpu:nvidia, name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
     TEST_OPTS: -j1 -l6 query=requires queryval=cuda
     DISABLE_TESTS: 1
@@ -490,8 +494,9 @@ gnu-c-cuda-single:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia, name:hapy
+    - gpu:nvidia, name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-cuda
     TEST_OPTS: -j1 -l6 query=requires queryval=cuda
     DISABLE_TESTS: 1
@@ -629,10 +634,11 @@ gnu-c-complex-coverage:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, name:hapy
+    - name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-scalar-type=complex --with-debugging=1 --with-coverage=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.9.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
     COVERAGE: 1
     DISABLE_TESTS: 1
 
@@ -652,7 +658,7 @@ nvidia-c-nompi:
     - .stage-3
     - .linux_test_noflags
   tags:
-    - linux-ubuntu, compiler:nvidia, name:hapy
+    - compiler:nvidia, name:hapy
   variables:
     LOAD_MODULES: nvhpc-nompi
     PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
@@ -686,7 +692,7 @@ nvidia-c-complex-nompi:
     - .stage-3
     - .linux_test_noflags
   tags:
-    - linux-ubuntu, compiler:nvidia, name:hapy
+    - compiler:nvidia, name:hapy
   variables:
     LOAD_MODULES: nvhpc-nompi
     PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-scalar-type=complex --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
@@ -699,10 +705,10 @@ nvidia-cxx-mpi:
     - .stage-3
     - .linux_test_noflags
   tags:
-    - linux-ubuntu, compiler:nvidia, name:hapy
+    - compiler:nvidia, name:hapy
   variables:
     LOAD_MODULES: nvhpc
-    PETSC_CONFIG_OPTS: --with-cc=mpicc --with-fc=mpifort --with-cxx=mpicxx --with-clanguage=c++ --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
+    PETSC_CONFIG_OPTS: --with-cc=mpicc --with-fc=mpifort --with-cxx=mpicxx --with-clanguage=c++ --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1-nvidia
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme --download-arpack
     TEST_OPTS: -j4 -l12
     DISABLE_TESTS: 1
@@ -744,8 +750,9 @@ gnu-c-cuda-int64:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia, name:hapy
+    - gpu:nvidia, name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-cuda --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.7.1
     TEST_OPTS: -j2 -l6 query=requires queryval=cuda
     MAKE_CUDAFLAGS: --compiler-options -Wall,-Wunused-parameter,-Wno-deprecated-declarations,-Werror
