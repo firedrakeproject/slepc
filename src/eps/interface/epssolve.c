@@ -24,7 +24,7 @@ PetscErrorCode EPSComputeVectors(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}do {} while(0)
+#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
 
 static PetscErrorCode EPSComputeValues(EPS eps)
 {
