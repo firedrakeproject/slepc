@@ -56,12 +56,6 @@ class Slepc4py(package.Package):
     elif not self.have_petsc4py:
       self.log.Exit('petsc4py is required but had been marked as not installed')
 
-    # Check for cython
-    try:
-      import Cython
-    except ImportError:
-      self.log.Exit('--with-slepc4py requires that cython is installed on your system')
-
     builddir = os.path.join(slepc.dir,'src','binding','slepc4py')
     destdir  = os.path.join(slepc.prefixdir,'lib')
 
