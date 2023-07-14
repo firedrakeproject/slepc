@@ -1311,7 +1311,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
+#define SWAP(a,b,t) {t=a;a=b;b=t;}do {} while(0)
 
 static PetscErrorCode PEPQSliceGetInertias(PEP pep,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
