@@ -94,22 +94,18 @@ chk_slepcdir:
           printf "******************************************************"${PETSC_TEXT_NORMAL}"\n" ; \
         fi
 
-allfortranstubs:
-	-@${RM} -rf ${PETSC_ARCH}/include/slepc/finclude/ftn-auto/*-tmpdir
-	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py ${BFORT} ${VERBOSE}
-	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py -merge ${VERBOSE}
-	-@${RM} -rf ${PETSC_ARCH}/include/slepc/finclude/ftn-auto/*-tmpdir
+allfortranstubs: deletefortranstubs
+	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch=${PETSC_ARCH} --bfort=${BFORT} --mode=generate --verbose=${V}
+	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch=${PETSC_ARCH} --mode=merge --verbose=${V}
 
 #copy of allfortranstubs with PETSC_ARCH=''
-allfortranstubsinplace:
-	-@${RM} -rf include/slepc/finclude/ftn-auto/*-tmpdir
-	@PETSC_ARCH='' ${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py ${BFORT} ${VERBOSE}
-	-@PETSC_ARCH='' ${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py -merge ${VERBOSE}
-	-@${RM} -rf include/slepc/finclude/ftn-auto/*-tmpdir
+allfortranstubsinplace: deletefortranstubs
+	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch='' --bfort=${BFORT} --mode=generate --verbose=${V}
+	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch='' --mode=merge --verbose=${V}
 
 deletefortranstubs:
 	-@find src -type d -name ftn-auto* | xargs rm -rf
-	-@if [ -x ${PETSC_ARCH} ]; then \
+	-@if [ -n "${PETSC_ARCH}" ] && [ -d ${PETSC_ARCH} ] && [ -d ${PETSC_ARCH}/src ]; then \
           find ${PETSC_ARCH}/src -type d -name ftn-auto* | xargs rm -rf ;\
         fi
 
