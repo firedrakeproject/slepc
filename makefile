@@ -122,7 +122,7 @@ RUN_TEST = ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_D
 
 check_install: check
 check:
-	-@echo "Running check examples to verify correct installation"
+	-@echo "Running SLEPc check examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR}, and PETSC_ARCH=${PETSC_ARCH}"
 	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
            echo "Running with batch filesystem, cannot run make check"; \
@@ -143,9 +143,9 @@ check_build:
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10
 	+@if [ ! "${MPI_IS_MPIUNI}" ]; then cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_mpi; fi
-	+@if [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+	+@if [ -f ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h ]; then \
            grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h | tee .ftn.log > /dev/null; \
-         else \
+         elif [ -f ${PETSC_DIR}/include/petscconf.h ]; then \
            grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
          fi; \
          if test -s .ftn.log; then \
@@ -158,7 +158,7 @@ check_build:
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest5_blopex; \
          fi
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
-	-@echo "Completed SLEPc test examples"
+	-@echo "Completed SLEPc check examples"
 
 # ******** Rules for make install **********************************************************************
 
@@ -243,9 +243,9 @@ check_usermakefile:
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR}, and PETSC_ARCH=${PETSC_ARCH}"
 	@cd src/eps/tutorials; ${RUN_TEST} clean-legacy
 	@cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10
-	@if [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+	@if [ -f ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h ]; then \
            grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h | tee .ftn.log > /dev/null; \
-         else \
+         elif [ -f ${PETSC_DIR}/include/petscconf.h ]; then \
            grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
          fi; \
          if test -s .ftn.log; then \
