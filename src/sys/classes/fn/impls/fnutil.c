@@ -515,7 +515,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *d_T,
 #endif /* PETSC_HAVE_CUDA */
 
 #define ITMAX 5
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
+#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
 
 /*
    Estimate norm(A^m,1) by block 1-norm power method (required workspace is 11*n)

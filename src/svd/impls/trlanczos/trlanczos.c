@@ -198,7 +198,7 @@ static PetscErrorCode MatCreateVecs_Z(Mat Z,Vec *right,Vec *left)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
+#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
 
 PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
