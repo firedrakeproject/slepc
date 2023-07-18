@@ -100,8 +100,8 @@ def cython_chk(VERSION, verbose=True):
         return False
     REQUIRED = Version(VERSION)
     PROVIDED = Version(m.groups()[0])
-    if PROVIDED < REQUIRED:
-        warn("You need Cython >= {0} (you have version {1})"
+    if PROVIDED != REQUIRED:
+        warn("You need Cython == {0} (you have version {1})"
              .format(VERSION, CYTHON_VERSION))
         return False
     #
@@ -130,7 +130,7 @@ def cython_run(
             return
     finally:
         os.chdir(cwd)
-    require = 'Cython >= %s' % VERSION
+    require = 'Cython == %s' % VERSION
     if setuptools and not cython_chk(VERSION, verbose=False):
         if sys.modules.get('Cython'):
             removed = getattr(sys.modules['Cython'], '__version__', '')
@@ -764,7 +764,7 @@ def setup(**attrs):
         version = cython_req()
         if not cython_chk(version, verbose=False):
             reqs = attrs.setdefault('setup_requires', [])
-            reqs += ['Cython>='+version]
+            reqs += ['Cython=='+version]
     return _setup(**attrs)
 
 # --------------------------------------------------------------------

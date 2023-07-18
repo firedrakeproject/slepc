@@ -58,9 +58,9 @@ testtest10_mpi: test10.PETSc
 	options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude"; \
 	${MPIEXEC} -n 2 ./test10 $${options} | ${SED} -e 's/82109/82110/' > $${test}.tmp 2>&1; \
 	if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
-	  echo "C/C++ example src/eps/tests/test10 run successfully with 2 MPI process"; \
+	  echo "C/C++ example src/eps/tests/test10 run successfully with 2 MPI processes"; \
 	else \
-	  echo "Possible error running C/C++ src/eps/tests/test10 with 2 MPI process"; \
+	  echo "Possible error running C/C++ src/eps/tests/test10 with 2 MPI processes"; \
 	  cat $${test}.tmp; \
           touch ../../../check_error; \
 	fi; \
