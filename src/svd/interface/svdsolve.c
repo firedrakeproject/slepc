@@ -201,7 +201,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidIntPointer(its,2);
+  PetscAssertPointer(its,2);
   *its = svd->its;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -241,7 +241,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidIntPointer(reason,2);
+  PetscAssertPointer(reason,2);
   SVDCheckSolved(svd,1);
   *reason = svd->reason;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -269,7 +269,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidIntPointer(nconv,2);
+  PetscAssertPointer(nconv,2);
   SVDCheckSolved(svd,1);
   *nconv = svd->nconv;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -493,7 +493,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,i,2);
   PetscValidLogicalCollectiveEnum(svd,type,3);
-  PetscValidRealPointer(error,4);
+  PetscAssertPointer(error,4);
   SVDCheckSolved(svd,1);
 
   /* allocate work vectors */

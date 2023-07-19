@@ -39,7 +39,7 @@ PetscErrorCode BVSetType(BV bv,BVType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)bv,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -82,7 +82,7 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)bv)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -304,7 +304,7 @@ PetscErrorCode BVGetNumConstraints(BV bv,PetscInt *nc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidIntPointer(nc,2);
+  PetscAssertPointer(nc,2);
   *nc = bv->nc;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -761,7 +761,7 @@ PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(buffer,2);
+  PetscAssertPointer(buffer,2);
   BVCheckSizes(bv,1);
   if (!bv->buffer) {
     ld = bv->m+bv->nc;
@@ -818,7 +818,7 @@ PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(rand,2);
+  PetscAssertPointer(rand,2);
   if (!bv->rand) {
     PetscCall(PetscRandomCreate(PetscObjectComm((PetscObject)bv),&bv->rand));
     if (bv->cuda) PetscCall(PetscRandomSetType(bv->rand,PETSCCURAND));
@@ -1061,7 +1061,7 @@ PetscErrorCode BVGetMatMultMethod(BV bv,BVMatMultType *method)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(method,2);
+  PetscAssertPointer(method,2);
   *method = bv->vmm;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1146,7 +1146,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
-  PetscValidPointer(v,3);
+  PetscAssertPointer(v,3);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
   PetscCheck(j>=0 || -j<=bv->nc,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %" PetscInt_FMT " but only %" PetscInt_FMT " are available",-j,bv->nc);
   PetscCheck(j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %" PetscInt_FMT " but only %" PetscInt_FMT " are available",j,bv->m);
@@ -1312,7 +1312,7 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
-  PetscValidPointer(v,2);
+  PetscAssertPointer(v,2);
   PetscCall(VecDuplicate(bv->t,v));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1346,7 +1346,7 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
-  PetscValidPointer(A,2);
+  PetscAssertPointer(A,2);
 
   PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,bv->N,bv->m,NULL,A));
   PetscCall(MatDenseGetArrayWrite(*A,&aa));
@@ -1414,7 +1414,7 @@ PetscErrorCode BVGetMat(BV bv,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
-  PetscValidPointer(A,2);
+  PetscAssertPointer(A,2);
   PetscUseTypeMethod(bv,getmat,A);
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1455,7 +1455,7 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
-  PetscValidPointer(A,2);
+  PetscAssertPointer(A,2);
   PetscCheck(bv->Aget,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVRestoreMat must match a previous call to BVGetMat");
   PetscCheck(bv->Aget==*A,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with BVGetMat");
   PetscUseTypeMethod(bv,restoremat,A);
@@ -1517,7 +1517,7 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
-  PetscValidPointer(W,2);
+  PetscAssertPointer(W,2);
   PetscCall(BVCreate(PetscObjectComm((PetscObject)V),W));
   PetscCall(BVSetSizesFromVec(*W,V->t,V->m));
   PetscCall(BVDuplicate_Private(V,*W));
@@ -1552,7 +1552,7 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidLogicalCollectiveInt(V,m,2);
-  PetscValidPointer(W,3);
+  PetscAssertPointer(W,3);
   PetscCall(BVCreate(PetscObjectComm((PetscObject)V),W));
   PetscCall(BVSetSizesFromVec(*W,V->t,m));
   PetscCall(BVDuplicate_Private(V,*W));
@@ -1582,7 +1582,7 @@ PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(cached,2);
+  PetscAssertPointer(cached,2);
   BVCheckSizes(bv,1);
   if (!bv->cached) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)bv),&bv->cached));
@@ -1903,7 +1903,7 @@ PetscErrorCode BVGetDefiniteTolerance(BV bv,PetscReal *deftol)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidRealPointer(deftol,2);
+  PetscAssertPointer(deftol,2);
   *deftol = bv->deftol;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -541,9 +541,9 @@ PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,BVSVDMeth
   PetscValidLogicalCollectiveInt(S,l,3);
   PetscValidLogicalCollectiveReal(S,delta,4);
   PetscValidLogicalCollectiveEnum(S,meth,5);
-  PetscValidScalarPointer(A,6);
-  PetscValidRealPointer(sigma,7);
-  PetscValidIntPointer(rank,8);
+  PetscAssertPointer(A,6);
+  PetscAssertPointer(sigma,7);
+  PetscAssertPointer(rank,8);
 
   PetscCall(PetscLogEventBegin(BV_SVDAndRank,S,0,0,0));
   PetscCall(BVSetActiveColumns(S,0,m*l));

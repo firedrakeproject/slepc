@@ -65,7 +65,7 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   PetscValidLogicalCollectiveInt(V,k,4);
-  PetscValidIntPointer(m,5);
+  PetscAssertPointer(m,5);
   PetscValidLogicalCollectiveInt(V,*m,5);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
@@ -175,7 +175,7 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,Mat T,PetscInt k,PetscInt *m,PetscReal *b
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   PetscValidLogicalCollectiveInt(V,k,4);
-  PetscValidIntPointer(m,5);
+  PetscAssertPointer(m,5);
   PetscValidLogicalCollectiveInt(V,*m,5);
   PetscValidType(V,1);
   BVCheckSizes(V,1);

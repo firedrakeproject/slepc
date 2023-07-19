@@ -179,7 +179,7 @@ PetscErrorCode FNPhiGetIndex(FN fn,PetscInt *k)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidIntPointer(k,2);
+  PetscAssertPointer(k,2);
   PetscUseMethod(fn,"FNPhiGetIndex_C",(FN,PetscInt*),(fn,k));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -703,7 +703,7 @@ PetscErrorCode EPSLyapIIGetLME(EPS eps,LME *lme)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(lme,2);
+  PetscAssertPointer(lme,2);
   PetscUseMethod(eps,"EPSLyapIIGetLME_C",(EPS,LME*),(eps,lme));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

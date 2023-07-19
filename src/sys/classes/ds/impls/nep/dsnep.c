@@ -619,7 +619,7 @@ PetscErrorCode DSNEPSetFN(DS ds,PetscInt n,FN fn[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
-  PetscValidPointer(fn,3);
+  PetscAssertPointer(fn,3);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(fn[i],FN_CLASSID,3);
     PetscCheckSameComm(ds,1,fn[i],3);
@@ -658,7 +658,7 @@ PetscErrorCode DSNEPGetFN(DS ds,PetscInt k,FN *fn)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(fn,3);
+  PetscAssertPointer(fn,3);
   PetscUseMethod(ds,"DSNEPGetFN_C",(DS,PetscInt,FN*),(ds,k,fn));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -692,7 +692,7 @@ PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(n,2);
+  PetscAssertPointer(n,2);
   PetscUseMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -771,7 +771,7 @@ PetscErrorCode DSNEPGetMinimality(DS ds,PetscInt *n)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(n,2);
+  PetscAssertPointer(n,2);
   PetscUseMethod(ds,"DSNEPGetMinimality_C",(DS,PetscInt*),(ds,n));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -934,7 +934,7 @@ PetscErrorCode DSNEPGetIntegrationPoints(DS ds,PetscInt *ip)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(ip,2);
+  PetscAssertPointer(ip,2);
   PetscUseMethod(ds,"DSNEPGetIntegrationPoints_C",(DS,PetscInt*),(ds,ip));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1010,7 +1010,7 @@ PetscErrorCode DSNEPGetSamplingSize(DS ds,PetscInt *p)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(p,2);
+  PetscAssertPointer(p,2);
   PetscUseMethod(ds,"DSNEPGetSamplingSize_C",(DS,PetscInt*),(ds,p));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1170,7 +1170,7 @@ PetscErrorCode DSNEPGetRG(DS ds,RG *rg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(rg,2);
+  PetscAssertPointer(rg,2);
   PetscUseMethod(ds,"DSNEPGetRG_C",(DS,RG*),(ds,rg));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

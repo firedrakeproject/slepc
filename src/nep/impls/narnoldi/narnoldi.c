@@ -275,7 +275,7 @@ PetscErrorCode NEPNArnoldiGetLagPreconditioner(NEP nep,PetscInt *lag)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidIntPointer(lag,2);
+  PetscAssertPointer(lag,2);
   PetscUseMethod(nep,"NEPNArnoldiGetLagPreconditioner_C",(NEP,PetscInt*),(nep,lag));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -373,7 +373,7 @@ PetscErrorCode NEPNArnoldiGetKSP(NEP nep,KSP *ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(ksp,2);
+  PetscAssertPointer(ksp,2);
   PetscUseMethod(nep,"NEPNArnoldiGetKSP_C",(NEP,KSP*),(nep,ksp));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

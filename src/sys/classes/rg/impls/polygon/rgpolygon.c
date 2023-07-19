@@ -112,9 +112,9 @@ PetscErrorCode RGPolygonSetVertices(RG rg,PetscInt n,PetscScalar vr[],PetscScala
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidLogicalCollectiveInt(rg,n,2);
-  PetscValidScalarPointer(vr,3);
+  PetscAssertPointer(vr,3);
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(vi,4);
+  PetscAssertPointer(vi,4);
 #endif
   PetscTryMethod(rg,"RGPolygonSetVertices_C",(RG,PetscInt,PetscScalar*,PetscScalar*),(rg,n,vr,vi));
   PetscFunctionReturn(PETSC_SUCCESS);

@@ -419,7 +419,7 @@ PetscErrorCode SVDPRIMMEGetBlockSize(SVD svd,PetscInt *bs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidIntPointer(bs,2);
+  PetscAssertPointer(bs,2);
   PetscUseMethod(svd,"SVDPRIMMEGetBlockSize_C",(SVD,PetscInt*),(svd,bs));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -489,7 +489,7 @@ PetscErrorCode SVDPRIMMEGetMethod(SVD svd,SVDPRIMMEMethod *method)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(method,2);
+  PetscAssertPointer(method,2);
   PetscUseMethod(svd,"SVDPRIMMEGetMethod_C",(SVD,SVDPRIMMEMethod*),(svd,method));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

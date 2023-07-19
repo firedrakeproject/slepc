@@ -314,7 +314,7 @@ PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(npoints,2);
+  PetscAssertPointer(npoints,2);
   PetscUseMethod(eps,"EPSFEASTGetNumPoints_C",(EPS,PetscInt*),(eps,npoints));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

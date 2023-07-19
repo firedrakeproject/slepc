@@ -519,7 +519,7 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(which,2);
+  PetscAssertPointer(which,2);
   *which = pep->which;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -628,7 +628,7 @@ PetscErrorCode PEPGetProblemType(PEP pep,PEPProblemType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = pep->problem_type;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -685,7 +685,7 @@ PetscErrorCode PEPGetBasis(PEP pep,PEPBasis *basis)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(basis,2);
+  PetscAssertPointer(basis,2);
   *basis = pep->basis;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -741,7 +741,7 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidBoolPointer(trackall,2);
+  PetscAssertPointer(trackall,2);
   *trackall = pep->trackall;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -860,7 +860,7 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(conv,2);
+  PetscAssertPointer(conv,2);
   *conv = pep->conv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -974,7 +974,7 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(stop,2);
+  PetscAssertPointer(stop,2);
   *stop = pep->stop;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1152,7 +1152,7 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(extract,2);
+  PetscAssertPointer(extract,2);
   *extract = pep->extract;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1382,7 +1382,7 @@ PetscErrorCode PEPGetOptionsPrefix(PEP pep,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)pep,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -504,7 +504,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(wi,3);
+  PetscAssertPointer(wi,3);
 #endif
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));

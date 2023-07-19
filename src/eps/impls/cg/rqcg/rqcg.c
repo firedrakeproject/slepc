@@ -309,7 +309,7 @@ PetscErrorCode EPSRQCGGetReset(EPS eps,PetscInt *nrest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(nrest,2);
+  PetscAssertPointer(nrest,2);
   PetscUseMethod(eps,"EPSRQCGGetReset_C",(EPS,PetscInt*),(eps,nrest));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

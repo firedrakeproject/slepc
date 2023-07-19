@@ -213,7 +213,7 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(delayed,2);
+  PetscAssertPointer(delayed,2);
   PetscUseMethod(eps,"EPSArnoldiGetDelayed_C",(EPS,PetscBool*),(eps,delayed));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

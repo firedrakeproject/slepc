@@ -224,7 +224,7 @@ PetscErrorCode LMEGetProblemType(LME lme,LMEProblemType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = lme->problem_type;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -322,7 +322,7 @@ PetscErrorCode LMEGetDimensions(LME lme,PetscInt *ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidIntPointer(ncv,2);
+  PetscAssertPointer(ncv,2);
   *ncv = lme->ncv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -412,7 +412,7 @@ PetscErrorCode LMEGetErrorIfNotConverged(LME lme,PetscBool *flag)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidBoolPointer(flag,2);
+  PetscAssertPointer(flag,2);
   *flag = lme->errorifnotconverged;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -505,7 +505,7 @@ PetscErrorCode LMEGetOptionsPrefix(LME lme,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)lme,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

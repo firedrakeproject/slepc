@@ -350,7 +350,7 @@ PetscErrorCode DSPEPGetDegree(DS ds,PetscInt *d)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(d,2);
+  PetscAssertPointer(d,2);
   PetscUseMethod(ds,"DSPEPGetDegree_C",(DS,PetscInt*),(ds,d));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -445,7 +445,7 @@ PetscErrorCode DSPEPGetCoefficients(DS ds,PetscReal **pbc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(pbc,2);
+  PetscAssertPointer(pbc,2);
   PetscUseMethod(ds,"DSPEPGetCoefficients_C",(DS,PetscReal**),(ds,pbc));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

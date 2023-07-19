@@ -107,7 +107,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscValidPointer(newds,2);
+  PetscAssertPointer(newds,2);
   *newds = NULL;
   PetscCall(DSInitializePackage());
   PetscCall(SlepcHeaderCreate(ds,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView));
@@ -218,7 +218,7 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)ds,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -243,7 +243,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)ds,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -277,7 +277,7 @@ PetscErrorCode DSGetType(DS ds,DSType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)ds)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -308,7 +308,7 @@ PetscErrorCode DSDuplicate(DS ds,DS *dsnew)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(dsnew,2);
+  PetscAssertPointer(dsnew,2);
   PetscCall(DSCreate(PetscObjectComm((PetscObject)ds),dsnew));
   if (((PetscObject)ds)->type_name) PetscCall(DSSetType(*dsnew,((PetscObject)ds)->type_name));
   (*dsnew)->method   = ds->method;
@@ -366,7 +366,7 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(meth,2);
+  PetscAssertPointer(meth,2);
   *meth = ds->method;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -431,7 +431,7 @@ PetscErrorCode DSGetParallel(DS ds,DSParallelType *pmode)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(pmode,2);
+  PetscAssertPointer(pmode,2);
   *pmode = ds->pmode;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -485,7 +485,7 @@ PetscErrorCode DSGetCompact(DS ds,PetscBool *comp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidBoolPointer(comp,2);
+  PetscAssertPointer(comp,2);
   *comp = ds->compact;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -541,7 +541,7 @@ PetscErrorCode DSGetExtraRow(DS ds,PetscBool *ext)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidBoolPointer(ext,2);
+  PetscAssertPointer(ext,2);
   *ext = ds->extrarow;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -598,7 +598,7 @@ PetscErrorCode DSGetRefined(DS ds,PetscBool *ref)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidBoolPointer(ref,2);
+  PetscAssertPointer(ref,2);
   *ref = ds->refined;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -648,7 +648,7 @@ PetscErrorCode DSGetBlockSize(DS ds,PetscInt *bs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(bs,2);
+  PetscAssertPointer(bs,2);
   *bs = ds->bs;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -670,7 +670,7 @@ PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(sc,2);
+  PetscAssertPointer(sc,2);
   if (ds->sc && !ds->scset) PetscCall(PetscFree(ds->sc));
   ds->sc    = sc;
   ds->scset = PETSC_TRUE;
@@ -696,7 +696,7 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(sc,2);
+  PetscAssertPointer(sc,2);
   if (!ds->sc) PetscCall(PetscNew(&ds->sc));
   *sc = ds->sc;
   PetscFunctionReturn(PETSC_SUCCESS);

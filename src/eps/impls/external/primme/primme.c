@@ -493,7 +493,7 @@ PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(bs,2);
+  PetscAssertPointer(bs,2);
   PetscUseMethod(eps,"EPSPRIMMEGetBlockSize_C",(EPS,PetscInt*),(eps,bs));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -563,7 +563,7 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps,EPSPRIMMEMethod *method)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(method,2);
+  PetscAssertPointer(method,2);
   PetscUseMethod(eps,"EPSPRIMMEGetMethod_C",(EPS,EPSPRIMMEMethod*),(eps,method));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

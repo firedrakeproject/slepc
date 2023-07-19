@@ -50,7 +50,7 @@ PetscErrorCode STSetType(ST st,STType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)st,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -89,7 +89,7 @@ PetscErrorCode STGetType(ST st,STType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)st)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -219,7 +219,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(str,2);
+  PetscAssertPointer(str,2);
   *str = st->str;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -296,7 +296,7 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(mode,2);
+  PetscAssertPointer(mode,2);
   *mode = st->matmode;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -357,7 +357,7 @@ PetscErrorCode STGetTransform(ST st,PetscBool *flg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidBoolPointer(flg,2);
+  PetscAssertPointer(flg,2);
   *flg = st->transform;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

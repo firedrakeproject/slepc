@@ -272,7 +272,7 @@ PetscErrorCode FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,np,2);
-  if (np) PetscValidScalarPointer(pcoeff,3);
+  if (np) PetscAssertPointer(pcoeff,3);
   PetscTryMethod(fn,"FNRationalSetNumerator_C",(FN,PetscInt,PetscScalar*),(fn,np,pcoeff));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -369,7 +369,7 @@ PetscErrorCode FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,nq,2);
-  if (nq) PetscValidScalarPointer(qcoeff,3);
+  if (nq) PetscAssertPointer(qcoeff,3);
   PetscTryMethod(fn,"FNRationalSetDenominator_C",(FN,PetscInt,PetscScalar*),(fn,nq,qcoeff));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

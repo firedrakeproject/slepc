@@ -166,7 +166,7 @@ PetscErrorCode SVDGetSignature(SVD svd,Vec *omega)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(omega,2);
+  PetscAssertPointer(omega,2);
   *omega = svd->omega;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -416,12 +416,12 @@ PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec isr[],PetscInt nl,Vec
   PetscValidLogicalCollectiveInt(svd,nl,4);
   PetscCheck(nr>=0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nr cannot be negative");
   if (nr>0) {
-    PetscValidPointer(isr,3);
+    PetscAssertPointer(isr,3);
     PetscValidHeaderSpecific(*isr,VEC_CLASSID,3);
   }
   PetscCheck(nl>=0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nl cannot be negative");
   if (nl>0) {
-    PetscValidPointer(isl,5);
+    PetscAssertPointer(isl,5);
     PetscValidHeaderSpecific(*isl,VEC_CLASSID,5);
   }
   PetscCall(SlepcBasisReference_Private(nr,isr,&svd->nini,&svd->IS));

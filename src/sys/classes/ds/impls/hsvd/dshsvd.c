@@ -554,7 +554,7 @@ PetscErrorCode DSHSVDGetDimensions(DS ds,PetscInt *m)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(m,2);
+  PetscAssertPointer(m,2);
   PetscUseMethod(ds,"DSHSVDGetDimensions_C",(DS,PetscInt*),(ds,m));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -626,7 +626,7 @@ PetscErrorCode DSHSVDGetReorthogonalize(DS ds,PetscBool *reorth)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidBoolPointer(reorth,2);
+  PetscAssertPointer(reorth,2);
   PetscUseMethod(ds,"DSHSVDGetReorthogonalize_C",(DS,PetscBool*),(ds,reorth));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

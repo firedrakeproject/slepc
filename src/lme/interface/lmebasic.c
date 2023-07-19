@@ -208,7 +208,7 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
   LME            lme;
 
   PetscFunctionBegin;
-  PetscValidPointer(outlme,2);
+  PetscAssertPointer(outlme,2);
   *outlme = NULL;
   PetscCall(LMEInitializePackage());
   PetscCall(SlepcHeaderCreate(lme,LME_CLASSID,"LME","Linear Matrix Equation","LME",comm,LMEDestroy,LMEView));
@@ -277,7 +277,7 @@ PetscErrorCode LMESetType(LME lme,LMEType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)lme,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -313,7 +313,7 @@ PetscErrorCode LMEGetType(LME lme,LMEType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)lme)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -501,7 +501,7 @@ PetscErrorCode LMEGetBV(LME lme,BV *bv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(bv,2);
+  PetscAssertPointer(bv,2);
   if (!lme->V) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)lme),&lme->V));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)lme->V,(PetscObject)lme,0));
