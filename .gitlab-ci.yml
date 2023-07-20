@@ -474,6 +474,72 @@ pip-install:
     - date
 
 #
+# Special job in stage-3 to check DESTDIR install (only in scheduled pipelines).
+#
+
+destdir-install:
+  extends:
+    - .stage-3-sched
+    - .linux_test
+  tags:
+    - name:hapy
+  before_script:
+    - date
+    - hostname
+    - grep PRETTY_NAME /etc/os-release
+    - nproc
+    - lscpu
+  script:
+    - printf "PETSC_CONFIG_OPTS:${PETSC_CONFIG_OPTS}\n"
+    - export SLEPC_DIR=$PWD
+    - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
+    - cd ..
+    - export DESTDIR=${PWD}/destdir
+    - export PREFIX=${PWD}/prefix
+    - rm -rf ${DESTDIR} ${PREFIX}
+    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
+    - cd petsc
+    - git clean ${GIT_CLEAN_FLAGS}
+    - git fetch
+    - |
+      if [ -z ${PETSC_BRANCH+x} ]; then
+        if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
+          then git checkout origin/release;
+          else git checkout origin/main;
+        fi
+      else
+        echo "Using PETSC_BRANCH=" $PETSC_BRANCH
+        git checkout origin/$PETSC_BRANCH
+      fi
+    - export PETSC_DIR=$PWD
+    - export PETSC_ARCH=arch-$CI_JOB_NAME
+    - bash -c "${PYTHON} ./configure --with-debugging=0 --with-mpi=0 --prefix=${PREFIX} COPTFLAGS=-O CXXOPTFLAGS=-O FOPTFLAGS=-O CUDAOPTFLAGS=-O1 ${PETSC_CONFIG_OPTS}"
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
+    - make install-lib DESTDIR=${DESTDIR}; cp -r ${DESTDIR}${PREFIX} ..; PETSC_DIR=${PREFIX}; unset PETSC_ARCH
+    - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
+    - echo -e "section_start:`date +%s`:build_slepc\r\e[0KSLEPc configure and make"
+    - cd $SLEPC_DIR
+    - ${PYTHON} ./configure --prefix=${PREFIX}
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
+    - make install-lib DESTDIR=${DESTDIR}; cp -r ${DESTDIR}${PREFIX} ..; SLEPC_DIR=${PREFIX}
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" check
+    - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
+  variables:
+    PYTHON: python3
+    MAKE_CFLAGS: -Werror
+    MAKE_CXXFLAGS: -Werror -Wzero-as-null-pointer-constant
+    MAKE_FFLAGS: -Werror
+  after_script:
+    - date
+  artifacts:
+    name: "$CI_JOB_NAME"
+    when: always
+    paths:
+    - arch-*/lib/slepc/conf/*.log
+    - arch-*/lib/slepc/conf/slepc*
+    expire_in: 4 days
+
+#
 # The following tests run as part of stage-3.
 #
 
