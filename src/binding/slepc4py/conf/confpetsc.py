@@ -68,7 +68,7 @@ except ImportError:
 
 # Cython
 
-CYTHON = '0.29.32'
+CYTHON = '0.29.36'
 
 def cython_req():
     return CYTHON
@@ -315,7 +315,6 @@ class PetscConfig:
         if self['BUILDSHAREDLIB'] != 'yes':
             petsc_ext_lib = split_quoted(self['PETSC_EXTERNAL_LIB_BASIC'])
             petsc_lib['extra_link_args'].extend(petsc_ext_lib)
-
         self._configure_ext(extension, petsc_inc, append=True)
         self._configure_ext(extension, petsc_lib)
 
