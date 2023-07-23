@@ -278,7 +278,7 @@ cdef class PEP(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcPEP newpep = NULL
         CHKERR( PEPCreate(ccomm, &newpep) )
-        SlepcCLEAR(self.obj); self.pep = newpep
+        CHKERR( SlepcCLEAR(self.obj) ); self.pep = newpep
         return self
 
     def setType(self, pep_type):
@@ -643,7 +643,7 @@ cdef class PEP(Object):
         """
         cdef KSP ksp = KSP()
         CHKERR( PEPRefineGetKSP(self.pep, &ksp.ksp) )
-        PetscINCREF(ksp.obj)
+        CHKERR( PetscINCREF(ksp.obj) )
         return ksp
 
     def setExtract(self, extract):
@@ -753,7 +753,7 @@ cdef class PEP(Object):
         """
         cdef ST st = ST()
         CHKERR( PEPGetST(self.pep, &st.st) )
-        PetscINCREF(st.obj)
+        CHKERR( PetscINCREF(st.obj) )
         return st
 
     def setST(self, ST st):
@@ -855,7 +855,7 @@ cdef class PEP(Object):
         """
         cdef BV bv = BV()
         CHKERR( PEPGetBV(self.pep, &bv.bv) )
-        PetscINCREF(bv.obj)
+        CHKERR( PetscINCREF(bv.obj) )
         return bv
 
     def setBV(self, BV bv):
@@ -880,7 +880,7 @@ cdef class PEP(Object):
         """
         cdef RG rg = RG()
         CHKERR( PEPGetRG(self.pep, &rg.rg) )
-        PetscINCREF(rg.obj)
+        CHKERR( PetscINCREF(rg.obj) )
         return rg
 
     def setRG(self, RG rg):
@@ -905,7 +905,7 @@ cdef class PEP(Object):
         """
         cdef DS ds = DS()
         CHKERR( PEPGetDS(self.pep, &ds.ds) )
-        PetscINCREF(ds.obj)
+        CHKERR( PetscINCREF(ds.obj) )
         return ds
 
     def setDS(self, DS ds):
@@ -935,7 +935,7 @@ cdef class PEP(Object):
         cdef object operators = []
         for k from 0 <= k < n:
             CHKERR( PEPGetOperators(self.pep, k, &mat) )
-            A = Mat(); A.mat = mat; PetscINCREF(A.obj)
+            A = Mat(); A.mat = mat; CHKERR( PetscINCREF(A.obj) )
             operators.append(A)
         return tuple(operators)
 
@@ -1234,7 +1234,7 @@ cdef class PEP(Object):
         """
         cdef EPS eps = EPS()
         CHKERR( PEPLinearGetEPS(self.pep, &eps.eps) )
-        PetscINCREF(eps.obj)
+        CHKERR( PetscINCREF(eps.obj) )
         return eps
 
     def setLinearLinearization(self, alpha=1.0, beta=0.0):

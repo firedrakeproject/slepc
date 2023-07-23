@@ -155,7 +155,7 @@ cdef extern from * nogil:
 cdef inline SVD ref_SVD(SlepcSVD svd):
     cdef SVD ob = <SVD> SVD()
     ob.svd = svd
-    PetscINCREF(ob.obj)
+    CHKERR( PetscINCREF(ob.obj) )
     return ob
 
 # -----------------------------------------------------------------------------

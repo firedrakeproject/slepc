@@ -86,7 +86,7 @@ cdef class ST(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcST newst = NULL
         CHKERR( STCreate(ccomm, &newst) )
-        SlepcCLEAR(self.obj); self.st = newst
+        CHKERR( SlepcCLEAR(self.obj) ); self.st = newst
         return self
 
     def setType(self, st_type):
@@ -323,7 +323,7 @@ cdef class ST(Object):
         cdef object operators = []
         for k from 0 <= k < n:
             CHKERR( STGetMatrix(self.st, k, &mat) )
-            A = Mat(); A.mat = mat; PetscINCREF(A.obj)
+            A = Mat(); A.mat = mat; CHKERR( PetscINCREF(A.obj) )
             operators.append(A)
         return tuple(operators)
 
@@ -395,7 +395,7 @@ cdef class ST(Object):
         """
         cdef KSP ksp = KSP()
         CHKERR( STGetKSP(self.st, &ksp.ksp) )
-        PetscINCREF(ksp.obj)
+        CHKERR( PetscINCREF(ksp.obj) )
         return ksp
 
     def setPreconditionerMat(self, Mat P=None):
@@ -421,7 +421,7 @@ cdef class ST(Object):
         """
         cdef Mat P = Mat()
         CHKERR( STGetPreconditionerMat(self.st, &P.mat) )
-        PetscINCREF(P.obj)
+        CHKERR( PetscINCREF(P.obj) )
         return P
 
     #
@@ -504,7 +504,7 @@ cdef class ST(Object):
         """
         cdef Mat op = Mat()
         CHKERR( STGetOperator(self.st, &op.mat) )
-        PetscINCREF(op.obj)
+        CHKERR( PetscINCREF(op.obj) )
         return op
 
     def restoreOperator(self, Mat op):
