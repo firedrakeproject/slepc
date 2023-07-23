@@ -185,7 +185,7 @@ cdef class SVD(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcSVD newsvd = NULL
         CHKERR( SVDCreate(ccomm, &newsvd) )
-        SlepcCLEAR(self.obj); self.svd = newsvd
+        CHKERR( SlepcCLEAR(self.obj) ); self.svd = newsvd
         return self
 
     def setType(self, svd_type):
@@ -580,8 +580,8 @@ cdef class SVD(Object):
         cdef BV V = BV()
         cdef BV U = BV()
         CHKERR( SVDGetBV(self.svd, &V.bv, &U.bv) )
-        PetscINCREF(V.obj)
-        PetscINCREF(U.obj)
+        CHKERR( PetscINCREF(V.obj) )
+        CHKERR( PetscINCREF(U.obj) )
         return (V,U)
 
     def setBV(self, BV V,BV U=None):
@@ -610,7 +610,7 @@ cdef class SVD(Object):
         """
         cdef DS ds = DS()
         CHKERR( SVDGetDS(self.svd, &ds.ds) )
-        PetscINCREF(ds.obj)
+        CHKERR( PetscINCREF(ds.obj) )
         return ds
 
     def setDS(self, DS ds):
@@ -638,8 +638,8 @@ cdef class SVD(Object):
         cdef Mat A = Mat()
         cdef Mat B = Mat()
         CHKERR( SVDGetOperators(self.svd, &A.mat, &B.mat) )
-        PetscINCREF(A.obj)
-        PetscINCREF(B.obj)
+        CHKERR( PetscINCREF(A.obj) )
+        CHKERR( PetscINCREF(B.obj) )
         return (A, B)
 
     def setOperators(self, Mat A, Mat B=None):
@@ -671,7 +671,7 @@ cdef class SVD(Object):
         if (omega.vec == NULL):
             return None
         else:
-            PetscINCREF(omega.obj)
+            CHKERR( PetscINCREF(omega.obj) )
             return omega
 
     def setSignature(self, Vec omega=None):
@@ -1026,7 +1026,7 @@ cdef class SVD(Object):
         """
         cdef EPS eps = EPS()
         CHKERR( SVDCrossGetEPS(self.svd, &eps.eps) )
-        PetscINCREF(eps.obj)
+        CHKERR( PetscINCREF(eps.obj) )
         return eps
 
     def setCrossExplicitMatrix(self, flag=True):
@@ -1079,7 +1079,7 @@ cdef class SVD(Object):
         """
         cdef EPS eps = EPS()
         CHKERR( SVDCyclicGetEPS(self.svd, &eps.eps) )
-        PetscINCREF(eps.obj)
+        CHKERR( PetscINCREF(eps.obj) )
         return eps
 
     def setCyclicExplicitMatrix(self, flag=True):
@@ -1291,7 +1291,7 @@ cdef class SVD(Object):
         """
         cdef KSP ksp = KSP()
         CHKERR( SVDTRLanczosGetKSP(self.svd, &ksp.ksp) )
-        PetscINCREF(ksp.obj)
+        CHKERR( PetscINCREF(ksp.obj) )
         return ksp
 
     def setTRLanczosExplicitMatrix(self, flag=True):

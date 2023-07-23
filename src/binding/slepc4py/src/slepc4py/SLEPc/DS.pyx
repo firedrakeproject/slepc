@@ -129,7 +129,7 @@ cdef class DS(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcDS newds = NULL
         CHKERR( DSCreate(ccomm, &newds) )
-        SlepcCLEAR(self.obj); self.ds = newds
+        CHKERR( SlepcCLEAR(self.obj) ); self.ds = newds
         return self
 
     def setType(self, ds_type):
@@ -539,7 +539,7 @@ cdef class DS(Object):
         cdef SlepcDSMatType mname = matname
         cdef Mat mat = Mat()
         CHKERR( DSGetMat(self.ds, mname, &mat.mat) )
-        PetscINCREF(mat.obj)
+        CHKERR( PetscINCREF(mat.obj) )
         return mat
 
     def restoreMat(self, matname, Mat mat):

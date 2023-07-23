@@ -68,7 +68,7 @@ cdef class RG(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcRG newrg = NULL
         CHKERR( RGCreate(ccomm, &newrg) )
-        SlepcCLEAR(self.obj); self.rg = newrg
+        CHKERR( SlepcCLEAR(self.obj) ); self.rg = newrg
         return self
 
     def setType(self, rg_type):

@@ -124,7 +124,7 @@ cdef class BV(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcBV newbv = NULL
         CHKERR( BVCreate(ccomm, &newbv) )
-        SlepcCLEAR(self.obj); self.bv = newbv
+        CHKERR( SlepcCLEAR(self.obj) ); self.bv = newbv
         return self
 
     def createFromMat(self, Mat A):
@@ -138,7 +138,7 @@ cdef class BV(Object):
         """
         cdef SlepcBV newbv = NULL
         CHKERR( BVCreateFromMat(A.mat, &newbv) )
-        SlepcCLEAR(self.obj); self.bv = newbv
+        CHKERR( SlepcCLEAR(self.obj) ); self.bv = newbv
         return self
 
     def createMat(self):
@@ -423,7 +423,7 @@ cdef class BV(Object):
         cdef Mat mat = Mat()
         cdef PetscBool indef = PETSC_FALSE
         CHKERR( BVGetMatrix(self.bv, &mat.mat, &indef) )
-        PetscINCREF(mat.obj)
+        CHKERR( PetscINCREF(mat.obj) )
         return (mat, toBool(indef))
 
     def setMatrix(self, Mat mat or None, bint indef):
@@ -777,7 +777,7 @@ cdef class BV(Object):
         cdef Vec v = Vec()
         cdef PetscInt ival = asInt(j)
         CHKERR( BVGetColumn(self.bv, j, &v.vec) )
-        PetscINCREF(v.obj)
+        CHKERR( PetscINCREF(v.obj) )
         return v
 
     def restoreColumn(self, j, Vec v):
@@ -817,7 +817,7 @@ cdef class BV(Object):
         """
         cdef Mat A = Mat()
         CHKERR( BVGetMat(self.bv, &A.mat) )
-        PetscINCREF(A.obj)
+        CHKERR( PetscINCREF(A.obj) )
         return A
 
     def restoreMat(self, Mat A):
@@ -1283,7 +1283,7 @@ cdef class BV(Object):
         """
         cdef Random rnd = Random()
         CHKERR( BVGetRandomContext(self.bv, &rnd.rnd) )
-        PetscINCREF(rnd.obj)
+        CHKERR( PetscINCREF(rnd.obj) )
         return rnd
 
     def orthogonalizeVec(self, Vec v):
