@@ -175,7 +175,7 @@ PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(krylovstart,2);
+  PetscAssertPointer(krylovstart,2);
   PetscUseMethod(eps,"EPSGDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -226,7 +226,7 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(blocksize,2);
+  PetscAssertPointer(blocksize,2);
   PetscUseMethod(eps,"EPSGDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -345,7 +345,7 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(initialsize,2);
+  PetscAssertPointer(initialsize,2);
   PetscUseMethod(eps,"EPSGDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -396,7 +396,7 @@ PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(borth,2);
+  PetscAssertPointer(borth,2);
   PetscUseMethod(eps,"EPSGDGetBOrth_C",(EPS,PetscBool*),(eps,borth));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -469,7 +469,7 @@ PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *doubleexp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(doubleexp,2);
+  PetscAssertPointer(doubleexp,2);
   PetscUseMethod(eps,"EPSGDGetDoubleExpansion_C",(EPS,PetscBool*),(eps,doubleexp));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

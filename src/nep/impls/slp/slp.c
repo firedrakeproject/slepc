@@ -348,7 +348,7 @@ PetscErrorCode NEPSLPGetDeflationThreshold(NEP nep,PetscReal *deftol)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidRealPointer(deftol,2);
+  PetscAssertPointer(deftol,2);
   PetscUseMethod(nep,"NEPSLPGetDeflationThreshold_C",(NEP,PetscReal*),(nep,deftol));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -425,7 +425,7 @@ PetscErrorCode NEPSLPGetEPS(NEP nep,EPS *eps)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(eps,2);
+  PetscAssertPointer(eps,2);
   PetscUseMethod(nep,"NEPSLPGetEPS_C",(NEP,EPS*),(nep,eps));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -504,7 +504,7 @@ PetscErrorCode NEPSLPGetEPSLeft(NEP nep,EPS *eps)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(eps,2);
+  PetscAssertPointer(eps,2);
   PetscUseMethod(nep,"NEPSLPGetEPSLeft_C",(NEP,EPS*),(nep,eps));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -583,7 +583,7 @@ PetscErrorCode NEPSLPGetKSP(NEP nep,KSP *ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(ksp,2);
+  PetscAssertPointer(ksp,2);
   PetscUseMethod(nep,"NEPSLPGetKSP_C",(NEP,KSP*),(nep,ksp));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -120,7 +120,7 @@ PetscErrorCode MFNGetOperator(MFN mfn,Mat *A)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(A,2);
+  PetscAssertPointer(A,2);
   *A = mfn->A;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

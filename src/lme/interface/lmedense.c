@@ -325,12 +325,12 @@ PetscErrorCode LMEDenseHessLyapunovChol(LME lme,PetscInt m,PetscScalar *H,PetscI
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidLogicalCollectiveInt(lme,m,2);
-  PetscValidScalarPointer(H,3);
+  PetscAssertPointer(H,3);
   PetscValidLogicalCollectiveInt(lme,ldh,4);
   PetscValidLogicalCollectiveInt(lme,k,5);
-  PetscValidScalarPointer(B,6);
+  PetscAssertPointer(B,6);
   PetscValidLogicalCollectiveInt(lme,ldb,7);
-  PetscValidScalarPointer(U,8);
+  PetscAssertPointer(U,8);
   PetscValidLogicalCollectiveInt(lme,ldu,9);
   if (res) PetscValidLogicalCollectiveReal(lme,*res,10);
 
@@ -493,11 +493,11 @@ PetscErrorCode LMEDenseLyapunov(LME lme,PetscInt m,PetscScalar *A,PetscInt lda,P
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidLogicalCollectiveInt(lme,m,2);
-  PetscValidScalarPointer(A,3);
+  PetscAssertPointer(A,3);
   PetscValidLogicalCollectiveInt(lme,lda,4);
-  PetscValidScalarPointer(B,5);
+  PetscAssertPointer(B,5);
   PetscValidLogicalCollectiveInt(lme,ldb,6);
-  PetscValidScalarPointer(X,7);
+  PetscAssertPointer(X,7);
   PetscValidLogicalCollectiveInt(lme,ldx,8);
 
 #if defined(SLEPC_HAVE_SLICOT)

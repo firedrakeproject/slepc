@@ -883,7 +883,7 @@ PetscErrorCode NEPCISSGetExtraction(NEP nep,NEPCISSExtraction *extraction)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(extraction,2);
+  PetscAssertPointer(extraction,2);
   PetscUseMethod(nep,"NEPCISSGetExtraction_C",(NEP,NEPCISSExtraction*),(nep,extraction));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -240,7 +240,7 @@ PetscErrorCode SVDKSVDGetEigenMethod(SVD svd,SVDKSVDEigenMethod *eigen)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(eigen,2);
+  PetscAssertPointer(eigen,2);
   PetscUseMethod(svd,"SVDKSVDGetEigenMethod_C",(SVD,SVDKSVDEigenMethod*),(svd,eigen));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -309,7 +309,7 @@ PetscErrorCode SVDKSVDGetPolarMethod(SVD svd,SVDKSVDPolarMethod *polar)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(polar,2);
+  PetscAssertPointer(polar,2);
   PetscUseMethod(svd,"SVDKSVDGetPolarMethod_C",(SVD,SVDKSVDPolarMethod*),(svd,polar));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

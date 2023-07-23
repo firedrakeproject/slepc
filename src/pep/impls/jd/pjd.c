@@ -1533,7 +1533,7 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidRealPointer(keep,2);
+  PetscAssertPointer(keep,2);
   PetscUseMethod(pep,"PEPJDGetRestart_C",(PEP,PetscReal*),(pep,keep));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1616,7 +1616,7 @@ PetscErrorCode PEPJDGetFix(PEP pep,PetscReal *fix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidRealPointer(fix,2);
+  PetscAssertPointer(fix,2);
   PetscUseMethod(pep,"PEPJDGetFix_C",(PEP,PetscReal*),(pep,fix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1689,7 +1689,7 @@ PetscErrorCode PEPJDGetReusePreconditioner(PEP pep,PetscBool *reusepc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidBoolPointer(reusepc,2);
+  PetscAssertPointer(reusepc,2);
   PetscUseMethod(pep,"PEPJDGetReusePreconditioner_C",(PEP,PetscBool*),(pep,reusepc));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1768,7 +1768,7 @@ PetscErrorCode PEPJDGetMinimalityIndex(PEP pep,PetscInt *mmidx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidIntPointer(mmidx,2);
+  PetscAssertPointer(mmidx,2);
   PetscUseMethod(pep,"PEPJDGetMinimalityIndex_C",(PEP,PetscInt*),(pep,mmidx));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1845,7 +1845,7 @@ PetscErrorCode PEPJDGetProjection(PEP pep,PEPJDProjection *proj)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(proj,2);
+  PetscAssertPointer(proj,2);
   PetscUseMethod(pep,"PEPJDGetProjection_C",(PEP,PEPJDProjection*),(pep,proj));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

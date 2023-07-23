@@ -91,7 +91,7 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
   RG             rg;
 
   PetscFunctionBegin;
-  PetscValidPointer(newrg,2);
+  PetscAssertPointer(newrg,2);
   *newrg = NULL;
   PetscCall(RGInitializePackage());
   PetscCall(SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView));
@@ -181,7 +181,7 @@ PetscErrorCode RGGetOptionsPrefix(RG rg,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)rg,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -206,7 +206,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)rg,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -241,7 +241,7 @@ PetscErrorCode RGGetType(RG rg,RGType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)rg)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -376,7 +376,7 @@ PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
-  PetscValidBoolPointer(trivial,2);
+  PetscAssertPointer(trivial,2);
   *trivial = PETSC_FALSE;
   PetscTryTypeMethod(rg,istrivial,trivial);
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -415,11 +415,11 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
-  PetscValidScalarPointer(ar,3);
+  PetscAssertPointer(ar,3);
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(ai,4);
+  PetscAssertPointer(ai,4);
 #endif
-  PetscValidIntPointer(inside,5);
+  PetscAssertPointer(inside,5);
 
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
@@ -465,7 +465,7 @@ PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
-  PetscValidBoolPointer(symm,3);
+  PetscAssertPointer(symm,3);
   *symm = PETSC_FALSE;
   PetscTryTypeMethod(rg,isaxisymmetric,vertical,symm);
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -505,7 +505,7 @@ PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
-  PetscValidBoolPointer(useconj,3);
+  PetscAssertPointer(useconj,3);
   *useconj = PETSC_FALSE;
 #if defined(PETSC_USE_COMPLEX)
   if (realmats) {
@@ -550,7 +550,7 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
 #if defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(cr,3);
+  PetscAssertPointer(cr,3);
 #else
   PetscCheck(cr || ci,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"cr and ci cannot be NULL simultaneously");
 #endif
@@ -641,9 +641,9 @@ PetscErrorCode RGComputeQuadrature(RG rg,RGQuadRule quad,PetscInt n,PetscScalar 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
-  PetscValidScalarPointer(z,4);
-  PetscValidScalarPointer(zn,5);
-  PetscValidScalarPointer(w,6);
+  PetscAssertPointer(z,4);
+  PetscAssertPointer(zn,5);
+  PetscAssertPointer(w,6);
 
   PetscCall(RGComputeContour(rg,n,z,NULL));
   PetscUseTypeMethod(rg,computequadrature,quad,n,z,zn,w);
@@ -696,7 +696,7 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  PetscValidBoolPointer(flg,2);
+  PetscAssertPointer(flg,2);
   *flg = rg->complement;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -748,7 +748,7 @@ PetscErrorCode RGGetScale(RG rg,PetscReal *sfactor)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  PetscValidRealPointer(sfactor,2);
+  PetscAssertPointer(sfactor,2);
   *sfactor = rg->sfactor;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

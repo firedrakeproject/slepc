@@ -541,7 +541,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
   PetscValidLogicalCollectiveInt(eps,n,2);
   PetscCheck(n>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   if (n>0) {
-    PetscValidPointer(v,3);
+    PetscAssertPointer(v,3);
     PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
   }
   PetscCall(SlepcBasisReference_Private(n,v,&eps->nds,&eps->defl));
@@ -584,7 +584,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
   PetscValidLogicalCollectiveInt(eps,n,2);
   PetscCheck(n>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   if (n>0) {
-    PetscValidPointer(is,3);
+    PetscAssertPointer(is,3);
     PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
   }
   PetscCall(SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS));
@@ -621,7 +621,7 @@ PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec isl[])
   PetscValidLogicalCollectiveInt(eps,n,2);
   PetscCheck(n>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   if (n>0) {
-    PetscValidPointer(isl,3);
+    PetscAssertPointer(isl,3);
     PetscValidHeaderSpecific(*isl,VEC_CLASSID,3);
   }
   PetscCall(SlepcBasisReference_Private(n,isl,&eps->ninil,&eps->ISL));

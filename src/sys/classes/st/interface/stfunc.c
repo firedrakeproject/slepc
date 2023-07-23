@@ -167,7 +167,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   ST             st;
 
   PetscFunctionBegin;
-  PetscValidPointer(newst,2);
+  PetscAssertPointer(newst,2);
   *newst = NULL;
   PetscCall(STInitializePackage());
   PetscCall(SlepcHeaderCreate(st,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView));
@@ -270,7 +270,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,n,2);
   PetscCheck(n>0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %" PetscInt_FMT,n);
-  PetscValidPointer(A,3);
+  PetscAssertPointer(A,3);
   PetscCheckSameComm(st,1,*A,3);
   STCheckNotSeized(st,1);
   PetscCheck(!st->nsplit || st->nsplit==n,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"The number of matrices must be the same as in STSetSplitPreconditioner()");
@@ -329,7 +329,7 @@ PetscErrorCode STGetMatrix(ST st,PetscInt k,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,k,2);
-  PetscValidPointer(A,3);
+  PetscAssertPointer(A,3);
   STCheckMatrices(st,1);
   PetscCheck(k>=0 && k<st->nmat,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
   PetscCheck(((PetscObject)st->A[k])->state==st->Astate[k],PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot retrieve original matrices (have been modified)");
@@ -358,7 +358,7 @@ PetscErrorCode STGetMatrixTransformed(ST st,PetscInt k,Mat *T)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,k,2);
-  PetscValidPointer(T,3);
+  PetscAssertPointer(T,3);
   STCheckMatrices(st,1);
   PetscCheck(k>=0 && k<st->nmat,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
   PetscCheck(st->T,PetscObjectComm((PetscObject)st),PETSC_ERR_POINTER,"There are no transformed matrices");
@@ -385,7 +385,7 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidIntPointer(n,2);
+  PetscAssertPointer(n,2);
   *n = st->nmat;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -492,7 +492,7 @@ PetscErrorCode STGetPreconditionerMat(ST st,Mat *mat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(mat,2);
+  PetscAssertPointer(mat,2);
   *mat = st->Pmat_set? st->Pmat: NULL;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -542,7 +542,7 @@ PetscErrorCode STSetSplitPreconditioner(ST st,PetscInt n,Mat Psplit[],MatStructu
   PetscCheck(n>=0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Negative value of n = %" PetscInt_FMT,n);
   PetscCheck(!n || !st->Pmat_set,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot call both STSetPreconditionerMat and STSetSplitPreconditioner");
   PetscCheck(!n || !st->nmat || st->nmat==n,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"The number of matrices must be the same as in STSetMatrices()");
-  if (n) PetscValidPointer(Psplit,3);
+  if (n) PetscAssertPointer(Psplit,3);
   PetscValidLogicalCollectiveEnum(st,strp,4);
   STCheckNotSeized(st,1);
 
@@ -594,7 +594,7 @@ PetscErrorCode STGetSplitPreconditionerTerm(ST st,PetscInt k,Mat *Psplit)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,k,2);
-  PetscValidPointer(Psplit,3);
+  PetscAssertPointer(Psplit,3);
   PetscCheck(k>=0 && k<st->nsplit,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nsplit-1);
   PetscCheck(st->Psplit,PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"You have not called STSetSplitPreconditioner()");
   *Psplit = st->Psplit[k];
@@ -681,7 +681,7 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidScalarPointer(shift,2);
+  PetscAssertPointer(shift,2);
   *shift = st->sigma;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -799,7 +799,7 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(D,2);
+  PetscAssertPointer(D,2);
   *D = st->D;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -985,7 +985,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)st,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

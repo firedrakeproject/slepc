@@ -397,7 +397,7 @@ PetscErrorCode SVDLanczosGetOneSide(SVD svd,PetscBool *oneside)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(oneside,2);
+  PetscAssertPointer(oneside,2);
   PetscUseMethod(svd,"SVDLanczosGetOneSide_C",(SVD,PetscBool*),(svd,oneside));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

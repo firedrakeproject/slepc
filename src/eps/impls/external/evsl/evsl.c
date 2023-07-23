@@ -330,7 +330,7 @@ PetscErrorCode EPSEVSLGetSlices(EPS eps,PetscInt *nslices)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(nslices,2);
+  PetscAssertPointer(nslices,2);
   PetscUseMethod(eps,"EPSEVSLGetSlices_C",(EPS,PetscInt*),(eps,nslices));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -692,7 +692,7 @@ PetscErrorCode EPSEVSLGetDamping(EPS eps,EPSEVSLDamping *damping)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(damping,2);
+  PetscAssertPointer(damping,2);
   PetscUseMethod(eps,"EPSEVSLGetDamping_C",(EPS,EPSEVSLDamping*),(eps,damping));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

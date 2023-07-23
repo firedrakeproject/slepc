@@ -44,7 +44,7 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
   PetscBool      inside[2];
 
   PetscFunctionBegin;
-  PetscValidIntPointer(res,6);
+  PetscAssertPointer(res,6);
 #if defined(PETSC_USE_DEBUG)
   PetscCheck(sc->comparison,PETSC_COMM_SELF,PETSC_ERR_USER,"Undefined comparison function");
 #endif
@@ -92,10 +92,10 @@ PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,Pets
   PetscInt       i,j,result,tmp;
 
   PetscFunctionBegin;
-  PetscValidPointer(sc,1);
-  PetscValidScalarPointer(eigr,3);
-  PetscValidScalarPointer(eigi,4);
-  PetscValidIntPointer(perm,5);
+  PetscAssertPointer(sc,1);
+  PetscAssertPointer(eigr,3);
+  PetscAssertPointer(eigi,4);
+  PetscAssertPointer(perm,5);
   /* insertion sort */
   for (i=n-1;i>=0;i--) {
     re = eigr[perm[i]];

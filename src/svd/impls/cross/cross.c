@@ -463,7 +463,7 @@ PetscErrorCode SVDCrossGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(explicitmat,2);
+  PetscAssertPointer(explicitmat,2);
   PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -543,7 +543,7 @@ PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(eps,2);
+  PetscAssertPointer(eps,2);
   PetscUseMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -45,7 +45,7 @@ PetscErrorCode STShellGetContext(ST st,void *ctx)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(ctx,2);
+  PetscAssertPointer(ctx,2);
   PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg));
   if (!flg) *(void**)ctx = NULL;
   else      *(void**)ctx = ((ST_SHELL*)(st->data))->ctx;

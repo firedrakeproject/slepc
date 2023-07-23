@@ -278,7 +278,7 @@ PetscErrorCode DSSolve_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(wi,3);
+  PetscAssertPointer(wi,3);
 #endif
   PetscCall(DSSolve_NHEP_Private(ds,DS_MAT_A,DS_MAT_Q,wr,wi));
   PetscCall(DSSolve_NHEP_Private(ds,DS_MAT_B,DS_MAT_Z,ctx->wr,ctx->wi));

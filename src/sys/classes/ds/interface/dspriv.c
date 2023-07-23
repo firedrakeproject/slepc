@@ -475,9 +475,9 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
 
   PetscFunctionBegin;
   if ((rA == 0) || (cB == 0)) PetscFunctionReturn(PETSC_SUCCESS);
-  PetscValidScalarPointer(C,1);
-  PetscValidScalarPointer(A,5);
-  PetscValidScalarPointer(B,10);
+  PetscAssertPointer(C,1);
+  PetscAssertPointer(A,5);
+  PetscAssertPointer(B,10);
 
   /* Transpose if needed */
   if (At) tmp = rA, rA = cA, cA = tmp, qA = T;
@@ -538,7 +538,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   PetscValidLogicalCollectiveEnum(ds,mat,2);
   DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
-  PetscValidRealPointer(s,4);
+  PetscAssertPointer(s,4);
   PetscCall(DSGetDimensions(ds,&n,&l,NULL,NULL));
   PetscCall(DSGetLeadingDimension(ds,&ld));
   n = n - l;

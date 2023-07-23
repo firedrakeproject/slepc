@@ -1030,7 +1030,7 @@ PetscErrorCode EPSCISSGetUseST(EPS eps,PetscBool *usest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(usest,2);
+  PetscAssertPointer(usest,2);
   PetscUseMethod(eps,"EPSCISSGetUseST_C",(EPS,PetscBool*),(eps,usest));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1107,7 +1107,7 @@ PetscErrorCode EPSCISSGetQuadRule(EPS eps,EPSCISSQuadRule *quad)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(quad,2);
+  PetscAssertPointer(quad,2);
   PetscUseMethod(eps,"EPSCISSGetQuadRule_C",(EPS,EPSCISSQuadRule*),(eps,quad));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1184,7 +1184,7 @@ PetscErrorCode EPSCISSGetExtraction(EPS eps,EPSCISSExtraction *extraction)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(extraction,2);
+  PetscAssertPointer(extraction,2);
   PetscUseMethod(eps,"EPSCISSGetExtraction_C",(EPS,EPSCISSExtraction*),(eps,extraction));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

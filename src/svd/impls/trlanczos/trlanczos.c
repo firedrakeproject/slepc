@@ -1727,7 +1727,7 @@ PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscBool *oneside)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(oneside,2);
+  PetscAssertPointer(oneside,2);
   PetscUseMethod(svd,"SVDTRLanczosGetOneSide_C",(SVD,PetscBool*),(svd,oneside));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1808,7 +1808,7 @@ PetscErrorCode SVDTRLanczosGetGBidiag(SVD svd,SVDTRLanczosGBidiag *bidiag)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(bidiag,2);
+  PetscAssertPointer(bidiag,2);
   PetscUseMethod(svd,"SVDTRLanczosGetGBidiag_C",(SVD,SVDTRLanczosGBidiag*),(svd,bidiag));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1894,7 +1894,7 @@ PetscErrorCode SVDTRLanczosGetKSP(SVD svd,KSP *ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(ksp,2);
+  PetscAssertPointer(ksp,2);
   PetscUseMethod(svd,"SVDTRLanczosGetKSP_C",(SVD,KSP*),(svd,ksp));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1971,7 +1971,7 @@ PetscErrorCode SVDTRLanczosGetRestart(SVD svd,PetscReal *keep)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidRealPointer(keep,2);
+  PetscAssertPointer(keep,2);
   PetscUseMethod(svd,"SVDTRLanczosGetRestart_C",(SVD,PetscReal*),(svd,keep));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -2046,7 +2046,7 @@ PetscErrorCode SVDTRLanczosGetLocking(SVD svd,PetscBool *lock)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(lock,2);
+  PetscAssertPointer(lock,2);
   PetscUseMethod(svd,"SVDTRLanczosGetLocking_C",(SVD,PetscBool*),(svd,lock));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -2121,7 +2121,7 @@ PetscErrorCode SVDTRLanczosGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(explicitmat,2);
+  PetscAssertPointer(explicitmat,2);
   PetscUseMethod(svd,"SVDTRLanczosGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -2209,7 +2209,7 @@ PetscErrorCode SVDTRLanczosGetScale(SVD svd,PetscReal *scale)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidRealPointer(scale,2);
+  PetscAssertPointer(scale,2);
   PetscUseMethod(svd,"SVDTRLanczosGetScale_C",(SVD,PetscReal*),(svd,scale));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

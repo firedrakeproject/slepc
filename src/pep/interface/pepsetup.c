@@ -286,7 +286,7 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   PetscValidLogicalCollectiveInt(pep,nmat,2);
   PetscCheck(nmat>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %" PetscInt_FMT,nmat);
   PetscCheck(nmat>2,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Cannot solve linear eigenproblems with PEP; use EPS instead");
-  PetscValidPointer(A,3);
+  PetscAssertPointer(A,3);
 
   for (i=0;i<nmat;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
@@ -339,7 +339,7 @@ PetscErrorCode PEPGetOperators(PEP pep,PetscInt k,Mat *A)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(A,3);
+  PetscAssertPointer(A,3);
   PetscCheck(k>=0 && k<pep->nmat,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,pep->nmat-1);
   *A = pep->A[k];
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -364,7 +364,7 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidIntPointer(nmat,2);
+  PetscAssertPointer(nmat,2);
   *nmat = pep->nmat;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -404,7 +404,7 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec is[])
   PetscValidLogicalCollectiveInt(pep,n,2);
   PetscCheck(n>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   if (n>0) {
-    PetscValidPointer(is,3);
+    PetscAssertPointer(is,3);
     PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
   }
   PetscCall(SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS));

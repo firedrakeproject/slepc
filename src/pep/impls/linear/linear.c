@@ -867,7 +867,7 @@ PetscErrorCode PEPLinearGetExplicitMatrix(PEP pep,PetscBool *explicitmat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidBoolPointer(explicitmat,2);
+  PetscAssertPointer(explicitmat,2);
   PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmat));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -946,7 +946,7 @@ PetscErrorCode PEPLinearGetEPS(PEP pep,EPS *eps)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(eps,2);
+  PetscAssertPointer(eps,2);
   PetscUseMethod(pep,"PEPLinearGetEPS_C",(PEP,EPS*),(pep,eps));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -492,7 +492,7 @@ PetscErrorCode NEPNLEIGSGetEPS(NEP nep,EPS *eps)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(eps,2);
+  PetscAssertPointer(eps,2);
   PetscUseMethod(nep,"NEPNLEIGSGetEPS_C",(NEP,EPS*),(nep,eps));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

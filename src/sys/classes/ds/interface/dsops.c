@@ -33,7 +33,7 @@ PetscErrorCode DSGetLeadingDimension(DS ds,PetscInt *ld)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(ld,2);
+  PetscAssertPointer(ld,2);
   *ld = ds->ld;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -98,7 +98,7 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(state,2);
+  PetscAssertPointer(state,2);
   *state = ds->state;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -317,7 +317,7 @@ PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckValidMat(ds,t,2);
-  PetscValidBoolPointer(flg,3);
+  PetscAssertPointer(flg,3);
   *flg = PETSC_FALSE;
   PetscTryTypeMethod(ds,hermitian,t,flg);
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -374,7 +374,7 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveInt(ds,l,2);
   PetscValidLogicalCollectiveInt(ds,n,3);
-  PetscValidIntPointer(k,4);
+  PetscAssertPointer(k,4);
   PetscUseTypeMethod(ds,gettruncatesize,l?l:ds->l,n?n:ds->n,k);
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -420,7 +420,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
-  PetscValidPointer(A,3);
+  PetscAssertPointer(A,3);
 
   PetscCall(DSMatGetSize(ds,m,&rows,&cols));
   PetscCheck(rows && cols,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSSetDimensions() first");
@@ -456,7 +456,7 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
-  PetscValidPointer(A,3);
+  PetscAssertPointer(A,3);
 
   PetscCall(MatDenseRestoreSubMatrix(ds->omat[m],A));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
@@ -494,8 +494,8 @@ PetscErrorCode DSGetMatAndColumn(DS ds,DSMatType m,PetscInt col,Mat *A,Vec *v)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
-  PetscValidPointer(A,4);
-  PetscValidPointer(v,5);
+  PetscAssertPointer(A,4);
+  PetscAssertPointer(v,5);
 
   PetscCall(DSGetMat(ds,m,A));
   if (PetscDefined(USE_COMPLEX) && (m==DS_MAT_T || m==DS_MAT_D)) {
@@ -542,8 +542,8 @@ PetscErrorCode DSRestoreMatAndColumn(DS ds,DSMatType m,PetscInt col,Mat *A,Vec *
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
-  PetscValidPointer(A,4);
-  PetscValidPointer(v,5);
+  PetscAssertPointer(A,4);
+  PetscAssertPointer(v,5);
 
   if (PetscDefined(USE_COMPLEX) && (m==DS_MAT_T || m==DS_MAT_D)) {
     const PetscScalar *vs;
@@ -591,7 +591,7 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
-  PetscValidPointer(a,3);
+  PetscAssertPointer(a,3);
   PetscCall(MatDenseGetArray(ds->omat[m],a));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -616,7 +616,7 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
-  PetscValidPointer(a,3);
+  PetscAssertPointer(a,3);
   PetscCall(MatDenseRestoreArray(ds->omat[m],a));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -654,7 +654,7 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMatReal(ds,m,2);
-  PetscValidPointer(a,3);
+  PetscAssertPointer(a,3);
 #if defined(PETSC_USE_COMPLEX)
   PetscCall(MatDenseGetArray(ds->omat[m],&as));
   *a = (PetscReal*)as;
@@ -688,7 +688,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMatReal(ds,m,2);
-  PetscValidPointer(a,3);
+  PetscAssertPointer(a,3);
 #if defined(PETSC_USE_COMPLEX)
   PetscCall(MatDenseRestoreArray(ds->omat[m],&as));
   *a = NULL;
@@ -723,7 +723,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
-  PetscValidScalarPointer(eigr,2);
+  PetscAssertPointer(eigr,2);
   if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCheck(ds->ops->solve[ds->method],PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
   PetscCall(PetscInfo(ds,"Starting solve with problem sizes: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k));
@@ -779,8 +779,8 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckSolved(ds,1);
-  PetscValidScalarPointer(eigr,2);
-  if (rr) PetscValidScalarPointer(rr,4);
+  PetscAssertPointer(eigr,2);
+  if (rr) PetscAssertPointer(rr,4);
   PetscCheck(ds->state<DS_STATE_TRUNCATED,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot sort a truncated DS");
   PetscCheck(ds->sc,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must provide a sorting criterion first");
   PetscCheck(!k || rr,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Argument k can only be used together with rr");
@@ -825,8 +825,8 @@ PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,Pets
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckSolved(ds,1);
-  PetscValidIntPointer(perm,2);
-  PetscValidScalarPointer(eigr,3);
+  PetscAssertPointer(perm,2);
+  PetscAssertPointer(eigr,3);
   PetscCheck(ds->state<DS_STATE_TRUNCATED,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot sort a truncated DS");
 
   PetscCall(PetscLogEventBegin(DS_Other,ds,0,0,0));
@@ -1002,7 +1002,7 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
-  PetscValidRealPointer(cond,2);
+  PetscAssertPointer(cond,2);
   PetscCall(PetscLogEventBegin(DS_Other,ds,0,0,0));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   PetscUseTypeMethod(ds,cond,cond);

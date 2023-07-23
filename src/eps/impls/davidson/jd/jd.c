@@ -205,7 +205,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(krylovstart,2);
+  PetscAssertPointer(krylovstart,2);
   PetscUseMethod(eps,"EPSJDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -256,7 +256,7 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(blocksize,2);
+  PetscAssertPointer(blocksize,2);
   PetscUseMethod(eps,"EPSJDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -375,7 +375,7 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(initialsize,2);
+  PetscAssertPointer(initialsize,2);
   PetscUseMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -456,7 +456,7 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidRealPointer(fix,2);
+  PetscAssertPointer(fix,2);
   PetscUseMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -530,7 +530,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(constant,2);
+  PetscAssertPointer(constant,2);
   PetscUseMethod(eps,"EPSJDGetConstCorrectionTol_C",(EPS,PetscBool*),(eps,constant));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -581,7 +581,7 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(borth,2);
+  PetscAssertPointer(borth,2);
   PetscUseMethod(eps,"EPSJDGetBOrth_C",(EPS,PetscBool*),(eps,borth));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -848,7 +848,7 @@ PetscErrorCode PEPCISSGetExtraction(PEP pep,PEPCISSExtraction *extraction)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(extraction,2);
+  PetscAssertPointer(extraction,2);
   PetscUseMethod(pep,"PEPCISSGetExtraction_C",(PEP,PEPCISSExtraction*),(pep,extraction));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -237,7 +237,7 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(its,2);
+  PetscAssertPointer(its,2);
   *its = eps->its;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -264,7 +264,7 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(nconv,2);
+  PetscAssertPointer(nconv,2);
   EPSCheckSolved(eps,1);
   *nconv = eps->nconv;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -303,7 +303,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(reason,2);
+  PetscAssertPointer(reason,2);
   EPSCheckSolved(eps,1);
   *reason = eps->reason;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -346,7 +346,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(v,2);
+  PetscAssertPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   EPSCheckSolved(eps,1);
   PetscCheck(eps->ishermitian || eps->state!=EPS_STATE_EIGENVECTORS,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector or EPSComputeError");
@@ -594,7 +594,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidRealPointer(errest,3);
+  PetscAssertPointer(errest,3);
   EPSCheckSolved(eps,1);
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
@@ -700,7 +700,7 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidLogicalCollectiveEnum(eps,type,3);
-  PetscValidRealPointer(error,4);
+  PetscAssertPointer(error,4);
   EPSCheckSolved(eps,1);
 
   /* allocate work vectors */

@@ -203,7 +203,7 @@ PetscErrorCode VecDuplicateVecs_Comp(Vec w,PetscInt m,Vec *V[])
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(w,VEC_CLASSID,1);
-  PetscValidPointer(V,3);
+  PetscAssertPointer(V,3);
   PetscCheck(m>0,PetscObjectComm((PetscObject)w),PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
   PetscCall(PetscMalloc1(m,V));
   for (i=0;i<m;i++) PetscCall(VecDuplicate(w,*V+i));
@@ -215,7 +215,7 @@ PetscErrorCode VecDestroyVecs_Comp(PetscInt m,Vec v[])
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscValidPointer(v,2);
+  PetscAssertPointer(v,2);
   PetscCheck(m>0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
   for (i=0;i<m;i++) PetscCall(VecDestroy(&v[i]));
   PetscCall(PetscFree(v));
@@ -350,7 +350,7 @@ PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscValidPointer(x,1);
+  PetscAssertPointer(x,1);
   PetscValidHeaderSpecific(*x,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(*x,n,2);
   PetscCall(VecCreate(PetscObjectComm((PetscObject)x[0]),V));
@@ -562,7 +562,7 @@ PetscErrorCode VecGetSize_Comp(Vec v,PetscInt *size)
   Vec_Comp *vs = (Vec_Comp*)v->data;
 
   PetscFunctionBegin;
-  PetscValidIntPointer(size,2);
+  PetscAssertPointer(size,2);
   if (vs->n) {
     SlepcValidVecComp(v,1);
     *size = vs->n->N;
@@ -575,7 +575,7 @@ PetscErrorCode VecGetLocalSize_Comp(Vec v,PetscInt *size)
   Vec_Comp *vs = (Vec_Comp*)v->data;
 
   PetscFunctionBegin;
-  PetscValidIntPointer(size,2);
+  PetscAssertPointer(size,2);
   if (vs->n) {
     SlepcValidVecComp(v,1);
     *size = vs->n->lN;

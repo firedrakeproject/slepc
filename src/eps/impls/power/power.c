@@ -801,7 +801,7 @@ PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(shift,2);
+  PetscAssertPointer(shift,2);
   PetscUseMethod(eps,"EPSPowerGetShiftType_C",(EPS,EPSPowerShiftType*),(eps,shift));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -887,7 +887,7 @@ PetscErrorCode EPSPowerGetNonlinear(EPS eps,PetscBool *nonlinear)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(nonlinear,2);
+  PetscAssertPointer(nonlinear,2);
   PetscUseMethod(eps,"EPSPowerGetNonlinear_C",(EPS,PetscBool*),(eps,nonlinear));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -958,7 +958,7 @@ PetscErrorCode EPSPowerGetUpdate(EPS eps,PetscBool *update)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(update,2);
+  PetscAssertPointer(update,2);
   PetscUseMethod(eps,"EPSPowerGetUpdate_C",(EPS,PetscBool*),(eps,update));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1035,7 +1035,7 @@ PetscErrorCode EPSPowerGetSNES(EPS eps,SNES *snes)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(snes,2);
+  PetscAssertPointer(snes,2);
   PetscUseMethod(eps,"EPSPowerGetSNES_C",(EPS,SNES*),(eps,snes));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

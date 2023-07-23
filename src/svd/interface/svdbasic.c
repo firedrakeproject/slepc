@@ -50,7 +50,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   SVD            svd;
 
   PetscFunctionBegin;
-  PetscValidPointer(outsvd,2);
+  PetscAssertPointer(outsvd,2);
   *outsvd = NULL;
   PetscCall(SVDInitializePackage());
   PetscCall(SlepcHeaderCreate(svd,SVD_CLASSID,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView));
@@ -222,7 +222,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)svd,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -258,7 +258,7 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)svd)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -468,7 +468,7 @@ PetscErrorCode SVDGetDS(SVD svd,DS *ds)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(ds,2);
+  PetscAssertPointer(ds,2);
   if (!svd->ds) {
     PetscCall(DSCreate(PetscObjectComm((PetscObject)svd),&svd->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)svd->ds,(PetscObject)svd,0));

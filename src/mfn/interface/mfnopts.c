@@ -221,7 +221,7 @@ PetscErrorCode MFNGetDimensions(MFN mfn,PetscInt *ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidIntPointer(ncv,2);
+  PetscAssertPointer(ncv,2);
   *ncv = mfn->ncv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -311,7 +311,7 @@ PetscErrorCode MFNGetErrorIfNotConverged(MFN mfn,PetscBool *flag)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidBoolPointer(flag,2);
+  PetscAssertPointer(flag,2);
   *flag = mfn->errorifnotconverged;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -408,7 +408,7 @@ PetscErrorCode MFNGetOptionsPrefix(MFN mfn,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)mfn,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

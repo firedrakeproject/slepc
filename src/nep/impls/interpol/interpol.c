@@ -416,7 +416,7 @@ PetscErrorCode NEPInterpolGetPEP(NEP nep,PEP *pep)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(pep,2);
+  PetscAssertPointer(pep,2);
   PetscUseMethod(nep,"NEPInterpolGetPEP_C",(NEP,PEP*),(nep,pep));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

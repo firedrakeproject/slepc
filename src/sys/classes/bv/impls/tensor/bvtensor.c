@@ -598,7 +598,7 @@ PetscErrorCode BVTensorGetDegree(BV bv,PetscInt *d)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidIntPointer(d,2);
+  PetscAssertPointer(d,2);
   PetscUseMethod(bv,"BVTensorGetDegree_C",(BV,PetscInt*),(bv,d));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -492,7 +492,7 @@ PetscErrorCode DSSVDGetDimensions(DS ds,PetscInt *m)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(m,2);
+  PetscAssertPointer(m,2);
   PetscUseMethod(ds,"DSSVDGetDimensions_C",(DS,PetscInt*),(ds,m));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

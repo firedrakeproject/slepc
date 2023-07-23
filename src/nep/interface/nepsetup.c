@@ -251,7 +251,7 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec is[])
   PetscValidLogicalCollectiveInt(nep,n,2);
   PetscCheck(n>=0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   if (n>0) {
-    PetscValidPointer(is,3);
+    PetscAssertPointer(is,3);
     PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
   }
   PetscCall(SlepcBasisReference_Private(n,is,&nep->nini,&nep->IS));

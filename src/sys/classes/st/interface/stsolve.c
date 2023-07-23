@@ -213,7 +213,7 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  PetscValidPointer(B,2);
+  PetscAssertPointer(B,2);
   STCheckMatrices(st,1);
   PetscUseTypeMethod(st,getbilinearform,B);
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -414,7 +414,7 @@ PetscErrorCode STRestoreOperator(ST st,Mat *Op)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(Op,2);
+  PetscAssertPointer(Op,2);
   PetscValidHeaderSpecific(*Op,MAT_CLASSID,2);
   PetscCheck(st->opseized,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must be called after STGetOperator()");
   *Op = NULL;
@@ -705,7 +705,7 @@ PetscErrorCode STIsInjective(ST st,PetscBool* is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  PetscValidBoolPointer(is,2);
+  PetscAssertPointer(is,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&shell));
   if (shell) PetscCall(STIsInjective_Shell(st,is));

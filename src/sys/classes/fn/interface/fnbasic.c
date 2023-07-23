@@ -97,7 +97,7 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
   FN             fn;
 
   PetscFunctionBegin;
-  PetscValidPointer(newfn,2);
+  PetscAssertPointer(newfn,2);
   *newfn = NULL;
   PetscCall(FNInitializePackage());
   PetscCall(SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView));
@@ -191,7 +191,7 @@ PetscErrorCode FNGetOptionsPrefix(FN fn,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)fn,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -220,7 +220,7 @@ PetscErrorCode FNSetType(FN fn,FNType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)fn,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -255,7 +255,7 @@ PetscErrorCode FNGetType(FN fn,FNType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)fn)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -375,7 +375,7 @@ PetscErrorCode FNGetMethod(FN fn,PetscInt *meth)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidIntPointer(meth,2);
+  PetscAssertPointer(meth,2);
   *meth = fn->method;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -438,7 +438,7 @@ PetscErrorCode FNGetParallel(FN fn,FNParallelType *pmode)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidPointer(pmode,2);
+  PetscAssertPointer(pmode,2);
   *pmode = fn->pmode;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -470,7 +470,7 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidType(fn,1);
-  PetscValidScalarPointer(y,3);
+  PetscAssertPointer(y,3);
   PetscCall(PetscLogEventBegin(FN_Evaluate,fn,0,0,0));
   xf = fn->alpha*x;
   PetscUseTypeMethod(fn,evaluatefunction,xf,&yf);
@@ -506,7 +506,7 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidType(fn,1);
-  PetscValidScalarPointer(y,3);
+  PetscAssertPointer(y,3);
   PetscCall(PetscLogEventBegin(FN_Evaluate,fn,0,0,0));
   xf = fn->alpha*x;
   PetscUseTypeMethod(fn,evaluatederivative,xf,&yf);
@@ -999,7 +999,7 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidType(fn,1);
-  PetscValidPointer(newfn,3);
+  PetscAssertPointer(newfn,3);
   PetscCall(FNCreate(comm,newfn));
   PetscCall(FNGetType(fn,&type));
   PetscCall(FNSetType(*newfn,type));

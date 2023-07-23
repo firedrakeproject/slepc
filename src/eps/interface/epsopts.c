@@ -522,7 +522,7 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(which,2);
+  PetscAssertPointer(which,2);
   *which = eps->which;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -737,7 +737,7 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(conv,2);
+  PetscAssertPointer(conv,2);
   *conv = eps->conv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -851,7 +851,7 @@ PetscErrorCode EPSGetStoppingTest(EPS eps,EPSStop *stop)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(stop,2);
+  PetscAssertPointer(stop,2);
   *stop = eps->stop;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -955,7 +955,7 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = eps->problem_type;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1021,7 +1021,7 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(extr,2);
+  PetscAssertPointer(extr,2);
   *extr = eps->extraction;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1189,7 +1189,7 @@ PetscErrorCode EPSGetTwoSided(EPS eps,PetscBool *twosided)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(twosided,2);
+  PetscAssertPointer(twosided,2);
   *twosided = eps->twosided;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1250,7 +1250,7 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(trueres,2);
+  PetscAssertPointer(trueres,2);
   *trueres = eps->trueres;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1306,7 +1306,7 @@ PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(trackall,2);
+  PetscAssertPointer(trackall,2);
   *trackall = eps->trackall;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1365,7 +1365,7 @@ PetscErrorCode EPSGetPurify(EPS eps,PetscBool *purify)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(purify,2);
+  PetscAssertPointer(purify,2);
   *purify = eps->purify;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1470,7 +1470,7 @@ PetscErrorCode EPSGetOptionsPrefix(EPS eps,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)eps,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
