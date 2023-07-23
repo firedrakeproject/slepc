@@ -254,7 +254,7 @@ cdef class NEP(Object):
         prefix: string
             The prefix string set for this NEP object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( NEPGetOptionsPrefix(self.nep, &prefix) )
         return bytes2str(prefix)
 
@@ -268,7 +268,7 @@ cdef class NEP(Object):
         prefix: string
             The prefix string to prepend to all NEP option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( NEPSetOptionsPrefix(self.nep, cval) )
 
@@ -282,7 +282,7 @@ cdef class NEP(Object):
         prefix: string
             The prefix string to prepend to all NEP option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( NEPAppendOptionsPrefix(self.nep, cval) )
 

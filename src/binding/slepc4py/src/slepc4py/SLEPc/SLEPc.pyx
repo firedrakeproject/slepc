@@ -31,10 +31,7 @@ from petsc4py.PETSc cimport KSP, PC
 
 # -----------------------------------------------------------------------------
 
-cdef extern from * nogil:
-    ctypedef char const_char "const char"
-
-cdef inline object bytes2str(const_char p[]):
+cdef inline object bytes2str(const char p[]):
      if p == NULL:
          return None
      cdef bytes s = <char*>p
@@ -43,16 +40,16 @@ cdef inline object bytes2str(const_char p[]):
      else:
          return s.decode()
 
-cdef inline object str2bytes(object s, const_char *p[]):
+cdef inline object str2bytes(object s, const char *p[]):
     if s is None:
         p[0] = NULL
         return None
     if not isinstance(s, bytes):
         s = s.encode()
-    p[0] = <const_char*>(<char*>s)
+    p[0] = <const char*>(<char*>s)
     return s
 
-cdef inline object S_(const_char p[]):
+cdef inline object S_(const char p[]):
      if p == NULL: return None
      cdef object s = <char*>p
      return s if isinstance(s, str) else s.decode()
@@ -61,31 +58,10 @@ include "allocate.pxi"
 
 # -----------------------------------------------------------------------------
 
-# Vile hack for raising a exception and not contaminating traceback
-
-cdef extern from * nogil:
-    void PyErr_SetObject(object, object)
-    void *PyExc_RuntimeError
-
-cdef object PetscError = <object>PyExc_RuntimeError
-from petsc4py.PETSc import Error as PetscError
-
-cdef inline PetscErrorCode SETERR(PetscErrorCode ierr) with gil:
-    if (<void*>PetscError) != NULL:
-        PyErr_SetObject(PetscError, <long>ierr)
-    else:
-        PyErr_SetObject(<object>PyExc_RuntimeError, <long>ierr)
-    return ierr
-
-# -----------------------------------------------------------------------------
-
 cdef extern from * nogil:
     ctypedef long   PetscInt
     ctypedef double PetscReal
     ctypedef double PetscScalar
-    ctypedef PetscInt    const_PetscInt    "const PetscInt"
-    ctypedef PetscReal   const_PetscReal   "const PetscReal"
-    ctypedef PetscScalar const_PetscScalar "const PetscScalar"
 
 cdef inline object toBool(PetscBool value):
     return True if value else False
@@ -195,7 +171,7 @@ include "CAPI.pyx"
 # -----------------------------------------------------------------------------
 
 cdef extern from "Python.h":
-    int Py_AtExit(void (*)())
+    int Py_AtExit(void (*)() noexcept nogil)
     void PySys_WriteStderr(char*,...)
 
 cdef extern from "<stdio.h>" nogil:
@@ -230,7 +206,7 @@ cdef extern from * nogil:
     PetscClassId SLEPC_NEP_CLASSID "NEP_CLASSID"
     PetscClassId SLEPC_MFN_CLASSID "MFN_CLASSID"
 
-cdef PetscErrorCode register(char path[]) except PETSC_ERR_PYTHON:
+cdef PetscErrorCode register() except PETSC_ERR_PYTHON:
     # make sure all SLEPc packages are initialized
     CHKERR( SlepcInitializePackageAll() )
     # register Python types
@@ -246,7 +222,7 @@ cdef PetscErrorCode register(char path[]) except PETSC_ERR_PYTHON:
     PyPetscType_Register(SLEPC_MFN_CLASSID, MFN)
     return PETSC_SUCCESS
 
-cdef void finalize() nogil:
+cdef void finalize() noexcept nogil:
     cdef PetscErrorCode ierr = PETSC_SUCCESS
     # manage SLEPc finalization
     if not (<int>SlepcInitializeCalled): return
@@ -262,7 +238,7 @@ cdef void finalize() nogil:
 
 def _initialize(args=None):
     cdef int ready = initialize(args)
-    if ready: register(NULL)
+    if ready: register()
 
 def _finalize():
     finalize()

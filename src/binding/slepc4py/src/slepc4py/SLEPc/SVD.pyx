@@ -233,7 +233,7 @@ cdef class SVD(Object):
         prefix: string
                 The prefix string set for this SVD object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( SVDGetOptionsPrefix(self.svd, &prefix) )
         return bytes2str(prefix)
 
@@ -260,7 +260,7 @@ cdef class SVD(Object):
             S1.setOptionsPrefix("svd1_")
             S2.setOptionsPrefix("svd2_")
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( SVDSetOptionsPrefix(self.svd, cval) )
 
@@ -274,7 +274,7 @@ cdef class SVD(Object):
         prefix: string
                 The prefix string to prepend to all SVD option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( SVDAppendOptionsPrefix(self.svd, cval) )
 

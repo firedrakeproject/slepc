@@ -68,7 +68,7 @@ except ImportError:
 
 # Cython
 
-CYTHON = '0.29.36'
+CYTHON = '3.0.0'
 
 def cython_req():
     return CYTHON
@@ -100,8 +100,8 @@ def cython_chk(VERSION, verbose=True):
         return False
     REQUIRED = Version(VERSION)
     PROVIDED = Version(m.groups()[0])
-    if PROVIDED != REQUIRED:
-        warn("You need Cython == {0} (you have version {1})"
+    if PROVIDED < REQUIRED:
+        warn("You need Cython >= {0} (you have version {1})"
              .format(VERSION, CYTHON_VERSION))
         return False
     #
@@ -130,7 +130,7 @@ def cython_run(
             return
     finally:
         os.chdir(cwd)
-    require = 'Cython == %s' % VERSION
+    require = 'Cython >= %s' % VERSION
     if setuptools and not cython_chk(VERSION, verbose=False):
         if sys.modules.get('Cython'):
             removed = getattr(sys.modules['Cython'], '__version__', '')
@@ -518,15 +518,28 @@ class config(_config):
 
 class build(_build):
 
-    user_options = _build.user_options + cmd_petsc_opts
+    user_options = _build.user_options
+    user_options += [(
+        'inplace',
+        'i',
+        "ignore build-lib and put compiled extensions into the source "
+        "directory alongside your pure Python modules",
+    )]
+    user_options += cmd_petsc_opts
+
+    boolean_options = _build.boolean_options
+    boolean_options += ['inplace']
 
     def initialize_options(self):
         _build.initialize_options(self)
+        self.inplace = None
         self.petsc_dir  = None
         self.petsc_arch = None
 
     def finalize_options(self):
         _build.finalize_options(self)
+        if self.inplace is None:
+            self.inplace = False
         self.set_undefined_options('config',
                                    ('petsc_dir',  'petsc_dir'),
                                    ('petsc_arch', 'petsc_arch'))
@@ -573,12 +586,14 @@ class build_ext(_build_ext):
 
     def initialize_options(self):
         _build_ext.initialize_options(self)
+        self.inplace = None
         self.petsc_dir  = None
         self.petsc_arch = None
         self._outputs = []
 
     def finalize_options(self):
         _build_ext.finalize_options(self)
+        self.set_undefined_options('build', ('inplace', 'inplace'))
         self.set_undefined_options('build',
                                    ('petsc_dir',  'petsc_dir'),
                                    ('petsc_arch', 'petsc_arch'))
@@ -763,7 +778,7 @@ def setup(**attrs):
         version = cython_req()
         if not cython_chk(version, verbose=False):
             reqs = attrs.setdefault('setup_requires', [])
-            reqs += ['Cython=='+version]
+            reqs += ['Cython>='+version]
     return _setup(**attrs)
 
 # --------------------------------------------------------------------

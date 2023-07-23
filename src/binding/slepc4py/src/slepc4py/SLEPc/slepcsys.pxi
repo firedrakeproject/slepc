@@ -44,7 +44,7 @@ cdef extern from * nogil:
     PetscErrorCode MatGetLocalSize(PetscMat,PetscInt*,PetscInt*)
 
 cdef extern from * nogil:
-    const_char SLEPC_AUTHOR_INFO[]
+    const char SLEPC_AUTHOR_INFO[]
     PetscErrorCode SlepcGetVersion(char[],size_t)
     PetscErrorCode SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*)
 

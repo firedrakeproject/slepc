@@ -288,7 +288,7 @@ cdef class BV(Object):
         prefix name.  The first character of all runtime options is
         AUTOMATICALLY the hyphen.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( BVSetOptionsPrefix(self.bv, cval) )
 
@@ -302,7 +302,7 @@ cdef class BV(Object):
         prefix: string
                 The prefix string set for this BV object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( BVGetOptionsPrefix(self.bv, &prefix) )
         return bytes2str(prefix)
 

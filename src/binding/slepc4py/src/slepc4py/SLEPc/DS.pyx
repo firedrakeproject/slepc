@@ -175,7 +175,7 @@ cdef class DS(Object):
         prefix name.  The first character of all runtime options is
         AUTOMATICALLY the hyphen.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( DSSetOptionsPrefix(self.ds, cval) )
 
@@ -189,7 +189,7 @@ cdef class DS(Object):
         prefix: string
                 The prefix string set for this DS object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( DSGetOptionsPrefix(self.ds, &prefix) )
         return bytes2str(prefix)
 
