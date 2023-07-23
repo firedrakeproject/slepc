@@ -114,7 +114,7 @@ cdef class MFN(Object):
         prefix: string
             The prefix string set for this MFN object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( MFNGetOptionsPrefix(self.mfn, &prefix) )
         return bytes2str(prefix)
 
@@ -128,7 +128,7 @@ cdef class MFN(Object):
         prefix: string
             The prefix string to prepend to all MFN option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( MFNSetOptionsPrefix(self.mfn, cval) )
 
@@ -142,7 +142,7 @@ cdef class MFN(Object):
         prefix: string
             The prefix string to prepend to all MFN option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( MFNAppendOptionsPrefix(self.mfn, cval) )
 

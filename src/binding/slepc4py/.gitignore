@@ -17,3 +17,4 @@ __pycache__
 src/slepc4py.egg-info
 src/slepc4py/SLEPc.c
 src/slepc4py/SLEPc*.h
+src/slepc4py/lib/*/SLEPc.*.so

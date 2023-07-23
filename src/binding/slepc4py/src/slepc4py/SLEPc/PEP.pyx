@@ -317,7 +317,7 @@ cdef class PEP(Object):
         prefix: string
             The prefix string set for this PEP object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( PEPGetOptionsPrefix(self.pep, &prefix) )
         return bytes2str(prefix)
 
@@ -331,7 +331,7 @@ cdef class PEP(Object):
         prefix: string
             The prefix string to prepend to all PEP option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( PEPSetOptionsPrefix(self.pep, cval) )
 
@@ -345,7 +345,7 @@ cdef class PEP(Object):
         prefix: string
             The prefix string to prepend to all PEP option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( PEPAppendOptionsPrefix(self.pep, cval) )
 

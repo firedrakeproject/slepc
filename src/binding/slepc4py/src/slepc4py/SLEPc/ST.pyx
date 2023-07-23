@@ -141,7 +141,7 @@ cdef class ST(Object):
         prefix name.  The first character of all runtime options is
         AUTOMATICALLY the hyphen.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( STSetOptionsPrefix(self.st, cval) )
 
@@ -155,7 +155,7 @@ cdef class ST(Object):
         prefix: string
                 The prefix string set for this ST object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( STGetOptionsPrefix(self.st, &prefix) )
         return bytes2str(prefix)
 

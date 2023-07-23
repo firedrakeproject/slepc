@@ -357,7 +357,7 @@ cdef class EPS(Object):
         prefix: string
                 The prefix string set for this EPS object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( EPSGetOptionsPrefix(self.eps, &prefix) )
         return bytes2str(prefix)
 
@@ -384,7 +384,7 @@ cdef class EPS(Object):
             E1.setOptionsPrefix("eig1_")
             E2.setOptionsPrefix("eig2_")
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( EPSSetOptionsPrefix(self.eps, cval) )
 
@@ -398,7 +398,7 @@ cdef class EPS(Object):
         prefix: string
                 The prefix string to prepend to all EPS option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( EPSAppendOptionsPrefix(self.eps, cval) )
 
