@@ -229,7 +229,7 @@ cdef extern from * nogil:
 cdef inline NEP ref_NEP(SlepcNEP nep):
     cdef NEP ob = <NEP> NEP()
     ob.nep = nep
-    PetscINCREF(ob.obj)
+    CHKERR( PetscINCREF(ob.obj) )
     return ob
 
 # -----------------------------------------------------------------------------
