@@ -447,7 +447,7 @@ pip-install:
       if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' include/slepcversion.h) == 1 ]; then
         pip install --user .;
         pip install --user src/binding/slepc4py;
-        make -C src/binding/slepc4py/demo run_ex1;  # run only one test until pip-petsc4py is patched
+        make -C src/binding/slepc4py/demo;
       else
         slepc=$PWD;
         cd ..;
@@ -462,7 +462,7 @@ pip-install:
         python -m venv /tmp/env;
         source /tmp/env/bin/activate;
         set -x;
-        pip install -U pip;
+        python -m pip install -U pip==23.0.1    # pin version due to issue with pip 23.1
         pip install numpy;
         pip install $petsc;
         pip install $petsc/src/binding/petsc4py;
