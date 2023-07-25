@@ -50,6 +50,8 @@ typedef struct {
   PetscErrorCode    (*formFunctionA)(SNES,Vec,Vec,void*);
   void              *formFunctionActx;
   PetscErrorCode    (*formFunctionAB)(SNES,Vec,Vec,Vec,void*);
+  PetscErrorCode    (*formNorm)(SNES,Vec,PetscReal*,void*);
+  void              *formNormCtx;
   PetscInt          idx;  /* index of the first nonzero entry in the iteration vector */
   PetscMPIInt       p;    /* process id of the owner of idx */
   PetscReal         norm0; /* norm of initial vector */
@@ -76,6 +78,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   PetscContainer container;
   PetscErrorCode (*formFunctionA)(SNES,Vec,Vec,void*);
   PetscErrorCode (*formJacobianA)(SNES,Vec,Mat,Mat,void*);
+  PetscErrorCode (*formNorm)(SNES,Vec,PetscReal*,void*);
   void           *ctx;
 
   PetscFunctionBegin;
@@ -117,6 +120,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 
     PetscCall(EPSGetOperators(eps,&A,&B));
 
+    /* form function */
     PetscCall(PetscObjectQueryFunction((PetscObject)A,"formFunction",&formFunctionA));
     PetscCheck(formFunctionA,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER,"For nonlinear inverse iteration you must compose a callback function 'formFunction' in matrix A");
     PetscCall(PetscObjectQuery((PetscObject)A,"formFunctionCtx",(PetscObject*)&container));
@@ -133,6 +137,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     else PetscCall(SNESSetFunction(power->snes,res,formFunctionA,ctx));
     PetscCall(VecDestroy(&res));
 
+    /* form Jacobian */
     PetscCall(PetscObjectQueryFunction((PetscObject)A,"formJacobian",&formJacobianA));
     PetscCheck(formJacobianA,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER,"For nonlinear inverse iteration you must compose a callback function 'formJacobian' in matrix A");
     PetscCall(PetscObjectQuery((PetscObject)A,"formJacobianCtx",(PetscObject*)&container));
@@ -146,6 +151,17 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     PetscCall(SNESSetJacobian(power->snes,A,P? P:A,formJacobianA,ctx));
     PetscCall(SNESSetFromOptions(power->snes));
     PetscCall(SNESSetUp(power->snes));
+
+    /* form norm */
+    PetscCall(PetscObjectQueryFunction((PetscObject)A,"formNorm",&formNorm));
+    if (formNorm) {
+      PetscCall(PetscObjectQuery((PetscObject)A,"formNormCtx",(PetscObject*)&container));
+      if (container) PetscCall(PetscContainerGetPointer(container,&ctx));
+      else ctx = NULL;
+      power->formNorm = formNorm;
+      power->formNormCtx = ctx;
+    }
+
     if (B) {
       PetscCall(PetscObjectQueryFunction((PetscObject)B,"formFunction",&power->formFunctionB));
       PetscCall(PetscObjectQuery((PetscObject)B,"formFunctionCtx",(PetscObject*)&container));
@@ -266,7 +282,8 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
     PetscCall(EPSPowerUpdateFunctionA(eps,x,y));
     PetscCall(EPSPowerUpdateFunctionB(eps,x,Bx));
   }
-  PetscCall(VecNorm(Bx,NORM_2,&bx));
+  if (power->formNorm) PetscCall((*power->formNorm)(snes,Bx,&bx,power->formNormCtx));
+  else PetscCall(VecNorm(Bx,NORM_2,&bx));
   PetscCall(Normalize(Bx,bx,power->idx,power->p,&sign));
   PetscCall(VecAXPY(y,-1.0,Bx));
   /* Keep tracking eigenvalue update. It would be useful when we want to monitor solver progress via snes monitor. */
@@ -373,7 +390,8 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       PetscCall(VecScale(v,power->norm0));
     }
     PetscCall(EPSPowerUpdateFunctionB(eps,v,Bx));
-    PetscCall(VecNorm(Bx,NORM_2,&norm));
+    if (power->formNorm) PetscCall((*power->formNorm)(power->snes,Bx,&norm,power->formNormCtx));
+    else PetscCall(VecNorm(Bx,NORM_2,&norm));
     PetscCall(FirstNonzeroIdx(Bx,&power->idx,&power->p));
     PetscCall(Normalize(Bx,norm,power->idx,power->p,NULL));
     PetscCall(BVRestoreColumn(eps->V,0,&v));
@@ -399,7 +417,8 @@ PetscErrorCode EPSSolve_Power(EPS eps)
        */
       if (!power->update) {
         PetscCall(EPSPowerUpdateFunctionB(eps,y,Bx));
-        PetscCall(VecNorm(Bx,NORM_2,&norm));
+        if (power->formNorm) PetscCall((*power->formNorm)(power->snes,Bx,&norm,power->formNormCtx));
+        else PetscCall(VecNorm(Bx,NORM_2,&norm));
         PetscCall(Normalize(Bx,norm,power->idx,power->p,&sign));
       }
     } else {
