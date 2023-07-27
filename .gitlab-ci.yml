@@ -690,7 +690,7 @@ nvidia-c-complex-nompi:
     - compiler:nvidia, name:hapy
   variables:
     LOAD_MODULES: nvhpc-nompi
-    PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-scalar-type=complex --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
+    PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-scalar-type=complex --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1-nvidia
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme --download-arpack
     TEST_OPTS: -j4 -l12
 
@@ -765,7 +765,7 @@ gnu-c-complex128:
     - .stage-3
     - .linux_test
   tags:
-    - linux-debian, name:sejmet
+    - name:hapy
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -775,9 +775,9 @@ intel-c-int64-nompi-mkl:
     - .stage-3
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:igai
+    - compiler:intel, name:jepri
   variables:
-    LOAD_MODULES: icc mpi mkl
-    PETSC_CONFIG_OPTS: --with-cc=icc --with-fc=ifort --with-cxx=icpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-64-bit-indices --with-64-bit-blas-indices --with-mpi=0
+    LOAD_MODULES: compiler mpi mkl
+    PETSC_CONFIG_OPTS: --with-cc=icx --with-fc=ifx --with-cxx=icpx --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-64-bit-indices --with-64-bit-blas-indices --with-mpi=0 --COPTFLAGS='-O -g -fp-model=precise' --CXXOPTFLAGS='-O -g -fp-model=precise' --FOPTFLAGS='-O -g -fp-model=precise'
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
 
