@@ -152,22 +152,23 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     PetscCall(SNESSetFromOptions(power->snes));
     PetscCall(SNESSetUp(power->snes));
 
-    /* form norm */
-    PetscCall(PetscObjectQueryFunction((PetscObject)A,"formNorm",&formNorm));
-    if (formNorm) {
-      PetscCall(PetscObjectQuery((PetscObject)A,"formNormCtx",(PetscObject*)&container));
-      if (container) PetscCall(PetscContainerGetPointer(container,&ctx));
-      else ctx = NULL;
-      power->formNorm = formNorm;
-      power->formNormCtx = ctx;
-    }
-
+    ctx = NULL;
+    formNorm = NULL;
     if (B) {
       PetscCall(PetscObjectQueryFunction((PetscObject)B,"formFunction",&power->formFunctionB));
       PetscCall(PetscObjectQuery((PetscObject)B,"formFunctionCtx",(PetscObject*)&container));
       if (power->formFunctionB && container) PetscCall(PetscContainerGetPointer(container,&power->formFunctionBctx));
       else power->formFunctionBctx = NULL;
+
+      /* form norm */
+      PetscCall(PetscObjectQueryFunction((PetscObject)B,"formNorm",&formNorm));
+      if (formNorm) {
+        PetscCall(PetscObjectQuery((PetscObject)B,"formNormCtx",(PetscObject*)&container));
+        if (container) PetscCall(PetscContainerGetPointer(container,&ctx));
+      }
     }
+    power->formNorm = formNorm;
+    power->formNormCtx = ctx;
   } else {
     if (eps->twosided) PetscCall(EPSSetWorkVecs(eps,3));
     else PetscCall(EPSSetWorkVecs(eps,2));
