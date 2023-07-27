@@ -390,11 +390,9 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       /* We scale the initial vector back if the initial vector was provided by users */
       PetscCall(VecScale(v,power->norm0));
     }
+    /* Determine the firxt non-zero index for Bx and the proc that owns it */
     PetscCall(EPSPowerUpdateFunctionB(eps,v,Bx));
-    if (power->formNorm) PetscCall((*power->formNorm)(power->snes,Bx,&norm,power->formNormCtx));
-    else PetscCall(VecNorm(Bx,NORM_2,&norm));
     PetscCall(FirstNonzeroIdx(Bx,&power->idx,&power->p));
-    PetscCall(Normalize(Bx,norm,power->idx,power->p,NULL));
     PetscCall(BVRestoreColumn(eps->V,0,&v));
   }
 
