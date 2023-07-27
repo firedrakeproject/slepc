@@ -36,6 +36,7 @@ PetscErrorCode FormFunctionB(SNES,Vec,Vec,void*);
 PetscErrorCode MatMult_B(Mat A,Vec x,Vec y);
 PetscErrorCode FormFunctionAB(SNES,Vec,Vec,Vec,void*);
 PetscErrorCode BoundaryGlobalIndex(DM,const char*,IS*);
+PetscErrorCode FormNorm(SNES,Vec,PetscReal*,void*);
 
 typedef struct {
   IS    bdis; /* global indices for boundary DoFs */
@@ -57,7 +58,7 @@ int main(int argc,char **argv)
   PetscBool      nonlin,flg=PETSC_FALSE,update;
   SNES           snes;
   PetscReal      tol,relerr;
-  PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE;
+  PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE,use_custom_norm=PETSC_FALSE;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -81,6 +82,8 @@ int main(int argc,char **argv)
     PetscCall(DMCreateMatrix(dm,&A));
     PetscCall(MatDuplicate(A,MAT_COPY_VALUES,&B));
   }
+  /* Check whether we should use a custom normalization */
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-use_custom_norm",&use_custom_norm,NULL));
 
   /*
      Compose callback functions and context that will be needed by the solver
@@ -90,11 +93,13 @@ int main(int argc,char **argv)
   if (flg) PetscCall(PetscObjectComposeFunction((PetscObject)A,"formFunctionAB",FormFunctionAB));
   PetscCall(PetscObjectComposeFunction((PetscObject)A,"formJacobian",FormJacobianA));
   PetscCall(PetscObjectComposeFunction((PetscObject)B,"formFunction",FormFunctionB));
+  if (use_custom_norm) PetscCall(PetscObjectComposeFunction((PetscObject)B,"formNorm",FormNorm));
   PetscCall(PetscContainerCreate(comm,&container));
   PetscCall(PetscContainerSetPointer(container,&user));
   PetscCall(PetscObjectCompose((PetscObject)A,"formFunctionCtx",(PetscObject)container));
   PetscCall(PetscObjectCompose((PetscObject)A,"formJacobianCtx",(PetscObject)container));
   PetscCall(PetscObjectCompose((PetscObject)B,"formFunctionCtx",(PetscObject)container));
+  if (use_custom_norm) PetscCall(PetscObjectCompose((PetscObject)B,"formNormCtx",(PetscObject)container));
   PetscCall(PetscContainerDestroy(&container));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -176,7 +181,8 @@ int main(int argc,char **argv)
     PetscCall(FormFunctionB(snes,eigen,b,&user));
     PetscCall(VecAXPY(a,-k,b));
     PetscCall(VecNorm(a,NORM_2,&na));
-    PetscCall(VecNorm(b,NORM_2,&nb));
+    if (use_custom_norm) PetscCall(FormNorm(snes,b,&nb,&user));
+    else PetscCall(VecNorm(b,NORM_2,&nb));
     relerr = na/(nb*PetscAbsScalar(k));
     if (relerr<10*tol) PetscCall(PetscPrintf(comm,"k: %g, relative error below tol\n",(double)PetscRealPart(k)));
     else PetscCall(PetscPrintf(comm,"k: %g, relative error: %g\n",(double)PetscRealPart(k),(double)relerr));
@@ -447,6 +453,18 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+PetscErrorCode FormNorm(SNES snes,Vec Bx,PetscReal* norm,void *ctx)
+{
+  AppCtx *userctx = (AppCtx *)ctx;
+  Vec     u;
+
+  PetscFunctionBegin;
+  PetscCheck(snes == userctx->snes,PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_WRONG,"SNES argument and application context's SNES should be the same");
+  PetscCall(SNESGetSolution(snes,&u));
+  PetscCall(VecNorm(u,NORM_2,norm));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 PetscErrorCode MatMult_A(Mat A,Vec x,Vec y)
 {
   AppCtx         *userctx;
@@ -528,4 +546,7 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
          args: -use_shell_matrix -eps_power_update -init_eps_power_snes_mf_operator 1 -eps_power_snes_mf_operator 1 -form_function_ab {{0 1}} -eps_monitor_all
          output_file: output/ex34_6.out
          filter: sed -e "s/\([+-].*i\)//g" -e "1,3s/[0-9]//g" -e "/[45] EPS/d"
+      test:
+         suffix: 7
+         args: -use_custom_norm
 TEST*/
