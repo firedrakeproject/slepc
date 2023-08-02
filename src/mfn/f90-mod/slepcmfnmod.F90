@@ -8,7 +8,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcmfndef
-        use slepcsys
         use slepcbvdef
         use slepcfndef
 #include <../src/mfn/f90-mod/slepcmfn.h>

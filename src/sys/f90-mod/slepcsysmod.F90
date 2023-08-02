@@ -8,14 +8,16 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcsysdef
+        use petscsysdef
         use petscmatdef
-        use petscsys
 #include <../src/sys/f90-mod/slepcsys.h>
         end module
 
         module slepcsys
         use,intrinsic :: iso_c_binding
         use slepcsysdef
+        use petscsys
+        use petscmat
 #include <../src/sys/f90-mod/slepcsys.h90>
         interface
 #include <../src/sys/f90-mod/ftn-auto-interfaces/slepcsys.h90>

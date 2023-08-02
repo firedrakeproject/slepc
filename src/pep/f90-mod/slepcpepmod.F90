@@ -8,11 +8,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcpepdef
-        use slepcsys
-        use slepcstdef
-        use slepcbvdef
-        use slepcrgdef
-        use slepcdsdef
         use slepcepsdef
 #include <../src/pep/f90-mod/slepcpep.h>
         end module
