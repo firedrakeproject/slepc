@@ -767,6 +767,7 @@ gnu-c-complex128:
   tags:
     - name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
