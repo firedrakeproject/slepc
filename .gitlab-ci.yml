@@ -370,7 +370,6 @@ gnu-c-cuda:
   variables:
     LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse --with-magma-dir=/usr/local/opt/magma-2.7.1
-    DISABLE_TESTS: 1
 
 clang-c:
   extends:
@@ -487,7 +486,6 @@ gnu-c-cuda-complex:
     LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
     TEST_OPTS: -j1 -l6 query=requires queryval=cuda
-    DISABLE_TESTS: 1
 
 gnu-c-cuda-single:
   extends:
@@ -499,7 +497,6 @@ gnu-c-cuda-single:
     LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-cuda
     TEST_OPTS: -j1 -l6 query=requires queryval=cuda
-    DISABLE_TESTS: 1
 
 gnu-c-multilib:
   extends:
@@ -640,7 +637,6 @@ gnu-c-complex-coverage:
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-scalar-type=complex --with-debugging=1 --with-coverage=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.9.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
     COVERAGE: 1
-    DISABLE_TESTS: 1
 
 intel-c-complex-int64-mkl:
   extends:
@@ -664,7 +660,6 @@ nvidia-c-nompi:
     PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme=/var/local/downloads/primme-3.2.tar.gz --download-arpack
     TEST_OPTS: -j4 -l12
-    DISABLE_TESTS: 1
 
 gnu-c-complex-valgrind:
   extends:
@@ -695,10 +690,9 @@ nvidia-c-complex-nompi:
     - compiler:nvidia, name:hapy
   variables:
     LOAD_MODULES: nvhpc-nompi
-    PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-scalar-type=complex --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
+    PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-scalar-type=complex --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1-nvidia
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme --download-arpack
     TEST_OPTS: -j4 -l12
-    DISABLE_TESTS: 1
 
 nvidia-cxx-mpi:
   extends:
@@ -711,7 +705,6 @@ nvidia-cxx-mpi:
     PETSC_CONFIG_OPTS: --with-cc=mpicc --with-fc=mpifort --with-cxx=mpicxx --with-clanguage=c++ --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1-nvidia
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme --download-arpack
     TEST_OPTS: -j4 -l12
-    DISABLE_TESTS: 1
 
 intel-c-mkl-install:
   extends:
@@ -756,7 +749,6 @@ gnu-c-cuda-int64:
     PETSC_CONFIG_OPTS: --with-cuda --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.7.1
     TEST_OPTS: -j2 -l6 query=requires queryval=cuda
     MAKE_CUDAFLAGS: --compiler-options -Wall,-Wunused-parameter,-Wno-deprecated-declarations,-Werror
-    DISABLE_TESTS: 1
 
 gnu-c-nocxx:
   extends:
@@ -773,7 +765,7 @@ gnu-c-complex128:
     - .stage-3
     - .linux_test
   tags:
-    - linux-debian, name:sejmet
+    - name:hapy
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -783,9 +775,9 @@ intel-c-int64-nompi-mkl:
     - .stage-3
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:igai
+    - compiler:intel, name:jepri
   variables:
-    LOAD_MODULES: icc mpi mkl
-    PETSC_CONFIG_OPTS: --with-cc=icc --with-fc=ifort --with-cxx=icpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-64-bit-indices --with-64-bit-blas-indices --with-mpi=0
+    LOAD_MODULES: compiler mpi mkl
+    PETSC_CONFIG_OPTS: --with-cc=icx --with-fc=ifx --with-cxx=icpx --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-64-bit-indices --with-64-bit-blas-indices --with-mpi=0 --COPTFLAGS='-O -g -fp-model=precise' --CXXOPTFLAGS='-O -g -fp-model=precise' --FOPTFLAGS='-O -g -fp-model=precise'
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
 
