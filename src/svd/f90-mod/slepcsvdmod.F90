@@ -8,9 +8,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcsvddef
-        use slepcsys
-        use slepcbvdef
-        use slepcdsdef
         use slepcepsdef
 #include <../src/svd/f90-mod/slepcsvd.h>
         end module

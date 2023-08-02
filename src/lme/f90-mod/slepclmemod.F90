@@ -9,14 +9,12 @@
 !
         module slepclmedef
         use slepcbvdef
-        use petscmatdef
 #include <../src/lme/f90-mod/slepclme.h>
         end module
 
         module slepclme
         use slepclmedef
         use slepcbv
-        use petscmat
 #include <../src/lme/f90-mod/slepclme.h90>
         interface
 #include <../src/lme/f90-mod/ftn-auto-interfaces/slepclme.h90>

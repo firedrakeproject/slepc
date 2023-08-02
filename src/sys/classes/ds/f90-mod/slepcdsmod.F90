@@ -10,7 +10,6 @@
         module slepcdsdef
         use slepcfndef
         use slepcrgdef
-        use slepcsys
 #include <../src/sys/classes/ds/f90-mod/slepcds.h>
         end module
 

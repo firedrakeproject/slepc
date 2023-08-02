@@ -29,8 +29,8 @@
       PetscErrorCode ierr
       PetscBool      flg,verbose,inplace
       PetscReal      re,im,nrm
-      PetscScalar    aa(1),tau,eta,alpha,x,y,yp
-      PetscOffset    ia
+      PetscScalar    tau,eta,alpha,x,y,yp
+      PetscScalar, pointer :: aa(:,:)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -67,9 +67,9 @@
       call MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,A,   &
      &     ierr)
       call PetscObjectSetName(A,'A',ierr)
-      call MatDenseGetArray(A,aa,ia,ierr)
-      call FillUpMatrix(n,aa(ia+1))
-      call MatDenseRestoreArray(A,aa,ia,ierr)
+      call MatDenseGetArrayF90(A,aa,ierr)
+      call FillUpMatrix(n,aa)
+      call MatDenseRestoreArrayF90(A,aa,ierr)
       call MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

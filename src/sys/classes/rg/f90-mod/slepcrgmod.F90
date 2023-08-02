@@ -8,12 +8,13 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcrgdef
-        use slepcsys
+        use slepcsysdef
 #include <../src/sys/classes/rg/f90-mod/slepcrg.h>
         end module
 
         module slepcrg
         use slepcrgdef
+        use slepcsys
 #include <../src/sys/classes/rg/f90-mod/slepcrg.h90>
         interface
 #include <../src/sys/classes/rg/f90-mod/ftn-auto-interfaces/slepcrg.h90>

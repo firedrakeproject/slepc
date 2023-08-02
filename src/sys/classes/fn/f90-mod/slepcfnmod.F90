@@ -8,12 +8,13 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcfndef
-        use slepcsys
+        use slepcsysdef
 #include <../src/sys/classes/fn/f90-mod/slepcfn.h>
         end module
 
         module slepcfn
         use slepcfndef
+        use slepcsys
 #include <../src/sys/classes/fn/f90-mod/slepcfn.h90>
         interface
 #include <../src/sys/classes/fn/f90-mod/ftn-auto-interfaces/slepcfn.h90>
