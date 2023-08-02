@@ -35,9 +35,9 @@
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
-      PetscScalar    aa(1), wr(100), wi(100)
+      PetscScalar    wr(100), wi(100)
       PetscReal      re, im
-      PetscOffset    ia
+      PetscScalar, pointer :: aa(:,:)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -75,9 +75,9 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call DSGetMat(ds,DS_MAT_A,A,ierr);CHKERRA(ierr)
-      call MatDenseGetArray(A,aa,ia,ierr);CHKERRA(ierr)
-      call FillUpMatrix(n,aa(ia+1))
-      call MatDenseRestoreArray(A,aa,ia,ierr);CHKERRA(ierr)
+      call MatDenseGetArrayF90(A,aa,ierr);CHKERRA(ierr)
+      call FillUpMatrix(n,aa)
+      call MatDenseRestoreArrayF90(A,aa,ierr);CHKERRA(ierr)
       call DSRestoreMat(ds,DS_MAT_A,A,ierr);CHKERRA(ierr)
       call DSSetState(ds,DS_STATE_INTERMEDIATE,ierr);CHKERRA(ierr)
 

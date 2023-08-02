@@ -29,9 +29,9 @@
       BV             X,Y;
       PetscMPIInt    rank
       PetscInt       i,j,n,k,l,izero,ione
-      PetscScalar    qq(1),z(KMAX),val
+      PetscScalar    z(KMAX),val
+      PetscScalar, pointer :: qq(:,:)
       PetscScalar    one,mone,two,zero
-      PetscOffset    iq
       PetscReal      nrm
       PetscBool      flg
       PetscErrorCode ierr
@@ -108,17 +108,17 @@
 
 !     ** Create Mat
       call MatCreateSeqDense(PETSC_COMM_SELF,k,l,PETSC_NULL_SCALAR,Q,ierr);CHKERRA(ierr)
-      call MatDenseGetArray(Q,qq,iq,ierr);CHKERRA(ierr)
-      do i=0,k-1
-        do j=0,l-1
+      call MatDenseGetArrayF90(Q,qq,ierr);CHKERRA(ierr)
+      do i=1,k
+        do j=1,l
           if (i<j) then
-            qq(iq+1+i+j*k) = 2.0
+            qq(i,j) = 2.0
           else
-            qq(iq+1+i+j*k) = -0.5
+            qq(i,j) = -0.5
           end if
         end do
       end do
-      call MatDenseRestoreArray(Q,qq,iq,ierr);CHKERRA(ierr)
+      call MatDenseRestoreArrayF90(Q,qq,ierr);CHKERRA(ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Test several operations

@@ -123,7 +123,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 
     FEAST_RCI(&ijob,&n,&Ze,SCALAR_CAST ctx->work1,ctx->work2,SCALAR_CAST ctx->Aq,SCALAR_CAST ctx->Bq,fpm,&epsout,&loop,&eps->inta,&eps->intb,&ncv,evals,SCALAR_CAST pV,&nconv,eps->errest,&info);
 
-    PetscCheck(ncv==eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"FEAST changed value of ncv to %d",ncv);
+    PetscCheck(ncv==eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"FEAST changed value of ncv to %d",(int)ncv);
     if (ijob == 10) {
       /* set new quadrature point */
       PetscCall(STSetShift(eps->st,Ze.real));
@@ -167,7 +167,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
         PetscCall(VecResetArray(x));
         PetscCall(VecResetArray(y));
       }
-    } else PetscCheck(ijob==0 || ijob==-2,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in FEAST reverse communication interface (ijob=%d)",ijob);
+    } else PetscCheck(ijob==0 || ijob==-2,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in FEAST reverse communication interface (ijob=%d)",(int)ijob);
 
   } while (ijob);
 
@@ -183,7 +183,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
         eps->reason = EPS_DIVERGED_ITS;
         break;
       default:
-        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",info);
+        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",(int)info);
     }
   }
 

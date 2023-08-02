@@ -232,7 +232,7 @@ getincludedirs_slepc:
 	-@${OMAKE} -f gmakefile gmakegetincludedirs_slepc
 
 info:
-	-@${OMAKE} -f gmakefile gmakeinfo
+	+@${OMAKE} -f gmakefile gmakeinfo
 
 check_usermakefile:
 	-@echo "Testing compile with user makefile"

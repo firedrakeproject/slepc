@@ -8,14 +8,15 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcstdef
-        use petscksp
-        use slepcsys
+        use petsckspdef
         use slepcbvdef
 #include <../src/sys/classes/st/f90-mod/slepcst.h>
         end module
 
         module slepcst
         use slepcstdef
+        use petscksp
+        use slepcbv
 #include <../src/sys/classes/st/f90-mod/slepcst.h90>
         interface
 #include <../src/sys/classes/st/f90-mod/ftn-auto-interfaces/slepcst.h90>

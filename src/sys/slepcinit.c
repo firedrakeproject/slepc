@@ -218,7 +218,7 @@ PetscErrorCode SlepcCitationsInitialize(void)
     "   volume = \"31\",\n"
     "   number = \"3\",\n"
     "   pages = \"351--362\",\n"
-    "   year = \"2005,\"\n"
+    "   year = \"2005\",\n"
     "   doi = \"https://doi.org/10.1145/1089014.1089019\"\n"
     "}\n",NULL));
   PetscCall(PetscCitationsRegister("@TechReport{slepc-manual,\n"

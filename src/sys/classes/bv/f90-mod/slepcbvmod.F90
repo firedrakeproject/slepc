@@ -8,12 +8,13 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcbvdef
-        use slepcsys
+        use slepcsysdef
 #include <../src/sys/classes/bv/f90-mod/slepcbv.h>
         end module
 
         module slepcbv
         use slepcbvdef
+        use slepcsys
 #include <../src/sys/classes/bv/f90-mod/slepcbv.h90>
         interface
 #include <../src/sys/classes/bv/f90-mod/ftn-auto-interfaces/slepcbv.h90>
