@@ -23,3 +23,10 @@
         end interface
         end module
 
+! The following module imports all the functionality of SLEPc and PETSc
+        module slepc
+        use slepcnep
+        use slepcmfn
+        use petsc
+        end module
+
