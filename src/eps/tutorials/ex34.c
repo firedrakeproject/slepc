@@ -548,5 +548,5 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
          filter: sed -e "s/\([+-].*i\)//g" -e "1,3s/[0-9]//g" -e "/[45] EPS/d"
       test:
          suffix: 7
-         args: -use_custom_norm
+         args: -use_custom_norm -eps_power_normalize_with_sign 0 -eps_tol 1e-9
 TEST*/

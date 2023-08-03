@@ -44,6 +44,7 @@ typedef struct {
   EPSPowerShiftType shift_type;
   PetscBool         nonlinear;
   PetscBool         update;
+  PetscBool         normalize_with_sign;
   SNES              snes;
   PetscErrorCode    (*formFunctionB)(SNES,Vec,Vec,void*);
   void              *formFunctionBctx;
@@ -210,10 +211,10 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
 }
 
 /*
-   Normalize a vector x with respect to a given norm as well as the
+   Normalize a vector x with respect to a given norm as well as, optionally, the
    sign of the first nonzero entry (assumed to be idx in process p).
 */
-static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,PetscScalar *sign)
+static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,PetscBool normalize_with_sign,PetscScalar *sign)
 {
   PetscScalar       alpha=1.0;
   PetscInt          first,last;
@@ -221,14 +222,16 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,
   const PetscScalar *xx;
 
   PetscFunctionBegin;
-  PetscCall(VecGetOwnershipRange(x,&first,&last));
-  if (idx>=first && idx<last) {
-    PetscCall(VecGetArrayRead(x,&xx));
-    absv = PetscAbsScalar(xx[idx-first]);
-    if (absv>10*PETSC_MACHINE_EPSILON) alpha = xx[idx-first]/absv;
-    PetscCall(VecRestoreArrayRead(x,&xx));
+  if (normalize_with_sign) {
+    PetscCall(VecGetOwnershipRange(x,&first,&last));
+    if (idx>=first && idx<last) {
+      PetscCall(VecGetArrayRead(x,&xx));
+      absv = PetscAbsScalar(xx[idx-first]);
+      if (absv>10*PETSC_MACHINE_EPSILON) alpha = xx[idx-first]/absv;
+      PetscCall(VecRestoreArrayRead(x,&xx));
+    }
+    PetscCallMPI(MPI_Bcast(&alpha,1,MPIU_SCALAR,p,PetscObjectComm((PetscObject)x)));
   }
-  PetscCallMPI(MPI_Bcast(&alpha,1,MPIU_SCALAR,p,PetscObjectComm((PetscObject)x)));
   if (sign) *sign = alpha;
   alpha *= norm;
   PetscCall(VecScale(x,1.0/alpha));
@@ -285,7 +288,7 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
   }
   if (power->formNorm) PetscCall((*power->formNorm)(snes,Bx,&bx,power->formNormCtx));
   else PetscCall(VecNorm(Bx,NORM_2,&bx));
-  PetscCall(Normalize(Bx,bx,power->idx,power->p,&sign));
+  PetscCall(Normalize(Bx,bx,power->idx,power->p,power->normalize_with_sign,&sign));
   PetscCall(VecAXPY(y,-1.0,Bx));
   /* Keep tracking eigenvalue update. It would be useful when we want to monitor solver progress via snes monitor. */
   eps->eigr[(eps->nconv < eps->nev)? eps->nconv:(eps->nconv-1)] = 1.0/(bx*sign);
@@ -418,7 +421,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         PetscCall(EPSPowerUpdateFunctionB(eps,y,Bx));
         if (power->formNorm) PetscCall((*power->formNorm)(power->snes,Bx,&norm,power->formNormCtx));
         else PetscCall(VecNorm(Bx,NORM_2,&norm));
-        PetscCall(Normalize(Bx,norm,power->idx,power->p,&sign));
+        PetscCall(Normalize(Bx,norm,power->idx,power->p,power->normalize_with_sign,&sign));
       }
     } else {
       PetscCall(DSGetArray(eps->ds,DS_MAT_A,&T));
@@ -520,7 +523,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     eps->errest[eps->nconv] = relerr;
 
     /* normalize */
-    if (!power->nonlinear) PetscCall(Normalize(y,norm,power->idx,power->p,NULL));
+    if (!power->nonlinear) PetscCall(Normalize(y,norm,power->idx,power->p,power->normalize_with_sign,NULL));
     PetscCall(BVInsertVec(eps->V,k,y));
 
     if (PetscUnlikely(power->update)) {
@@ -728,6 +731,9 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps,PetscOptionItems *PetscOptionsObj
 
     PetscCall(PetscOptionsBool("-eps_power_update","Update residual monolithically","EPSPowerSetUpdate",power->update,&val,&flg));
     if (flg) PetscCall(EPSPowerSetUpdate(eps,val));
+
+    power->normalize_with_sign = PETSC_TRUE;
+    PetscCall(PetscOptionsBool("-eps_power_normalize_with_sign","Normalize Bx with sign of first nonzero entry","None",power->normalize_with_sign,&power->normalize_with_sign,&flg));
 
   PetscOptionsHeadEnd();
   PetscFunctionReturn(PETSC_SUCCESS);
