@@ -58,7 +58,7 @@ int main(int argc,char **argv)
   PetscBool      nonlin,flg=PETSC_FALSE,update;
   SNES           snes;
   PetscReal      tol,relerr;
-  PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE,use_custom_norm=PETSC_FALSE;
+  PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE,use_custom_norm=PETSC_FALSE,sign_normalization=PETSC_TRUE;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -84,6 +84,8 @@ int main(int argc,char **argv)
   }
   /* Check whether we should use a custom normalization */
   PetscCall(PetscOptionsGetBool(NULL,NULL,"-use_custom_norm",&use_custom_norm,NULL));
+  /* Check whether we should normalize Bx by the sign of its first nonzero element */
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-sign_normalization",&sign_normalization,NULL));
 
   /*
      Compose callback functions and context that will be needed by the solver
@@ -114,6 +116,8 @@ int main(int argc,char **argv)
   */
   PetscCall(EPSSetType(eps,EPSPOWER));
   PetscCall(EPSPowerSetNonlinear(eps,PETSC_TRUE));
+  /* Set the Bx sign normalization (or not) */
+  PetscCall(EPSPowerSetSignNormalization(eps,sign_normalization));
   /*
     Attach DM to SNES
   */
@@ -548,5 +552,8 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
          filter: sed -e "s/\([+-].*i\)//g" -e "1,3s/[0-9]//g" -e "/[45] EPS/d"
       test:
          suffix: 7
-         args: -use_custom_norm -eps_power_normalize_with_sign 0 -eps_tol 1e-9
+         args: -use_custom_norm -sign_normalization 0 -eps_tol 1e-9
+      test:
+         suffix: 8
+         args: -use_custom_norm -eps_tol 1e-9
 TEST*/

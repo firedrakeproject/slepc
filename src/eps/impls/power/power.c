@@ -44,7 +44,7 @@ typedef struct {
   EPSPowerShiftType shift_type;
   PetscBool         nonlinear;
   PetscBool         update;
-  PetscBool         normalize_with_sign;
+  PetscBool         sign_normalization;
   SNES              snes;
   PetscErrorCode    (*formFunctionB)(SNES,Vec,Vec,void*);
   void              *formFunctionBctx;
@@ -214,7 +214,7 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
    Normalize a vector x with respect to a given norm as well as, optionally, the
    sign of the first nonzero entry (assumed to be idx in process p).
 */
-static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,PetscBool normalize_with_sign,PetscScalar *sign)
+static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,PetscBool sign_normalization,PetscScalar *sign)
 {
   PetscScalar       alpha=1.0;
   PetscInt          first,last;
@@ -222,7 +222,7 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,
   const PetscScalar *xx;
 
   PetscFunctionBegin;
-  if (normalize_with_sign) {
+  if (sign_normalization) {
     PetscCall(VecGetOwnershipRange(x,&first,&last));
     if (idx>=first && idx<last) {
       PetscCall(VecGetArrayRead(x,&xx));
@@ -288,7 +288,7 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
   }
   if (power->formNorm) PetscCall((*power->formNorm)(snes,Bx,&bx,power->formNormCtx));
   else PetscCall(VecNorm(Bx,NORM_2,&bx));
-  PetscCall(Normalize(Bx,bx,power->idx,power->p,power->normalize_with_sign,&sign));
+  PetscCall(Normalize(Bx,bx,power->idx,power->p,power->sign_normalization,&sign));
   PetscCall(VecAXPY(y,-1.0,Bx));
   /* Keep tracking eigenvalue update. It would be useful when we want to monitor solver progress via snes monitor. */
   eps->eigr[(eps->nconv < eps->nev)? eps->nconv:(eps->nconv-1)] = 1.0/(bx*sign);
@@ -421,7 +421,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         PetscCall(EPSPowerUpdateFunctionB(eps,y,Bx));
         if (power->formNorm) PetscCall((*power->formNorm)(power->snes,Bx,&norm,power->formNormCtx));
         else PetscCall(VecNorm(Bx,NORM_2,&norm));
-        PetscCall(Normalize(Bx,norm,power->idx,power->p,power->normalize_with_sign,&sign));
+        PetscCall(Normalize(Bx,norm,power->idx,power->p,power->sign_normalization,&sign));
       }
     } else {
       PetscCall(DSGetArray(eps->ds,DS_MAT_A,&T));
@@ -523,7 +523,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     eps->errest[eps->nconv] = relerr;
 
     /* normalize */
-    if (!power->nonlinear) PetscCall(Normalize(y,norm,power->idx,power->p,power->normalize_with_sign,NULL));
+    if (!power->nonlinear) PetscCall(Normalize(y,norm,power->idx,power->p,power->sign_normalization,NULL));
     PetscCall(BVInsertVec(eps->V,k,y));
 
     if (PetscUnlikely(power->update)) {
@@ -732,8 +732,8 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps,PetscOptionItems *PetscOptionsObj
     PetscCall(PetscOptionsBool("-eps_power_update","Update residual monolithically","EPSPowerSetUpdate",power->update,&val,&flg));
     if (flg) PetscCall(EPSPowerSetUpdate(eps,val));
 
-    power->normalize_with_sign = PETSC_TRUE;
-    PetscCall(PetscOptionsBool("-eps_power_normalize_with_sign","Normalize Bx with sign of first nonzero entry","None",power->normalize_with_sign,&power->normalize_with_sign,&flg));
+    power->sign_normalization = PETSC_TRUE;
+    PetscCall(PetscOptionsBool("-eps_power_sign_normalization","Normalize Bx with sign of first nonzero entry","EPSPowerSetSignNormalization",power->sign_normalization,&power->sign_normalization,&flg));
 
   PetscOptionsHeadEnd();
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -987,6 +987,80 @@ PetscErrorCode EPSPowerGetUpdate(EPS eps,PetscBool *update)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+static PetscErrorCode EPSPowerSetSignNormalization_Power(EPS eps,PetscBool sign_normalization)
+{
+  EPS_POWER *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  power->sign_normalization = sign_normalization;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   EPSPowerSetSignNormalization - Sets a flag to indicate whether the Bx vector
+   should be normalized by the sign of the first non-zero element in the vector.
+   E.g., if this is true, the post-normalization value of the first non-zero element
+   in the vector is guaranteed to be positive.
+
+   Logically Collective
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  sign_normalization - whether Bx should be multiplied by the sign of the first non-zero
+                        element when performing normalization steps
+
+   Options Database Key:
+.  -eps_power_sign_normalization - Sets the sign normalization flag
+
+   Level: advanced
+
+.seealso: EPSPowerGetSignNormalization()
+@*/
+PetscErrorCode EPSPowerSetSignNormalization(EPS eps,PetscBool sign_normalization)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,sign_normalization,2);
+  PetscTryMethod(eps,"EPSPowerSetSignNormalization_C",(EPS,PetscBool),(eps,sign_normalization));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode EPSPowerGetSignNormalization_Power(EPS eps,PetscBool *sign_normalization)
+{
+  EPS_POWER *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  *sign_normalization = power->sign_normalization;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   EPSPowerGetSignNormalization - Returns a flag indicating whether the Bx vector
+   is normalized by the sign of the first non-zero element in the vector. E.g.,
+   if this is true, the post-normalization value of the first non-zero element in
+   the vector is guaranteed to be positive.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  sign_normalization - the sign normalization flag
+
+   Level: advanced
+
+.seealso: EPSPowerSetSignNormalization()
+@*/
+PetscErrorCode EPSPowerGetSignNormalization(EPS eps,PetscBool *sign_normalization)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscAssertPointer(sign_normalization,2);
+  PetscUseMethod(eps,"EPSPowerGetSignNormalization_C",(EPS,PetscBool*),(eps,sign_normalization));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 static PetscErrorCode EPSPowerSetSNES_Power(EPS eps,SNES snes)
 {
   EPS_POWER      *power = (EPS_POWER*)eps->data;
@@ -1086,6 +1160,8 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetNonlinear_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetUpdate_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetUpdate_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetSignNormalization_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSignNormalization_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetSNES_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSNES_C",NULL));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -1099,6 +1175,8 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
+    if (power->sign_normalization) PetscCall(PetscViewerASCIIPrintf(viewer,"  normalizing Bx by the sign of the first nonzero element\n"));
+    else PetscCall(PetscViewerASCIIPrintf(viewer,"  not normalizing Bx by the sign of the first nonzero element\n"));
     if (power->nonlinear) {
       PetscCall(PetscViewerASCIIPrintf(viewer,"  using nonlinear inverse iteration\n"));
       if (power->update) PetscCall(PetscViewerASCIIPrintf(viewer,"  updating the residual monolithically\n"));
@@ -1172,6 +1250,8 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetNonlinear_C",EPSPowerGetNonlinear_Power));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetUpdate_C",EPSPowerSetUpdate_Power));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetUpdate_C",EPSPowerGetUpdate_Power));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetSignNormalization_C",EPSPowerSetSignNormalization_Power));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSignNormalization_C",EPSPowerGetSignNormalization_Power));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetSNES_C",EPSPowerSetSNES_Power));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSNES_C",EPSPowerGetSNES_Power));
   PetscFunctionReturn(PETSC_SUCCESS);

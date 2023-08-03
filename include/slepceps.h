@@ -329,6 +329,8 @@ SLEPC_EXTERN PetscErrorCode EPSPowerSetNonlinear(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSPowerGetNonlinear(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSPowerSetUpdate(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSPowerGetUpdate(EPS,PetscBool*);
+SLEPC_EXTERN PetscErrorCode EPSPowerSetSignNormalization(EPS,PetscBool);
+SLEPC_EXTERN PetscErrorCode EPSPowerGetSignNormalization(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSPowerSetSNES(EPS,SNES);
 SLEPC_EXTERN PetscErrorCode EPSPowerGetSNES(EPS,SNES*);
 
@@ -522,4 +524,3 @@ SLEPC_EXTERN PetscErrorCode EPSFEASTSetNumPoints(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSFEASTGetNumPoints(EPS,PetscInt*);
 
 #endif
-
