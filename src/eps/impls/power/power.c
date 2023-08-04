@@ -405,11 +405,11 @@ PetscErrorCode EPSSolve_Power(EPS eps)
      *    math terms)
      */
     PetscCall(EPSPowerUpdateFunctionB(eps,v,Bx));
+    PetscCall(BVRestoreColumn(eps->V,0,&v));
     if (power->formNorm) PetscCall((*power->formNorm)(power->snes,Bx,&norm,power->formNormCtx));
     else PetscCall(VecNorm(Bx,NORM_2,&norm));
     PetscCall(FirstNonzeroIdx(Bx,&power->idx,&power->p));
     PetscCall(Normalize(Bx,norm,power->idx,power->p,power->sign_normalization,NULL));
-    PetscCall(BVRestoreColumn(eps->V,0,&v));
   }
 
   PetscCall(STGetShift(eps->st,&sigma));    /* original shift */

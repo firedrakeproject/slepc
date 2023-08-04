@@ -467,11 +467,13 @@ PetscErrorCode FormNorm(SNES snes,Vec Bx,PetscReal* norm,void* ctx)
 
   PetscFunctionBegin;
   PetscCall(SNESGetSolution(snes,&u));
-  if (!u) {
+  if (u) PetscCall(VecNorm(u,NORM_2,norm));
+  else {
     PetscCall(EPSGetBV(userctx->eps, &V));
     PetscCall(BVGetColumn(V,0,&u));
+    PetscCall(VecNorm(u,NORM_2,norm));
+    PetscCall(BVRestoreColumn(V,0,&u));
   }
-  PetscCall(VecNorm(u,NORM_2,norm));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -558,8 +560,9 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
          filter: sed -e "s/\([+-].*i\)//g" -e "1,3s/[0-9]//g" -e "/[45] EPS/d"
       test:
          suffix: 7
-         args: -use_custom_norm -sign_normalization 0 -eps_tol 1e-9
+         args: -use_custom_norm -sign_normalization {{0 1}} -eps_tol 1e-9
       test:
          suffix: 8
-         args: -use_custom_norm -eps_tol 1e-9
+         args: -use_custom_norm -sign_normalization {{0 1}} -eps_tol 1e-9 -eps_power_update -form_function_ab {{0 1}}
+         filter: sed -e "s/ with monolithic update//"
 TEST*/
