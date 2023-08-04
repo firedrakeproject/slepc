@@ -732,7 +732,6 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps,PetscOptionItems *PetscOptionsObj
     PetscCall(PetscOptionsBool("-eps_power_update","Update residual monolithically","EPSPowerSetUpdate",power->update,&val,&flg));
     if (flg) PetscCall(EPSPowerSetUpdate(eps,val));
 
-    power->sign_normalization = PETSC_TRUE;
     PetscCall(PetscOptionsBool("-eps_power_sign_normalization","Normalize Bx with sign of first nonzero entry","EPSPowerSetSignNormalization",power->sign_normalization,&power->sign_normalization,&flg));
 
   PetscOptionsHeadEnd();
@@ -1243,6 +1242,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->computevectors = EPSComputeVectors_Power;
   eps->ops->setdefaultst   = EPSSetDefaultST_Power;
   eps->stopping            = EPSStopping_Power;
+  ctx->sign_normalization  = PETSC_TRUE;
 
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power));
