@@ -323,6 +323,7 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   Vec            v1,v2;
   SNES           snes;
   DM             dm,newdm;
+  PetscBool      sign_normalization;
 
   PetscFunctionBegin;
   PetscCall(EPSCreate(PetscObjectComm((PetscObject)eps),&powereps));
@@ -346,6 +347,8 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   PetscCall(DMCopyDMSNES(dm,newdm));
   PetscCall(EPSPowerGetSNES(powereps,&snes));
   PetscCall(SNESSetDM(snes,dm));
+  PetscCall(EPSPowerGetSignNormalization(eps,&sign_normalization));
+  PetscCall(EPSPowerSetSignNormalization(powereps,sign_normalization));
   PetscCall(EPSSetFromOptions(powereps));
   if (P) PetscCall(STSetPreconditionerMat(powereps->st,P));
   PetscCall(EPSSolve(powereps));
