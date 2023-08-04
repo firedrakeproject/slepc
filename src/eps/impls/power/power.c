@@ -396,9 +396,19 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       /* We scale the initial vector back if the initial vector was provided by users */
       PetscCall(VecScale(v,power->norm0));
     }
-    /* Determine the firxt non-zero index for Bx and the proc that owns it */
+    /* Do a couple things:
+     * 1) Determine the first non-zero index for Bx and the proc that owns it. This will be
+     *    used if performing normalization by the sign of the first nonzero element of Bx.
+     * 2) Scale Bx by its norm. For non-update power iterations, Bx (in code terms) is used
+     *    as the RHS argument to SNESSolve. And recall that the formula for generalized
+     *    inverse power iterations in this case is: (Ax)_n = (Bx)_{n-1}/|(Bx)_{n-1}| (in
+     *    math terms)
+     */
     PetscCall(EPSPowerUpdateFunctionB(eps,v,Bx));
+    if (power->formNorm) PetscCall((*power->formNorm)(power->snes,Bx,&norm,power->formNormCtx));
+    else PetscCall(VecNorm(Bx,NORM_2,&norm));
     PetscCall(FirstNonzeroIdx(Bx,&power->idx,&power->p));
+    PetscCall(Normalize(Bx,norm,power->idx,power->p,power->sign_normalization,NULL));
     PetscCall(BVRestoreColumn(eps->V,0,&v));
   }
 

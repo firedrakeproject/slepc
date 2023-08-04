@@ -41,6 +41,7 @@ PetscErrorCode FormNorm(SNES,Vec,PetscReal*,void*);
 typedef struct {
   IS    bdis; /* global indices for boundary DoFs */
   SNES  snes;
+  EPS   eps;
 } AppCtx;
 
 int main(int argc,char **argv)
@@ -111,6 +112,7 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(comm,&eps));
   PetscCall(EPSSetOperators(eps,A,B));
   PetscCall(EPSSetProblemType(eps,EPS_GNHEP));
+  user.eps = eps;
   /*
      Use nonlinear inverse iteration
   */
@@ -457,14 +459,18 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FormNorm(SNES snes,Vec Bx,PetscReal* norm,void *ctx)
+PetscErrorCode FormNorm(SNES snes,Vec Bx,PetscReal* norm,void* ctx)
 {
-  AppCtx *userctx = (AppCtx *)ctx;
   Vec     u;
+  AppCtx* userctx = (AppCtx*)ctx;
+  BV      V;
 
   PetscFunctionBegin;
-  PetscCheck(snes == userctx->snes,PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_WRONG,"SNES argument and application context's SNES should be the same");
   PetscCall(SNESGetSolution(snes,&u));
+  if (!u) {
+    PetscCall(EPSGetBV(userctx->eps, &V));
+    PetscCall(BVGetColumn(V,0,&u));
+  }
   PetscCall(VecNorm(u,NORM_2,norm));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
