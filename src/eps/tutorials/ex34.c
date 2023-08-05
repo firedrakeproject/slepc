@@ -459,21 +459,10 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FormNorm(SNES snes,Vec Bx,PetscReal* norm,void* ctx)
+PetscErrorCode FormNorm(SNES snes,Vec Bx,PetscReal *norm,void *ctx)
 {
-  Vec     u;
-  AppCtx* userctx = (AppCtx*)ctx;
-  BV      V;
-
   PetscFunctionBegin;
-  PetscCall(SNESGetSolution(snes,&u));
-  if (u) PetscCall(VecNorm(u,NORM_2,norm));
-  else {
-    PetscCall(EPSGetBV(userctx->eps, &V));
-    PetscCall(BVGetColumn(V,0,&u));
-    PetscCall(VecNorm(u,NORM_2,norm));
-    PetscCall(BVRestoreColumn(V,0,&u));
-  }
+  PetscCall(VecNorm(Bx,NORM_2,norm));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
