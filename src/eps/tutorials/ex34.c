@@ -549,9 +549,27 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
          filter: sed -e "s/\([+-].*i\)//g" -e "1,3s/[0-9]//g" -e "/[45] EPS/d"
       test:
          suffix: 7
-         args: -use_custom_norm -sign_normalization {{0 1}} -eps_tol 1e-9 -eps_power_snes_mf_operator 1
+         args: -use_custom_norm -sign_normalization 1 -eps_power_snes_mf_operator 1
       test:
          suffix: 8
-         args: -use_custom_norm -sign_normalization {{0 1}} -eps_tol 1e-9 -eps_power_update -form_function_ab {{0 1}} -eps_power_snes_mf_operator 1 -init_eps_power_snes_mf_operator 1
+         args: -use_custom_norm -sign_normalization 1 -eps_power_update -form_function_ab {{0 1}} -eps_power_snes_mf_operator 1 -init_eps_power_snes_mf_operator 1
+         filter: sed -e "s/ with monolithic update//"
+      test:
+         suffix: 9
+         requires: !complex
+         args: -use_custom_norm {{0 1}} -sign_normalization 0 -eps_power_snes_mf_operator 1
+      test:
+         suffix: 10
+         requires: !complex
+         args: -use_custom_norm {{0 1}} -sign_normalization 0 -eps_power_update -form_function_ab {{0 1}} -eps_power_snes_mf_operator 1 -init_eps_power_snes_mf_operator 1
+         filter: sed -e "s/ with monolithic update//"
+      test:
+         suffix: 11
+         requires: complex
+         args: -use_custom_norm {{0 1}} -sign_normalization 0 -eps_power_snes_type nrichardson -eps_power_snes_atol 1e-12
+      test:
+         suffix: 12
+         requires: complex
+         args: -use_custom_norm {{0 1}} -sign_normalization 0 -eps_power_update -init_eps_power_snes_type nrichardson -init_eps_max_it 2 -eps_power_snes_mf_operator 1
          filter: sed -e "s/ with monolithic update//"
 TEST*/
