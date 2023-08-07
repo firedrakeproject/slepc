@@ -54,6 +54,7 @@ def __prepare_ns_args(ns_args, parser):
 
 def command_line_main():
   import argparse
+  import petsclinter.main
 
   slepc_classid_map = {
     '_p_BV *'  : 'BV_CLASSID',
@@ -70,7 +71,7 @@ def command_line_main():
   }
 
   for struct_name, classid_name in slepc_classid_map.items():
-    pl.register_classid(struct_name, classid_name)
+    pl.checks.register_classid(struct_name, classid_name)
 
   parser      = argparse.ArgumentParser(prog='slepclinter', add_help=False)
   group_slepc = parser.add_argument_group(title='SLEPc location settings')
