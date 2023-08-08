@@ -491,6 +491,7 @@ Downloaded package %s from: %s is not a tarball.
 
     slepcconf.write('#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n')
     slepcvars.write(name + '_LIB = '+flags+'\n')
+    self.libflags = flags
     self.havepackage = True
     self.packageflags = flags
 

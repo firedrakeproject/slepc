@@ -265,6 +265,19 @@ with slepc.CreateFile(confdir,'slepcvariables') as slepcvars:
       for pkg in petscpackages + externalpackages:
         if hasattr(pkg,'havepackage') and pkg.havepackage: slepcconf.write(pkg.packagename+':')
       slepcconf.write('"\n#endif\n')
+      libflags = []
+      includeflags = []
+      for pkg in externalwithdeps:
+        if hasattr(pkg,'havepackage') and pkg.havepackage:
+          for entry in pkg.libflags.split():
+            if entry not in libflags:
+               libflags.append(entry)
+          if hasattr(pkg,'includeflags'):
+            for entry in pkg.includeflags.split():
+              if entry not in includeflags:
+                 includeflags.append(entry)
+      slepcvars.write('SLEPC_EXTERNAL_LIB = '+' '.join(libflags)+'\n')
+      slepcvars.write('SLEPC_CEXT_INCLUDES = '+' '.join(includeflags)+'\n')
 
 log.NewSection('Writing various configuration files...')
 
