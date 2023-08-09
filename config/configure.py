@@ -277,7 +277,7 @@ with slepc.CreateFile(confdir,'slepcvariables') as slepcvars:
               if entry not in includeflags:
                  includeflags.append(entry)
       slepcvars.write('SLEPC_EXTERNAL_LIB = '+' '.join(libflags)+'\n')
-      slepcvars.write('SLEPC_CEXT_INCLUDES = '+' '.join(includeflags)+'\n')
+      slepcvars.write('SLEPC_EXTERNAL_INCLUDES = '+' '.join(includeflags)+'\n')
 
 log.NewSection('Writing various configuration files...')
 
