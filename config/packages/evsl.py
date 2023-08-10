@@ -67,9 +67,11 @@ class Evsl(package.Package):
           f = []
         (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
         if result:
+          self.libflags = ' '.join(l)
+          self.includeflags = ' '.join(f)
           slepcconf.write('#define SLEPC_HAVE_EVSL 1\n')
-          slepcvars.write('EVSL_LIB = ' + ' '.join(l) + '\n')
-          slepcvars.write('EVSL_INCLUDE = ' + ' '.join(f) + '\n')
+          slepcvars.write('EVSL_LIB = ' + self.libflags + '\n')
+          slepcvars.write('EVSL_INCLUDE = ' + self.includeflags + '\n')
           self.havepackage = True
           self.packageflags = ' '.join(l+f)
           return
@@ -107,9 +109,11 @@ class Evsl(package.Package):
       self.log.Exit('Unable to link with downloaded EVSL')
 
     # Write configuration files
+    self.libflags = l
+    self.includeflags = f
     slepcconf.write('#define SLEPC_HAVE_EVSL 1\n')
-    slepcvars.write('EVSL_LIB = ' + l + '\n')
-    slepcvars.write('EVSL_INCLUDE = ' + f + '\n')
+    slepcvars.write('EVSL_LIB = ' + self.libflags + '\n')
+    slepcvars.write('EVSL_INCLUDE = ' + self.includeflags + '\n')
 
     self.havepackage = True
     self.packageflags = l+' '+f

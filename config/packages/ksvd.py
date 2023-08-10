@@ -72,9 +72,11 @@ class Ksvd(package.Package):
           f = []
         (result, output) = self.Link([],[],' '.join(l+f+self.elpa.libflags+self.polar.libflags),code,' '.join(f+[self.elpa.includeflags]),petsc.language)
         if result:
+          self.libflags = ' '.join(l)
+          self.includeflags = ' '.join(f)
           slepcconf.write('#define SLEPC_HAVE_KSVD 1\n')
-          slepcvars.write('KSVD_LIB = ' + ' '.join(l) + '\n')
-          slepcvars.write('KSVD_INCLUDE = ' + ' '.join(f) + '\n')
+          slepcvars.write('KSVD_LIB = ' + self.libflags + '\n')
+          slepcvars.write('KSVD_INCLUDE = ' + self.includeflags + '\n')
           self.havepackage = True
           self.packageflags = ' '.join(l+f)
           return
@@ -170,9 +172,11 @@ class Ksvd(package.Package):
       self.log.Exit('Unable to link with downloaded KSVD')
 
     # Write configuration files
+    self.libflags = l
+    self.includeflags = f
     slepcconf.write('#define SLEPC_HAVE_KSVD 1\n')
-    slepcvars.write('KSVD_LIB = ' + l + '\n')
-    slepcvars.write('KSVD_INCLUDE = ' + f + '\n')
+    slepcvars.write('KSVD_LIB = ' + self.libflags + '\n')
+    slepcvars.write('KSVD_INCLUDE = ' + self.includeflags + '\n')
 
     self.havepackage = True
     self.packageflags = l+' '+f

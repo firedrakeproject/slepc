@@ -74,8 +74,10 @@ class HPDDM(package.Package):
     l = self.slflag+d+' -L'+d+' -lhpddm_petsc'
     f = '-I'+incdir
     # Write configuration files
+    self.libflags = l
+    self.includeflags = f
     slepcconf.write('#define SLEPC_HAVE_HPDDM 1\n')
-    slepcvars.write('HPDDM_LIB = '+l+'\n')
-    slepcvars.write('HPDDM_INCLUDE = '+f+'\n')
+    slepcvars.write('HPDDM_LIB = '+self.libflags+'\n')
+    slepcvars.write('HPDDM_INCLUDE = '+self.includeflags+'\n')
     self.packageflags = l+' '+f
     self.havepackage = True
