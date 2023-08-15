@@ -4,11 +4,12 @@
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
-#include <petscvec.h>
+#include <slepcsys.h>
 #include <petscblaslapack.h>
 #include <interpreter.h>
 #include <temp_multivector.h>
 #include <fortran_matrix.h>
+#include "petsc-interface.h"
 
 static PetscRandom LOBPCG_RandomContext = NULL;
 
@@ -77,7 +78,7 @@ BlopexInt PETSC_zsygv_interface (BlopexInt *itype,char *jobz,char *uplo,BlopexIn
 }
 #endif
 
-void *PETSC_MimicVector(void *vvector)
+static void *PETSC_MimicVector(void *vvector)
 {
   Vec temp;
 
@@ -85,7 +86,7 @@ void *PETSC_MimicVector(void *vvector)
   return (void*)temp;
 }
 
-BlopexInt PETSC_DestroyVector(void *vvector)
+static BlopexInt PETSC_DestroyVector(void *vvector)
 {
   Vec v = (Vec)vvector;
 
@@ -93,28 +94,28 @@ BlopexInt PETSC_DestroyVector(void *vvector)
   return 0;
 }
 
-BlopexInt PETSC_InnerProd(void *x,void *y,void *result)
+static BlopexInt PETSC_InnerProd(void *x,void *y,void *result)
 {
 
   PetscCall(VecDot((Vec)x,(Vec)y,(PetscScalar*)result));
   return 0;
 }
 
-BlopexInt PETSC_CopyVector(void *x,void *y)
+static BlopexInt PETSC_CopyVector(void *x,void *y)
 {
 
   PetscCall(VecCopy((Vec)x,(Vec)y));
   return 0;
 }
 
-BlopexInt PETSC_ClearVector(void *x)
+static BlopexInt PETSC_ClearVector(void *x)
 {
 
   PetscCall(VecSet((Vec)x,0.0));
   return 0;
 }
 
-BlopexInt PETSC_SetRandomValues(void* v,BlopexInt seed)
+static BlopexInt PETSC_SetRandomValues(void* v,BlopexInt seed)
 {
 
   /* note: without previous call to LOBPCG_InitRandomContext LOBPCG_RandomContext will be null,
@@ -124,21 +125,21 @@ BlopexInt PETSC_SetRandomValues(void* v,BlopexInt seed)
   return 0;
 }
 
-BlopexInt PETSC_ScaleVector(double alpha,void *x)
+static BlopexInt PETSC_ScaleVector(double alpha,void *x)
 {
 
   PetscCall(VecScale((Vec)x,alpha));
   return 0;
 }
 
-BlopexInt PETSC_Axpy(void *alpha,void *x,void *y)
+static BlopexInt PETSC_Axpy(void *alpha,void *x,void *y)
 {
 
   PetscCall(VecAXPY((Vec)y,*(PetscScalar*)alpha,(Vec)x));
   return 0;
 }
 
-BlopexInt PETSC_VectorSize(void *x)
+static BlopexInt PETSC_VectorSize(void *x)
 {
   PetscInt N;
   (void)VecGetSize((Vec)x,&N);

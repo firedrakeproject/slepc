@@ -9,53 +9,16 @@
 #include <interpreter.h>
 
 #if !defined(PETSC_USE_COMPLEX)
-BlopexInt PETSC_dpotrf_interface (char *uplo, BlopexInt *n, double *a, BlopexInt * lda, BlopexInt *info);
-BlopexInt PETSC_dsygv_interface (BlopexInt *itype, char *jobz, char *uplo, BlopexInt *
-                    n, double *a, BlopexInt *lda, double *b, BlopexInt *ldb,
-                    double *w, double *work, BlopexInt *lwork, BlopexInt *info);
+SLEPC_INTERN BlopexInt PETSC_dpotrf_interface(char*,BlopexInt*,double*,BlopexInt*,BlopexInt*);
+SLEPC_INTERN BlopexInt PETSC_dsygv_interface(BlopexInt*,char*,char*,BlopexInt*,double*,BlopexInt*,double*,BlopexInt*,double*,double*,BlopexInt*,BlopexInt*);
 #else
-BlopexInt PETSC_zpotrf_interface (char *uplo, BlopexInt *n, komplex *a, BlopexInt * lda, BlopexInt *info);
-BlopexInt PETSC_zsygv_interface (BlopexInt *itype, char *jobz, char *uplo, BlopexInt *
-                    n, komplex *a, BlopexInt *lda, komplex *b, BlopexInt *ldb,
-                    double *w, komplex *work, BlopexInt *lwork, double *rwork, BlopexInt *info);
+SLEPC_INTERN BlopexInt PETSC_zpotrf_interface(char*,BlopexInt*,komplex*,BlopexInt*,BlopexInt*);
+SLEPC_INTERN BlopexInt PETSC_zsygv_interface(BlopexInt*,char*,char*,BlopexInt*,komplex*,BlopexInt*,komplex*,BlopexInt*,double*,komplex*,BlopexInt*,double*,BlopexInt*);
 #endif
 
-void *
-PETSC_MimicVector(void *vvector);
-
-BlopexInt
-PETSC_DestroyVector(void *vvector);
-
-BlopexInt
-PETSC_InnerProd(void *x, void *y, void *result);
-
-BlopexInt
-PETSC_CopyVector(void *x, void *y);
-
-BlopexInt
-PETSC_ClearVector(void *x);
-
-BlopexInt
-PETSC_SetRandomValues(void* v, BlopexInt seed);
-
-BlopexInt
-PETSC_ScaleVector(void *alpha, void   *x);
-
-BlopexInt
-PETSC_Axpy(void *alpha,
-                void   *x,
-                void   *y);
-
-int
-LOBPCG_InitRandomContext(MPI_Comm,PetscRandom);
-
-int
-LOBPCG_SetFromOptionsRandomContext(void);
-
-int
-LOBPCG_DestroyRandomContext(void);
-
-int
-PETSCSetupInterpreter(mv_InterfaceInterpreter *ii);
+SLEPC_INTERN int LOBPCG_InitRandomContext(MPI_Comm,PetscRandom);
+SLEPC_INTERN int LOBPCG_SetFromOptionsRandomContext(void);
+SLEPC_INTERN int LOBPCG_DestroyRandomContext(void);
+SLEPC_INTERN int PETSCSetupInterpreter(mv_InterfaceInterpreter*);
 
 #endif /* PETSC_INTERFACE_HEADER */
