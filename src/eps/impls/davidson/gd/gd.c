@@ -30,7 +30,7 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/davidson.h>
 
-PetscErrorCode EPSSetFromOptions_GD(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_GD(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,flg2,op,orth;
   PetscInt       opi,opi0;
@@ -66,7 +66,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps,PetscOptionItems *PetscOptionsObject
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_GD(EPS eps)
+static PetscErrorCode EPSSetUp_GD(EPS eps)
 {
   PetscBool      t;
   KSP            ksp;
@@ -82,7 +82,7 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_GD(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_GD(EPS eps,PetscViewer viewer)
 {
   PetscBool      isascii,opb;
   PetscInt       opi,opi0;
@@ -108,7 +108,7 @@ PetscErrorCode EPSView_GD(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_GD(EPS eps)
+static PetscErrorCode EPSDestroy_GD(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));

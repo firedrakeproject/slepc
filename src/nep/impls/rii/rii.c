@@ -34,7 +34,7 @@ typedef struct {
   KSP       ksp;              /* linear solver object */
 } NEP_RII;
 
-PetscErrorCode NEPSetUp_RII(NEP nep)
+static PetscErrorCode NEPSetUp_RII(NEP nep)
 {
   PetscFunctionBegin;
   if (nep->ncv!=PETSC_DEFAULT) PetscCall(PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n"));
@@ -50,7 +50,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSolve_RII(NEP nep)
+static PetscErrorCode NEPSolve_RII(NEP nep)
 {
   NEP_RII            *ctx = (NEP_RII*)nep->data;
   Mat                T,Tp,H,A;
@@ -203,7 +203,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSetFromOptions_RII(NEP nep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode NEPSetFromOptions_RII(NEP nep,PetscOptionItems *PetscOptionsObject)
 {
   NEP_RII        *ctx = (NEP_RII*)nep->data;
   PetscBool      flg;
@@ -685,7 +685,7 @@ PetscErrorCode NEPRIIGetKSP(NEP nep,KSP *ksp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
+static PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
 {
   NEP_RII        *ctx = (NEP_RII*)nep->data;
   PetscBool      isascii;
@@ -706,7 +706,7 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPReset_RII(NEP nep)
+static PetscErrorCode NEPReset_RII(NEP nep)
 {
   NEP_RII        *ctx = (NEP_RII*)nep->data;
 
@@ -715,7 +715,7 @@ PetscErrorCode NEPReset_RII(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPDestroy_RII(NEP nep)
+static PetscErrorCode NEPDestroy_RII(NEP nep)
 {
   NEP_RII        *ctx = (NEP_RII*)nep->data;
 

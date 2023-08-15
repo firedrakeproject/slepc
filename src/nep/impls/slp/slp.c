@@ -31,7 +31,7 @@ typedef struct {
   Vec        w;
 } NEP_SLP_MATSHELL;
 
-PetscErrorCode NEPSetUp_SLP(NEP nep)
+static PetscErrorCode NEPSetUp_SLP(NEP nep)
 {
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
   PetscBool      flg;
@@ -245,7 +245,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSetFromOptions_SLP(NEP nep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode NEPSetFromOptions_SLP(NEP nep,PetscOptionItems *PetscOptionsObject)
 {
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
   PetscBool      flg;
@@ -588,7 +588,7 @@ PetscErrorCode NEPSLPGetKSP(NEP nep,KSP *ksp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
+static PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
 {
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
   PetscBool      isascii;
@@ -611,7 +611,7 @@ PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPReset_SLP(NEP nep)
+static PetscErrorCode NEPReset_SLP(NEP nep)
 {
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
 
@@ -622,7 +622,7 @@ PetscErrorCode NEPReset_SLP(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPDestroy_SLP(NEP nep)
+static PetscErrorCode NEPDestroy_SLP(NEP nep)
 {
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
 

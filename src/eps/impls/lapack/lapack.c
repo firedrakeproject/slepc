@@ -14,7 +14,7 @@
 
 #include <slepc/private/epsimpl.h>
 
-PetscErrorCode EPSSetUp_LAPACK(EPS eps)
+static PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   int            ierra,ierrb;
   PetscBool      isshift,flg,denseok=PETSC_FALSE;
@@ -112,7 +112,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_LAPACK(EPS eps)
+static PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
   PetscInt       n=eps->n,i,low,high;
   PetscScalar    *array,*pX,*pY;

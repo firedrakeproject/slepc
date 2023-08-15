@@ -71,7 +71,7 @@ static PetscErrorCode MatMultTranspose_Cayley(Mat B,Vec x,Vec y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
+static PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
 {
   PetscFunctionBegin;
   PetscCall(STSetUp(st));
@@ -80,7 +80,7 @@ PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
+static PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   ST_CAYLEY   *ctx = (ST_CAYLEY*)st->data;
   PetscInt    j;
@@ -110,7 +110,7 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STPostSolve_Cayley(ST st)
+static PetscErrorCode STPostSolve_Cayley(ST st)
 {
   PetscFunctionBegin;
   if (st->matmode == ST_MATMODE_INPLACE) {
@@ -129,7 +129,7 @@ PetscErrorCode STPostSolve_Cayley(ST st)
    if nmat=1:  (A-sI)^-1 (A+tI)    A-sI      A+tI
    if nmat=2:  (A-sB)^-1 (A+tB)    A-sB      A+tI
 */
-PetscErrorCode STComputeOperator_Cayley(ST st)
+static PetscErrorCode STComputeOperator_Cayley(ST st)
 {
   PetscInt       n,m;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
@@ -162,7 +162,7 @@ PetscErrorCode STComputeOperator_Cayley(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetUp_Cayley(ST st)
+static PetscErrorCode STSetUp_Cayley(ST st)
 {
   PetscFunctionBegin;
   PetscCheck(st->nmat<=2,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cayley transform cannot be used in polynomial eigenproblems");
@@ -171,7 +171,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
+static PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 {
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
@@ -197,7 +197,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetFromOptions_Cayley(ST st,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode STSetFromOptions_Cayley(ST st,PetscOptionItems *PetscOptionsObject)
 {
   PetscScalar    nu;
   PetscBool      flg;
@@ -292,7 +292,7 @@ PetscErrorCode STCayleyGetAntishift(ST st,PetscScalar *nu)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
+static PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
 {
   char           str[50];
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
@@ -307,7 +307,7 @@ PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STDestroy_Cayley(ST st)
+static PetscErrorCode STDestroy_Cayley(ST st)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(st->data));

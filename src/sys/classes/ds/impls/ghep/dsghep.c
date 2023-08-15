@@ -11,7 +11,7 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode DSAllocate_GHEP(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_GHEP(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
@@ -22,7 +22,7 @@ PetscErrorCode DSAllocate_GHEP(DS ds,PetscInt ld)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
 {
   PetscViewerFormat format;
 
@@ -36,7 +36,7 @@ PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+static PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscScalar       *Z;
   const PetscScalar *Q;
@@ -72,7 +72,7 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscInt       n,l,i,*perm,ld=ds->ld;
   PetscScalar    *A;
@@ -93,7 +93,7 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscScalar    *work,*A,*B,*Q;
   PetscBLASInt   itype = 1,*iwork,info,n1,liwork,ld,lrwork=0,lwork;
@@ -145,7 +145,7 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscScalar    *A,*B,*Q;
   PetscInt       ld=ds->ld,l=ds->l,k;
@@ -183,7 +183,7 @@ PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSHermitian_GHEP(DS ds,DSMatType m,PetscBool *flg)
+static PetscErrorCode DSHermitian_GHEP(DS ds,DSMatType m,PetscBool *flg)
 {
   PetscFunctionBegin;
   if (m==DS_MAT_A || m==DS_MAT_B) *flg = PETSC_TRUE;

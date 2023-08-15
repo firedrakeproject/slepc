@@ -24,7 +24,7 @@ typedef struct {
   FNCombineType comb;     /* how the functions are combined */
 } FN_COMBINE;
 
-PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
+static PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
 {
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscScalar    a,b;
@@ -52,7 +52,7 @@ PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
+static PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
 {
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscScalar    a,b,ap,bp;
@@ -89,7 +89,7 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
+static PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 {
   FN_COMBINE   *ctx = (FN_COMBINE*)fn->data;
   Mat          W,Z,F;
@@ -129,7 +129,7 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
+static PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
 {
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscBool      iscuda;
@@ -178,7 +178,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
+static PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
 {
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscBool      isascii;
@@ -293,7 +293,7 @@ PetscErrorCode FNCombineGetChildren(FN fn,FNCombineType *comb,FN *f1,FN *f2)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNDuplicate_Combine(FN fn,MPI_Comm comm,FN *newfn)
+static PetscErrorCode FNDuplicate_Combine(FN fn,MPI_Comm comm,FN *newfn)
 {
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data,*ctx2 = (FN_COMBINE*)(*newfn)->data;
 
@@ -304,7 +304,7 @@ PetscErrorCode FNDuplicate_Combine(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNDestroy_Combine(FN fn)
+static PetscErrorCode FNDestroy_Combine(FN fn)
 {
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
 

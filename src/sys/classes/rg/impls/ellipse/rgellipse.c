@@ -111,7 +111,7 @@ PetscErrorCode RGEllipseGetParameters(RG rg,PetscScalar *center,PetscReal *radiu
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
+static PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
 {
   RG_ELLIPSE     *ctx = (RG_ELLIPSE*)rg->data;
   PetscBool      isdraw,isascii;
@@ -154,7 +154,7 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGIsTrivial_Ellipse(RG rg,PetscBool *trivial)
+static PetscErrorCode RGIsTrivial_Ellipse(RG rg,PetscBool *trivial)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
 
@@ -164,7 +164,7 @@ PetscErrorCode RGIsTrivial_Ellipse(RG rg,PetscBool *trivial)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
+static PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
   PetscReal  theta;
@@ -183,7 +183,7 @@ PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscSc
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeBoundingBox_Ellipse(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+static PetscErrorCode RGComputeBoundingBox_Ellipse(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
 
@@ -195,7 +195,7 @@ PetscErrorCode RGComputeBoundingBox_Ellipse(RG rg,PetscReal *a,PetscReal *b,Pets
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeQuadrature_Ellipse(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
+static PetscErrorCode RGComputeQuadrature_Ellipse(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
   PetscReal  theta;
@@ -217,7 +217,7 @@ PetscErrorCode RGComputeQuadrature_Ellipse(RG rg,RGQuadRule quad,PetscInt n,Pets
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
+static PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
   PetscReal  dx,dy,r;
@@ -235,7 +235,7 @@ PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *i
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGIsAxisymmetric_Ellipse(RG rg,PetscBool vertical,PetscBool *symm)
+static PetscErrorCode RGIsAxisymmetric_Ellipse(RG rg,PetscBool vertical,PetscBool *symm)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
 
@@ -245,7 +245,7 @@ PetscErrorCode RGIsAxisymmetric_Ellipse(RG rg,PetscBool vertical,PetscBool *symm
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGSetFromOptions_Ellipse(RG rg,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode RGSetFromOptions_Ellipse(RG rg,PetscOptionItems *PetscOptionsObject)
 {
   PetscScalar    s;
   PetscReal      r1,r2;
@@ -264,7 +264,7 @@ PetscErrorCode RGSetFromOptions_Ellipse(RG rg,PetscOptionItems *PetscOptionsObje
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGDestroy_Ellipse(RG rg)
+static PetscErrorCode RGDestroy_Ellipse(RG rg)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(rg->data));

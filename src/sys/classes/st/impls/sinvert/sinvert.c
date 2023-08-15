@@ -13,7 +13,7 @@
 
 #include <slepc/private/stimpl.h>
 
-PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
+static PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt    j;
 #if !defined(PETSC_USE_COMPLEX)
@@ -38,7 +38,7 @@ PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscS
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STPostSolve_Sinvert(ST st)
+static PetscErrorCode STPostSolve_Sinvert(ST st)
 {
   PetscFunctionBegin;
   if (st->matmode == ST_MATMODE_INPLACE) {
@@ -57,7 +57,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
    if nmat=1:  (A-sI)^-1        A-sI      NULL
    if nmat=2:  (A-sB)^-1 B      A-sB      B
 */
-PetscErrorCode STComputeOperator_Sinvert(ST st)
+static PetscErrorCode STComputeOperator_Sinvert(ST st)
 {
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
@@ -76,7 +76,7 @@ PetscErrorCode STComputeOperator_Sinvert(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetUp_Sinvert(ST st)
+static PetscErrorCode STSetUp_Sinvert(ST st)
 {
   PetscInt       k,nc,nmat=st->nmat;
   PetscScalar    *coeffs=NULL;
@@ -117,7 +117,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
+static PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 {
   PetscInt       nmat=PetscMax(st->nmat,2),k,nc;
   PetscScalar    *coeffs=NULL;

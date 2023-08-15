@@ -110,7 +110,7 @@ PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetUp_STOAR(PEP pep)
+static PetscErrorCode PEPSetUp_STOAR(PEP pep)
 {
   PetscBool         sinv,flg;
   PEP_STOAR         *ctx = (PEP_STOAR*)pep->data;
@@ -471,7 +471,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetFromOptions_STOAR(PEP pep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode PEPSetFromOptions_STOAR(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,lock,b,f1,f2,f3;
   PetscInt       i,j,k;
@@ -1006,7 +1006,7 @@ PetscErrorCode PEPSTOARGetCheckEigenvalueType(PEP pep,PetscBool *checket)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
+static PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
 {
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscBool      isascii;
@@ -1021,14 +1021,14 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPReset_STOAR(PEP pep)
+static PetscErrorCode PEPReset_STOAR(PEP pep)
 {
   PetscFunctionBegin;
   if (pep->which==PEP_ALL) PetscCall(PEPReset_STOAR_QSlice(pep));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPDestroy_STOAR(PEP pep)
+static PetscErrorCode PEPDestroy_STOAR(PEP pep)
 {
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
 

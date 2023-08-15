@@ -19,7 +19,7 @@
                Op               P         M
    if nmat=1:  p(A)             NULL      p(A)
 */
-PetscErrorCode STComputeOperator_Filter(ST st)
+static PetscErrorCode STComputeOperator_Filter(ST st)
 {
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
@@ -39,14 +39,14 @@ PetscErrorCode STComputeOperator_Filter(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetUp_Filter(ST st)
+static PetscErrorCode STSetUp_Filter(ST st)
 {
   PetscFunctionBegin;
   PetscCall(STSetWorkVecs(st,4));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetFromOptions_Filter(ST st,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode STSetFromOptions_Filter(ST st,PetscOptionItems *PetscOptionsObject)
 {
   PetscReal      array[2]={0,0};
   PetscInt       k;
@@ -357,7 +357,7 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STReset_Filter(ST st)
+static PetscErrorCode STReset_Filter(ST st)
 {
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
@@ -370,7 +370,7 @@ PetscErrorCode STReset_Filter(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
+static PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
 {
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
   PetscBool      isascii;
@@ -386,7 +386,7 @@ PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STDestroy_Filter(ST st)
+static PetscErrorCode STDestroy_Filter(ST st)
 {
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 

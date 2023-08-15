@@ -200,7 +200,7 @@ static PetscErrorCode MatCreateVecs_Z(Mat Z,Vec *right,Vec *left)
 
 #define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
 
-PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
+static PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
   PetscInt       M,N,P,m,n,p;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
@@ -447,7 +447,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_TRLanczos(SVD svd)
+static PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscReal      *alpha,*beta;
@@ -550,7 +550,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDLanczosHSVD(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *omega,Mat A,Mat AT,BV V,BV U,PetscInt k,PetscInt *n,PetscBool *breakdown)
+static PetscErrorCode SVDLanczosHSVD(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *omega,Mat A,Mat AT,BV V,BV U,PetscInt k,PetscInt *n,PetscBool *breakdown)
 {
   PetscInt       i;
   Vec            u,v,ou=svd->workl[0];
@@ -589,7 +589,7 @@ PetscErrorCode SVDLanczosHSVD(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_TRLanczos_HSVD(SVD svd)
+static PetscErrorCode SVDSolve_TRLanczos_HSVD(SVD svd)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscReal      *alpha,*beta,*omega;
@@ -847,7 +847,7 @@ static PetscErrorCode SVDLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta
 }
 
 /* solve generalized problem with single bidiagonalization of Q_A */
-PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
+static PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscReal      *alpha,*beta,normr,scaleth,sigma0,*sigma;
@@ -1114,7 +1114,7 @@ static inline PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,PetscInt 
 }
 
 /* solve generalized problem with joint upper-upper bidiagonalization */
-PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
+static PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscReal      *alpha,*beta,*alphah,*betah,normr,sigma0,*sigma;
@@ -1409,7 +1409,7 @@ static inline PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,BV U2,Pet
 }
 
 /* solve generalized problem with joint lower-upper bidiagonalization */
-PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
+static PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscReal      *alpha,*beta,*alphah,*betah,normr,scalef,*sigma,sigma0;
@@ -1520,7 +1520,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
+static PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscInt       k,m,p;
@@ -1614,7 +1614,7 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd,PetscOptionItems *PetscOptionsObject)
 {
   SVD_TRLANCZOS       *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscBool           flg,val,lock;
@@ -2214,7 +2214,7 @@ PetscErrorCode SVDTRLanczosGetScale(SVD svd,PetscReal *scale)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDReset_TRLanczos(SVD svd)
+static PetscErrorCode SVDReset_TRLanczos(SVD svd)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
 
@@ -2226,7 +2226,7 @@ PetscErrorCode SVDReset_TRLanczos(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
+static PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
 
@@ -2250,7 +2250,7 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
+static PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscBool      isascii;
@@ -2281,7 +2281,7 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSetDSType_TRLanczos(SVD svd)
+static PetscErrorCode SVDSetDSType_TRLanczos(SVD svd)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   DSType         dstype;

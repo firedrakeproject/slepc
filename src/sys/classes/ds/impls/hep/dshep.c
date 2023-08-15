@@ -11,7 +11,7 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
@@ -75,7 +75,7 @@ static PetscErrorCode DSSwitchFormat_HEP(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
 {
   PetscViewerFormat format;
   PetscInt          i,j,r,c,rows;
@@ -134,7 +134,7 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+static PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscScalar       *Z;
   const PetscScalar *Q;
@@ -321,7 +321,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscInt       n,l,i,*perm,ld=ds->ld;
   PetscScalar    *A;
@@ -347,7 +347,7 @@ PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
+static PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
 {
   PetscInt          i;
   PetscBLASInt      n,ld,incx=1;
@@ -381,7 +381,7 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscInt       i;
   PetscBLASInt   n1,info,l = 0,n = 0,ld,off;
@@ -426,7 +426,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   Mat            At,Qt;  /* trailing submatrices */
   PetscInt       i;
@@ -513,7 +513,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscInt       i;
   PetscBLASInt   n1,info,l = 0,ld,off,lrwork,liwork;
@@ -573,7 +573,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #if !defined(PETSC_USE_COMPLEX)
-PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscBLASInt   i,j,k,m,n = 0,info,nblks,bs = 0,ld = 0,lde,lrwork,liwork,*ksizes,*iwork,mingapi;
   PetscScalar    *Q,*A;
@@ -640,7 +640,7 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 #endif
 
-PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n,PetscBool trim)
+static PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A;
@@ -670,7 +670,7 @@ PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n,PetscBool trim)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_HEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_HEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
   PetscMPIInt    n,rank,off=0,size,ldn,ld3;
@@ -711,7 +711,7 @@ PetscErrorCode DSSynchronize_HEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
+static PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
 {
   PetscScalar    *work;
   PetscReal      *rwork;
@@ -750,7 +750,7 @@ PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
+static PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
 {
   PetscInt       i,j,k=ds->k;
   PetscScalar    *Q,*A,*R,*tau,*work;
@@ -805,7 +805,7 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSHermitian_HEP(DS ds,DSMatType m,PetscBool *flg)
+static PetscErrorCode DSHermitian_HEP(DS ds,DSMatType m,PetscBool *flg)
 {
   PetscFunctionBegin;
   if (m==DS_MAT_A && !ds->extrarow) *flg = PETSC_TRUE;

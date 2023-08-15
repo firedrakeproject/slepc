@@ -830,7 +830,7 @@ static inline PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,PetscScala
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
+static PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
 {
   PetscInt       n = i_e-i_s,i;
   PetscScalar    *b;

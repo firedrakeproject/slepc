@@ -27,7 +27,7 @@
 #include <slepc/private/mfnimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode MFNSetUp_Krylov(MFN mfn)
+static PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 {
   PetscInt       N;
 
@@ -39,7 +39,7 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
+static PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 {
   PetscInt          n=0,m,ld,ldh,j;
   PetscBLASInt      m_,inc=1;

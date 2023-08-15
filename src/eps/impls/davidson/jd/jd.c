@@ -31,7 +31,7 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/davidson.h>
 
-PetscErrorCode EPSSetFromOptions_JD(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_JD(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,flg2,op,orth;
   PetscInt       opi,opi0;
@@ -73,7 +73,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps,PetscOptionItems *PetscOptionsObject
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetDefaultST_JD(EPS eps)
+static PetscErrorCode EPSSetDefaultST_JD(EPS eps)
 {
   KSP            ksp;
 
@@ -90,7 +90,7 @@ PetscErrorCode EPSSetDefaultST_JD(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_JD(EPS eps)
+static PetscErrorCode EPSSetUp_JD(EPS eps)
 {
   PetscBool      t;
   KSP            ksp;
@@ -106,7 +106,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
 {
   PetscBool      isascii,opb;
   PetscReal      opf;
@@ -136,7 +136,7 @@ PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_JD(EPS eps)
+static PetscErrorCode EPSDestroy_JD(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
@@ -380,7 +380,7 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
+static PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -461,7 +461,7 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
+static PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 

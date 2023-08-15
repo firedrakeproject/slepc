@@ -14,7 +14,7 @@
 #include <slepc/private/svdimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode SVDSetUp_LAPACK(SVD svd)
+static PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscInt       M,N,P=0;
 
@@ -34,7 +34,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_LAPACK(SVD svd)
+static PetscErrorCode SVDSolve_LAPACK(SVD svd)
 {
   PetscInt          M,N,n,i,j,k,ld,lowu,lowv,highu,highv;
   Mat               A,Ar,mat;
@@ -97,7 +97,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
+static PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
 {
   PetscInt          nsv,m,n,p,i,j,mlocal,plocal,ld,lowx,lowu,lowv,highx;
   Mat               Ar,A,Ads,Br,B,Bds;
@@ -168,7 +168,7 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_LAPACK_HSVD(SVD svd)
+static PetscErrorCode SVDSolve_LAPACK_HSVD(SVD svd)
 {
   PetscInt          M,N,n,i,j,k,ld,lowu,lowv,highu,highv;
   Mat               A,Ar,mat,D;
@@ -238,7 +238,7 @@ PetscErrorCode SVDSolve_LAPACK_HSVD(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSetDSType_LAPACK(SVD svd)
+static PetscErrorCode SVDSetDSType_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(DSSetType(svd->ds,svd->OPb?DSGSVD:svd->omega?DSHSVD:DSSVD));

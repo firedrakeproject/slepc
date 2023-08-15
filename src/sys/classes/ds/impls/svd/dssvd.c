@@ -16,7 +16,7 @@ typedef struct {
   PetscInt t;              /* number of rows of V after truncating */
 } DS_SVD;
 
-PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
@@ -80,7 +80,7 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
 {
   DS_SVD            *ctx = (DS_SVD*)ds->data;
   PetscViewerFormat format;
@@ -134,7 +134,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+static PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   switch (mat) {
@@ -148,7 +148,7 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   DS_SVD         *ctx = (DS_SVD*)ds->data;
   PetscInt       n,l,i,*perm,ld=ds->ld;
@@ -176,7 +176,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
+static PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
 {
   DS_SVD            *ctx = (DS_SVD*)ds->data;
   PetscInt          i;
@@ -213,7 +213,7 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
+static PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A;
@@ -247,7 +247,7 @@ PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_SVD         *ctx = (DS_SVD*)ds->data;
   PetscInt       i,j;
@@ -341,7 +341,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
   PetscMPIInt    n,rank,off=0,size,ldn,ld3;
@@ -394,7 +394,7 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+static PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
   DS_SVD *ctx = (DS_SVD*)ds->data;
 
@@ -497,7 +497,7 @@ PetscErrorCode DSSVDGetDimensions(DS ds,PetscInt *m)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSDestroy_SVD(DS ds)
+static PetscErrorCode DSDestroy_SVD(DS ds)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(ds->data));

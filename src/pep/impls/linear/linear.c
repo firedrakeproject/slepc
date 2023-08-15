@@ -237,7 +237,7 @@ static PetscErrorCode Apply_Linear(ST st,Vec x,Vec y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetUp_Linear(PEP pep)
+static PetscErrorCode PEPSetUp_Linear(PEP pep)
 {
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   ST             st;
@@ -629,7 +629,7 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPExtractVectors_Linear(PEP pep)
+static PetscErrorCode PEPExtractVectors_Linear(PEP pep)
 {
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
@@ -650,7 +650,7 @@ PetscErrorCode PEPExtractVectors_Linear(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSolve_Linear(PEP pep)
+static PetscErrorCode PEPSolve_Linear(PEP pep)
 {
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   PetscScalar    sigma;
@@ -697,7 +697,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetFromOptions_Linear(PEP pep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode PEPSetFromOptions_Linear(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      set,val;
   PetscInt       k;
@@ -951,7 +951,7 @@ PetscErrorCode PEPLinearGetEPS(PEP pep,EPS *eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
+static PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
 {
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   PetscBool      isascii;
@@ -969,7 +969,7 @@ PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPReset_Linear(PEP pep)
+static PetscErrorCode PEPReset_Linear(PEP pep)
 {
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
@@ -986,7 +986,7 @@ PetscErrorCode PEPReset_Linear(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPDestroy_Linear(PEP pep)
+static PetscErrorCode PEPDestroy_Linear(PEP pep)
 {
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 

@@ -33,7 +33,7 @@ typedef struct {
   BV                     AV;            /* work BV used in selective reorthogonalization */
 } EPS_LANCZOS;
 
-PetscErrorCode EPSSetUp_Lanczos(EPS eps)
+static PetscErrorCode EPSSetUp_Lanczos(EPS eps)
 {
   EPS_LANCZOS        *lanczos = (EPS_LANCZOS*)eps->data;
   BVOrthogRefineType refine;
@@ -514,7 +514,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscInt k,PetscInt *m,PetscReal *
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_Lanczos(EPS eps)
+static PetscErrorCode EPSSolve_Lanczos(EPS eps)
 {
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscInt       nconv,i,j,k,l,x,n,*perm,restart,ncv=eps->ncv,r,ld;
@@ -695,7 +695,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_LANCZOS            *lanczos = (EPS_LANCZOS*)eps->data;
   PetscBool              flg;
@@ -796,7 +796,7 @@ PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_Lanczos(EPS eps)
+static PetscErrorCode EPSReset_Lanczos(EPS eps)
 {
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
 
@@ -806,7 +806,7 @@ PetscErrorCode EPSReset_Lanczos(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_Lanczos(EPS eps)
+static PetscErrorCode EPSDestroy_Lanczos(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
@@ -815,7 +815,7 @@ PetscErrorCode EPSDestroy_Lanczos(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
 {
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscBool      isascii;

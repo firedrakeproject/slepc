@@ -21,7 +21,7 @@ typedef struct {
   PetscScalar *vr,*vi;   /* array of vertices (vi not used in complex scalars) */
 } RG_POLYGON;
 
-PetscErrorCode RGComputeBoundingBox_Polygon(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+static PetscErrorCode RGComputeBoundingBox_Polygon(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 
 #if !defined(PETSC_USE_COMPLEX)
 static PetscBool CheckSymmetry(PetscInt n,PetscScalar *vr,PetscScalar *vi)
@@ -176,7 +176,7 @@ PetscErrorCode RGPolygonGetVertices(RG rg,PetscInt *n,PetscScalar **vr,PetscScal
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
+static PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
 {
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
   PetscBool      isdraw,isascii;
@@ -250,7 +250,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
+static PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
 {
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
 
@@ -259,7 +259,7 @@ PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscScalar *uci)
+static PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscScalar *uci)
 {
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
   PetscReal      length,h,d,rem=0.0;
@@ -329,7 +329,7 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscS
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeBoundingBox_Polygon(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+static PetscErrorCode RGComputeBoundingBox_Polygon(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
 {
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
   PetscInt   i;
@@ -355,7 +355,7 @@ PetscErrorCode RGComputeBoundingBox_Polygon(RG rg,PetscReal *a,PetscReal *b,Pets
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *inout)
+static PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *inout)
 {
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
   PetscReal  val,x[VERTMAX],y[VERTMAX];
@@ -393,7 +393,7 @@ PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *i
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGSetFromOptions_Polygon(RG rg,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode RGSetFromOptions_Polygon(RG rg,PetscOptionItems *PetscOptionsObject)
 {
   PetscScalar    array[VERTMAX];
   PetscInt       i,k;
@@ -423,7 +423,7 @@ PetscErrorCode RGSetFromOptions_Polygon(RG rg,PetscOptionItems *PetscOptionsObje
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGDestroy_Polygon(RG rg)
+static PetscErrorCode RGDestroy_Polygon(RG rg)
 {
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
 

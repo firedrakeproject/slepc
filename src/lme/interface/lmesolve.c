@@ -169,7 +169,7 @@ PetscErrorCode LMEGetErrorEstimate(LME lme,PetscReal *errest)
    LMEComputeResidualNorm_Lyapunov - Computes the Frobenius norm of the residual matrix
    associated with the Lyapunov equation.
 */
-PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
+static PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
 {
   PetscInt          j,n,N,k,l;
   PetscBLASInt      n_,N_,k_,l_;

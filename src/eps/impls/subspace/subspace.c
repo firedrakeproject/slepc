@@ -59,7 +59,7 @@ static PetscErrorCode EPSSetUp_Subspace_Filter(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_Subspace(EPS eps)
+static PetscErrorCode EPSSetUp_Subspace(EPS eps)
 {
   PetscBool isfilt;
 
@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUpSort_Subspace(EPS eps)
+static PetscErrorCode EPSSetUpSort_Subspace(EPS eps)
 {
   SlepcSC sc;
 
@@ -175,7 +175,7 @@ static PetscErrorCode EPSSubspaceResidualNorms(BV R,BV V,Mat T,PetscInt l,PetscI
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_Subspace(EPS eps)
+static PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
   Mat            H,Q,S,T,B;
   BV             AV,R;
@@ -335,7 +335,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_Subspace(EPS eps)
+static PetscErrorCode EPSDestroy_Subspace(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));

@@ -19,7 +19,7 @@ typedef struct {
   PetscBool   mpi;
 } BV_CONTIGUOUS;
 
-PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
+static PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
   BV_CONTIGUOUS     *y = (BV_CONTIGUOUS*)Y->data,*x = (BV_CONTIGUOUS*)X->data;
   const PetscScalar *q;
@@ -35,7 +35,7 @@ PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Ma
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
+static PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
 {
   BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data;
   PetscScalar    *py,*qq=q;
@@ -49,7 +49,7 @@ PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
+static PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   BV_CONTIGUOUS     *ctx = (BV_CONTIGUOUS*)V->data;
   const PetscScalar *q;
@@ -63,7 +63,7 @@ PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVMultInPlaceHermitianTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
+static PetscErrorCode BVMultInPlaceHermitianTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   BV_CONTIGUOUS     *ctx = (BV_CONTIGUOUS*)V->data;
   const PetscScalar *q;
@@ -77,7 +77,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Contiguous(BV V,Mat Q,PetscInt s,
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
+static PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 {
   BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data,*y = (BV_CONTIGUOUS*)Y->data;
   PetscScalar    *m;
@@ -91,7 +91,7 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *q)
+static PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *q)
 {
   BV_CONTIGUOUS     *x = (BV_CONTIGUOUS*)X->data;
   const PetscScalar *py;
@@ -111,7 +111,7 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *q)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDotVec_Local_Contiguous(BV X,Vec y,PetscScalar *m)
+static PetscErrorCode BVDotVec_Local_Contiguous(BV X,Vec y,PetscScalar *m)
 {
   BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data;
   PetscScalar    *py;
@@ -128,7 +128,7 @@ PetscErrorCode BVDotVec_Local_Contiguous(BV X,Vec y,PetscScalar *m)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVScale_Contiguous(BV bv,PetscInt j,PetscScalar alpha)
+static PetscErrorCode BVScale_Contiguous(BV bv,PetscInt j,PetscScalar alpha)
 {
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
@@ -138,7 +138,7 @@ PetscErrorCode BVScale_Contiguous(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
+static PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
@@ -148,7 +148,7 @@ PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
+static PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
@@ -158,7 +158,7 @@ PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVNormalize_Contiguous(BV bv,PetscScalar *eigi)
+static PetscErrorCode BVNormalize_Contiguous(BV bv,PetscScalar *eigi)
 {
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
   PetscScalar    *wi=NULL;
@@ -169,7 +169,7 @@ PetscErrorCode BVNormalize_Contiguous(BV bv,PetscScalar *eigi)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
+static PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
 {
   BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data,*w = (BV_CONTIGUOUS*)W->data;
   PetscInt       j;
@@ -193,7 +193,7 @@ PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVCopy_Contiguous(BV V,BV W)
+static PetscErrorCode BVCopy_Contiguous(BV V,BV W)
 {
   BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data,*w = (BV_CONTIGUOUS*)W->data;
   PetscScalar    *pvc,*pwc;
@@ -205,7 +205,7 @@ PetscErrorCode BVCopy_Contiguous(BV V,BV W)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVCopyColumn_Contiguous(BV V,PetscInt j,PetscInt i)
+static PetscErrorCode BVCopyColumn_Contiguous(BV V,PetscInt j,PetscInt i)
 {
   BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data;
 
@@ -214,7 +214,7 @@ PetscErrorCode BVCopyColumn_Contiguous(BV V,PetscInt j,PetscInt i)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
+static PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
 {
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
   PetscInt       j,bs;
@@ -245,7 +245,7 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
+static PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
 {
   BV_CONTIGUOUS *ctx = (BV_CONTIGUOUS*)bv->data;
   PetscInt      l;
@@ -256,7 +256,7 @@ PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVRestoreColumn_Contiguous(BV bv,PetscInt j,Vec *v)
+static PetscErrorCode BVRestoreColumn_Contiguous(BV bv,PetscInt j,Vec *v)
 {
   PetscInt l;
 
@@ -266,7 +266,7 @@ PetscErrorCode BVRestoreColumn_Contiguous(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVGetArray_Contiguous(BV bv,PetscScalar **a)
+static PetscErrorCode BVGetArray_Contiguous(BV bv,PetscScalar **a)
 {
   BV_CONTIGUOUS *ctx = (BV_CONTIGUOUS*)bv->data;
 
@@ -275,7 +275,7 @@ PetscErrorCode BVGetArray_Contiguous(BV bv,PetscScalar **a)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVGetArrayRead_Contiguous(BV bv,const PetscScalar **a)
+static PetscErrorCode BVGetArrayRead_Contiguous(BV bv,const PetscScalar **a)
 {
   BV_CONTIGUOUS *ctx = (BV_CONTIGUOUS*)bv->data;
 
@@ -284,7 +284,7 @@ PetscErrorCode BVGetArrayRead_Contiguous(BV bv,const PetscScalar **a)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDestroy_Contiguous(BV bv)
+static PetscErrorCode BVDestroy_Contiguous(BV bv)
 {
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
@@ -297,7 +297,7 @@ PetscErrorCode BVDestroy_Contiguous(BV bv)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVView_Contiguous(BV bv,PetscViewer viewer)
+static PetscErrorCode BVView_Contiguous(BV bv,PetscViewer viewer)
 {
   PetscInt          j;
   Vec               v;

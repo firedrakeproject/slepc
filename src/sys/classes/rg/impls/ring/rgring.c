@@ -166,7 +166,7 @@ PetscErrorCode RGRingGetParameters(RG rg,PetscScalar *center,PetscReal *radius,P
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
+static PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
 {
   RG_RING        *ctx = (RG_RING*)rg->data;
   int            winw,winh;
@@ -229,7 +229,7 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
+static PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
 {
   RG_RING *ctx = (RG_RING*)rg->data;
 
@@ -239,7 +239,7 @@ PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
+static PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_RING   *ctx = (RG_RING*)rg->data;
   PetscReal theta,start_ang;
@@ -269,7 +269,7 @@ PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScala
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeBoundingBox_Ring(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+static PetscErrorCode RGComputeBoundingBox_Ring(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
 {
   RG_RING *ctx = (RG_RING*)rg->data;
 
@@ -282,7 +282,7 @@ PetscErrorCode RGComputeBoundingBox_Ring(RG rg,PetscReal *a,PetscReal *b,PetscRe
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeQuadrature_Ring(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
+static PetscErrorCode RGComputeQuadrature_Ring(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
 {
   RG_RING     *ctx = (RG_RING*)rg->data;
   PetscReal   max_w=0.0;
@@ -319,7 +319,7 @@ PetscErrorCode RGComputeQuadrature_Ring(RG rg,RGQuadRule quad,PetscInt n,PetscSc
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
+static PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
   RG_RING   *ctx = (RG_RING*)rg->data;
   PetscReal dx,dy,r;
@@ -371,7 +371,7 @@ PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *insi
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGIsAxisymmetric_Ring(RG rg,PetscBool vertical,PetscBool *symm)
+static PetscErrorCode RGIsAxisymmetric_Ring(RG rg,PetscBool vertical,PetscBool *symm)
 {
   RG_RING *ctx = (RG_RING*)rg->data;
 
@@ -381,7 +381,7 @@ PetscErrorCode RGIsAxisymmetric_Ring(RG rg,PetscBool vertical,PetscBool *symm)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGSetFromOptions_Ring(RG rg,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode RGSetFromOptions_Ring(RG rg,PetscOptionItems *PetscOptionsObject)
 {
   PetscScalar    s;
   PetscReal      r1,r2,r3,r4,r5;
@@ -403,7 +403,7 @@ PetscErrorCode RGSetFromOptions_Ring(RG rg,PetscOptionItems *PetscOptionsObject)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGDestroy_Ring(RG rg)
+static PetscErrorCode RGDestroy_Ring(RG rg)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(rg->data));

@@ -955,7 +955,7 @@ static PetscErrorCode FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorPro
 /*
    Gateway to FILTLAN for evaluating y=p(A)*x
 */
-PetscErrorCode MatMult_FILTLAN(Mat A,Vec x,Vec y)
+static PetscErrorCode MatMult_FILTLAN(Mat A,Vec x,Vec y)
 {
   ST             st;
   ST_FILTER      *ctx;
@@ -1049,7 +1049,7 @@ static PetscErrorCode FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorPro
 /*
    Gateway to FILTLAN for evaluating C=p(A)*B
 */
-PetscErrorCode MatMatMult_FILTLAN(Mat A,Mat B,Mat C,void *pctx)
+static PetscErrorCode MatMatMult_FILTLAN(Mat A,Mat B,Mat C,void *pctx)
 {
   ST             st;
   ST_FILTER      *ctx;

@@ -26,7 +26,7 @@
 
 #include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
 
-PetscErrorCode SVDSetUp_Randomized(SVD svd)
+static PetscErrorCode SVDSetUp_Randomized(SVD svd)
 {
   PetscInt       N;
 
@@ -88,7 +88,7 @@ static PetscErrorCode BlockMatMult(BV V,Mat A,BV Y,Mat AT)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_Randomized(SVD svd)
+static PetscErrorCode SVDSolve_Randomized(SVD svd)
 {
   PetscScalar    *w;
   PetscReal      res=1.0;
