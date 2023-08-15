@@ -23,6 +23,8 @@
 #define DS_MAX_SOLVE 6
 
 SLEPC_EXTERN PetscErrorCode DSInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode DSFinalizePackage(void);
+
 /*S
     DS - Direct solver (or dense system), to represent low-dimensional
     eigenproblems that must be solved within iterative solvers. This is an

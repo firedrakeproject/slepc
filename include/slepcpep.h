@@ -19,6 +19,7 @@
 /* SUBMANSEC = PEP */
 
 SLEPC_EXTERN PetscErrorCode PEPInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode PEPFinalizePackage(void);
 
 /*S
      PEP - Abstract SLEPc object that manages all the polynomial eigenvalue

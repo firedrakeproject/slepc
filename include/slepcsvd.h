@@ -21,6 +21,7 @@
 /* SUBMANSEC = SVD */
 
 SLEPC_EXTERN PetscErrorCode SVDInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode SVDFinalizePackage(void);
 
 /*S
      SVD - Abstract SLEPc object that manages all the singular value

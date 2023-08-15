@@ -19,6 +19,7 @@
 /* SUBMANSEC = LME */
 
 SLEPC_EXTERN PetscErrorCode LMEInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode LMEFinalizePackage(void);
 
 /*S
     LME - SLEPc object that encapsulates functionality for linear matrix equations
