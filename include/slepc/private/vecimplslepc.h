@@ -92,8 +92,8 @@ typedef struct VecPool_ {
 } VecPool_;
 typedef VecPool_* VecPool;
 
-SLEPC_EXTERN PetscErrorCode SlepcVecPoolCreate(Vec,PetscInt,VecPool*);
-SLEPC_EXTERN PetscErrorCode SlepcVecPoolDestroy(VecPool*);
-SLEPC_EXTERN PetscErrorCode SlepcVecPoolGetVecs(VecPool,PetscInt,Vec**);
-SLEPC_EXTERN PetscErrorCode SlepcVecPoolRestoreVecs(VecPool,PetscInt,Vec**);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolCreate(Vec,PetscInt,VecPool*);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolDestroy(VecPool*);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolGetVecs(VecPool,PetscInt,Vec**);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolRestoreVecs(VecPool,PetscInt,Vec**);
 #endif
