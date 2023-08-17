@@ -14,7 +14,7 @@
 #include <slepc/private/epsimpl.h>
 #include "arpack.h"
 
-PetscErrorCode EPSSetUp_ARPACK(EPS eps)
+static PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
   PetscInt       ncv;
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
@@ -61,7 +61,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_ARPACK(EPS eps)
+static PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
   char           bmat[1],howmny[] = "A";
@@ -240,7 +240,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
+static PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 {
   PetscBool      isSinv;
 
@@ -250,7 +250,7 @@ PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_ARPACK(EPS eps)
+static PetscErrorCode EPSReset_ARPACK(EPS eps)
 {
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
@@ -265,7 +265,7 @@ PetscErrorCode EPSReset_ARPACK(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_ARPACK(EPS eps)
+static PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));

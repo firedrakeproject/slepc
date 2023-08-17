@@ -20,6 +20,7 @@
 /* SUBMANSEC = RG */
 
 SLEPC_EXTERN PetscErrorCode RGInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode RGFinalizePackage(void);
 
 /*J
    RGType - String with the name of the region.

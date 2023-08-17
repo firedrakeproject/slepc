@@ -25,7 +25,7 @@ typedef struct {
   Vec         u;        /* auxiliary work vector */
 } BV_TENSOR;
 
-PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
+static PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   BV_TENSOR         *ctx = (BV_TENSOR*)V->data;
   PetscScalar       *pS;
@@ -42,7 +42,7 @@ PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVMultInPlaceHermitianTranspose_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
+static PetscErrorCode BVMultInPlaceHermitianTranspose_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   BV_TENSOR         *ctx = (BV_TENSOR*)V->data;
   PetscScalar       *pS;
@@ -59,7 +59,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Tensor(BV V,Mat Q,PetscInt s,Pets
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
+static PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
 {
   BV_TENSOR         *x = (BV_TENSOR*)X->data,*y = (BV_TENSOR*)Y->data;
   PetscScalar       *m;
@@ -80,7 +80,7 @@ PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
+static PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
 {
   BV_TENSOR      *ctx = (BV_TENSOR*)bv->data;
   PetscScalar    *pS;
@@ -94,7 +94,7 @@ PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVNorm_Tensor(BV bv,PetscInt j,NormType type,PetscReal *val)
+static PetscErrorCode BVNorm_Tensor(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   BV_TENSOR         *ctx = (BV_TENSOR*)bv->data;
   const PetscScalar *pS;
@@ -108,7 +108,7 @@ PetscErrorCode BVNorm_Tensor(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVCopyColumn_Tensor(BV V,PetscInt j,PetscInt i)
+static PetscErrorCode BVCopyColumn_Tensor(BV V,PetscInt j,PetscInt i)
 {
   BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
   PetscScalar    *pS;
@@ -159,7 +159,7 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which,PetscScalar *h,PetscScalar *c,PetscReal *onorm,PetscReal *norm)
+static PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which,PetscScalar *h,PetscScalar *c,PetscReal *onorm,PetscReal *norm)
 {
   BV_TENSOR         *ctx = (BV_TENSOR*)bv->data;
   PetscScalar       *pS,*cc,*x,dot,sonem=-1.0,sone=1.0,szero=0.0;
@@ -217,7 +217,7 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
+static PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
 {
   BV_TENSOR         *ctx = (BV_TENSOR*)bv->data;
   PetscViewerFormat format;
@@ -692,7 +692,7 @@ PetscErrorCode BVTensorRestoreFactors(BV V,BV *U,Mat *S)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDestroy_Tensor(BV bv)
+static PetscErrorCode BVDestroy_Tensor(BV bv)
 {
   BV_TENSOR      *ctx = (BV_TENSOR*)bv->data;
 

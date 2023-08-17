@@ -19,7 +19,7 @@
 #define __QUOTEME(x) __QUOTEME_(x)
 #define __SUF_C__(A) __QUOTEME(__SUF__(A))
 
-PetscErrorCode __SUF__(VecDot_Comp)(Vec a,Vec b,PetscScalar *z)
+static PetscErrorCode __SUF__(VecDot_Comp)(Vec a,Vec b,PetscScalar *z)
 {
   PetscScalar    sum = 0.0,work;
   PetscInt       i;
@@ -47,7 +47,7 @@ PetscErrorCode __SUF__(VecDot_Comp)(Vec a,Vec b,PetscScalar *z)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar *z)
+static PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar *z)
 {
   PetscScalar    *work,*work0,*r;
   Vec_Comp       *as = (Vec_Comp*)a->data;
@@ -95,7 +95,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
+static PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
 {
   PetscScalar    sum = 0.0,work;
   PetscInt       i;
@@ -123,7 +123,7 @@ PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar *z)
+static PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar *z)
 {
   PetscScalar    *work,*work0,*r;
   Vec_Comp       *as = (Vec_Comp*)a->data;
@@ -171,7 +171,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
+static PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
 {
   PetscReal      work[3],s=0.0;
   Vec_Comp       *as = (Vec_Comp*)a->data;

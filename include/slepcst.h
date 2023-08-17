@@ -21,6 +21,7 @@
 /* SUBMANSEC = ST */
 
 SLEPC_EXTERN PetscErrorCode STInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode STFinalizePackage(void);
 
 /*S
     ST - Abstract SLEPc object that manages spectral transformations.

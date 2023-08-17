@@ -13,7 +13,7 @@
 
 #include <slepc/private/vecimplslepc.h>       /*I "slepcvec.h" I*/
 
-/*@C
+/*
    SlepcVecPoolCreate - Create a pool of Vec.
 
    Collective
@@ -28,7 +28,7 @@
    Level: developer
 
 .seealso: SlepcVecPoolGetVecs(), SlepcVecPoolDestroy()
-@*/
+*/
 PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
 {
   VecPool_       *pool;
@@ -46,7 +46,7 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*
    SlepcVecPoolDestroy - Destroy the pool of Vec.
 
    Collective
@@ -57,7 +57,7 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
    Level: developer
 
 .seealso: SlepcVecPoolGetVecs(), SlepcVecPoolCreate()
-@*/
+*/
 PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
 {
   VecPool_       *pool = (VecPool_*)*p;
@@ -75,7 +75,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*
    SlepcVecPoolGetVecs - Get an array of Vec from the pool.
 
    Collective
@@ -90,7 +90,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
    Level: developer
 
 .seealso: SlepcVecPoolRestoreVecs()
-@*/
+*/
 PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
 {
   VecPool_       *pool = (VecPool_*)p;
@@ -115,7 +115,7 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*
    SlepcVecPoolRestoreVecs - Get back an array of Vec previously returned by
    SlepcVecPoolGetVecs().
 
@@ -129,7 +129,7 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
    Level: developer
 
 .seealso: SlepcVecPoolGetVecs()
-@*/
+*/
 PetscErrorCode SlepcVecPoolRestoreVecs(VecPool p,PetscInt n,Vec **vecs)
 {
   VecPool_       *pool = (VecPool_*)p, *pool0 = pool;

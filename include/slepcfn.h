@@ -21,6 +21,8 @@
 #define FN_MAX_SOLVE 16
 
 SLEPC_EXTERN PetscErrorCode FNInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode FNFinalizePackage(void);
+
 /*S
    FN - Abstraction of a mathematical function.
 

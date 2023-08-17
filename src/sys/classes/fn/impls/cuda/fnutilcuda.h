@@ -19,7 +19,6 @@
 #if defined(PETSC_HAVE_CUDA)
 #include <slepccublas.h>
 
-__global__ void set_diagonal_kernel(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscInt);
 SLEPC_INTERN __host__ PetscErrorCode set_diagonal(PetscInt,PetscScalar*,PetscInt,PetscScalar);
 __global__ void set_Cdiagonal_kernel(PetscInt,PetscComplex*,PetscInt,PetscReal,PetscReal,PetscInt);
 SLEPC_INTERN __host__ PetscErrorCode set_Cdiagonal(PetscInt,PetscComplex*,PetscInt,PetscReal,PetscReal);

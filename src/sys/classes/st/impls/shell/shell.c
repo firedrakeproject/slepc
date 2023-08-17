@@ -82,7 +82,7 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
+static PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
 {
   ST_SHELL         *shell = (ST_SHELL*)st->data;
   PetscObjectState instate,outstate;
@@ -99,7 +99,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
+static PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
 {
   ST_SHELL       *shell = (ST_SHELL*)st->data;
   PetscObjectState instate,outstate;
@@ -116,7 +116,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
+static PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   ST_SHELL       *shell = (ST_SHELL*)st->data;
 
@@ -137,7 +137,7 @@ PetscErrorCode STIsInjective_Shell(ST st,PetscBool* is)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STDestroy_Shell(ST st)
+static PetscErrorCode STDestroy_Shell(ST st)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(st->data));

@@ -20,7 +20,7 @@ PetscErrorCode NEPDeflationGetInvariantPair(NEP_EXT_OP extop,BV *X,Mat *H)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPDeflationExtendInvariantPair(NEP_EXT_OP extop,Vec u,PetscScalar lambda,PetscInt k)
+static PetscErrorCode NEPDeflationExtendInvariantPair(NEP_EXT_OP extop,Vec u,PetscScalar lambda,PetscInt k)
 {
   Vec            uu;
   PetscInt       ld,i;
@@ -747,7 +747,7 @@ PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscBool sincfun,Pet
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
+static PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
 {
   Mat               A,Ei;
   PetscScalar       *T,*w1,*w2,*w=NULL,*ww,*hH,*hHprev,*pts;

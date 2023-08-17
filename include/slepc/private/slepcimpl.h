@@ -112,10 +112,10 @@ static inline PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec 
 #endif
 
 /* Private functions that are shared by several classes */
-SLEPC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
-SLEPC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
-SLEPC_EXTERN PetscErrorCode SlepcMonitorMakeKey_Internal(const char[],PetscViewerType,PetscViewerFormat,char[]);
-SLEPC_EXTERN PetscErrorCode PetscViewerAndFormatCreate_Internal(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcMonitorMakeKey_Internal(const char[],PetscViewerType,PetscViewerFormat,char[]);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode PetscViewerAndFormatCreate_Internal(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
 
 SLEPC_INTERN PetscErrorCode SlepcCitationsInitialize(void);
 SLEPC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);

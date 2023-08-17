@@ -19,6 +19,7 @@
 /* SUBMANSEC = BV */
 
 SLEPC_EXTERN PetscErrorCode BVInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode BVFinalizePackage(void);
 
 /*S
     BV - Basis vectors, SLEPc object representing a collection of vectors

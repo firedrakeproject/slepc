@@ -21,6 +21,7 @@
 /* SUBMANSEC = NEP */
 
 SLEPC_EXTERN PetscErrorCode NEPInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode NEPFinalizePackage(void);
 
 /*S
      NEP - Abstract SLEPc object that manages all solvers for

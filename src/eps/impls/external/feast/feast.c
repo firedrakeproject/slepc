@@ -45,7 +45,7 @@ typedef struct {
 #endif
 } EPS_FEAST;
 
-PetscErrorCode EPSSetUp_FEAST(EPS eps)
+static PetscErrorCode EPSSetUp_FEAST(EPS eps)
 {
   PetscInt       ncv;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
@@ -77,7 +77,7 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_FEAST(EPS eps)
+static PetscErrorCode EPSSolve_FEAST(EPS eps)
 {
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   MKL_INT        fpm[128],ijob,n,ncv,nconv,loop,info;
@@ -196,7 +196,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_FEAST(EPS eps)
+static PetscErrorCode EPSReset_FEAST(EPS eps)
 {
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
 
@@ -205,7 +205,7 @@ PetscErrorCode EPSReset_FEAST(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_FEAST(EPS eps)
+static PetscErrorCode EPSDestroy_FEAST(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
@@ -214,7 +214,7 @@ PetscErrorCode EPSDestroy_FEAST(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_FEAST(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_FEAST(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   PetscInt       n;
@@ -231,7 +231,7 @@ PetscErrorCode EPSSetFromOptions_FEAST(EPS eps,PetscOptionItems *PetscOptionsObj
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
 {
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   PetscBool      isascii;
@@ -242,7 +242,7 @@ PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
+static PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
 {
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) PetscCall(STSetType(eps->st,STSINVERT));

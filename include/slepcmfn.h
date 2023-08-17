@@ -20,6 +20,7 @@
 /* SUBMANSEC = MFN */
 
 SLEPC_EXTERN PetscErrorCode MFNInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode MFNFinalizePackage(void);
 
 /*S
     MFN - SLEPc object that encapsulates functionality for matrix functions.

@@ -39,6 +39,14 @@
 #define SLEPC_INTERN extern SLEPC_VISIBILITY_INTERNAL
 #endif
 
+#if defined(PETSC_USE_SINGLE_LIBRARY)
+  #define SLEPC_SINGLE_LIBRARY_VISIBILITY_INTERNAL SLEPC_VISIBILITY_INTERNAL
+  #define SLEPC_SINGLE_LIBRARY_INTERN              SLEPC_INTERN
+#else
+  #define SLEPC_SINGLE_LIBRARY_VISIBILITY_INTERNAL SLEPC_VISIBILITY_PUBLIC
+  #define SLEPC_SINGLE_LIBRARY_INTERN              SLEPC_EXTERN
+#endif
+
 /* ========================================================================== */
 /*
    slepcconf.h is created by the configure script and placed in ${PETSC_ARCH}/include.

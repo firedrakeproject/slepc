@@ -17,7 +17,7 @@ typedef struct {
   PetscInt tp;             /* number of rows of V after truncating */
 } DS_GSVD;
 
-PetscErrorCode DSAllocate_GSVD(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_GSVD(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
@@ -88,7 +88,7 @@ n-1 |                                      x|    n-1 |                          
 p-1 |                                      x|
      ----------------------------------------
 */
-PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
 {
   DS_GSVD           *ctx = (DS_GSVD*)ds->data;
   PetscViewerFormat format;
@@ -174,7 +174,7 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_GSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+static PetscErrorCode DSVectors_GSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   switch (mat) {
@@ -190,7 +190,7 @@ PetscErrorCode DSVectors_GSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   DS_GSVD        *ctx = (DS_GSVD*)ds->data;
   PetscInt       t,l,ld=ds->ld,i,*perm,*perm2;
@@ -240,7 +240,7 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSUpdateExtraRow_GSVD(DS ds)
+static PetscErrorCode DSUpdateExtraRow_GSVD(DS ds)
 {
   DS_GSVD           *ctx = (DS_GSVD*)ds->data;
   PetscInt          i;
@@ -282,7 +282,7 @@ PetscErrorCode DSUpdateExtraRow_GSVD(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSTruncate_GSVD(DS ds,PetscInt n,PetscBool trim)
+static PetscErrorCode DSTruncate_GSVD(DS ds,PetscInt n,PetscBool trim)
 {
   DS_GSVD     *ctx = (DS_GSVD*)ds->data;
   PetscScalar *U;
@@ -367,7 +367,7 @@ static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
   Compact format is used when [A;B] has orthonormal columns.
   In this case R=I and the GSVD of (A,B) is the CS decomposition
 */
-PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_GSVD        *ctx = (DS_GSVD*)ds->data;
   PetscInt       i,j;
@@ -507,7 +507,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSCond_GSVD(DS ds,PetscReal *cond)
+static PetscErrorCode DSCond_GSVD(DS ds,PetscReal *cond)
 {
   DS_GSVD           *ctx = (DS_GSVD*)ds->data;
   PetscBLASInt      lwork,lrwork=0,info,m,n,p,ld;
@@ -565,7 +565,7 @@ PetscErrorCode DSCond_GSVD(DS ds,PetscReal *cond)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   DS_GSVD        *ctx = (DS_GSVD*)ds->data;
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
@@ -623,7 +623,7 @@ PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSMatGetSize_GSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+static PetscErrorCode DSMatGetSize_GSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
   DS_GSVD *ctx = (DS_GSVD*)ds->data;
 
@@ -748,7 +748,7 @@ PetscErrorCode DSGSVDGetDimensions(DS ds,PetscInt *m,PetscInt *p)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSDestroy_GSVD(DS ds)
+static PetscErrorCode DSDestroy_GSVD(DS ds)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(ds->data));

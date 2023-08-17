@@ -169,7 +169,7 @@ static PetscErrorCode NEPCISSSolve(NEP nep,Mat dT,BV V,PetscInt L_start,PetscInt
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSetUp_CISS(NEP nep)
+static PetscErrorCode NEPSetUp_CISS(NEP nep)
 {
   NEP_CISS         *ctx = (NEP_CISS*)nep->data;
   SlepcContourData contour;
@@ -271,7 +271,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSolve_CISS(NEP nep)
+static PetscErrorCode NEPSolve_CISS(NEP nep)
 {
   NEP_CISS         *ctx = (NEP_CISS*)nep->data;
   SlepcContourData contour = ctx->contour;
@@ -958,7 +958,7 @@ PetscErrorCode NEPCISSGetKSPs(NEP nep,PetscInt *nsolve,KSP **ksp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPReset_CISS(NEP nep)
+static PetscErrorCode NEPReset_CISS(NEP nep)
 {
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 
@@ -973,7 +973,7 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSetFromOptions_CISS(NEP nep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode NEPSetFromOptions_CISS(NEP nep,PetscOptionItems *PetscOptionsObject)
 {
   NEP_CISS          *ctx = (NEP_CISS*)nep->data;
   PetscReal         r1,r2;
@@ -1017,7 +1017,7 @@ PetscErrorCode NEPSetFromOptions_CISS(NEP nep,PetscOptionItems *PetscOptionsObje
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPDestroy_CISS(NEP nep)
+static PetscErrorCode NEPDestroy_CISS(NEP nep)
 {
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 
@@ -1037,7 +1037,7 @@ PetscErrorCode NEPDestroy_CISS(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
+static PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
 {
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscBool      isascii;
@@ -1068,7 +1068,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSetDSType_CISS(NEP nep)
+static PetscErrorCode NEPSetDSType_CISS(NEP nep)
 {
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 

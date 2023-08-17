@@ -28,7 +28,7 @@ typedef struct {
   PetscBool delayed;
 } EPS_ARNOLDI;
 
-PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
+static PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
 {
   PetscFunctionBegin;
   EPSCheckDefinite(eps);
@@ -48,7 +48,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_Arnoldi(EPS eps)
+static PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
   PetscInt           k,nv,ld;
   Mat                U,Op,H;
@@ -129,7 +129,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      set,val;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI*)eps->data;
@@ -218,7 +218,7 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
+static PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
@@ -227,7 +227,7 @@ PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
 {
   PetscBool      isascii;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI*)eps->data;

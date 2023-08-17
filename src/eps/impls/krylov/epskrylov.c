@@ -157,7 +157,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k
 /*
    EPSKrylovConvergence_Filter - Specialized version for STFILTER.
 */
-PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal gamma,PetscInt *kout)
+static PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal gamma,PetscInt *kout)
 {
   PetscInt       k,ninside,nconv;
   PetscScalar    re,im;

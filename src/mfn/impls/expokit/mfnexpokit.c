@@ -25,7 +25,7 @@
 
 #include <slepc/private/mfnimpl.h>
 
-PetscErrorCode MFNSetUp_Expokit(MFN mfn)
+static PetscErrorCode MFNSetUp_Expokit(MFN mfn)
 {
   PetscInt       N;
   PetscBool      isexp;
@@ -41,7 +41,7 @@ PetscErrorCode MFNSetUp_Expokit(MFN mfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
+static PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
 {
   PetscInt          mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
   Vec               v,r;

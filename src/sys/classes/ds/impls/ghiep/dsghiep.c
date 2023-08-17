@@ -11,7 +11,7 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode DSAllocate_GHIEP(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_GHIEP(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
@@ -75,7 +75,7 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
 {
   PetscViewerFormat format;
   PetscInt          i,j;
@@ -260,7 +260,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
+static PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 {
   PetscScalar       *Z;
   const PetscScalar *A,*Q;
@@ -377,7 +377,7 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscInt       n,i,*perm;
   PetscReal      *d,*e,*s;
@@ -420,7 +420,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSUpdateExtraRow_GHIEP(DS ds)
+static PetscErrorCode DSUpdateExtraRow_GHIEP(DS ds)
 {
   PetscInt          i;
   PetscBLASInt      n,ld,incx=1;
@@ -665,7 +665,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscInt          i,off;
   PetscBLASInt      n1,ld,one=1,info,lwork;
@@ -789,7 +789,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscInt          i,j,off,nwu=0,n,lw,lwr,nwru=0;
   PetscBLASInt      n_,ld,info,lwork,ilo,ihi;
@@ -931,7 +931,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSGetTruncateSize_GHIEP(DS ds,PetscInt l,PetscInt n,PetscInt *k)
+static PetscErrorCode DSGetTruncateSize_GHIEP(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 {
   PetscReal *T;
 
@@ -945,7 +945,7 @@ PetscErrorCode DSGetTruncateSize_GHIEP(DS ds,PetscInt l,PetscInt n,PetscInt *k)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
+static PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A;
@@ -997,7 +997,7 @@ PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscScalar    *A,*B,*Q;
   PetscReal      *T,*D;
@@ -1066,7 +1066,7 @@ PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
+static PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
 {
   PetscFunctionBegin;
   if ((m==DS_MAT_A && !ds->extrarow) || m==DS_MAT_B) *flg = PETSC_TRUE;

@@ -90,7 +90,7 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
+static PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscReal         eta;
   PetscBool         isfilt=PETSC_FALSE;
@@ -190,7 +190,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUpSort_KrylovSchur(EPS eps)
+static PetscErrorCode EPSSetUpSort_KrylovSchur(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   SlepcSC         sc;
@@ -1344,7 +1344,7 @@ PetscErrorCode EPSKrylovSchurGetKSP(EPS eps,KSP *ksp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscBool       flg,lock,b,f1,f2,f3,isfilt;
@@ -1392,7 +1392,7 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOpti
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscBool       isascii,isfilt;
@@ -1432,7 +1432,7 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
+static PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 {
   PetscBool      isfilt;
 
@@ -1461,7 +1461,7 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_KrylovSchur(EPS eps)
+static PetscErrorCode EPSReset_KrylovSchur(EPS eps)
 {
   PetscBool      isfilt;
 
@@ -1471,7 +1471,7 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetDefaultST_KrylovSchur(EPS eps)
+static PetscErrorCode EPSSetDefaultST_KrylovSchur(EPS eps)
 {
   PetscFunctionBegin;
   if (eps->which==EPS_ALL) {

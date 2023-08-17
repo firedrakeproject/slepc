@@ -117,7 +117,7 @@ PetscErrorCode RGIntervalGetEndpoints(RG rg,PetscReal *a,PetscReal *b,PetscReal 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
+static PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
 {
   RG_INTERVAL    *ctx = (RG_INTERVAL*)rg->data;
   PetscBool      isdraw,isascii;
@@ -158,7 +158,7 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
+static PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
 
@@ -168,7 +168,7 @@ PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
+static PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
   PetscInt    i,N,Nv,Nh,k1,k0;
@@ -232,7 +232,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeBoundingBox_Interval(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+static PetscErrorCode RGComputeBoundingBox_Interval(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
 
@@ -244,7 +244,7 @@ PetscErrorCode RGComputeBoundingBox_Interval(RG rg,PetscReal *a,PetscReal *b,Pet
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGComputeQuadrature_Interval(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
+static PetscErrorCode RGComputeQuadrature_Interval(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
   PetscReal   theta,max_w=0.0,radius=1.0;
@@ -289,7 +289,7 @@ PetscErrorCode RGComputeQuadrature_Interval(RG rg,RGQuadRule quad,PetscInt n,Pet
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *inside)
+static PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *inside)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
 
@@ -305,7 +305,7 @@ PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGIsAxisymmetric_Interval(RG rg,PetscBool vertical,PetscBool *symm)
+static PetscErrorCode RGIsAxisymmetric_Interval(RG rg,PetscBool vertical,PetscBool *symm)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
 
@@ -315,7 +315,7 @@ PetscErrorCode RGIsAxisymmetric_Interval(RG rg,PetscBool vertical,PetscBool *sym
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGSetFromOptions_Interval(RG rg,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode RGSetFromOptions_Interval(RG rg,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg;
   PetscInt       k;
@@ -335,7 +335,7 @@ PetscErrorCode RGSetFromOptions_Interval(RG rg,PetscOptionItems *PetscOptionsObj
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode RGDestroy_Interval(RG rg)
+static PetscErrorCode RGDestroy_Interval(RG rg)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(rg->data));

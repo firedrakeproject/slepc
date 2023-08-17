@@ -589,7 +589,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMat_Basic(FN fn,Mat A,Mat F)
+static PetscErrorCode FNEvaluateFunctionMat_Basic(FN fn,Mat A,Mat F)
 {
   PetscBool iscuda;
 

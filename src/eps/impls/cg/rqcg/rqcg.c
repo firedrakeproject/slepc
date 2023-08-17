@@ -26,7 +26,7 @@
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 
-PetscErrorCode EPSSolve_RQCG(EPS);
+static PetscErrorCode EPSSolve_RQCG(EPS);
 
 typedef struct {
   PetscInt nrest;         /* user-provided reset parameter */
@@ -34,7 +34,7 @@ typedef struct {
   BV       AV,W,P,G;
 } EPS_RQCG;
 
-PetscErrorCode EPSSetUp_RQCG(EPS eps)
+static PetscErrorCode EPSSetUp_RQCG(EPS eps)
 {
   PetscInt       nmat;
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
@@ -73,7 +73,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_RQCG(EPS eps)
+static PetscErrorCode EPSSolve_RQCG(EPS eps)
 {
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
   PetscInt       i,j,k,ld,nv,ncv = eps->ncv,kini,nmat;
@@ -314,7 +314,7 @@ PetscErrorCode EPSRQCGGetReset(EPS eps,PetscInt *nrest)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_RQCG(EPS eps)
+static PetscErrorCode EPSReset_RQCG(EPS eps)
 {
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
 
@@ -327,7 +327,7 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_RQCG(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_RQCG(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg;
   PetscInt       nrest;
@@ -342,7 +342,7 @@ PetscErrorCode EPSSetFromOptions_RQCG(EPS eps,PetscOptionItems *PetscOptionsObje
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_RQCG(EPS eps)
+static PetscErrorCode EPSDestroy_RQCG(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
@@ -351,7 +351,7 @@ PetscErrorCode EPSDestroy_RQCG(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
 {
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
   PetscBool      isascii;

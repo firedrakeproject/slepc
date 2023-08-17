@@ -84,7 +84,7 @@ PetscErrorCode EPSSetDefaultST_NoFactor(EPS eps)
 /*
    Check that the ST selected by the user is compatible with the EPS solver and options
 */
-PetscErrorCode EPSCheckCompatibleST(EPS eps)
+static PetscErrorCode EPSCheckCompatibleST(EPS eps)
 {
   PetscBool      precond,shift,sinvert,cayley,lyapii;
 #if defined(PETSC_USE_COMPLEX)

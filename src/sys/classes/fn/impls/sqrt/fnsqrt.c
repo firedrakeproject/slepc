@@ -14,7 +14,7 @@
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode FNEvaluateFunction_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
+static PetscErrorCode FNEvaluateFunction_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
@@ -24,7 +24,7 @@ PetscErrorCode FNEvaluateFunction_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
+static PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
   PetscCheck(x!=0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
@@ -35,7 +35,7 @@ PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
+static PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
 {
   PetscBLASInt   n=0;
   PetscScalar    *T;
@@ -51,7 +51,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
+static PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
 {
   PetscBLASInt   n=0;
   PetscScalar    *T;
@@ -70,7 +70,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
+static PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
 {
   PetscBLASInt   n=0;
   PetscScalar    *T;
@@ -86,7 +86,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
+static PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
 {
   PetscBLASInt   n=0;
   PetscScalar    *Ba;
@@ -294,7 +294,7 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *d_A,PetscB
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
 
-PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)
+static PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)
 {
   PetscBLASInt   n=0;
   PetscScalar    *Ba;
@@ -362,7 +362,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
 
-PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
+static PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
 {
   PetscBool      isascii;
   char           str[50];

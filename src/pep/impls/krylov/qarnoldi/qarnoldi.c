@@ -31,7 +31,7 @@ typedef struct {
   PetscBool lock;         /* locking/non-locking variant */
 } PEP_QARNOLDI;
 
-PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
+static PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 {
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscBool      flg;
@@ -64,7 +64,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
+static PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
 {
   PetscInt       k=pep->nconv;
   Mat            X,X0;
@@ -193,7 +193,7 @@ static PetscErrorCode PEPQArnoldi(PEP pep,Mat A,PetscInt k,PetscInt *M,Vec v,Vec
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSolve_QArnoldi(PEP pep)
+static PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 {
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscInt       j,k,l,lwork,nv,nconv;
@@ -444,7 +444,7 @@ PetscErrorCode PEPQArnoldiGetLocking(PEP pep,PetscBool *lock)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetFromOptions_QArnoldi(PEP pep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode PEPSetFromOptions_QArnoldi(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,lock;
   PetscReal      keep;
@@ -462,7 +462,7 @@ PetscErrorCode PEPSetFromOptions_QArnoldi(PEP pep,PetscOptionItems *PetscOptions
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
+static PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
 {
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscBool      isascii;
@@ -476,7 +476,7 @@ PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
+static PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(pep->data));

@@ -37,7 +37,7 @@ typedef struct {
   PetscInt  guard;     /* number of guard vectors */
 } EPS_LOBPCG;
 
-PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
+static PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
   PetscInt   k;
@@ -52,7 +52,7 @@ PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
+static PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 {
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
 
@@ -81,7 +81,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_LOBPCG(EPS eps)
+static PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
   PetscInt       i,j,k,nv,ini,nmat,nc,nconv,locked,its,prev=0;
@@ -617,7 +617,7 @@ PetscErrorCode EPSLOBPCGGetLocking(EPS eps,PetscBool *lock)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
 {
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
   PetscBool      isascii;
@@ -632,7 +632,7 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_LOBPCG(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_LOBPCG(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      lock,flg;
   PetscInt       bs;
@@ -654,7 +654,7 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(EPS eps,PetscOptionItems *PetscOptionsOb
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
+static PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));

@@ -34,7 +34,7 @@ typedef struct {
   PetscBool oneside;
 } SVD_LANCZOS;
 
-PetscErrorCode SVDSetUp_Lanczos(SVD svd)
+static PetscErrorCode SVDSetUp_Lanczos(SVD svd)
 {
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
   PetscInt       N;
@@ -217,7 +217,7 @@ PetscErrorCode SVDKrylovConvergence(SVD svd,PetscBool getall,PetscInt kini,Petsc
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_Lanczos(SVD svd)
+static PetscErrorCode SVDSolve_Lanczos(SVD svd)
 {
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
   PetscReal      *alpha,*beta;
@@ -309,7 +309,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      set,val;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
@@ -402,7 +402,7 @@ PetscErrorCode SVDLanczosGetOneSide(SVD svd,PetscBool *oneside)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDDestroy_Lanczos(SVD svd)
+static PetscErrorCode SVDDestroy_Lanczos(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(svd->data));
@@ -411,7 +411,7 @@ PetscErrorCode SVDDestroy_Lanczos(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
+static PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
 {
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
   PetscBool      isascii;

@@ -29,7 +29,7 @@
 
 static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY);
 
-PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
@@ -41,7 +41,7 @@ PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
 {
   PetscViewerFormat format;
 
@@ -211,7 +211,7 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
+static PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   switch (mat) {
@@ -379,7 +379,7 @@ static PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscFunctionBegin;
   if (!rr || wr == rr) PetscCall(DSSort_GNHEP_Total(ds,wr,wi));
@@ -387,7 +387,7 @@ PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSUpdateExtraRow_GNHEP(DS ds)
+static PetscErrorCode DSUpdateExtraRow_GNHEP(DS ds)
 {
   PetscInt          i;
   PetscBLASInt      n,ld,incx=1;
@@ -495,7 +495,7 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscScalar    *work,*beta,a;
   PetscInt       i;
@@ -549,7 +549,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k;
   PetscMPIInt    n,rank,off=0,size,ldn;
@@ -606,7 +606,7 @@ PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSTruncate_GNHEP(DS ds,PetscInt n,PetscBool trim)
+static PetscErrorCode DSTruncate_GNHEP(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A,*B;

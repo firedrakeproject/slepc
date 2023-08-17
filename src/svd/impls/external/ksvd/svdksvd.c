@@ -21,7 +21,7 @@ typedef struct {
   SVDKSVDPolarMethod polar;
 } SVD_KSVD;
 
-PetscErrorCode SVDSetUp_KSVD(SVD svd)
+static PetscErrorCode SVDSetUp_KSVD(SVD svd)
 {
   SVD_KSVD  *ctx = (SVD_KSVD*)svd->data;
   PetscInt  M,N;
@@ -48,7 +48,7 @@ PetscErrorCode SVDSetUp_KSVD(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_KSVD(SVD svd)
+static PetscErrorCode SVDSolve_KSVD(SVD svd)
 {
   SVD_KSVD       *ctx = (SVD_KSVD*)svd->data;
   Mat            A = ctx->As,Z,Q,U,V;
@@ -122,7 +122,7 @@ PetscErrorCode SVDSolve_KSVD(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDDestroy_KSVD(SVD svd)
+static PetscErrorCode SVDDestroy_KSVD(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(svd->data));
@@ -133,7 +133,7 @@ PetscErrorCode SVDDestroy_KSVD(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDReset_KSVD(SVD svd)
+static PetscErrorCode SVDReset_KSVD(SVD svd)
 {
   SVD_KSVD  *ctx = (SVD_KSVD*)svd->data;
 
@@ -142,7 +142,7 @@ PetscErrorCode SVDReset_KSVD(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDView_KSVD(SVD svd,PetscViewer viewer)
+static PetscErrorCode SVDView_KSVD(SVD svd,PetscViewer viewer)
 {
   PetscBool      isascii;
   SVD_KSVD       *ctx = (SVD_KSVD*)svd->data;
@@ -157,7 +157,7 @@ PetscErrorCode SVDView_KSVD(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSetFromOptions_KSVD(SVD svd,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode SVDSetFromOptions_KSVD(SVD svd,PetscOptionItems *PetscOptionsObject)
 {
   SVD_KSVD           *ctx = (SVD_KSVD*)svd->data;
   SVDKSVDEigenMethod eigen;

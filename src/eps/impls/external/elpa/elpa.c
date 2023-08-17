@@ -42,7 +42,7 @@ typedef struct {
   Mat As,Bs;        /* converted matrices */
 } EPS_ELPA;
 
-PetscErrorCode EPSSetUp_ELPA(EPS eps)
+static PetscErrorCode EPSSetUp_ELPA(EPS eps)
 {
   EPS_ELPA       *ctx = (EPS_ELPA*)eps->data;
   Mat            A,B;
@@ -81,7 +81,7 @@ PetscErrorCode EPSSetUp_ELPA(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_ELPA(EPS eps)
+static PetscErrorCode EPSSolve_ELPA(EPS eps)
 {
   EPS_ELPA       *ctx = (EPS_ELPA*)eps->data;
   Mat            A = ctx->As,B = ctx->Bs,Q,V;
@@ -139,14 +139,14 @@ PetscErrorCode EPSSolve_ELPA(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_ELPA(EPS eps)
+static PetscErrorCode EPSDestroy_ELPA(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_ELPA(EPS eps)
+static PetscErrorCode EPSReset_ELPA(EPS eps)
 {
   EPS_ELPA       *ctx = (EPS_ELPA*)eps->data;
 

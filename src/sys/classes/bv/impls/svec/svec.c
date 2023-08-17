@@ -14,7 +14,7 @@
 #include <slepc/private/bvimpl.h>
 #include "svec.h"
 
-PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
+static PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
   BV_SVEC           *y = (BV_SVEC*)Y->data,*x = (BV_SVEC*)X->data;
   const PetscScalar *px,*q;
@@ -35,7 +35,7 @@ PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
+static PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
 {
   BV_SVEC        *x = (BV_SVEC*)X->data;
   PetscScalar    *px,*py,*qq=q;
@@ -51,7 +51,7 @@ PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
+static PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   BV_SVEC           *ctx = (BV_SVEC*)V->data;
   PetscScalar       *pv;
@@ -68,7 +68,7 @@ PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVMultInPlaceHermitianTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
+static PetscErrorCode BVMultInPlaceHermitianTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   BV_SVEC           *ctx = (BV_SVEC*)V->data;
   PetscScalar       *pv;
@@ -85,7 +85,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Svec(BV V,Mat Q,PetscInt s,PetscI
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
+static PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
 {
   BV_SVEC           *x = (BV_SVEC*)X->data,*y = (BV_SVEC*)Y->data;
   const PetscScalar *px,*py;
@@ -104,7 +104,7 @@ PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *q)
+static PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *q)
 {
   BV_SVEC           *x = (BV_SVEC*)X->data;
   const PetscScalar *px,*py;
@@ -126,7 +126,7 @@ PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *q)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDotVec_Local_Svec(BV X,Vec y,PetscScalar *m)
+static PetscErrorCode BVDotVec_Local_Svec(BV X,Vec y,PetscScalar *m)
 {
   BV_SVEC        *x = (BV_SVEC*)X->data;
   PetscScalar    *px,*py;
@@ -145,7 +145,7 @@ PetscErrorCode BVDotVec_Local_Svec(BV X,Vec y,PetscScalar *m)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
+static PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
   PetscScalar    *array;
@@ -158,7 +158,7 @@ PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
+static PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
   PetscScalar    *array;
@@ -171,7 +171,7 @@ PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
+static PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
   PetscScalar    *array;
@@ -184,7 +184,7 @@ PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVNormalize_Svec(BV bv,PetscScalar *eigi)
+static PetscErrorCode BVNormalize_Svec(BV bv,PetscScalar *eigi)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
   PetscScalar    *array,*wi=NULL;
@@ -197,7 +197,7 @@ PetscErrorCode BVNormalize_Svec(BV bv,PetscScalar *eigi)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
+static PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
 {
   PetscInt       j;
   Mat            Vmat,Wmat;
@@ -227,7 +227,7 @@ PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVCopy_Svec(BV V,BV W)
+static PetscErrorCode BVCopy_Svec(BV V,BV W)
 {
   BV_SVEC        *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
   PetscScalar    *pv,*pw,*pvc,*pwc;
@@ -243,7 +243,7 @@ PetscErrorCode BVCopy_Svec(BV V,BV W)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVCopyColumn_Svec(BV V,PetscInt j,PetscInt i)
+static PetscErrorCode BVCopyColumn_Svec(BV V,PetscInt j,PetscInt i)
 {
   BV_SVEC        *v = (BV_SVEC*)V->data;
   PetscScalar    *pv;
@@ -255,7 +255,7 @@ PetscErrorCode BVCopyColumn_Svec(BV V,PetscInt j,PetscInt i)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
+static PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
 {
   BV_SVEC           *ctx = (BV_SVEC*)bv->data;
   PetscScalar       *pnew;
@@ -286,7 +286,7 @@ PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
+static PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
   PetscScalar    *pv;
@@ -299,7 +299,7 @@ PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVRestoreColumn_Svec(BV bv,PetscInt j,Vec *v)
+static PetscErrorCode BVRestoreColumn_Svec(BV bv,PetscInt j,Vec *v)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
   PetscInt       l;
@@ -311,7 +311,7 @@ PetscErrorCode BVRestoreColumn_Svec(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVGetArray_Svec(BV bv,PetscScalar **a)
+static PetscErrorCode BVGetArray_Svec(BV bv,PetscScalar **a)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
 
@@ -320,7 +320,7 @@ PetscErrorCode BVGetArray_Svec(BV bv,PetscScalar **a)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVRestoreArray_Svec(BV bv,PetscScalar **a)
+static PetscErrorCode BVRestoreArray_Svec(BV bv,PetscScalar **a)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
 
@@ -329,7 +329,7 @@ PetscErrorCode BVRestoreArray_Svec(BV bv,PetscScalar **a)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVGetArrayRead_Svec(BV bv,const PetscScalar **a)
+static PetscErrorCode BVGetArrayRead_Svec(BV bv,const PetscScalar **a)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
 
@@ -338,7 +338,7 @@ PetscErrorCode BVGetArrayRead_Svec(BV bv,const PetscScalar **a)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVRestoreArrayRead_Svec(BV bv,const PetscScalar **a)
+static PetscErrorCode BVRestoreArrayRead_Svec(BV bv,const PetscScalar **a)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
 
@@ -347,7 +347,7 @@ PetscErrorCode BVRestoreArrayRead_Svec(BV bv,const PetscScalar **a)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
+static PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
 {
   BV_SVEC           *ctx = (BV_SVEC*)bv->data;
   PetscViewerFormat format;
@@ -370,7 +370,7 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVDestroy_Svec(BV bv)
+static PetscErrorCode BVDestroy_Svec(BV bv)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
 

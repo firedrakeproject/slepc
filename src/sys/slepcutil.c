@@ -192,7 +192,7 @@ PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *X
 /*
    SlepcDebugSetMatlabStdout - sets Matlab format in stdout, to be used from within a debugger.
  */
-#if defined(PETSC_USE_DEBUG)
+#if defined(PETSC_USE_DEBUG) && !defined(PETSC_CLANG_STATIC_ANALYZER)
 PETSC_UNUSED PetscErrorCode SlepcDebugSetMatlabStdout(void)
 {
   PetscViewer    viewer;

@@ -14,7 +14,7 @@
 
 #include <slepc/private/stimpl.h>
 
-PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
+static PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt j;
 
@@ -25,7 +25,7 @@ PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STPostSolve_Shift(ST st)
+static PetscErrorCode STPostSolve_Shift(ST st)
 {
   PetscFunctionBegin;
   if (st->matmode == ST_MATMODE_INPLACE) {
@@ -44,7 +44,7 @@ PetscErrorCode STPostSolve_Shift(ST st)
    if nmat=1:  A-sI             NULL      A-sI
    if nmat=2:  B^-1 (A-sB)      B         A-sB
 */
-PetscErrorCode STComputeOperator_Shift(ST st)
+static PetscErrorCode STComputeOperator_Shift(ST st)
 {
   PetscFunctionBegin;
   st->usesksp = (st->nmat>1)? PETSC_TRUE: PETSC_FALSE;
@@ -64,7 +64,7 @@ PetscErrorCode STComputeOperator_Shift(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetUp_Shift(ST st)
+static PetscErrorCode STSetUp_Shift(ST st)
 {
   PetscInt       k,nc,nmat=st->nmat;
   PetscScalar    *coeffs=NULL;
@@ -103,7 +103,7 @@ PetscErrorCode STSetUp_Shift(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
+static PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 {
   PetscInt       k,nc,nmat=PetscMax(st->nmat,2);
   PetscScalar    *coeffs=NULL;

@@ -209,7 +209,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_CISS(EPS eps)
+static PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
   EPS_CISS         *ctx = (EPS_CISS*)eps->data;
   SlepcContourData contour;
@@ -351,7 +351,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUpSort_CISS(EPS eps)
+static PetscErrorCode EPSSetUpSort_CISS(EPS eps)
 {
   SlepcSC        sc;
 
@@ -371,7 +371,7 @@ PetscErrorCode EPSSetUpSort_CISS(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_CISS(EPS eps)
+static PetscErrorCode EPSSolve_CISS(EPS eps)
 {
   EPS_CISS         *ctx = (EPS_CISS*)eps->data;
   SlepcContourData contour = ctx->contour;
@@ -618,7 +618,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSComputeVectors_CISS(EPS eps)
+static PetscErrorCode EPSComputeVectors_CISS(EPS eps)
 {
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       n;
@@ -1261,7 +1261,7 @@ PetscErrorCode EPSCISSGetKSPs(EPS eps,PetscInt *nsolve,KSP **ksp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_CISS(EPS eps)
+static PetscErrorCode EPSReset_CISS(EPS eps)
 {
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
@@ -1274,7 +1274,7 @@ PetscErrorCode EPSReset_CISS(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_CISS(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_CISS(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscReal         r3,r4;
   PetscInt          i,i1,i2,i3,i4,i5,i6,i7;
@@ -1326,7 +1326,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps,PetscOptionItems *PetscOptionsObje
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_CISS(EPS eps)
+static PetscErrorCode EPSDestroy_CISS(EPS eps)
 {
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
@@ -1350,7 +1350,7 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
 {
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscBool      isascii;
@@ -1385,7 +1385,7 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
+static PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
 {
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscBool      usest = ctx->usest;

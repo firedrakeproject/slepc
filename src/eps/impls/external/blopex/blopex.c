@@ -102,7 +102,7 @@ static void OperatorBMultiVector(void *data,void *x,void *y)
   PetscFunctionReturnVoid();
 }
 
-PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
+static PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
   EPS_BLOPEX     *ctx = (EPS_BLOPEX*)eps->data;
   PetscInt       k;
@@ -117,7 +117,7 @@ PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
+static PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
   PetscBool      flg;
@@ -169,7 +169,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_BLOPEX(EPS eps)
+static PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
   EPS_BLOPEX        *blopex = (EPS_BLOPEX*)eps->data;
   PetscScalar       sigma,*eigr=NULL;
@@ -338,7 +338,7 @@ PetscErrorCode EPSBLOPEXGetBlockSize(EPS eps,PetscInt *bs)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_BLOPEX(EPS eps)
+static PetscErrorCode EPSReset_BLOPEX(EPS eps)
 {
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
 
@@ -347,7 +347,7 @@ PetscErrorCode EPSReset_BLOPEX(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
+static PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
 {
   PetscFunctionBegin;
   LOBPCG_DestroyRandomContext();
@@ -357,7 +357,7 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
 {
   EPS_BLOPEX     *ctx = (EPS_BLOPEX*)eps->data;
   PetscBool      isascii;
@@ -368,7 +368,7 @@ PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg;
   PetscInt       bs;

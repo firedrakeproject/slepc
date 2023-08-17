@@ -24,6 +24,7 @@
 /* SUBMANSEC = EPS */
 
 SLEPC_EXTERN PetscErrorCode EPSInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode EPSFinalizePackage(void);
 
 /*S
     EPS - Abstract SLEPc object that manages all the eigenvalue

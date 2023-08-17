@@ -37,8 +37,8 @@
 #include <petscsnes.h>
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
-PetscErrorCode EPSSolve_Power(EPS);
-PetscErrorCode EPSSolve_TS_Power(EPS);
+static PetscErrorCode EPSSolve_Power(EPS);
+static PetscErrorCode EPSSolve_TS_Power(EPS);
 
 typedef struct {
   EPSPowerShiftType shift_type;
@@ -70,7 +70,7 @@ static PetscErrorCode SNESMonitor_PowerUpdate(SNES snes,PetscInt its,PetscReal f
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_Power(EPS eps)
+static PetscErrorCode EPSSetUp_Power(EPS eps)
 {
   EPS_POWER      *power = (EPS_POWER*)eps->data;
   STMatMode      mode;
@@ -364,7 +364,7 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_Power(EPS eps)
+static PetscErrorCode EPSSolve_Power(EPS eps)
 {
   EPS_POWER           *power = (EPS_POWER*)eps->data;
   PetscInt            k,ld;
@@ -573,7 +573,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_TS_Power(EPS eps)
+static PetscErrorCode EPSSolve_TS_Power(EPS eps)
 {
   EPS_POWER          *power = (EPS_POWER*)eps->data;
   PetscInt           k,ld;
@@ -700,7 +700,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSStopping_Power(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
+static PetscErrorCode EPSStopping_Power(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
 {
   EPS_POWER      *power = (EPS_POWER*)eps->data;
   SNESConvergedReason snesreason;
@@ -717,7 +717,7 @@ PetscErrorCode EPSStopping_Power(EPS eps,PetscInt its,PetscInt max_it,PetscInt n
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSBackTransform_Power(EPS eps)
+static PetscErrorCode EPSBackTransform_Power(EPS eps)
 {
   EPS_POWER      *power = (EPS_POWER*)eps->data;
 
@@ -727,7 +727,7 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_Power(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_Power(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_POWER         *power = (EPS_POWER*)eps->data;
   PetscBool         flg,val;
@@ -1150,7 +1150,7 @@ PetscErrorCode EPSPowerGetSNES(EPS eps,SNES *snes)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_Power(EPS eps)
+static PetscErrorCode EPSReset_Power(EPS eps)
 {
   EPS_POWER      *power = (EPS_POWER*)eps->data;
 
@@ -1159,7 +1159,7 @@ PetscErrorCode EPSReset_Power(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_Power(EPS eps)
+static PetscErrorCode EPSDestroy_Power(EPS eps)
 {
   EPS_POWER      *power = (EPS_POWER*)eps->data;
 
@@ -1179,7 +1179,7 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
 {
   EPS_POWER      *power = (EPS_POWER*)eps->data;
   PetscBool      isascii;
@@ -1201,7 +1201,7 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSComputeVectors_Power(EPS eps)
+static PetscErrorCode EPSComputeVectors_Power(EPS eps)
 {
   EPS_POWER      *power = (EPS_POWER*)eps->data;
 
@@ -1214,7 +1214,7 @@ PetscErrorCode EPSComputeVectors_Power(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetDefaultST_Power(EPS eps)
+static PetscErrorCode EPSSetDefaultST_Power(EPS eps)
 {
   EPS_POWER      *power = (EPS_POWER*)eps->data;
   KSP            ksp;

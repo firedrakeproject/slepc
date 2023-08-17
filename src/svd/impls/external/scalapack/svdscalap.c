@@ -18,7 +18,7 @@ typedef struct {
   Mat As;        /* converted matrix */
 } SVD_ScaLAPACK;
 
-PetscErrorCode SVDSetUp_ScaLAPACK(SVD svd)
+static PetscErrorCode SVDSetUp_ScaLAPACK(SVD svd)
 {
   SVD_ScaLAPACK  *ctx = (SVD_ScaLAPACK*)svd->data;
   PetscInt       M,N;
@@ -40,7 +40,7 @@ PetscErrorCode SVDSetUp_ScaLAPACK(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
+static PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
 {
   SVD_ScaLAPACK  *ctx = (SVD_ScaLAPACK*)svd->data;
   Mat            A = ctx->As,Z,Q,QT,U,V;
@@ -119,14 +119,14 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDDestroy_ScaLAPACK(SVD svd)
+static PetscErrorCode SVDDestroy_ScaLAPACK(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(svd->data));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDReset_ScaLAPACK(SVD svd)
+static PetscErrorCode SVDReset_ScaLAPACK(SVD svd)
 {
   SVD_ScaLAPACK  *ctx = (SVD_ScaLAPACK*)svd->data;
 
