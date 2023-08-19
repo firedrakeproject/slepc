@@ -12,8 +12,7 @@
    This file is included by slepcsys.h and should not be used directly.
 */
 
-#if !defined(SLEPCMATH_H)
-#define SLEPCMATH_H
+#pragma once
 
 /* SUBMANSEC = sys */
 
@@ -90,8 +89,6 @@ M*/
 #define SlepcAbsEigenvalue(x,y) SlepcAbs(x,y)
 #else
 #define SlepcAbsEigenvalue(x,y) PetscAbsScalar(x)
-#endif
-
 #endif
 
 /*

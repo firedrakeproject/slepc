@@ -11,8 +11,7 @@
    User interface for the SLEPc matrix function solver object
 */
 
-#if !defined(SLEPCMFN_H)
-#define SLEPCMFN_H
+#pragma once
 
 #include <slepcbv.h>
 #include <slepcfn.h>
@@ -118,6 +117,3 @@ SLEPC_EXTERN PetscErrorCode MFNRegister(const char[],PetscErrorCode(*)(MFN));
 SLEPC_EXTERN PetscErrorCode MFNMonitorRegister(const char[],PetscViewerType,PetscViewerFormat,PetscErrorCode(*)(MFN,PetscInt,PetscReal,PetscViewerAndFormat*),PetscErrorCode(*)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode(*)(PetscViewerAndFormat**));
 
 SLEPC_EXTERN PetscErrorCode MFNAllocateSolution(MFN,PetscInt);
-
-#endif
-

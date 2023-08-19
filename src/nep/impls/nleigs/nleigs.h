@@ -11,8 +11,7 @@
    Private header for NLEIGS
 */
 
-#if !defined(SLEPC_NLEIGS_H)
-#define SLEPC_NLEIGS_H
+#pragma once
 
 #define  LBPOINTS  100   /* default value of the maximum number of Leja-Bagby points */
 #define  NDPOINTS  1e4   /* number of discretization points */
@@ -69,5 +68,3 @@ SLEPC_INTERN PetscErrorCode NEPNLEIGSBackTransform(PetscObject,PetscInt,PetscSca
 SLEPC_INTERN PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP,PetscInt,PetscScalar,PetscScalar*);
 SLEPC_INTERN PetscErrorCode NEPSolve_NLEIGS_FullBasis(NEP);
 SLEPC_INTERN PetscErrorCode NEPSolve_NLEIGS(NEP);
-
-#endif

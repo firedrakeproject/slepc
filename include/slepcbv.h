@@ -11,8 +11,7 @@
    User interface for the basis vectors object in SLEPc
 */
 
-#if !defined(SLEPCBV_H)
-#define SLEPCBV_H
+#pragma once
 
 #include <slepcsys.h>
 
@@ -251,6 +250,3 @@ SLEPC_EXTERN PetscErrorCode BVGetOptionsPrefix(BV,const char*[]);
 
 SLEPC_EXTERN PetscFunctionList BVList;
 SLEPC_EXTERN PetscErrorCode BVRegister(const char[],PetscErrorCode(*)(BV));
-
-#endif
-

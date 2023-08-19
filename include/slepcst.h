@@ -11,8 +11,7 @@
    Spectral transformation module for eigenvalue problems
 */
 
-#if !defined(SLEPCST_H)
-#define SLEPCST_H
+#pragma once
 
 #include <slepcsys.h>
 #include <slepcbv.h>
@@ -170,5 +169,3 @@ SLEPC_EXTERN PetscErrorCode STFilterGetRange(ST,PetscReal*,PetscReal*);
 SLEPC_EXTERN PetscErrorCode STFilterSetDegree(ST,PetscInt);
 SLEPC_EXTERN PetscErrorCode STFilterGetDegree(ST,PetscInt*);
 SLEPC_EXTERN PetscErrorCode STFilterGetThreshold(ST,PetscReal*);
-
-#endif

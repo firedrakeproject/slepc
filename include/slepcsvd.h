@@ -11,8 +11,7 @@
    User interface for SLEPc's singular value solvers
 */
 
-#if !defined(SLEPCSVD_H)
-#define SLEPCSVD_H
+#pragma once
 
 #include <slepceps.h>
 #include <slepcbv.h>
@@ -322,5 +321,3 @@ SLEPC_EXTERN PetscErrorCode SVDKSVDSetEigenMethod(SVD,SVDKSVDEigenMethod);
 SLEPC_EXTERN PetscErrorCode SVDKSVDGetEigenMethod(SVD,SVDKSVDEigenMethod*);
 SLEPC_EXTERN PetscErrorCode SVDKSVDSetPolarMethod(SVD,SVDKSVDPolarMethod);
 SLEPC_EXTERN PetscErrorCode SVDKSVDGetPolarMethod(SVD,SVDKSVDPolarMethod*);
-
-#endif

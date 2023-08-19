@@ -15,6 +15,8 @@
       53:49-60, May 1989.
 */
 
+#pragma once
+
 #include <slepc/private/epsimpl.h>
 #include <slepc/private/vecimplslepc.h>
 

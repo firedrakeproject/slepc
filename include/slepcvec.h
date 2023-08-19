@@ -11,8 +11,7 @@
    User interface for various vector operations added in SLEPc
 */
 
-#if !defined(SLEPCVEC_H)
-#define SLEPCVEC_H
+#pragma once
 
 #include <slepcsys.h>
 
@@ -36,6 +35,3 @@ SLEPC_EXTERN PetscErrorCode VecSetRandomNormal(Vec,PetscRandom,Vec,Vec);
 /* Deprecated functions */
 PETSC_DEPRECATED_FUNCTION(3, 8, 0, "VecNormalizeComplex()", ) static inline PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool c,PetscReal *nrm) {return VecNormalizeComplex(xr,xi,c,nrm);}
 PETSC_DEPRECATED_FUNCTION(3, 8, 0, "VecCheckOrthogonality()", ) static inline PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev) {return VecCheckOrthogonality(V,nv,W,nw,B,viewer,lev);}
-
-#endif
-

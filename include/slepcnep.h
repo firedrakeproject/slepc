@@ -11,8 +11,7 @@
    User interface for SLEPc's nonlinear eigenvalue solvers
 */
 
-#if !defined(SLEPCNEP_H)
-#define SLEPCNEP_H
+#pragma once
 
 #include <slepceps.h>
 #include <slepcpep.h>
@@ -375,6 +374,3 @@ SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetFullBasis(NEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetFullBasis(NEP,PetscBool*);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetEPS(NEP,EPS);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetEPS(NEP,EPS*);
-
-#endif
-

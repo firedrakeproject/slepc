@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCVECIMPL_H)
-#define SLEPCVECIMPL_H
+#pragma once
 
 #include <slepcvec.h>
 #include <slepc/private/slepcimpl.h>
@@ -96,4 +95,3 @@ SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolCreate(Vec,PetscInt,VecPo
 SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolDestroy(VecPool*);
 SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolGetVecs(VecPool,PetscInt,Vec**);
 SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolRestoreVecs(VecPool,PetscInt,Vec**);
-#endif

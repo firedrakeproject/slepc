@@ -11,8 +11,7 @@
    Private header for TOAR and STOAR
 */
 
-#if !defined(SLEPC_PEPKRYLOV_H)
-#define SLEPC_PEPKRYLOV_H
+#pragma once
 
 SLEPC_INTERN PetscErrorCode PEPExtractVectors_TOAR(PEP);
 SLEPC_INTERN PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP,Mat*);
@@ -103,6 +102,3 @@ typedef struct {
   PetscReal     alpha,beta;     /* coefficients defining the linearization */
   PetscBool     checket;        /* check eigenvalue type during spectrum slicing */
 } PEP_STOAR;
-
-#endif
-

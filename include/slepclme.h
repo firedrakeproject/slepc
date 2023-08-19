@@ -11,8 +11,7 @@
    User interface for the SLEPc object for solving linear matrix equations
 */
 
-#if !defined(SLEPCLME_H)
-#define SLEPCLME_H
+#pragma once
 
 #include <slepcbv.h>
 
@@ -139,6 +138,3 @@ SLEPC_EXTERN PetscErrorCode LMERegister(const char[],PetscErrorCode(*)(LME));
 SLEPC_EXTERN PetscErrorCode LMEMonitorRegister(const char[],PetscViewerType,PetscViewerFormat,PetscErrorCode(*)(LME,PetscInt,PetscReal,PetscViewerAndFormat*),PetscErrorCode(*)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode(*)(PetscViewerAndFormat**));
 
 SLEPC_EXTERN PetscErrorCode LMEAllocateSolution(LME,PetscInt);
-
-#endif
-

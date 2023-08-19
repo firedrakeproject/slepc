@@ -11,8 +11,7 @@
    User interface for the SLEPc linear eigenvalue solvers
 */
 
-#if !defined(SLEPCEPS_H)
-#define SLEPCEPS_H
+#pragma once
 
 #include <slepcst.h>
 #include <slepcbv.h>
@@ -523,5 +522,3 @@ SLEPC_EXTERN PetscErrorCode EPSEVSLGetDamping(EPS,EPSEVSLDamping*);
 
 SLEPC_EXTERN PetscErrorCode EPSFEASTSetNumPoints(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSFEASTGetNumPoints(EPS,PetscInt*);
-
-#endif

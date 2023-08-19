@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCBLASLAPACK_MANGLE_H)
-#define SLEPCBLASLAPACK_MANGLE_H
+#pragma once
 
 /* LAPACK functions without string parameters */
 #define BLASrot_     PETSCBLAS(rot,ROT)
@@ -134,6 +133,4 @@
 #define BLASCOMPLEXgemm_   PETSCBLASCOMPLEX(gemm,GEMM)
 #define BLASCOMPLEXscal_   PETSCBLASCOMPLEX(scal,SCAL)
 #define LAPACKCOMPLEXgesv_ PETSCBLASCOMPLEX(gesv,GESV)
-#endif
-
 #endif

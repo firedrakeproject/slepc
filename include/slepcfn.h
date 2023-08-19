@@ -11,8 +11,7 @@
    User interface for the mathematical function object in SLEPc
 */
 
-#if !defined(SLEPCFN_H)
-#define SLEPCFN_H
+#pragma once
 
 #include <slepcsys.h>
 
@@ -113,5 +112,3 @@ SLEPC_EXTERN PetscErrorCode FNCombineGetChildren(FN,FNCombineType*,FN*,FN*);
 
 SLEPC_EXTERN PetscErrorCode FNPhiSetIndex(FN,PetscInt);
 SLEPC_EXTERN PetscErrorCode FNPhiGetIndex(FN,PetscInt*);
-
-#endif

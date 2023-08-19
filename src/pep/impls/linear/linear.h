@@ -11,8 +11,7 @@
    Private header for PEPLINEAR
 */
 
-#if !defined(SLEPC_LINEAR_H)
-#define SLEPC_LINEAR_H
+#pragma once
 
 typedef struct {
   PetscBool  explicitmatrix;
@@ -41,5 +40,3 @@ SLEPC_INTERN PetscErrorCode MatCreateExplicit_Linear_SB(MPI_Comm,PEP_LINEAR*,Mat
 /* H */
 SLEPC_INTERN PetscErrorCode MatCreateExplicit_Linear_HA(MPI_Comm,PEP_LINEAR*,Mat*);
 SLEPC_INTERN PetscErrorCode MatCreateExplicit_Linear_HB(MPI_Comm,PEP_LINEAR*,Mat*);
-
-#endif

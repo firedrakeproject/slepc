@@ -11,8 +11,7 @@
    Private header for Krylov-Schur
 */
 
-#if !defined(SLEPC_KRYLOVSCHUR_H)
-#define SLEPC_KRYLOVSCHUR_H
+#pragma once
 
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS);
@@ -98,5 +97,3 @@ typedef struct {
   /* the following are used only in filter */
   PetscBool        estimatedrange;     /* the filter range was not set by the user */
 } EPS_KRYLOVSCHUR;
-
-#endif

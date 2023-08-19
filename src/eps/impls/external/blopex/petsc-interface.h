@@ -3,8 +3,7 @@
 /* @@@ Copyright 2010 BLOPEX team https://github.com/lobpcg/blopex     */
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 
-#if !defined(PETSC_INTERFACE_HEADER)
-#define PETSC_INTERFACE_HEADER
+#pragma once
 
 #include <interpreter.h>
 
@@ -20,5 +19,3 @@ SLEPC_INTERN int LOBPCG_InitRandomContext(MPI_Comm,PetscRandom);
 SLEPC_INTERN int LOBPCG_SetFromOptionsRandomContext(void);
 SLEPC_INTERN int LOBPCG_DestroyRandomContext(void);
 SLEPC_INTERN int PETSCSetupInterpreter(mv_InterfaceInterpreter*);
-
-#endif /* PETSC_INTERFACE_HEADER */

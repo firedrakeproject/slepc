@@ -12,8 +12,7 @@
    by all other SLEPc include files.
 */
 
-#if !defined(SLEPCSYS_H)
-#define SLEPCSYS_H
+#pragma once
 
 #include <petscsys.h>
 
@@ -120,5 +119,3 @@ SLEPC_EXTERN PetscBool SlepcFinalizeCalled;
 #if defined(PETSC_USE_DEBUG)
 SLEPC_EXTERN PetscErrorCode SlepcDebugViewMatrix(PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt,const char*,const char*);
 #endif
-#endif
-

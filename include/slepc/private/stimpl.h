@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCSTIMPL_H)
-#define SLEPCSTIMPL_H
+#pragma once
 
 #include <slepcst.h>
 #include <slepc/private/slepcimpl.h>
@@ -143,5 +142,3 @@ static inline PetscErrorCode ST_KSPSetOperators(ST st,Mat A,Mat B)
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
-
-#endif

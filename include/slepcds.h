@@ -11,8 +11,7 @@
    User interface for the direct solver object in SLEPc
 */
 
-#if !defined(SLEPCDS_H)
-#define SLEPCDS_H
+#pragma once
 
 #include <slepcsc.h>
 #include <slepcfn.h>
@@ -252,5 +251,3 @@ SLEPC_EXTERN PetscErrorCode DSNEPGetComputeMatrixFunction(DS,PetscErrorCode (**)
 
 SLEPC_EXTERN PetscFunctionList DSList;
 SLEPC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));
-
-#endif

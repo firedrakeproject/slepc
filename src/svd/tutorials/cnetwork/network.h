@@ -11,8 +11,7 @@
    Utilities for loading a complex network file and represent it as a graph
 */
 
-#if !defined(NETWORK_H)
-#define NETWORK_H
+#pragma once
 
 #include <slepcsys.h>
 
@@ -47,5 +46,3 @@ SLEPC_EXTERN PetscErrorCode GraphDestroy(Graph*);
 SLEPC_EXTERN PetscErrorCode GraphPreload(Graph,char*);
 SLEPC_EXTERN PetscErrorCode GraphPreallocate(Graph,char*);
 SLEPC_EXTERN PetscErrorCode GraphLoadUnweighted(Graph,char*);
-
-#endif
