@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCPEPIMPL_H)
-#define SLEPCPEPIMPL_H
+#pragma once
 
 #include <slepcpep.h>
 #include <slepc/private/slepcimpl.h>
@@ -271,5 +270,3 @@ SLEPC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,P
 SLEPC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal,PetscInt);
 SLEPC_INTERN PetscErrorCode PEPSetDefaultST(PEP);
 SLEPC_INTERN PetscErrorCode PEPSetDefaultST_Transform(PEP);
-
-#endif

@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCSVDIMPL_H)
-#define SLEPCSVDIMPL_H
+#pragma once
 
 #include <slepcsvd.h>
 #include <slepc/private/slepcimpl.h>
@@ -227,5 +226,3 @@ SLEPC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,Pe
 SLEPC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
 SLEPC_INTERN PetscErrorCode SVDComputeVectors(SVD);
 SLEPC_INTERN PetscErrorCode SVDComputeVectors_Left(SVD);
-
-#endif

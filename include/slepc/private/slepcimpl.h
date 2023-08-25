@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCIMPL_H)
-#define SLEPCIMPL_H
+#pragma once
 
 #include <slepcsys.h>
 #include <petsc/private/petscimpl.h>
@@ -188,6 +187,4 @@ static inline PetscErrorCode SlepcKernelSetGrid2DTiles(PetscInt rows,PetscInt co
 }
 #undef X_AXIS
 #undef Y_AXIS
-#endif
-
 #endif

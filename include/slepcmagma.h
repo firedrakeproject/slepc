@@ -11,8 +11,7 @@
    Macro definitions to use MAGMA functionality
 */
 
-#if !defined(SLEPCMAGMA_H)
-#define SLEPCMAGMA_H
+#pragma once
 
 #if defined(PETSC_HAVE_MAGMA)
 
@@ -65,5 +64,4 @@ SLEPC_EXTERN PetscErrorCode SlepcMagmaInit(void);
 #define magma_Cgesv_gpu(a,b,c,d,e,f,g,h)         magma_zgesv_gpu((a),(b),(magmaDoubleComplex_ptr)(c),(d),(e),(magmaDoubleComplex_ptr)(f),(g),(h))
 #endif
 
-#endif
 #endif

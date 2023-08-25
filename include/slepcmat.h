@@ -11,8 +11,7 @@
    User interface for various matrix operations added in SLEPc
 */
 
-#if !defined(SLEPCMAT_H)
-#define SLEPCMAT_H
+#pragma once
 
 #include <petscmat.h>
 
@@ -33,5 +32,3 @@ PETSC_DEPRECATED_FUNCTION(3, 6, 0, "MatCreateRedundantMatrix() followed by MatCo
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 PETSC_DEPRECATED_FUNCTION(3, 8, 0, "MatCreateTile()", ) static inline PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G) {return MatCreateTile(a,A,b,B,c,C,d,D,G);}
-
-#endif

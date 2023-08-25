@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCCONTOUR_H)
-#define SLEPCCONTOUR_H
+#pragma once
 
 #include <slepc/private/slepcimpl.h>
 #include <petscksp.h>
@@ -53,5 +52,3 @@ SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcContourDataDestroy(SlepcContourD
 
 SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcContourRedundantMat(SlepcContourData,PetscInt,Mat*,Mat*);
 SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcContourScatterCreate(SlepcContourData,Vec);
-
-#endif

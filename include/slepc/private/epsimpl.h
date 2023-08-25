@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCEPSIMPL_H)
-#define SLEPCEPSIMPL_H
+#pragma once
 
 #include <slepceps.h>
 #include <slepc/private/slepcimpl.h>
@@ -349,5 +348,3 @@ SLEPC_INTERN PetscErrorCode EPSSetDefaultST_GMRES(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetDefaultST_NoFactor(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetUpSort_Basic(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetUpSort_Default(EPS);
-
-#endif

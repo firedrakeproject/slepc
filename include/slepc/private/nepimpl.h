@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCNEPIMPL_H)
-#define SLEPCNEPIMPL_H
+#pragma once
 
 #include <slepcnep.h>
 #include <slepc/private/slepcimpl.h>
@@ -239,5 +238,3 @@ SLEPC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 SLEPC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
 SLEPC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscBool,PetscScalar,Vec,Vec*,PetscReal*);
 SLEPC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal,PetscInt);
-
-#endif

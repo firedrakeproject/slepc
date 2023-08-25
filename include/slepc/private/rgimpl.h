@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCRGIMPL_H)
-#define SLEPCRGIMPL_H
+#pragma once
 
 #include <slepcrg.h>
 #include <slepc/private/slepcimpl.h>
@@ -43,5 +42,3 @@ struct _p_RG {
 
 /* show an inf instead of PETSC_MAX_REAL */
 #define RGShowReal(r) (double)((PetscAbsReal(r)>=PETSC_MAX_REAL)?10*(r):(r))
-
-#endif

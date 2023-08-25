@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCFNIMPL_H)
-#define SLEPCFNIMPL_H
+#pragma once
 
 #include <slepcfn.h>
 #include <slepc/private/slepcimpl.h>
@@ -108,6 +107,4 @@ SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN,Mat,Mat); /* use
 SLEPC_INTERN PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 SLEPC_INTERN PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 SLEPC_INTERN PetscErrorCode FNSqrtmSadeghi_CUDAm(FN,PetscBLASInt,PetscScalar*,PetscBLASInt);
-#endif
-
 #endif

@@ -11,8 +11,7 @@
    Sorting criterion for various solvers
 */
 
-#if !defined(SLEPCSC_H)
-#define SLEPCSC_H
+#pragma once
 
 #include <slepcsys.h>
 #include <slepcrgtypes.h>
@@ -80,5 +79,3 @@ SLEPC_EXTERN PetscErrorCode SlepcCompareTargetReal(PetscScalar,PetscScalar,Petsc
 SLEPC_EXTERN PetscErrorCode SlepcCompareTargetImaginary(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
 #endif
 SLEPC_EXTERN PetscErrorCode SlepcCompareSmallestPosReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-
-#endif

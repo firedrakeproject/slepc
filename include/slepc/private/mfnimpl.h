@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCMFNIMPL_H)
-#define SLEPCMFNIMPL_H
+#pragma once
 
 #include <slepcmfn.h>
 #include <slepc/private/slepcimpl.h>
@@ -116,5 +115,3 @@ static inline PetscErrorCode MFN_CreateVec(PetscInt k,Vec *v)
   if (create) PetscCall(VecCreateSeq(PETSC_COMM_SELF,k,v));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
-
-#endif

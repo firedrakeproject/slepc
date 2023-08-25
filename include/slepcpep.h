@@ -11,8 +11,7 @@
    User interface for SLEPc's polynomial eigenvalue solvers
 */
 
-#if !defined(SLEPCPEP_H)
-#define SLEPCPEP_H
+#pragma once
 
 #include <slepceps.h>
 
@@ -407,5 +406,4 @@ static inline PetscErrorCode PEPCISSSetRefinement(PEP pep,PETSC_UNUSED PetscInt 
 static inline PetscErrorCode PEPCISSGetRefinement(PEP pep,PETSC_UNUSED PetscInt *inner,PETSC_UNUSED PetscInt *blsize) {SlepcPEPCISSUnavailable(pep);}
 static inline PetscErrorCode PEPCISSGetKSPs(PEP pep,PETSC_UNUSED PetscInt *nsolve,PETSC_UNUSED KSP **ksp) {SlepcPEPCISSUnavailable(pep);}
 #undef SlepcPEPCISSUnavailable
-#endif
 #endif

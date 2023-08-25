@@ -11,8 +11,8 @@
    Macro definitions to use CUBLAS functionality
 */
 
-#if !defined(SLEPCCUBLAS_H)
-#define SLEPCCUBLAS_H
+#pragma once
+
 #include <petscdevice.h>
 
 /* complex single */
@@ -67,5 +67,3 @@
 #define cublasXCgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)  cublasZgemm((a),(b),(c),(d),(e),(f),(const cuDoubleComplex *)(g),(const cuDoubleComplex *)(h),(i),(const cuDoubleComplex *)(j),(k),(const cuDoubleComplex *)(l),(cuDoubleComplex *)(m),(n))
 #define cublasXCscal(a,b,c,d,e)                    cublasZscal((a),(b),(const cuDoubleComplex *)(c),(cuDoubleComplex *)(d),(e))
 #endif /* COMPLEX */
-
-#endif

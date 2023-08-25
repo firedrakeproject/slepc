@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCVERSION_H)
+#ifndef SLEPCVERSION_H
 #define SLEPCVERSION_H
 
 #define SLEPC_VERSION_RELEASE    0
@@ -53,4 +53,3 @@
   (0 == SLEPC_VERSION_LT(MAJOR,MINOR,SUBMINOR))
 
 #endif
-

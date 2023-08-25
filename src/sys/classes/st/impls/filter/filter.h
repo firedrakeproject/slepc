@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPC_FILTER_H)
-#define SLEPC_FILTER_H
+#pragma once
 
 /* IntervalOptions structure used by GetIntervals */
 struct _n_FILTLAN_IOP {
@@ -73,6 +72,3 @@ typedef struct {
 
 SLEPC_INTERN PetscErrorCode STFilter_FILTLAN_Apply(ST,Vec,Vec);
 SLEPC_INTERN PetscErrorCode STFilter_FILTLAN_setFilter(ST,Mat*);
-
-#endif
-

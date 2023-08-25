@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCBVIMPL_H)
-#define SLEPCBVIMPL_H
+#pragma once
 
 #include <slepcbv.h>
 #include <slepc/private/slepcimpl.h>
@@ -477,5 +476,3 @@ SLEPC_INTERN PetscErrorCode BV_StoreCoefficients_CUDA(BV,PetscInt,PetscScalar*,P
 #define BV_SquareRoot(a,b,c,d)        BV_SquareRoot_Default((a),(b),(c),(d))
 #define BV_StoreCoefficients(a,b,c,d) BV_StoreCoefficients_Default((a),(b),(c),(d))
 #endif /* PETSC_HAVE_CUDA */
-
-#endif
