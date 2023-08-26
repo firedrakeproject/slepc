@@ -119,4 +119,3 @@ static inline PetscErrorCode SlepcResetFlushToZero(unsigned int *state)
 #endif
   PetscFunctionReturn(PETSC_SUCCESS);
 }
-
