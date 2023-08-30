@@ -12,11 +12,7 @@
 */
 
 #include <slepc/private/bvimpl.h>
-
-typedef struct {
-  Mat       A;
-  PetscBool mpi;
-} BV_MAT;
+#include "bvmat.h"
 
 static PetscErrorCode BVMult_Mat(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
@@ -392,16 +388,17 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   char           str[50];
   PetscScalar    *array,*ptr;
   BV             parent;
+  Mat            Apar;
 
   PetscFunctionBegin;
   PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
-  PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi));
-  if (!ctx->mpi) {
-    PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq));
-    PetscCheck(seq,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot create a BVMAT from a non-standard template vector");
-  }
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)bv->t,&bv->cuda,VECSEQCUDA,VECMPICUDA,""));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)bv->t,&ctx->mpi,VECMPI,VECMPICUDA,""));
+
+  PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq));
+  PetscCheck(seq || ctx->mpi || bv->cuda,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVMAT does not support the type of the provided template vector");
 
   PetscCall(VecGetLocalSize(bv->t,&nloc));
   PetscCall(VecGetBlockSize(bv->t,&bs));
@@ -410,14 +407,29 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     /* split BV: share the memory of the parent BV */
     parent = bv->splitparent;
     lsplit = parent->lsplit;
-    PetscCall(MatDenseGetArray(((BV_MAT*)parent->data)->A,&array));
-    ptr = (bv->issplit==1)? array: array+lsplit*nloc;
-    PetscCall(MatDenseRestoreArray(((BV_MAT*)parent->data)->A,&array));
+    Apar = ((BV_MAT*)parent->data)->A;
+    if (bv->cuda) {
+#if defined(PETSC_HAVE_CUDA)
+      PetscCall(MatDenseCUDAGetArray(Apar,&array));
+      ptr = (bv->issplit==1)? array: array+lsplit*nloc;
+      PetscCall(MatDenseCUDARestoreArray(Apar,&array));
+#endif
+    } else {
+      PetscCall(MatDenseGetArray(Apar,&array));
+      ptr = (bv->issplit==1)? array: array+lsplit*nloc;
+      PetscCall(MatDenseRestoreArray(Apar,&array));
+    }
   } else {
     /* regular BV: allocate memory for the BV entries */
     ptr = NULL;
   }
-  PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv->t),nloc,PETSC_DECIDE,PETSC_DECIDE,bv->m,ptr,&ctx->A));
+  if (bv->cuda) {
+#if defined(PETSC_HAVE_CUDA)
+    PetscCall(MatCreateDenseCUDA(PetscObjectComm((PetscObject)bv->t),nloc,PETSC_DECIDE,PETSC_DECIDE,bv->m,ptr,&ctx->A));
+#endif
+  } else {
+    PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv->t),nloc,PETSC_DECIDE,PETSC_DECIDE,bv->m,ptr,&ctx->A));
+  }
   if (((PetscObject)bv)->name) {
     PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
     PetscCall(PetscObjectSetName((PetscObject)ctx->A,str));
@@ -431,29 +443,51 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   PetscCall(VecDuplicateEmpty(bv->t,&bv->cv[0]));
   PetscCall(VecDuplicateEmpty(bv->t,&bv->cv[1]));
 
-  bv->ops->mult             = BVMult_Mat;
-  bv->ops->multvec          = BVMultVec_Mat;
-  bv->ops->multinplace      = BVMultInPlace_Mat;
-  bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Mat;
-  bv->ops->dot              = BVDot_Mat;
-  bv->ops->dotvec           = BVDotVec_Mat;
-  bv->ops->dotvec_local     = BVDotVec_Local_Mat;
-  bv->ops->scale            = BVScale_Mat;
+  if (bv->cuda) {
+#if defined(PETSC_HAVE_CUDA)
+    bv->ops->mult             = BVMult_Mat_CUDA;
+    bv->ops->multvec          = BVMultVec_Mat_CUDA;
+    bv->ops->multinplace      = BVMultInPlace_Mat_CUDA;
+    bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Mat_CUDA;
+    bv->ops->dot              = BVDot_Mat_CUDA;
+    bv->ops->dotvec           = BVDotVec_Mat_CUDA;
+    bv->ops->dotvec_local     = BVDotVec_Local_Mat_CUDA;
+    bv->ops->scale            = BVScale_Mat_CUDA;
+    bv->ops->matmult          = BVMatMult_Mat_CUDA;
+    bv->ops->copy             = BVCopy_Mat_CUDA;
+    bv->ops->copycolumn       = BVCopyColumn_Mat_CUDA;
+    bv->ops->resize           = BVResize_Mat_CUDA;
+    bv->ops->getcolumn        = BVGetColumn_Mat_CUDA;
+    bv->ops->restorecolumn    = BVRestoreColumn_Mat_CUDA;
+    bv->ops->restoresplit     = BVRestoreSplit_Mat_CUDA;
+    bv->ops->getmat           = BVGetMat_Default;
+    bv->ops->restoremat       = BVRestoreMat_Default;
+#endif
+  } else {
+    bv->ops->mult             = BVMult_Mat;
+    bv->ops->multvec          = BVMultVec_Mat;
+    bv->ops->multinplace      = BVMultInPlace_Mat;
+    bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Mat;
+    bv->ops->dot              = BVDot_Mat;
+    bv->ops->dotvec           = BVDotVec_Mat;
+    bv->ops->dotvec_local     = BVDotVec_Local_Mat;
+    bv->ops->scale            = BVScale_Mat;
+    bv->ops->matmult          = BVMatMult_Mat;
+    bv->ops->copy             = BVCopy_Mat;
+    bv->ops->copycolumn       = BVCopyColumn_Mat;
+    bv->ops->resize           = BVResize_Mat;
+    bv->ops->getcolumn        = BVGetColumn_Mat;
+    bv->ops->restorecolumn    = BVRestoreColumn_Mat;
+    bv->ops->getmat           = BVGetMat_Default;
+    bv->ops->restoremat       = BVRestoreMat_Default;
+  }
   bv->ops->norm             = BVNorm_Mat;
   bv->ops->norm_local       = BVNorm_Local_Mat;
   bv->ops->normalize        = BVNormalize_Mat;
-  bv->ops->matmult          = BVMatMult_Mat;
-  bv->ops->copy             = BVCopy_Mat;
-  bv->ops->copycolumn       = BVCopyColumn_Mat;
-  bv->ops->resize           = BVResize_Mat;
-  bv->ops->getcolumn        = BVGetColumn_Mat;
-  bv->ops->restorecolumn    = BVRestoreColumn_Mat;
   bv->ops->getarray         = BVGetArray_Mat;
   bv->ops->restorearray     = BVRestoreArray_Mat;
   bv->ops->getarrayread     = BVGetArrayRead_Mat;
   bv->ops->restorearrayread = BVRestoreArrayRead_Mat;
-  bv->ops->getmat           = BVGetMat_Default;
-  bv->ops->restoremat       = BVRestoreMat_Default;
   bv->ops->destroy          = BVDestroy_Mat;
   if (!ctx->mpi) bv->ops->view = BVView_Mat;
   PetscFunctionReturn(PETSC_SUCCESS);
