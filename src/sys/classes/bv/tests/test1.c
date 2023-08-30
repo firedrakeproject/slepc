@@ -187,13 +187,24 @@ int main(int argc,char **argv)
    testset:
       args: -bv_type svec -vec_type cuda -verbose
       requires: cuda
-      output_file: output/test1_1_cuda.out
+      output_file: output/test1_1_svec_cuda.out
       test:
-         suffix: 1_cuda
+         suffix: 1_svec_cuda
       test:
-         suffix: 1_cuda_mat
+         suffix: 1_svec_cuda_mat
          args: -matcuda
          filter: sed -e "s/seqdensecuda/seqdense/"
+
+   testset:
+      args: -bv_type mat -vec_type cuda -verbose
+      requires: cuda
+      output_file: output/test1_1_mat_cuda.out
+      filter: sed -e "s/seqdensecuda/seqdense/"
+      test:
+         suffix: 1_mat_cuda
+      test:
+         suffix: 1_mat_cuda_mat
+         args: -matcuda
 
    test:
       args: -bv_type {{vecs contiguous svec mat}separate output} -verbose -testlda
@@ -203,12 +214,23 @@ int main(int argc,char **argv)
    testset:
       args: -bv_type svec -vec_type cuda -verbose -testlda
       requires: cuda
-      output_file: output/test1_1_cuda.out
+      output_file: output/test1_1_svec_cuda.out
       test:
-         suffix: 2_cuda
+         suffix: 2_svec_cuda
       test:
-         suffix: 2_cuda_mat
+         suffix: 2_svec_cuda_mat
          args: -matcuda
          filter: sed -e "s/seqdensecuda/seqdense/"
+
+   testset:
+      args: -bv_type mat -vec_type cuda -verbose -testlda
+      requires: cuda
+      output_file: output/test1_1_mat_cuda.out
+      filter: sed -e "s/seqdensecuda/seqdense/"
+      test:
+         suffix: 2_mat_cuda
+      test:
+         suffix: 2_mat_cuda_mat
+         args: -matcuda
 
 TEST*/

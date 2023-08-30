@@ -157,7 +157,7 @@ int main(int argc,char **argv)
 
       test:
          suffix: 1_cuda
-         args: -bv_type svec -vec_type cuda
+         args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
 
    testset:
@@ -168,7 +168,7 @@ int main(int argc,char **argv)
          args: -nc 2 -bv_type {{vecs contiguous svec mat}shared output}
       test:
          suffix: 2_cuda
-         args: -nc 2 -bv_type svec -vec_type cuda
+         args: -nc 2 -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
 
 TEST*/

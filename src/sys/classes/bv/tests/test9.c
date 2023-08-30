@@ -192,7 +192,7 @@ int main(int argc,char **argv)
          args: -bv_type svec -bv_matmult vecs
       test:
          suffix: 1_cuda
-         args: -bv_type svec -mat_type aijcusparse
+         args: -bv_type {{svec mat}} -mat_type aijcusparse
          requires: cuda
       test:
          suffix: 2
