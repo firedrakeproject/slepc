@@ -101,7 +101,7 @@ struct _p_BV {
   PetscRandom        rand;         /* random number generator */
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */
   Mat                Aget;         /* matrix returned for BVGetMat() */
-  PetscBool          cuda;         /* true if GPU must be used in SVEC */
+  PetscBool          cuda;         /* true if GPU must be used */
   PetscBool          sfocalled;    /* setfromoptions has been called */
   PetscScalar        *work;
   PetscInt           lwork;
@@ -453,6 +453,63 @@ static inline PetscErrorCode BV_OrthogonalizeColumn_Safe(BV bv,PetscInt j,PetscS
 }
 
 #if defined(PETSC_HAVE_CUDA)
+/*
+   BV_MatDenseCUDAGetArrayRead - if Q is MATSEQDENSE it will allocate memory on the
+   GPU and copy the contents; otherwise, calls MatDenseCUDAGetArrayRead()
+*/
+static inline PetscErrorCode BV_MatDenseCUDAGetArrayRead(BV bv,Mat Q,PetscScalar **d_q)
+{
+  const PetscScalar *q;
+  PetscInt          ldq,mq;
+  PetscCuBLASInt    ldq_=0;
+  PetscBool         matiscuda;
+
+  PetscFunctionBegin;
+  (void)bv; // avoid unused parameter warning
+  PetscCall(MatGetSize(Q,NULL,&mq));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
+  PetscCall(PetscCuBLASIntCast(ldq,&ldq_));
+  PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSECUDA,&matiscuda));
+  if (matiscuda) PetscCall(MatDenseCUDAGetArrayRead(Q,(const PetscScalar**)d_q));
+  else {
+    PetscCall(MatDenseGetArrayRead(Q,&q));
+    PetscCallCUDA(cudaMalloc((void**)d_q,ldq*mq*sizeof(PetscScalar)));
+    PetscCallCUDA(cudaMemcpy(*d_q,q,ldq*mq*sizeof(PetscScalar),cudaMemcpyHostToDevice));
+    PetscCall(PetscLogCpuToGpu(ldq*mq*sizeof(PetscScalar)));
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*
+   BV_MatDenseCUDARestoreArrayRead - restores the pointer obtained with BV_MatDenseCUDAGetArrayRead(),
+   freeing the GPU memory in case of MATSEQDENSE
+*/
+static inline PetscErrorCode BV_MatDenseCUDARestoreArrayRead(BV bv,Mat Q,PetscScalar **d_q)
+{
+  PetscBool matiscuda;
+
+  PetscFunctionBegin;
+  (void)bv; // avoid unused parameter warning
+  PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSECUDA,&matiscuda));
+  if (matiscuda) PetscCall(MatDenseCUDARestoreArrayRead(Q,(const PetscScalar**)d_q));
+  else {
+    PetscCall(MatDenseRestoreArrayRead(Q,NULL));
+    PetscCallCUDA(cudaFree(*d_q));
+    *d_q = NULL;
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+SLEPC_INTERN PetscErrorCode BVMult_BLAS_CUDA(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar,const PetscScalar*,const PetscScalar*,PetscScalar,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BVMultVec_BLAS_CUDA(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,const PetscScalar*,PetscScalar,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BVMultInPlace_BLAS_CUDA(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,const PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVAXPY_BLAS_CUDA(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscScalar,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BVDot_BLAS_CUDA(BV,PetscInt,PetscInt,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVDotVec_BLAS_CUDA(BV,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVScale_BLAS_CUDA(BV,PetscInt,PetscScalar*,PetscScalar);
+
+SLEPC_INTERN PetscErrorCode BV_ConjugateCudaArray(PetscScalar*,PetscInt);
+
 SLEPC_INTERN PetscErrorCode BV_CleanCoefficients_CUDA(BV,PetscInt,PetscScalar*);
 SLEPC_INTERN PetscErrorCode BV_AddCoefficients_CUDA(BV,PetscInt,PetscScalar*,PetscScalar*);
 SLEPC_INTERN PetscErrorCode BV_SetValue_CUDA(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar);

@@ -166,7 +166,7 @@ PetscErrorCode BVAXPY_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar alp
   PetscCall(PetscBLASIntCast(n_*k_,&m));
   if (beta!=(PetscScalar)1.0) {
     PetscCallBLAS("BLASscal",BLASscal_(&m,&beta,B,&one));
-    PetscCall(PetscLogFlops(m));
+    PetscCall(PetscLogFlops(1.0*m));
   }
   PetscCallBLAS("BLASaxpy",BLASaxpy_(&m,&alpha,A,&one,B,&one));
   PetscCall(PetscLogFlops(2.0*m));
@@ -251,7 +251,7 @@ PetscErrorCode BVScale_BLAS_Private(BV bv,PetscInt n_,PetscScalar *A,PetscScalar
   else if (alpha!=(PetscScalar)1.0) {
     PetscCall(PetscBLASIntCast(n_,&n));
     PetscCallBLAS("BLASscal",BLASscal_(&n,&alpha,A,&one));
-    PetscCall(PetscLogFlops(n));
+    PetscCall(PetscLogFlops(1.0*n));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
