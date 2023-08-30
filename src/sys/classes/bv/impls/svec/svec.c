@@ -393,9 +393,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   char              str[50];
   BV                parent;
   Vec               vpar;
-#if defined(PETSC_HAVE_CUDA)
-  PetscScalar       *gpuarray,*gptr;
-#endif
 
   PetscFunctionBegin;
   PetscCall(PetscNew(&ctx));
@@ -420,12 +417,12 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     vpar = ((BV_SVEC*)parent->data)->v;
     if (bv->cuda) {
 #if defined(PETSC_HAVE_CUDA)
-      PetscCall(VecCUDAGetArray(vpar,&gpuarray));
-      gptr = (bv->issplit==1)? gpuarray: gpuarray+lsplit*nloc;
-      PetscCall(VecCUDARestoreArray(vpar,&gpuarray));
+      PetscCall(VecCUDAGetArrayRead(vpar,&array));
+      ptr = (bv->issplit==1)? array: array+lsplit*nloc;
+      PetscCall(VecCUDARestoreArrayRead(vpar,&array));
       if (ctx->mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v));
       else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v));
-      PetscCall(VecCUDAPlaceArray(ctx->v,gptr));
+      PetscCall(VecCUDAPlaceArray(ctx->v,ptr));
 #endif
     } else {
       PetscCall(VecGetArrayRead(vpar,&array));
