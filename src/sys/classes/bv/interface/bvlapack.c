@@ -34,9 +34,9 @@ SLEPC_EXTERN void MPIAPI SlepcPythag(void *in,void *inout,PetscMPIInt *len,MPI_D
 /*
     Compute ||A|| for an mxn matrix
 */
-PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscScalar *A,NormType type,PetscReal *nrm,PetscBool mpi)
+PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscScalar *A,PetscInt lda_,NormType type,PetscReal *nrm,PetscBool mpi)
 {
-  PetscBLASInt   m,n,i,j;
+  PetscBLASInt   m,n,lda,i,j;
   PetscMPIInt    len;
   PetscReal      lnrm,*rwork=NULL,*rwork2=NULL;
 
@@ -44,8 +44,9 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   PetscCall(PetscBLASIntCast(m_,&m));
   PetscCall(PetscBLASIntCast(n_,&n));
+  PetscCall(PetscBLASIntCast(lda_,&lda));
   if (type==NORM_FROBENIUS || type==NORM_2) {
-    lnrm = LAPACKlange_("F",&m,&n,(PetscScalar*)A,&m,rwork);
+    lnrm = LAPACKlange_("F",&m,&n,(PetscScalar*)A,&lda,rwork);
     if (mpi) PetscCall(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv)));
     else *nrm = lnrm;
     PetscCall(PetscLogFlops(2.0*m*n));
@@ -58,7 +59,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
       PetscCall(PetscArrayzero(rwork2,n_));
       for (j=0;j<n_;j++) {
         for (i=0;i<m_;i++) {
-          rwork[j] += PetscAbsScalar(A[i+j*m_]);
+          rwork[j] += PetscAbsScalar(A[i+j*lda_]);
         }
       }
       PetscCall(PetscMPIIntCast(n_,&len));
@@ -66,13 +67,13 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
       *nrm = 0.0;
       for (j=0;j<n_;j++) if (rwork2[j] > *nrm) *nrm = rwork2[j];
     } else {
-      *nrm = LAPACKlange_("O",&m,&n,(PetscScalar*)A,&m,rwork);
+      *nrm = LAPACKlange_("O",&m,&n,(PetscScalar*)A,&lda,rwork);
     }
     PetscCall(PetscLogFlops(1.0*m*n));
   } else if (type==NORM_INFINITY) {
     PetscCall(BVAllocateWork_Private(bv,m_));
     rwork = (PetscReal*)bv->work;
-    lnrm = LAPACKlange_("I",&m,&n,(PetscScalar*)A,&m,rwork);
+    lnrm = LAPACKlange_("I",&m,&n,(PetscScalar*)A,&lda,rwork);
     if (mpi) PetscCall(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)bv)));
     else *nrm = lnrm;
     PetscCall(PetscLogFlops(1.0*m*n));
@@ -84,15 +85,16 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
 /*
     Normalize the columns of an mxn matrix A
 */
-PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscScalar *A,PetscScalar *eigi,PetscBool mpi)
+PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscScalar *A,PetscInt lda_,PetscScalar *eigi,PetscBool mpi)
 {
-  PetscBLASInt   m,j,k,info,zero=0;
+  PetscBLASInt   m,lda,j,k,info,zero=0;
   PetscMPIInt    len;
   PetscReal      *norms,*rwork=NULL,*rwork2=NULL,done=1.0;
 
   PetscFunctionBegin;
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   PetscCall(PetscBLASIntCast(m_,&m));
+  PetscCall(PetscBLASIntCast(lda_,&lda));
   PetscCall(BVAllocateWork_Private(bv,2*n_));
   rwork = (PetscReal*)bv->work;
   rwork2 = rwork+n_;
@@ -102,7 +104,7 @@ PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const Pe
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi && eigi[j] != 0.0) k = 2;
 #endif
-    rwork[j] = LAPACKlange_("F",&m,&k,(PetscScalar*)(A+j*m_),&m,rwork2);
+    rwork[j] = LAPACKlange_("F",&m,&k,(PetscScalar*)(A+j*lda_),&lda,rwork2);
     if (k==2) { rwork[j+1] = rwork[j]; j++; }
   }
   /* reduction to get global norms */
@@ -118,7 +120,7 @@ PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const Pe
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi && eigi[j] != 0.0) k = 2;
 #endif
-    PetscCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,norms+j,&done,&m,&k,(PetscScalar*)(A+j*m_),&m,&info));
+    PetscCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,norms+j,&done,&m,&k,(PetscScalar*)(A+j*lda_),&lda,&info));
     SlepcCheckLapackInfo("lascl",info);
     if (k==2) j++;
   }
@@ -342,10 +344,10 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
 /*
     QR factorization of an mxn matrix via parallel TSQR
 */
-PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscInt ldr)
+PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscInt ldq_,PetscScalar *R,PetscInt ldr)
 {
   PetscInt       level,plevel,nlevels,powtwo,lda,worklen;
-  PetscBLASInt   m,n,i,j,k,l,s = 0,nb,sz,lwork,info;
+  PetscBLASInt   m,n,ldq,i,j,k,l,s = 0,nb,sz,lwork,info;
   PetscScalar    *tau,*work,*A=NULL,*QQ=NULL,*Qhalf,*C=NULL,one=1.0,zero=0.0;
   PetscMPIInt    rank,size,count,stride;
   MPI_Datatype   tmat;
@@ -354,6 +356,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   PetscCall(PetscBLASIntCast(m_,&m));
   PetscCall(PetscBLASIntCast(n_,&n));
+  PetscCall(PetscBLASIntCast(ldq_,&ldq));
   k  = PetscMin(m,n);
   nb = 16;
   lda = 2*n;
@@ -374,15 +377,15 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
   }
 
   /* Compute QR */
-  PetscCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&m,&n,Q,&m,tau,work,&lwork,&info));
+  PetscCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&m,&n,Q,&ldq,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("geqrf",info);
 
   /* Extract R */
   if (R || nlevels) {
     for (j=0;j<n;j++) {
       for (i=0;i<=PetscMin(j,m-1);i++) {
-        if (nlevels) A[i+j*lda] = Q[i+j*m];
-        else R[i+j*ldr] = Q[i+j*m];
+        if (nlevels) A[i+j*lda] = Q[i+j*ldq];
+        else R[i+j*ldr] = Q[i+j*ldq];
       }
       for (i=PetscMin(j,m-1)+1;i<n;i++) {
         if (nlevels) A[i+j*lda] = 0.0;
@@ -392,7 +395,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
   }
 
   /* Compute orthogonal matrix in Q */
-  PetscCallBLAS("LAPACKorgqr",LAPACKorgqr_(&m,&k,&k,Q,&m,tau,work,&lwork,&info));
+  PetscCallBLAS("LAPACKorgqr",LAPACKorgqr_(&m,&k,&k,Q,&ldq,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("orgqr",info);
 
   if (nlevels) {
@@ -456,13 +459,13 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
         PetscCall(PetscArraycpy(QQ+level*n*lda,C,n*lda));
       } else {
         for (i=0;i<m/l;i++) {
-          PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,Q+i*l,&m,Qhalf,&l,&zero,C,&l));
-          for (j=0;j<n;j++) PetscCall(PetscArraycpy(Q+i*l+j*m,C+j*l,l));
+          PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,Q+i*l,&ldq,Qhalf,&l,&zero,C,&l));
+          for (j=0;j<n;j++) PetscCall(PetscArraycpy(Q+i*l+j*ldq,C+j*l,l));
         }
         sz = m%l;
         if (sz) {
-          PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&sz,&n,&n,&one,Q+(m/l)*l,&m,Qhalf,&l,&zero,C,&l));
-          for (j=0;j<n;j++) PetscCall(PetscArraycpy(Q+(m/l)*l+j*m,C+j*l,sz));
+          PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&sz,&n,&n,&one,Q+(m/l)*l,&ldq,Qhalf,&l,&zero,C,&l));
+          for (j=0;j<n;j++) PetscCall(PetscArraycpy(Q+(m/l)*l+j*ldq,C+j*l,sz));
         }
       }
     }
@@ -504,10 +507,10 @@ SLEPC_EXTERN void MPIAPI SlepcGivensPacked(void *in,void *inout,PetscMPIInt *len
 /*
     Computes the R factor of the QR factorization of an mxn matrix via parallel TSQR
 */
-PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscInt ldr)
+PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscInt ldq_,PetscScalar *R,PetscInt ldr)
 {
   PetscInt       worklen;
-  PetscBLASInt   m,n,i,j,s,nb,lwork,info;
+  PetscBLASInt   m,n,ldq,i,j,s,nb,lwork,info;
   PetscScalar    *tau,*work,*A=NULL,*R1=NULL,*R2=NULL;
   PetscMPIInt    size,count;
   MPI_Datatype   tmat;
@@ -516,10 +519,11 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,P
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   PetscCall(PetscBLASIntCast(m_,&m));
   PetscCall(PetscBLASIntCast(n_,&n));
+  PetscCall(PetscBLASIntCast(ldq_,&ldq));
   nb = 16;
   s  = n+n*(n-1)/2;  /* length of packed triangular matrix */
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size));
-  worklen = n+n*nb+2*s+m*n;
+  worklen = n+n*nb+2*s+ldq*n;
   PetscCall(BVAllocateWork_Private(bv,worklen));
   tau  = bv->work;
   work = bv->work+n;
@@ -527,16 +531,16 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,P
   R2   = bv->work+n+n*nb+s;
   A    = bv->work+n+n*nb+2*s;
   PetscCall(PetscBLASIntCast(n*nb,&lwork));
-  PetscCall(PetscArraycpy(A,Q,m*n));
+  PetscCall(PetscArraycpy(A,Q,ldq*n));
 
   /* Compute QR */
-  PetscCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&m,&n,A,&m,tau,work,&lwork,&info));
+  PetscCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&m,&n,A,&ldq,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("geqrf",info);
 
   if (size==1) {
     /* Extract R */
     for (j=0;j<n;j++) {
-      for (i=0;i<=PetscMin(j,m-1);i++) R[i+j*ldr] = A[i+j*m];
+      for (i=0;i<=PetscMin(j,m-1);i++) R[i+j*ldr] = A[i+j*ldq];
       for (i=PetscMin(j,m-1)+1;i<n;i++) R[i+j*ldr] = 0.0;
     }
   } else {
@@ -545,7 +549,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,P
     PetscCallMPI(MPI_Type_contiguous(count,MPIU_SCALAR,&tmat));
     PetscCallMPI(MPI_Type_commit(&tmat));
     for (i=0;i<n;i++) {
-      for (j=i;j<n;j++) R1[(2*n-i-1)*i/2+j] = (i<m)?A[i+j*m]:0.0;
+      for (j=i;j<n;j++) R1[(2*n-i-1)*i/2+j] = (i<m)?A[i+j*ldq]:0.0;
     }
     PetscCall(MPIU_Allreduce(R1,R2,1,tmat,MPIU_TSQR,PetscObjectComm((PetscObject)bv)));
     for (i=0;i<n;i++) {

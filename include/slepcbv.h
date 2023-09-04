@@ -114,6 +114,8 @@ SLEPC_EXTERN PetscErrorCode BVSetType(BV,BVType);
 SLEPC_EXTERN PetscErrorCode BVGetType(BV,BVType*);
 SLEPC_EXTERN PetscErrorCode BVSetSizes(BV,PetscInt,PetscInt,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVSetSizesFromVec(BV,Vec,PetscInt);
+SLEPC_EXTERN PetscErrorCode BVSetLeadingDimension(BV,PetscInt);
+SLEPC_EXTERN PetscErrorCode BVGetLeadingDimension(BV,PetscInt*);
 SLEPC_EXTERN PetscErrorCode BVGetSizes(BV,PetscInt*,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode BVResize(BV,PetscInt,PetscBool);
 SLEPC_EXTERN PetscErrorCode BVSetFromOptions(BV);

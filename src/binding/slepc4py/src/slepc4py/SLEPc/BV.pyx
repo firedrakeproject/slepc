@@ -271,6 +271,31 @@ cdef class BV(Object):
         CHKERR( BVGetSizes(self.bv, &n, &N, &m) )
         return ((toInt(n), toInt(N)), toInt(m))
 
+    def setLeadingDimension(self, ld):
+        """
+        Sets the leading dimension.
+
+        Parameters
+        ----------
+        ld: int
+            The leading dimension.
+        """
+        cdef PetscInt val = asInt(ld)
+        CHKERR( BVSetLeadingDimension(self.bv, val) )
+
+    def getLeadingDimension(self):
+        """
+        Gets the leading dimension.
+
+        Returns
+        -------
+        ld: int
+            The leading dimension.
+        """
+        cdef PetscInt val = 0
+        CHKERR( BVGetLeadingDimension(self.bv, &val) )
+        return toInt(val)
+
     def setOptionsPrefix(self, prefix):
         """
         Sets the prefix used for searching for all BV options in the

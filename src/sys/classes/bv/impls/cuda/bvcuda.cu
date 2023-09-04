@@ -19,9 +19,9 @@
 /*
     C := alpha*A*B + beta*C
 */
-PetscErrorCode BVMult_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscInt ldb_,PetscScalar alpha,const PetscScalar *d_A,const PetscScalar *d_B,PetscScalar beta,PetscScalar *d_C)
+PetscErrorCode BVMult_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *d_A,PetscInt lda_,const PetscScalar *d_B,PetscInt ldb_,PetscScalar beta,PetscScalar *d_C,PetscInt ldc_)
 {
-  PetscCuBLASInt    m=0,n=0,k=0,ldb=0;
+  PetscCuBLASInt    m=0,n=0,k=0,lda=0,ldb=0,ldc=0;
   cublasHandle_t    cublasv2handle;
 
   PetscFunctionBegin;
@@ -30,9 +30,11 @@ PetscErrorCode BVMult_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscI
   PetscCall(PetscCuBLASIntCast(m_,&m));
   PetscCall(PetscCuBLASIntCast(n_,&n));
   PetscCall(PetscCuBLASIntCast(k_,&k));
+  PetscCall(PetscCuBLASIntCast(lda_,&lda));
   PetscCall(PetscCuBLASIntCast(ldb_,&ldb));
+  PetscCall(PetscCuBLASIntCast(ldc_,&ldc));
   PetscCall(PetscLogGpuTimeBegin());
-  PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,m,n,k,&alpha,d_A,m,d_B,ldb,&beta,d_C,m));
+  PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,m,n,k,&alpha,d_A,lda,d_B,ldb,&beta,d_C,ldc));
   PetscCall(PetscLogGpuTimeEnd());
   PetscCall(PetscLogGpuFlops(2.0*m*n*k));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -41,9 +43,9 @@ PetscErrorCode BVMult_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscI
 /*
     y := alpha*A*x + beta*y
 */
-PetscErrorCode BVMultVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *d_A,const PetscScalar *d_x,PetscScalar beta,PetscScalar *d_y)
+PetscErrorCode BVMultVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *d_A,PetscInt lda_,const PetscScalar *d_x,PetscScalar beta,PetscScalar *d_y)
 {
-  PetscCuBLASInt    n=0,k=0,one=1;
+  PetscCuBLASInt    n=0,k=0,lda=0,one=1;
   cublasHandle_t    cublasv2handle;
 
   PetscFunctionBegin;
@@ -51,8 +53,9 @@ PetscErrorCode BVMultVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alp
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
   PetscCall(PetscCuBLASIntCast(n_,&n));
   PetscCall(PetscCuBLASIntCast(k_,&k));
+  PetscCall(PetscCuBLASIntCast(lda_,&lda));
   PetscCall(PetscLogGpuTimeBegin());
-  PetscCallCUBLAS(cublasXgemv(cublasv2handle,CUBLAS_OP_N,n,k,&alpha,d_A,n,d_x,one,&beta,d_y,one));
+  PetscCallCUBLAS(cublasXgemv(cublasv2handle,CUBLAS_OP_N,n,k,&alpha,d_A,lda,d_x,one,&beta,d_y,one));
   PetscCall(PetscLogGpuTimeEnd());
   PetscCall(PetscLogGpuFlops(2.0*n*k));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -61,11 +64,11 @@ PetscErrorCode BVMultVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alp
 /*
     A(:,s:e-1) := A*B(:,s:e-1)
 */
-PetscErrorCode BVMultInPlace_BLAS_CUDA(BV bv,PetscInt m_,PetscInt k_,PetscInt ldb_,PetscInt s,PetscInt e,PetscScalar *d_A,const PetscScalar *d_B,PetscBool btrans)
+PetscErrorCode BVMultInPlace_BLAS_CUDA(BV bv,PetscInt m_,PetscInt k_,PetscInt s,PetscInt e,PetscScalar *d_A,PetscInt lda_,const PetscScalar *d_B,PetscInt ldb_,PetscBool btrans)
 {
   const PetscScalar *d_B1;
   PetscScalar       *d_work,sone=1.0,szero=0.0;
-  PetscCuBLASInt    m=0,n=0,k=0,l=0,ldb=0,bs=BLOCKSIZE;
+  PetscCuBLASInt    m=0,n=0,k=0,l=0,lda=0,ldb=0,bs=BLOCKSIZE;
   size_t            freemem,totmem;
   cublasHandle_t    cublasv2handle;
   cublasOperation_t bt;
@@ -76,6 +79,7 @@ PetscErrorCode BVMultInPlace_BLAS_CUDA(BV bv,PetscInt m_,PetscInt k_,PetscInt ld
   PetscCall(PetscCuBLASIntCast(m_,&m));
   PetscCall(PetscCuBLASIntCast(e-s,&n));
   PetscCall(PetscCuBLASIntCast(k_,&k));
+  PetscCall(PetscCuBLASIntCast(lda_,&lda));
   PetscCall(PetscCuBLASIntCast(ldb_,&ldb));
   PetscCall(PetscLogGpuTimeBegin());
   if (PetscUnlikely(btrans)) {
@@ -87,21 +91,21 @@ PetscErrorCode BVMultInPlace_BLAS_CUDA(BV bv,PetscInt m_,PetscInt k_,PetscInt ld
   }
   /* try to allocate the whole matrix */
   PetscCallCUDA(cudaMemGetInfo(&freemem,&totmem));
-  if (freemem>=m*n*sizeof(PetscScalar)) {
-    PetscCallCUDA(cudaMalloc((void**)&d_work,m*n*sizeof(PetscScalar)));
-    PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,bt,m,n,k,&sone,d_A,m,d_B1,ldb,&szero,d_work,m));
-    PetscCallCUDA(cudaMemcpy2D(d_A+s*m,m*sizeof(PetscScalar),d_work,m*sizeof(PetscScalar),m*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice));
+  if (freemem>=lda*n*sizeof(PetscScalar)) {
+    PetscCallCUDA(cudaMalloc((void**)&d_work,lda*n*sizeof(PetscScalar)));
+    PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,bt,m,n,k,&sone,d_A,lda,d_B1,ldb,&szero,d_work,lda));
+    PetscCallCUDA(cudaMemcpy2D(d_A+s*lda,lda*sizeof(PetscScalar),d_work,lda*sizeof(PetscScalar),m*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice));
   } else {
     PetscCall(PetscCuBLASIntCast(freemem/(m*sizeof(PetscScalar)),&bs));
     PetscCallCUDA(cudaMalloc((void**)&d_work,bs*n*sizeof(PetscScalar)));
     PetscCall(PetscCuBLASIntCast(m % bs,&l));
     if (l) {
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,bt,l,n,k,&sone,d_A,m,d_B1,ldb,&szero,d_work,l));
-      PetscCallCUDA(cudaMemcpy2D(d_A+s*m,m*sizeof(PetscScalar),d_work,l*sizeof(PetscScalar),l*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice));
+      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,bt,l,n,k,&sone,d_A,lda,d_B1,ldb,&szero,d_work,l));
+      PetscCallCUDA(cudaMemcpy2D(d_A+s*lda,lda*sizeof(PetscScalar),d_work,l*sizeof(PetscScalar),l*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice));
     }
     for (;l<m;l+=bs) {
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,bt,bs,n,k,&sone,d_A+l,m,d_B1,ldb,&szero,d_work,bs));
-      PetscCallCUDA(cudaMemcpy2D(d_A+l+s*m,m*sizeof(PetscScalar),d_work,bs*sizeof(PetscScalar),bs*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice));
+      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,bt,bs,n,k,&sone,d_A+l,lda,d_B1,ldb,&szero,d_work,bs));
+      PetscCallCUDA(cudaMemcpy2D(d_A+l+s*lda,lda*sizeof(PetscScalar),d_work,bs*sizeof(PetscScalar),bs*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice));
     }
   }
   PetscCall(PetscLogGpuTimeEnd());
@@ -113,23 +117,22 @@ PetscErrorCode BVMultInPlace_BLAS_CUDA(BV bv,PetscInt m_,PetscInt k_,PetscInt ld
 /*
     B := alpha*A + beta*B
 */
-PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *d_A,PetscScalar beta,PetscScalar *d_B)
+PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *d_A,PetscInt lda_,PetscScalar beta,PetscScalar *d_B,PetscInt ldb_)
 {
-  PetscCuBLASInt m=0,one=1;
+  PetscCuBLASInt n=0,k=0,lda=0,ldb=0;
   cublasHandle_t cublasv2handle;
 
   PetscFunctionBegin;
   (void)bv; // avoid unused parameter warning
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
-  PetscCall(PetscCuBLASIntCast(n_*k_,&m));
+  PetscCall(PetscCuBLASIntCast(n_,&n));
+  PetscCall(PetscCuBLASIntCast(k_,&k));
+  PetscCall(PetscCuBLASIntCast(lda_,&lda));
+  PetscCall(PetscCuBLASIntCast(ldb_,&ldb));
   PetscCall(PetscLogGpuTimeBegin());
-  if (beta!=(PetscScalar)1.0) {
-    PetscCallCUBLAS(cublasXscal(cublasv2handle,m,&beta,d_B,one));
-    PetscCall(PetscLogGpuFlops(1.0*m));
-  }
-  PetscCallCUBLAS(cublasXaxpy(cublasv2handle,m,&alpha,d_A,one,d_B,one));
+  PetscCallCUBLAS(cublasXgeam(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,k,&alpha,d_A,lda,&beta,d_B,ldb,d_B,ldb));
   PetscCall(PetscLogGpuTimeEnd());
-  PetscCall(PetscLogGpuFlops(2.0*m));
+  PetscCall(PetscLogGpuFlops((beta==(PetscScalar)1.0)?2.0*n*k:3.0*n*k));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -138,11 +141,11 @@ PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,
 
     C is a CPU array
 */
-PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscInt ldc_,const PetscScalar *d_A,const PetscScalar *d_B,PetscScalar *C,PetscBool mpi)
+PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,const PetscScalar *d_A,PetscInt lda_,const PetscScalar *d_B,PetscInt ldb_,PetscScalar *C,PetscInt ldc_,PetscBool mpi)
 {
   PetscScalar       *d_work,sone=1.0,szero=0.0,*CC;
   PetscInt          j;
-  PetscCuBLASInt    m=0,n=0,k=0,ldc=0;
+  PetscCuBLASInt    m=0,n=0,k=0,lda=0,ldb=0,ldc=0;
   PetscMPIInt       len;
   cublasHandle_t    cublasv2handle;
 
@@ -151,6 +154,8 @@ PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscIn
   PetscCall(PetscCuBLASIntCast(m_,&m));
   PetscCall(PetscCuBLASIntCast(n_,&n));
   PetscCall(PetscCuBLASIntCast(k_,&k));
+  PetscCall(PetscCuBLASIntCast(lda_,&lda));
+  PetscCall(PetscCuBLASIntCast(ldb_,&ldb));
   PetscCall(PetscCuBLASIntCast(ldc_,&ldc));
   PetscCallCUDA(cudaMalloc((void**)&d_work,m*n*sizeof(PetscScalar)));
   if (mpi) {
@@ -158,7 +163,7 @@ PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscIn
       PetscCall(BVAllocateWork_Private(bv,m*n));
       if (k) {
         PetscCall(PetscLogGpuTimeBegin());
-        PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,m,n,k,&sone,d_A,k,d_B,k,&szero,d_work,ldc));
+        PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,m,n,k,&sone,d_A,lda,d_B,ldb,&szero,d_work,ldc));
         PetscCall(PetscLogGpuTimeEnd());
         PetscCallCUDA(cudaMemcpy(bv->work,d_work,m*n*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
         PetscCall(PetscLogGpuToCpu(m*n*sizeof(PetscScalar)));
@@ -170,7 +175,7 @@ PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscIn
       CC = bv->work+m*n;
       if (k) {
         PetscCall(PetscLogGpuTimeBegin());
-        PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,m,n,k,&sone,d_A,k,d_B,k,&szero,d_work,m));
+        PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,m,n,k,&sone,d_A,lda,d_B,ldb,&szero,d_work,m));
         PetscCall(PetscLogGpuTimeEnd());
         PetscCallCUDA(cudaMemcpy(bv->work,d_work,m*n*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
         PetscCall(PetscLogGpuToCpu(m*n*sizeof(PetscScalar)));
@@ -183,7 +188,7 @@ PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscIn
     if (k) {
       PetscCall(BVAllocateWork_Private(bv,m*n));
       PetscCall(PetscLogGpuTimeBegin());
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,m,n,k,&sone,d_A,k,d_B,k,&szero,d_work,m));
+      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,m,n,k,&sone,d_A,lda,d_B,ldb,&szero,d_work,m));
       PetscCall(PetscLogGpuTimeEnd());
       PetscCallCUDA(cudaMemcpy(bv->work,d_work,m*n*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
       PetscCall(PetscLogGpuToCpu(m*n*sizeof(PetscScalar)));
@@ -200,10 +205,10 @@ PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscIn
 
     y is a CPU array, if NULL bv->buffer is used as a workspace
 */
-PetscErrorCode BVDotVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,const PetscScalar *d_A,const PetscScalar *d_x,PetscScalar *y,PetscBool mpi)
+PetscErrorCode BVDotVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,const PetscScalar *d_A,PetscInt lda_,const PetscScalar *d_x,PetscScalar *y,PetscBool mpi)
 {
   PetscScalar       *d_work,szero=0.0,sone=1.0,*yy=y;
-  PetscCuBLASInt    n=0,k=0,one=1;
+  PetscCuBLASInt    n=0,k=0,lda=0,one=1;
   PetscMPIInt       len;
   cublasHandle_t    cublasv2handle;
 
@@ -211,6 +216,7 @@ PetscErrorCode BVDotVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,const PetscScala
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
   PetscCall(PetscCuBLASIntCast(n_,&n));
   PetscCall(PetscCuBLASIntCast(k_,&k));
+  PetscCall(PetscCuBLASIntCast(lda_,&lda));
   if (!y) PetscCall(VecCUDAGetArrayWrite(bv->buffer,&d_work));
   else PetscCallCUDA(cudaMalloc((void**)&d_work,k*sizeof(PetscScalar)));
   if (mpi) {
@@ -218,10 +224,10 @@ PetscErrorCode BVDotVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,const PetscScala
     if (n) {
       PetscCall(PetscLogGpuTimeBegin());
 #if defined(PETSC_USE_COMPLEX)
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,one,k,n,&sone,d_x,n,d_A,n,&szero,d_work,one));
+      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,one,k,n,&sone,d_x,n,d_A,lda,&szero,d_work,one));
       PetscCall(BV_ConjugateCudaArray(d_work,k));
 #else
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,one,k,n,&sone,d_x,one,d_A,n,&szero,d_work,one));
+      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,one,k,n,&sone,d_x,one,d_A,lda,&szero,d_work,one));
 #endif
       PetscCall(PetscLogGpuTimeEnd());
       PetscCallCUDA(cudaMemcpy(bv->work,d_work,k*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
@@ -237,10 +243,10 @@ PetscErrorCode BVDotVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,const PetscScala
     if (n) {
       PetscCall(PetscLogGpuTimeBegin());
 #if defined(PETSC_USE_COMPLEX)
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,one,k,n,&sone,d_x,n,d_A,n,&szero,d_work,one));
+      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,one,k,n,&sone,d_x,n,d_A,lda,&szero,d_work,one));
       PetscCall(BV_ConjugateCudaArray(d_work,k));
 #else
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,one,k,n,&sone,d_x,one,d_A,n,&szero,d_work,one));
+      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,one,k,n,&sone,d_x,one,d_A,lda,&szero,d_work,one));
 #endif
       PetscCall(PetscLogGpuTimeEnd());
     }

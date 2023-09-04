@@ -27,9 +27,9 @@ static PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,M
   if (Q) {
     PetscCall(MatDenseGetLDA(Q,&ldq));
     PetscCall(MatDenseGetArrayRead(Q,&q));
-    PetscCall(BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n));
+    PetscCall(BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,alpha,px+(X->nc+X->l)*X->ld,X->ld,q+Y->l*ldq+X->l,ldq,beta,py+(Y->nc+Y->l)*Y->ld,Y->ld));
     PetscCall(MatDenseRestoreArrayRead(Q,&q));
-  } else PetscCall(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,beta,py+(Y->nc+Y->l)*Y->n));
+  } else PetscCall(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->ld,X->ld,beta,py+(Y->nc+Y->l)*Y->ld,Y->ld));
   PetscCall(VecRestoreArrayRead(x->v,&px));
   PetscCall(VecRestoreArray(y->v,&py));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -44,7 +44,7 @@ static PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec
   PetscCall(VecGetArray(x->v,&px));
   PetscCall(VecGetArray(y,&py));
   if (!q) PetscCall(VecGetArray(X->buffer,&qq));
-  PetscCall(BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,px+(X->nc+X->l)*X->n,qq,beta,py));
+  PetscCall(BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,px+(X->nc+X->l)*X->ld,X->ld,qq,beta,py));
   if (!q) PetscCall(VecRestoreArray(X->buffer,&qq));
   PetscCall(VecRestoreArray(x->v,&px));
   PetscCall(VecRestoreArray(y,&py));
@@ -62,7 +62,7 @@ static PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(VecGetArray(ctx->v,&pv));
   PetscCall(MatDenseGetArrayRead(Q,&q));
-  PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_FALSE));
+  PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,s-V->l,e-V->l,pv+(V->nc+V->l)*V->ld,V->ld,q+V->l*ldq+V->l,ldq,PETSC_FALSE));
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
   PetscCall(VecRestoreArray(ctx->v,&pv));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -79,7 +79,7 @@ static PetscErrorCode BVMultInPlaceHermitianTranspose_Svec(BV V,Mat Q,PetscInt s
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(VecGetArray(ctx->v,&pv));
   PetscCall(MatDenseGetArrayRead(Q,&q));
-  PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE));
+  PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,s-V->l,e-V->l,pv+(V->nc+V->l)*V->ld,V->ld,q+V->l*ldq+V->l,ldq,PETSC_TRUE));
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
   PetscCall(VecRestoreArray(ctx->v,&pv));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -97,7 +97,7 @@ static PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
   PetscCall(VecGetArrayRead(x->v,&px));
   PetscCall(VecGetArrayRead(y->v,&py));
   PetscCall(MatDenseGetArray(M,&m));
-  PetscCall(BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,ldm,py+(Y->nc+Y->l)*Y->n,px+(X->nc+X->l)*X->n,m+X->l*ldm+Y->l,x->mpi));
+  PetscCall(BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,py+(Y->nc+Y->l)*Y->ld,Y->ld,px+(X->nc+X->l)*X->ld,X->ld,m+X->l*ldm+Y->l,ldm,x->mpi));
   PetscCall(MatDenseRestoreArray(M,&m));
   PetscCall(VecRestoreArrayRead(x->v,&px));
   PetscCall(VecRestoreArrayRead(y->v,&py));
@@ -119,7 +119,7 @@ static PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *q)
   PetscCall(VecGetArrayRead(x->v,&px));
   PetscCall(VecGetArrayRead(z,&py));
   if (!q) PetscCall(VecGetArray(X->buffer,&qq));
-  PetscCall(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,qq,x->mpi));
+  PetscCall(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->ld,X->ld,py,qq,x->mpi));
   if (!q) PetscCall(VecRestoreArray(X->buffer,&qq));
   PetscCall(VecRestoreArrayRead(z,&py));
   PetscCall(VecRestoreArrayRead(x->v,&px));
@@ -139,7 +139,7 @@ static PetscErrorCode BVDotVec_Local_Svec(BV X,Vec y,PetscScalar *m)
   }
   PetscCall(VecGetArray(x->v,&px));
   PetscCall(VecGetArray(z,&py));
-  PetscCall(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,PETSC_FALSE));
+  PetscCall(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->ld,X->ld,py,m,PETSC_FALSE));
   PetscCall(VecRestoreArray(z,&py));
   PetscCall(VecRestoreArray(x->v,&px));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -152,8 +152,8 @@ static PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
 
   PetscFunctionBegin;
   PetscCall(VecGetArray(ctx->v,&array));
-  if (PetscUnlikely(j<0)) PetscCall(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,array+(bv->nc+bv->l)*bv->n,alpha));
-  else PetscCall(BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->n,alpha));
+  if (PetscUnlikely(j<0)) PetscCall(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->ld,array+(bv->nc+bv->l)*bv->ld,alpha));
+  else PetscCall(BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->ld,alpha));
   PetscCall(VecRestoreArray(ctx->v,&array));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -165,8 +165,8 @@ static PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   PetscCall(VecGetArray(ctx->v,&array));
-  if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
-  else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
+  if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->ld,bv->ld,type,val,ctx->mpi));
+  else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->ld,bv->ld,type,val,ctx->mpi));
   PetscCall(VecRestoreArray(ctx->v,&array));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -178,8 +178,8 @@ static PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal
 
   PetscFunctionBegin;
   PetscCall(VecGetArray(ctx->v,&array));
-  if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
-  else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
+  if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->ld,bv->ld,type,val,PETSC_FALSE));
+  else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->ld,bv->ld,type,val,PETSC_FALSE));
   PetscCall(VecRestoreArray(ctx->v,&array));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -192,7 +192,7 @@ static PetscErrorCode BVNormalize_Svec(BV bv,PetscScalar *eigi)
   PetscFunctionBegin;
   PetscCall(VecGetArray(ctx->v,&array));
   if (eigi) wi = eigi+bv->l;
-  PetscCall(BVNormalize_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,wi,ctx->mpi));
+  PetscCall(BVNormalize_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->ld,bv->ld,wi,ctx->mpi));
   PetscCall(VecRestoreArray(ctx->v,&array));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -229,16 +229,16 @@ static PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
 
 static PetscErrorCode BVCopy_Svec(BV V,BV W)
 {
-  BV_SVEC        *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
-  PetscScalar    *pv,*pw,*pvc,*pwc;
+  BV_SVEC           *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
+  const PetscScalar *pv;
+  PetscScalar       *pw;
+  PetscInt          j;
 
   PetscFunctionBegin;
-  PetscCall(VecGetArray(v->v,&pv));
+  PetscCall(VecGetArrayRead(v->v,&pv));
   PetscCall(VecGetArray(w->v,&pw));
-  pvc = pv+(V->nc+V->l)*V->n;
-  pwc = pw+(W->nc+W->l)*W->n;
-  PetscCall(PetscArraycpy(pwc,pvc,(V->k-V->l)*V->n));
-  PetscCall(VecRestoreArray(v->v,&pv));
+  for (j=0;j<V->k-V->l;j++) PetscCall(PetscArraycpy(pw+(W->nc+W->l+j)*W->ld,pv+(V->nc+V->l+j)*V->ld,V->n));
+  PetscCall(VecRestoreArrayRead(v->v,&pv));
   PetscCall(VecRestoreArray(w->v,&pw));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -250,7 +250,7 @@ static PetscErrorCode BVCopyColumn_Svec(BV V,PetscInt j,PetscInt i)
 
   PetscFunctionBegin;
   PetscCall(VecGetArray(v->v,&pv));
-  PetscCall(PetscArraycpy(pv+(V->nc+i)*V->n,pv+(V->nc+j)*V->n,V->n));
+  PetscCall(PetscArraycpy(pv+(V->nc+i)*V->ld,pv+(V->nc+j)*V->ld,V->n));
   PetscCall(VecRestoreArray(v->v,&pv));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -268,7 +268,7 @@ static PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
   PetscCall(VecGetBlockSize(bv->t,&bs));
   PetscCall(VecCreate(PetscObjectComm((PetscObject)bv->t),&vnew));
   PetscCall(VecSetType(vnew,((PetscObject)bv->t)->type_name));
-  PetscCall(VecSetSizes(vnew,m*bv->n,PETSC_DECIDE));
+  PetscCall(VecSetSizes(vnew,m*bv->ld,PETSC_DECIDE));
   PetscCall(VecSetBlockSize(vnew,bs));
   if (((PetscObject)bv)->name) {
     PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
@@ -277,7 +277,7 @@ static PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
   if (copy) {
     PetscCall(VecGetArrayRead(ctx->v,&pv));
     PetscCall(VecGetArray(vnew,&pnew));
-    PetscCall(PetscArraycpy(pnew,pv,PetscMin(m,bv->m)*bv->n));
+    PetscCall(PetscArraycpy(pnew,pv,PetscMin(m,bv->m)*bv->ld));
     PetscCall(VecRestoreArrayRead(ctx->v,&pv));
     PetscCall(VecRestoreArray(vnew,&pnew));
   }
@@ -295,7 +295,7 @@ static PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
   PetscFunctionBegin;
   l = BVAvailableVec;
   PetscCall(VecGetArray(ctx->v,&pv));
-  PetscCall(VecPlaceArray(bv->cv[l],pv+(bv->nc+j)*bv->n));
+  PetscCall(VecPlaceArray(bv->cv[l],pv+(bv->nc+j)*bv->ld));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -349,9 +349,10 @@ static PetscErrorCode BVRestoreArrayRead_Svec(BV bv,const PetscScalar **a)
 
 static PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
 {
-  BV_SVEC           *ctx = (BV_SVEC*)bv->data;
+  PetscInt          j;
+  Vec               v;
   PetscViewerFormat format;
-  PetscBool         isascii;
+  PetscBool         isascii,ismatlab=PETSC_FALSE;
   const char        *bvname,*name;
 
   PetscFunctionBegin;
@@ -359,14 +360,21 @@ static PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   if (isascii) {
     PetscCall(PetscViewerGetFormat(viewer,&format));
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(PETSC_SUCCESS);
-    PetscCall(VecView(ctx->v,viewer));
-    if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      PetscCall(PetscObjectGetName((PetscObject)bv,&bvname));
-      PetscCall(PetscObjectGetName((PetscObject)ctx->v,&name));
-      PetscCall(PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%" PetscInt_FMT ",%" PetscInt_FMT ");clear %s\n",bvname,name,bv->N,bv->nc+bv->m,name));
-      if (bv->nc) PetscCall(PetscViewerASCIIPrintf(viewer,"%s=%s(:,%" PetscInt_FMT ":end);\n",bvname,bvname,bv->nc+1));
+    if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
+  }
+  if (ismatlab) {
+    PetscCall(PetscObjectGetName((PetscObject)bv,&bvname));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname));
+  }
+  for (j=0;j<bv->m;j++) {
+    PetscCall(BVGetColumn(bv,j,&v));
+    PetscCall(VecView(v,viewer));
+    if (ismatlab) {
+      PetscCall(PetscObjectGetName((PetscObject)v,&name));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",bvname,bvname,name,name));
     }
-  } else PetscCall(VecView(ctx->v,viewer));
+    PetscCall(BVRestoreColumn(bv,j,&v));
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -386,7 +394,7 @@ static PetscErrorCode BVDestroy_Svec(BV bv)
 SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 {
   BV_SVEC           *ctx;
-  PetscInt          nloc,N,bs,tglobal=0,tlocal,lsplit;
+  PetscInt          nloc,N,bs,tglobal=0,tlocal,lsplit,j,lda;
   PetscBool         seq;
   PetscScalar       *vv;
   const PetscScalar *aa,*array,*ptr;
@@ -407,8 +415,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   PetscCall(VecGetLocalSize(bv->t,&nloc));
   PetscCall(VecGetSize(bv->t,&N));
   PetscCall(VecGetBlockSize(bv->t,&bs));
-  tlocal = bv->m*nloc;
-  PetscCall(PetscIntMultError(bv->m,N,&tglobal));
+  PetscCall(BV_SetDefaultLD(bv,nloc));
+  tlocal = bv->m*bv->ld;
+  PetscCall(PetscIntMultError(bv->m,N,&tglobal));  /* just to check integer overflow */
 
   if (PetscUnlikely(bv->issplit)) {
     /* split BV: create Vec sharing the memory of the parent BV */
@@ -418,17 +427,17 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     if (bv->cuda) {
 #if defined(PETSC_HAVE_CUDA)
       PetscCall(VecCUDAGetArrayRead(vpar,&array));
-      ptr = (bv->issplit==1)? array: array+lsplit*nloc;
+      ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
       PetscCall(VecCUDARestoreArrayRead(vpar,&array));
-      if (ctx->mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v));
+      if (ctx->mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
       else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v));
       PetscCall(VecCUDAPlaceArray(ctx->v,ptr));
 #endif
     } else {
       PetscCall(VecGetArrayRead(vpar,&array));
-      ptr = (bv->issplit==1)? array: array+lsplit*nloc;
+      ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
       PetscCall(VecRestoreArrayRead(vpar,&array));
-      if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v));
+      if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
       else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v));
       PetscCall(VecPlaceArray(ctx->v,ptr));
     }
@@ -436,7 +445,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     /* regular BV: create Vec to store the BV entries */
     PetscCall(VecCreate(PetscObjectComm((PetscObject)bv->t),&ctx->v));
     PetscCall(VecSetType(ctx->v,((PetscObject)bv->t)->type_name));
-    PetscCall(VecSetSizes(ctx->v,tlocal,tglobal));
+    PetscCall(VecSetSizes(ctx->v,tlocal,PETSC_DECIDE));
     PetscCall(VecSetBlockSize(ctx->v,bs));
   }
   if (((PetscObject)bv)->name) {
@@ -446,8 +455,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 
   if (PetscUnlikely(bv->Acreate)) {
     PetscCall(MatDenseGetArrayRead(bv->Acreate,&aa));
+    PetscCall(MatDenseGetLDA(bv->Acreate,&lda));
     PetscCall(VecGetArray(ctx->v,&vv));
-    PetscCall(PetscArraycpy(vv,aa,tlocal));
+    for (j=0;j<bv->m;j++) PetscCall(PetscArraycpy(vv+j*bv->ld,aa+j*lda,bv->n));
     PetscCall(VecRestoreArray(ctx->v,&vv));
     PetscCall(MatDenseRestoreArrayRead(bv->Acreate,&aa));
     PetscCall(MatDestroy(&bv->Acreate));

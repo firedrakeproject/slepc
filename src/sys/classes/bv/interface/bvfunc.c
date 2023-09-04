@@ -171,6 +171,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->l            = 0;
   bv->k            = 0;
   bv->nc           = 0;
+  bv->ld           = 0;
   bv->orthog_type  = BV_ORTHOG_CGS;
   bv->orthog_ref   = BV_ORTHOG_REFINE_IFNEEDED;
   bv->orthog_eta   = 0.7071;
@@ -673,7 +674,7 @@ PETSC_UNUSED PetscErrorCode SlepcDebugBVView(BV bv,PetscInt ini,PetscInt end,con
   PetscFunctionBegin;
   PetscCall(BVGetArray(bv,&array));
   PetscCall(BVGetSizes(bv,NULL,&N,&m));
-  PetscCall(SlepcDebugViewMatrix(N,end-ini+1,array+ini*N,NULL,N,s,filename));
+  PetscCall(SlepcDebugViewMatrix(N,end-ini+1,array+ini*N,NULL,bv->ld,s,filename));
   PetscCall(BVRestoreArray(bv,&array));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

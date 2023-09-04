@@ -229,7 +229,7 @@ static PetscErrorCode SVDSolve_PRIMME(SVD svd)
 {
   SVD_PRIMME     *ops = (SVD_PRIMME*)svd->data;
   PetscScalar    *svecs, *a;
-  PetscInt       i,ierrprimme;
+  PetscInt       i,ierrprimme,ld;
   PetscReal      *svals,*rnorms;
 
   PetscFunctionBegin;
@@ -252,12 +252,14 @@ static PetscErrorCode SVDSolve_PRIMME(SVD svd)
   PetscCall(PetscFree2(svals,rnorms));
 
   /* Copy left and right singular vectors into svd */
+  PetscCall(BVGetLeadingDimension(svd->U,&ld));
   PetscCall(BVGetArray(svd->U,&a));
-  PetscCall(PetscArraycpy(a,svecs,ops->primme.mLocal*ops->primme.initSize));
+  for (i=0;i<ops->primme.initSize;i++) PetscCall(PetscArraycpy(a+i*ld,svecs+i*ops->primme.mLocal,ops->primme.mLocal));
   PetscCall(BVRestoreArray(svd->U,&a));
 
+  PetscCall(BVGetLeadingDimension(svd->V,&ld));
   PetscCall(BVGetArray(svd->V,&a));
-  PetscCall(PetscArraycpy(a,svecs+ops->primme.mLocal*ops->primme.initSize,ops->primme.nLocal*ops->primme.initSize));
+  for (i=0;i<ops->primme.initSize;i++) PetscCall(PetscArraycpy(a+i*ld,svecs+ops->primme.mLocal*ops->primme.initSize+i*ops->primme.nLocal,ops->primme.nLocal));
   PetscCall(BVRestoreArray(svd->V,&a));
 
   PetscCall(PetscFree(svecs));

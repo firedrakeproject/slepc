@@ -17,7 +17,7 @@ int main(int argc,char **argv)
   Vec               t,v;
   Mat               Q=NULL,M=NULL;
   BV                X,Y;
-  PetscInt          i,j,n=10,k=5,l=3,nloc,lda;
+  PetscInt          i,j,n=10,k=5,l=3,ldx,lda;
   PetscMPIInt       rank;
   PetscScalar       *q,*z;
   const PetscScalar *pX;
@@ -39,7 +39,6 @@ int main(int argc,char **argv)
   PetscCall(VecCreate(PETSC_COMM_WORLD,&t));
   PetscCall(VecSetSizes(t,PETSC_DECIDE,n));
   PetscCall(VecSetFromOptions(t));
-  PetscCall(VecGetLocalSize(t,&nloc));
 
   /* Create BV object X */
   PetscCall(BVCreate(PETSC_COMM_WORLD,&X));
@@ -162,8 +161,9 @@ int main(int argc,char **argv)
   PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
   if (!rank) {
     PetscCall(PetscPrintf(PETSC_COMM_WORLD,"First row of X =\n"));
+    PetscCall(BVGetLeadingDimension(X,&ldx));
     PetscCall(BVGetArrayRead(X,&pX));
-    for (i=0;i<k;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%g ",(double)PetscRealPart(pX[i*nloc])));
+    for (i=0;i<k;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%g ",(double)PetscRealPart(pX[i*ldx])));
     PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     PetscCall(BVRestoreArrayRead(X,&pX));
   }

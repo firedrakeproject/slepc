@@ -1184,9 +1184,15 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
    The pointer will normally point to the first entry of the first column,
    but if the BV has constraints then these go before the regular columns.
 
+   Note that for manipulating the pointer to the BV array, one must take into
+   account the leading dimension, which might be different from the local
+   number of rows, see BVGetLeadingDimension().
+
+   Use BVGetArrayRead() for read-only access.
+
    Level: advanced
 
-.seealso: BVRestoreArray(), BVInsertConstraints()
+.seealso: BVRestoreArray(), BVInsertConstraints(), BVGetLeadingDimension(), BVGetArrayRead()
 @*/
 PetscErrorCode BVGetArray(BV bv,PetscScalar **a)
 {
@@ -1250,7 +1256,7 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
 
    Level: advanced
 
-.seealso: BVRestoreArray(), BVInsertConstraints()
+.seealso: BVRestoreArray(), BVInsertConstraints(), BVGetLeadingDimension(), BVGetArray()
 @*/
 PetscErrorCode BVGetArrayRead(BV bv,const PetscScalar **a)
 {
@@ -1342,6 +1348,7 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
 {
   PetscScalar       *aa;
   const PetscScalar *vv;
+  PetscInt          j;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -1351,7 +1358,7 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,bv->N,bv->m,NULL,A));
   PetscCall(MatDenseGetArrayWrite(*A,&aa));
   PetscCall(BVGetArrayRead(bv,&vv));
-  PetscCall(PetscArraycpy(aa,vv,bv->m*bv->n));
+  for (j=0;j<bv->m;j++) PetscCall(PetscArraycpy(aa+j*bv->n,vv+j*bv->ld,bv->n));
   PetscCall(BVRestoreArrayRead(bv,&vv));
   PetscCall(MatDenseRestoreArrayWrite(*A,&aa));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -1362,6 +1369,7 @@ PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
   PetscScalar *vv,*aa;
   PetscBool   create=PETSC_FALSE;
   PetscInt    m,cols;
+  VecType     vtype;
 
   PetscFunctionBegin;
   m = bv->k-bv->l;
@@ -1377,10 +1385,11 @@ PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
   }
   PetscCall(BVGetArray(bv,&vv));
   if (create) {
-    PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
+    PetscCall(VecGetType(bv->t,&vtype));
+    PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv),vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
     PetscCall(MatDenseReplaceArray(bv->Aget,NULL));  /* replace with a null pointer, the value after BVRestoreMat */
   }
-  PetscCall(MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n));  /* set the actual pointer */
+  PetscCall(MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->ld));  /* set the actual pointer */
   *A = bv->Aget;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1425,7 +1434,7 @@ PetscErrorCode BVRestoreMat_Default(BV bv,Mat *A)
 
   PetscFunctionBegin;
   PetscCall(MatDenseGetArray(bv->Aget,&aa));
-  vv = aa-(bv->nc+bv->l)*bv->n;
+  vv = aa-(bv->nc+bv->l)*bv->ld;
   PetscCall(MatDenseResetArray(bv->Aget));
   PetscCall(BVRestoreArray(bv,&vv));
   *A = NULL;
@@ -1468,6 +1477,7 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
 static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
 {
   PetscFunctionBegin;
+  W->ld           = V->ld;
   PetscCall(BVSetType(W,((PetscObject)V)->type_name));
   W->orthog_type  = V->orthog_type;
   W->orthog_ref   = V->orthog_ref;
@@ -1892,7 +1902,7 @@ PetscErrorCode BVSetDefiniteTolerance(BV bv,PetscReal deftol)
    Input Parameter:
 .  bv - the basis vectors
 
-   Output Parameters:
+   Output Parameter:
 .  deftol - the tolerance
 
    Level: advanced
@@ -1905,5 +1915,76 @@ PetscErrorCode BVGetDefiniteTolerance(BV bv,PetscReal *deftol)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscAssertPointer(deftol,2);
   *deftol = bv->deftol;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   BVSetLeadingDimension - Set the leading dimension to be used for storing the BV data.
+
+   Not Collective
+
+   Input Parameters:
++  bv - basis vectors
+-  ld - the leading dimension
+
+   Notes:
+   This parameter is relevant for BVMAT, though it might be employed in other types
+   as well.
+
+   When the internal data of the BV is stored as a dense matrix, the leading dimension
+   has the same meaning as in MatDenseSetLDA(), i.e., the distance in number of
+   elements from one entry of the matrix to the one in the next column at the same
+   row. The leading dimension refers to the local array, and hence can be different
+   in different processes.
+
+   The user does not need to change this parameter. The default value is equal to the
+   number of local rows, but this value may be increased a little to guarantee alignment
+   (especially in the case of GPU storage).
+
+   Level: advanced
+
+.seealso: BVGetLeadingDimension()
+@*/
+PetscErrorCode BVSetLeadingDimension(BV bv,PetscInt ld)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,ld,2);
+  PetscCheck((bv->n<0 && bv->N<0) || !bv->ops->create,PetscObjectComm((PetscObject)bv),PETSC_ERR_ORDER,"Must call BVSetLeadingDimension() before setting the BV type and sizes");
+  if (ld == PETSC_DEFAULT) bv->ld = 0;
+  else {
+    PetscCheck(ld>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ld. Must be > 0");
+    bv->ld = ld;
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   BVGetLeadingDimension - Returns the leading dimension of the BV.
+
+   Not Collective
+
+   Input Parameter:
+.  bv - the basis vectors
+
+   Output Parameter:
+.  ld - the leading dimension
+
+   Level: advanced
+
+   Notes:
+   The returned value may be different in different processes.
+
+   The leading dimension must be used when accessing the internal array via
+   BVGetArray() or BVGetArrayRead().
+
+.seealso: BVSetLeadingDimension(), BVGetArray(), BVGetArrayRead()
+@*/
+PetscErrorCode BVGetLeadingDimension(BV bv,PetscInt *ld)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscAssertPointer(ld,2);
+  *ld = bv->ld;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

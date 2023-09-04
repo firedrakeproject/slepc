@@ -36,7 +36,7 @@ static PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->S,&pS));
   PetscCall(MatDenseGetArrayRead(Q,&q));
-  PetscCall(BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_FALSE));
+  PetscCall(BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,lds,q+V->l*ldq+V->l,ldq,PETSC_FALSE));
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
   PetscCall(MatDenseRestoreArray(ctx->S,&pS));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -53,7 +53,7 @@ static PetscErrorCode BVMultInPlaceHermitianTranspose_Tensor(BV V,Mat Q,PetscInt
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->S,&pS));
   PetscCall(MatDenseGetArrayRead(Q,&q));
-  PetscCall(BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_TRUE));
+  PetscCall(BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,lds,q+V->l*ldq+V->l,ldq,PETSC_TRUE));
   PetscCall(MatDenseRestoreArrayRead(Q,&q));
   PetscCall(MatDenseRestoreArray(ctx->S,&pS));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -73,7 +73,7 @@ static PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
   PetscCall(MatDenseGetArrayRead(x->S,&px));
   PetscCall(MatDenseGetArrayRead(y->S,&py));
   PetscCall(MatDenseGetArray(M,&m));
-  PetscCall(BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,lds,ldm,py+(Y->nc+Y->l)*lds,px+(X->nc+X->l)*lds,m+X->l*ldm+Y->l,PETSC_FALSE));
+  PetscCall(BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,lds,py+(Y->nc+Y->l)*lds,lds,px+(X->nc+X->l)*lds,lds,m+X->l*ldm+Y->l,ldm,PETSC_FALSE));
   PetscCall(MatDenseRestoreArray(M,&m));
   PetscCall(MatDenseRestoreArrayRead(x->S,&px));
   PetscCall(MatDenseRestoreArrayRead(y->S,&py));
@@ -102,8 +102,8 @@ static PetscErrorCode BVNorm_Tensor(BV bv,PetscInt j,NormType type,PetscReal *va
 
   PetscFunctionBegin;
   PetscCall(MatDenseGetArrayRead(ctx->S,&pS));
-  if (j<0) PetscCall(BVNorm_LAPACK_Private(bv,lds,bv->k-bv->l,pS+(bv->nc+bv->l)*lds,type,val,PETSC_FALSE));
-  else PetscCall(BVNorm_LAPACK_Private(bv,lds,1,pS+(bv->nc+j)*lds,type,val,PETSC_FALSE));
+  if (j<0) PetscCall(BVNorm_LAPACK_Private(bv,lds,bv->k-bv->l,pS+(bv->nc+bv->l)*lds,lds,type,val,PETSC_FALSE));
+  else PetscCall(BVNorm_LAPACK_Private(bv,lds,1,pS+(bv->nc+j)*lds,lds,type,val,PETSC_FALSE));
   PetscCall(MatDenseRestoreArrayRead(ctx->S,&pS));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -82,8 +82,8 @@ static PetscErrorCode EPSSolve_FEAST(EPS eps)
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   MKL_INT        fpm[128],ijob,n,ncv,nconv,loop,info;
   PetscReal      *evals,epsout=0.0;
-  PetscInt       i,k,nmat;
-  PetscScalar    *pV,*pz;
+  PetscInt       i,k,nmat,ld;
+  PetscScalar    *pV,*pz,*X=NULL;
   Vec            x,y,w=eps->work[0],z=eps->work[1];
   Mat            A,B;
 #if defined(PETSC_USE_REAL_SINGLE)
@@ -110,7 +110,10 @@ static PetscErrorCode EPSSolve_FEAST(EPS eps)
 #endif
 
   PetscCall(PetscMalloc1(eps->ncv,&evals));
+  PetscCall(BVGetLeadingDimension(eps->V,&ld));
   PetscCall(BVGetArray(eps->V,&pV));
+  if (ld==n) X = pV;
+  else PetscCall(PetscMalloc1(eps->ncv*n,&X));
 
   ijob = -1;           /* first call to reverse communication interface */
   PetscCall(STGetNumMatrices(eps->st,&nmat));
@@ -121,7 +124,7 @@ static PetscErrorCode EPSSolve_FEAST(EPS eps)
 
   do {
 
-    FEAST_RCI(&ijob,&n,&Ze,SCALAR_CAST ctx->work1,ctx->work2,SCALAR_CAST ctx->Aq,SCALAR_CAST ctx->Bq,fpm,&epsout,&loop,&eps->inta,&eps->intb,&ncv,evals,SCALAR_CAST pV,&nconv,eps->errest,&info);
+    FEAST_RCI(&ijob,&n,&Ze,SCALAR_CAST ctx->work1,ctx->work2,SCALAR_CAST ctx->Aq,SCALAR_CAST ctx->Bq,fpm,&epsout,&loop,&eps->inta,&eps->intb,&ncv,evals,SCALAR_CAST X,&nconv,eps->errest,&info);
 
     PetscCheck(ncv==eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"FEAST changed value of ncv to %d",(int)ncv);
     if (ijob == 10) {
@@ -159,7 +162,7 @@ static PetscErrorCode EPSSolve_FEAST(EPS eps)
     } else if (ijob == 30 || ijob == 40) {
       /* multiplication A*V or B*V, result in work1 */
       for (k=fpm[23]-1;k<fpm[23]+fpm[24]-1;k++) {
-        PetscCall(VecPlaceArray(x,&pV[k*eps->nloc]));
+        PetscCall(VecPlaceArray(x,&X[k*eps->nloc]));
         PetscCall(VecPlaceArray(y,&ctx->work1[k*eps->nloc]));
         if (ijob == 30) PetscCall(MatMult(A,x,y));
         else if (nmat>1) PetscCall(MatMult(B,x,y));
@@ -188,7 +191,10 @@ static PetscErrorCode EPSSolve_FEAST(EPS eps)
   }
 
   for (i=0;i<eps->nconv;i++) eps->eigr[i] = evals[i];
-
+  if (ld!=n) {
+    for (i=0;i<eps->nconv;i++) PetscCall(PetscArraycpy(pV+i*ld,X+i*n,n));
+    PetscCall(PetscFree(X));
+  }
   PetscCall(BVRestoreArray(eps->V,&pV));
   PetscCall(VecDestroy(&x));
   PetscCall(VecDestroy(&y));
