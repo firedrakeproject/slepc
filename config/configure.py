@@ -283,8 +283,9 @@ with slepc.CreateFile(modulesdir,slepc.lversion) as modules:
 # Write pkg-config configuration file
 pkgconfdir = slepc.CreateDir(libdir,'pkgconfig')
 log.write('pkg-config file in '+pkgconfdir)
-with slepc.CreateFile(pkgconfdir,'slepc.pc') as pkgconfig:
-  WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir,petsc.singlelib)
+for pkfile in ['SLEPc.pc','slepc.pc']:
+  with slepc.CreateFile(pkgconfdir,pkfile) as pkgconfig:
+    WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir,petsc.singlelib)
 
 # Write reconfigure file
 if not slepc.isinstall:
