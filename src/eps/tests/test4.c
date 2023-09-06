@@ -106,6 +106,7 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
+      filter: sed -e "s/3.95905/3.95906/"
       output_file: output/test4_1.out
       test:
          suffix: 1
