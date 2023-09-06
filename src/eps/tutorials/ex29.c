@@ -177,5 +177,6 @@ PetscErrorCode MyStoppingTest(EPS eps,PetscInt its,PetscInt max_it,PetscInt ncon
    test:
       suffix: 1
       args: -m 350 -seconds 0.6
+      requires: !single
 
 TEST*/

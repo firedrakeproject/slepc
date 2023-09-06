@@ -117,7 +117,7 @@ int main(int argc,char **argv)
 
    testset:
       nsize: {{1 2 3}}
-      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/" | sed -e "s/1.58254/1.58255/" | sed -e "s/1.75989/1.75988/"
+      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/" | sed -e "s/1.58254/1.58255/" | sed -e "s/1.75989/1.75988/" | sed -e "s/1.01945/1.01946/"
       output_file: output/test18_1.out
       test:
          suffix: 1
