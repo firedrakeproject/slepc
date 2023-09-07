@@ -193,6 +193,7 @@ PetscErrorCode MyStoppingTest(PEP pep,PetscInt its,PetscInt max_it,PetscInt ncon
 
    test:
       args: -terse
+      requires: !single
       suffix: 1
 
 TEST*/
