@@ -149,7 +149,6 @@ BLAS_EXTERN void     LAPACKtrsyl_(const char*,const char*,const PetscBLASInt*,co
 #else
 #define LAPACKtrsyl_(a,b,c,d,e,f,g,h,i,j,k,l,m) PetscMissingLapack("TRSYL",a,b,c,d,e,f,g,h,i,j,k,l,m);
 #endif
-BLAS_EXTERN void     LAPACKtrtri_(const char*,const char*,const PetscBLASInt*,PetscScalar*,const PetscBLASInt*,PetscBLASInt*);
 
 /* subroutines in which we use only the real version, do not care whether they have different name */
 #if !defined(SLEPC_MISSING_LAPACK_STEVR)

@@ -65,7 +65,6 @@
 #if !defined(SLEPC_MISSING_LAPACK_TRSYL)
 #define LAPACKtrsyl_ PETSCBLAS(trsyl,TRSYL)
 #endif
-#define LAPACKtrtri_ PETSCBLAS(trtri,TRTRI)
 
 /* subroutines in which we use only the real version, do not care whether they have different name */
 #if !defined(SLEPC_MISSING_LAPACK_STEVR)
