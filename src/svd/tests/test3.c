@@ -34,7 +34,7 @@ int main(int argc,char **argv)
   SVD            svd;             /* singular value solver context */
   Vec            v0,w0;           /* initial vectors */
   Vec            *U,*V;
-  PetscInt       N=36,M=32,Istart,Iend,i,col[5],nconv;
+  PetscInt       N=35,M=30,Istart,Iend,i,col[5],nconv;
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
   PetscReal      lev1=0.0,lev2=0.0,tol=PETSC_SMALL;
   PetscBool      skiporth=PETSC_FALSE;
@@ -121,13 +121,13 @@ int main(int argc,char **argv)
    testset:
       args: -svd_nsv 4
       output_file: output/test3_1.out
-      filter: sed -e "s/22176/22175/" | sed -e "s/21798/21797/" | sed -e "s/16826/16825/" | sed -e "s/15129/15128/" | sed -e "s/22200/22201/" | sed -e "s/22289/22288/" | sed -e "s/17059/17060/" | sed -e "s/16777/16776/"
+      filter: sed -e "s/22176/22175/" | sed -e "s/21798/21797/" | sed -e "s/16826/16825/" | sed -e "s/15129/15128/" | sed -e "s/22200/22201/"
       test:
          suffix: 1_lanczos
-         args: -svd_type lanczos -svd_ncv 16
+         args: -svd_type lanczos
       test:
          suffix: 1_lanczos_one
-         args: -svd_type lanczos -svd_lanczos_oneside -svd_ncv 16
+         args: -svd_type lanczos -svd_lanczos_oneside
       test:
          suffix: 1_trlanczos
          args: -svd_type trlanczos -svd_trlanczos_locking {{0 1}}
@@ -168,7 +168,7 @@ int main(int argc,char **argv)
    testset:
       args: -svd_implicittranspose -svd_nsv 4 -svd_tol 1e-5
       output_file: output/test3_1.out
-      filter: sed -e "s/22176/22175/" | sed -e "s/21798/21797/" | sed -e "s/16826/16825/" | sed -e "s/15129/15128/" | sed -e "s/22200/22201/" | sed -e "s/22289/22288/" | sed -e "s/17059/17060/" | sed -e "s/16777/16776/"
+      filter: sed -e "s/22176/22175/" | sed -e "s/21798/21797/" | sed -e "s/16826/16825/" | sed -e "s/15129/15128/" | sed -e "s/22200/22201/"
       test:
          suffix: 2_lanczos
          args: -svd_type lanczos -svd_conv_norm
@@ -209,7 +209,7 @@ int main(int argc,char **argv)
       args: -svd_nsv 4 -mat_type aijcusparse
       requires: cuda
       output_file: output/test3_1.out
-      filter: sed -e "s/22176/22175/" | sed -e "s/21798/21797/" | sed -e "s/16826/16825/" | sed -e "s/15129/15128/" | sed -e "s/22200/22201/" | sed -e "s/22289/22288/" | sed -e "s/17059/17060/"
+      filter: sed -e "s/22176/22175/" | sed -e "s/21798/21797/" | sed -e "s/16826/16825/" | sed -e "s/15129/15128/"
       test:
          suffix: 3_cuda_lanczos
          args: -svd_type lanczos
@@ -245,7 +245,7 @@ int main(int argc,char **argv)
       suffix: 4
       args: -svd_type lapack -svd_nsv 4
       output_file: output/test3_1.out
-      filter: sed -e "s/15129/15128/" | sed -e "s/22200/22201/" | sed -e "s/22289/22288/" | sed -e "s/17059/17060/"
+      filter: sed -e "s/15129/15128/"
       nsize: 2
 
    test:
@@ -253,6 +253,5 @@ int main(int argc,char **argv)
       args: -svd_nsv 4 -svd_view_values draw -svd_monitor draw::draw_lg
       requires: x
       output_file: output/test3_1.out
-      filter: sed -e "s/22200/22201/" | sed -e "s/22289/22288/" | sed -e "s/17059/17060/"
 
 TEST*/

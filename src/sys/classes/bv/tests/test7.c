@@ -196,7 +196,6 @@ int main(int argc,char **argv)
    testset:
       output_file: output/test7_1.out
       filter: grep -v "Using method"
-      args: -m 12
       test:
          suffix: 1
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult vecs
@@ -211,7 +210,7 @@ int main(int argc,char **argv)
    testset:
       output_file: output/test7_2.out
       filter: grep -v "Using method"
-      args: -m 40 -n 44 -k 9
+      args: -m 34 -n 38 -k 9
       nsize: 2
       test:
          suffix: 2
