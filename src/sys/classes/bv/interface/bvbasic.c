@@ -857,9 +857,9 @@ PetscErrorCode BVSetFromOptions(BV bv)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscCall(BVRegisterAll());
   PetscObjectOptionsBegin((PetscObject)bv);
-    PetscCall(PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,sizeof(type),&flg1));
+    PetscCall(PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVMAT),type,sizeof(type),&flg1));
     if (flg1) PetscCall(BVSetType(bv,type));
-    else if (!((PetscObject)bv)->type_name) PetscCall(BVSetType(bv,BVSVEC));
+    else if (!((PetscObject)bv)->type_name) PetscCall(BVSetType(bv,BVMAT));
 
     otype = bv->orthog_type;
     PetscCall(PetscOptionsEnum("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",BVOrthogTypes,(PetscEnum)otype,(PetscEnum*)&otype,&flg1));

@@ -136,7 +136,7 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   PetscCall(BVDestroy(&sr->V));
   PetscCall(BVCreate(PetscObjectComm((PetscObject)eps),&sr->V));
   if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
-  if (!((PetscObject)(eps->V))->type_name) PetscCall(BVSetType(sr->V,BVSVEC));
+  if (!((PetscObject)(eps->V))->type_name) PetscCall(BVSetType(sr->V,BVMAT));
   else {
     PetscCall(BVGetType(eps->V,&type));
     PetscCall(BVSetType(sr->V,type));
@@ -199,7 +199,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   PetscCall(EPSGetBV(ctx->eps,&V));
   PetscCall(BVGetRandomContext(V,&rand));  /* make sure the random context is available when duplicating */
   if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
-  if (!((PetscObject)(eps->V))->type_name) PetscCall(BVSetType(V,BVSVEC));
+  if (!((PetscObject)(eps->V))->type_name) PetscCall(BVSetType(V,BVMAT));
   else {
     PetscCall(BVGetType(eps->V,&type));
     PetscCall(BVSetType(V,type));

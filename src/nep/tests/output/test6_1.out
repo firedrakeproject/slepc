@@ -62,7 +62,7 @@ NEP Object: (check_myprefix_) 1 MPI process
   convergence test: relative to the eigenvalue
   dimension of user-provided initial space: 1
 BV Object: (check_myprefix_) 1 MPI process
-  type: svec
+  type: mat
   16 columns of global length 128
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)

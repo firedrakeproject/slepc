@@ -502,7 +502,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
   /* allocate V */
   if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,NULL));
   if (!oldsize) {
-    if (!((PetscObject)(svd->V))->type_name) PetscCall(BVSetType(svd->V,BVSVEC));
+    if (!((PetscObject)(svd->V))->type_name) PetscCall(BVSetType(svd->V,BVMAT));
     PetscCall(MatCreateVecsEmpty(svd->A,&tr,NULL));
     PetscCall(BVSetSizesFromVec(svd->V,tr,requested));
     PetscCall(VecDestroy(&tr));

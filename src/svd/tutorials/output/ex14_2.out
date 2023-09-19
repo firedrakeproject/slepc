@@ -17,7 +17,7 @@ SVD Object: 1 MPI process
       maximum number of iterations: 100
       convergence test: relative to the eigenvalue
     BV Object: (svd_cyclic_) 1 MPI process
-      type: svec
+      type: mat
       20 columns of global length 400
       vector orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)

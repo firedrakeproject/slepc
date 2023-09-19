@@ -33,7 +33,7 @@ FN Object: 1 MPI process
     square root: sqrt(x)
     computing matrix functions with: Schur method for the square root
 BV Object: 1 MPI process
-  type: svec
+  type: mat
   7 columns of global length 16
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)

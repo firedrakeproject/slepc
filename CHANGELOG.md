@@ -8,6 +8,8 @@
   storage. The implication of this is that codes relying on `BVGetArray()` must be
   adapted to use the value of the leading dimension, which may be different from the
   local number of rows. Use `BVGetLeadingDimension()` for this purpose.
+- `BV`: now the default `BV` type is `BVMAT` instead of `BVSVEC`. This change should not
+  affect application code.
 
 ## [3.19] - 2023-03-31
 

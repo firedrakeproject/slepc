@@ -17,7 +17,7 @@ EPS Object: 1 MPI process
   convergence test: relative to the eigenvalue and matrix norms
   computed matrix norms: norm(A)=0.
 BV Object: 1 MPI process
-  type: svec
+  type: mat
   0 columns of global length -1
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
@@ -58,7 +58,7 @@ EPS Object: 1 MPI process
   convergence test: relative to the eigenvalue and matrix norms
   computed matrix norms: norm(A)=20.
 BV Object: 1 MPI process
-  type: svec
+  type: mat
   20 columns of global length 20
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)

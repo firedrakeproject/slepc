@@ -322,7 +322,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
   /* allocate V */
   if (!nep->V) PetscCall(NEPGetBV(nep,&nep->V));
   if (!oldsize) {
-    if (!((PetscObject)(nep->V))->type_name) PetscCall(BVSetType(nep->V,BVSVEC));
+    if (!((PetscObject)(nep->V))->type_name) PetscCall(BVSetType(nep->V,BVMAT));
     if (nep->fui==NEP_USER_INTERFACE_SPLIT) T = nep->A[0];
     else PetscCall(NEPGetFunction(nep,&T,NULL,NULL,NULL));
     PetscCall(MatCreateVecsEmpty(T,&t,NULL));
