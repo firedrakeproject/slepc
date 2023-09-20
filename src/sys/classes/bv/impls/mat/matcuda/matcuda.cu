@@ -271,7 +271,7 @@ PetscErrorCode BVResize_Mat_CUDA(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVGetColumn_Mat_CUDA(BV bv,PetscInt j,Vec *v)
+PetscErrorCode BVGetColumn_Mat_CUDA(BV bv,PetscInt j,Vec*)
 {
   BV_MAT         *ctx = (BV_MAT*)bv->data;
   PetscScalar    *d_pv;
@@ -281,11 +281,10 @@ PetscErrorCode BVGetColumn_Mat_CUDA(BV bv,PetscInt j,Vec *v)
   l = BVAvailableVec;
   PetscCall(MatDenseCUDAGetArray(ctx->A,&d_pv));
   PetscCall(VecCUDAPlaceArray(bv->cv[l],d_pv+(bv->nc+j)*bv->ld));
-  (void)v; // avoid unused parameter warning
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVRestoreColumn_Mat_CUDA(BV bv,PetscInt j,Vec *v)
+PetscErrorCode BVRestoreColumn_Mat_CUDA(BV bv,PetscInt j,Vec*)
 {
   BV_MAT         *ctx = (BV_MAT*)bv->data;
   PetscInt       l;
@@ -294,7 +293,6 @@ PetscErrorCode BVRestoreColumn_Mat_CUDA(BV bv,PetscInt j,Vec *v)
   l = (j==bv->ci[0])? 0: 1;
   PetscCall(VecCUDAResetArray(bv->cv[l]));
   PetscCall(MatDenseCUDARestoreArray(ctx->A,NULL));
-  (void)v; // avoid unused parameter warning
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

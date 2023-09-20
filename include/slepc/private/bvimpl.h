@@ -528,7 +528,7 @@ SLEPC_INTERN PetscErrorCode BVDot_BLAS_CUDA(BV,PetscInt,PetscInt,PetscInt,const 
 SLEPC_INTERN PetscErrorCode BVDotVec_BLAS_CUDA(BV,PetscInt,PetscInt,const PetscScalar*,PetscInt,const PetscScalar*,PetscScalar*,PetscBool);
 SLEPC_INTERN PetscErrorCode BVScale_BLAS_CUDA(BV,PetscInt,PetscScalar*,PetscScalar);
 
-SLEPC_INTERN PetscErrorCode BV_ConjugateCudaArray(PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode BV_ConjugateCUDAArray(PetscScalar*,PetscInt);
 
 SLEPC_INTERN PetscErrorCode BV_CleanCoefficients_CUDA(BV,PetscInt,PetscScalar*);
 SLEPC_INTERN PetscErrorCode BV_AddCoefficients_CUDA(BV,PetscInt,PetscScalar*,PetscScalar*);

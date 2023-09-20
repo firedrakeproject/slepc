@@ -274,7 +274,7 @@ PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVGetColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
+PetscErrorCode BVGetColumn_Svec_CUDA(BV bv,PetscInt j,Vec*)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
   PetscScalar    *d_pv;
@@ -284,11 +284,10 @@ PetscErrorCode BVGetColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
   l = BVAvailableVec;
   PetscCall(VecCUDAGetArray(ctx->v,&d_pv));
   PetscCall(VecCUDAPlaceArray(bv->cv[l],d_pv+(bv->nc+j)*bv->ld));
-  (void)v; // avoid unused parameter warning
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVRestoreColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
+PetscErrorCode BVRestoreColumn_Svec_CUDA(BV bv,PetscInt j,Vec*)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
   PetscInt       l;
@@ -297,7 +296,6 @@ PetscErrorCode BVRestoreColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
   l = (j==bv->ci[0])? 0: 1;
   PetscCall(VecCUDAResetArray(bv->cv[l]));
   PetscCall(VecCUDARestoreArray(ctx->v,NULL));
-  (void)v; // avoid unused parameter warning
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
