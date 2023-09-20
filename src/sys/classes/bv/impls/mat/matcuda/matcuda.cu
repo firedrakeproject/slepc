@@ -18,8 +18,8 @@
 PetscErrorCode BVMult_Mat_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
   BV_MAT            *y = (BV_MAT*)Y->data,*x = (BV_MAT*)X->data;
-  const PetscScalar *d_px,*d_A;
-  PetscScalar       *d_py,*d_q,*d_B,*d_C;
+  const PetscScalar *d_px,*d_A,*d_B,*d_q;
+  PetscScalar       *d_py,*d_C;
   PetscInt          ldq;
 
   PetscFunctionBegin;
@@ -71,7 +71,8 @@ PetscErrorCode BVMultVec_Mat_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y,
 PetscErrorCode BVMultInPlace_Mat_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   BV_MAT            *ctx = (BV_MAT*)V->data;
-  PetscScalar       *d_pv,*d_q;
+  PetscScalar       *d_pv;
+  const PetscScalar *d_q;
   PetscInt          ldq;
 
   PetscFunctionBegin;
@@ -88,7 +89,8 @@ PetscErrorCode BVMultInPlace_Mat_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
 PetscErrorCode BVMultInPlaceHermitianTranspose_Mat_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   BV_MAT            *ctx = (BV_MAT*)V->data;
-  PetscScalar       *d_pv,*d_q;
+  PetscScalar       *d_pv;
+  const PetscScalar *d_q;
   PetscInt          ldq;
 
   PetscFunctionBegin;

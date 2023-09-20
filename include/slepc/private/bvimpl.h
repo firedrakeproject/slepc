@@ -477,7 +477,7 @@ static inline PetscErrorCode BV_SetDefaultLD(BV bv,PetscInt nloc)
    BV_MatDenseCUDAGetArrayRead - if Q is MATSEQDENSE it will allocate memory on the
    GPU and copy the contents; otherwise, calls MatDenseCUDAGetArrayRead()
 */
-static inline PetscErrorCode BV_MatDenseCUDAGetArrayRead(BV bv,Mat Q,PetscScalar **d_q)
+static inline PetscErrorCode BV_MatDenseCUDAGetArrayRead(BV bv,Mat Q,const PetscScalar **d_q)
 {
   const PetscScalar *q;
   PetscInt          ldq,mq;
@@ -490,11 +490,11 @@ static inline PetscErrorCode BV_MatDenseCUDAGetArrayRead(BV bv,Mat Q,PetscScalar
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(PetscCuBLASIntCast(ldq,&ldq_));
   PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSECUDA,&matiscuda));
-  if (matiscuda) PetscCall(MatDenseCUDAGetArrayRead(Q,(const PetscScalar**)d_q));
+  if (matiscuda) PetscCall(MatDenseCUDAGetArrayRead(Q,d_q));
   else {
     PetscCall(MatDenseGetArrayRead(Q,&q));
     PetscCallCUDA(cudaMalloc((void**)d_q,ldq*mq*sizeof(PetscScalar)));
-    PetscCallCUDA(cudaMemcpy(*d_q,q,ldq*mq*sizeof(PetscScalar),cudaMemcpyHostToDevice));
+    PetscCallCUDA(cudaMemcpy((void*)*d_q,q,ldq*mq*sizeof(PetscScalar),cudaMemcpyHostToDevice));
     PetscCall(PetscLogCpuToGpu(ldq*mq*sizeof(PetscScalar)));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -504,17 +504,17 @@ static inline PetscErrorCode BV_MatDenseCUDAGetArrayRead(BV bv,Mat Q,PetscScalar
    BV_MatDenseCUDARestoreArrayRead - restores the pointer obtained with BV_MatDenseCUDAGetArrayRead(),
    freeing the GPU memory in case of MATSEQDENSE
 */
-static inline PetscErrorCode BV_MatDenseCUDARestoreArrayRead(BV bv,Mat Q,PetscScalar **d_q)
+static inline PetscErrorCode BV_MatDenseCUDARestoreArrayRead(BV bv,Mat Q,const PetscScalar **d_q)
 {
   PetscBool matiscuda;
 
   PetscFunctionBegin;
   (void)bv; // avoid unused parameter warning
   PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSECUDA,&matiscuda));
-  if (matiscuda) PetscCall(MatDenseCUDARestoreArrayRead(Q,(const PetscScalar**)d_q));
+  if (matiscuda) PetscCall(MatDenseCUDARestoreArrayRead(Q,d_q));
   else {
     PetscCall(MatDenseRestoreArrayRead(Q,NULL));
-    PetscCallCUDA(cudaFree(*d_q));
+    PetscCallCUDA(cudaFree((void*)*d_q));
     *d_q = NULL;
   }
   PetscFunctionReturn(PETSC_SUCCESS);
