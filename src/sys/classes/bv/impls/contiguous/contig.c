@@ -329,12 +329,13 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
 {
   BV_CONTIGUOUS  *ctx;
   PetscInt       j,nloc,bs,lsplit,lda;
-  PetscBool      seq;
+  PetscBool      seq,isdense;
   PetscScalar    *aa;
   char           str[50];
   PetscScalar    *array;
   BV             parent;
   Vec            *Vpar;
+  MatType        mtype;
 
   PetscFunctionBegin;
   PetscCall(PetscNew(&ctx));
@@ -375,6 +376,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   }
 
   if (PetscUnlikely(bv->Acreate)) {
+    PetscCall(MatGetType(bv->Acreate,&mtype));
+    PetscCall(PetscStrcmpAny(mtype,&isdense,MATSEQDENSE,MATMPIDENSE,""));
+    PetscCheck(isdense,PetscObjectComm((PetscObject)bv->Acreate),PETSC_ERR_SUP,"BVCONTIGUOUS requires a dense matrix in BVCreateFromMat()\n");
     PetscCall(MatDenseGetArray(bv->Acreate,&aa));
     PetscCall(MatDenseGetLDA(bv->Acreate,&lda));
     for (j=0;j<bv->m;j++) PetscCall(PetscArraycpy(ctx->array+j*bv->ld,aa+j*lda,bv->n));

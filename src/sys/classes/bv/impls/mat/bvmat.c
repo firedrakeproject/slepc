@@ -432,7 +432,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   }
 
   if (PetscUnlikely(bv->Acreate)) {
-    PetscCall(MatCopy(bv->Acreate,ctx->A,SAME_NONZERO_PATTERN));
+    PetscCall(MatConvert(bv->Acreate,MATDENSE,MAT_REUSE_MATRIX,&ctx->A));
     PetscCall(MatDestroy(&bv->Acreate));
   }
 

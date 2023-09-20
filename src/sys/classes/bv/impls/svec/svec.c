@@ -395,12 +395,13 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 {
   BV_SVEC           *ctx;
   PetscInt          nloc,N,bs,tglobal=0,tlocal,lsplit,j,lda;
-  PetscBool         seq;
+  PetscBool         seq,isdense;
   PetscScalar       *vv;
   const PetscScalar *aa,*array,*ptr;
   char              str[50];
   BV                parent;
   Vec               vpar;
+  MatType           mtype;
 
   PetscFunctionBegin;
   PetscCall(PetscNew(&ctx));
@@ -454,6 +455,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   }
 
   if (PetscUnlikely(bv->Acreate)) {
+    PetscCall(MatGetType(bv->Acreate,&mtype));
+    PetscCall(PetscStrcmpAny(mtype,&isdense,MATSEQDENSE,MATMPIDENSE,""));
+    PetscCheck(isdense,PetscObjectComm((PetscObject)bv->Acreate),PETSC_ERR_SUP,"BVSVEC requires a dense matrix in BVCreateFromMat()\n");
     PetscCall(MatDenseGetArrayRead(bv->Acreate,&aa));
     PetscCall(MatDenseGetLDA(bv->Acreate,&lda));
     PetscCall(VecGetArray(ctx->v,&vv));

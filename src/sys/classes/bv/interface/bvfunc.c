@@ -248,7 +248,6 @@ PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(A,MAT_CLASSID,1);
-  PetscCheckTypeNames(A,MATSEQDENSE,MATMPIDENSE);
 
   PetscCall(MatGetSize(A,&N,&k));
   PetscCall(MatGetLocalSize(A,&n,NULL));
