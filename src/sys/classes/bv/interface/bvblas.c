@@ -19,11 +19,11 @@
 /*
     C := alpha*A*B + beta*C
 
-    A is mxk (ld=m), B is kxn (ld=ldb), C is mxn (ld=m)
+    A is mxk (ld=lda), B is kxn (ld=ldb), C is mxn (ld=ldc)
 */
-PetscErrorCode BVMult_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscInt ldb_,PetscScalar alpha,const PetscScalar *A,const PetscScalar *B,PetscScalar beta,PetscScalar *C)
+PetscErrorCode BVMult_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *A,PetscInt lda_,const PetscScalar *B,PetscInt ldb_,PetscScalar beta,PetscScalar *C,PetscInt ldc_)
 {
-  PetscBLASInt   m,n,k,ldb;
+  PetscBLASInt   m,n,k,lda,ldb,ldc;
 #if defined(PETSC_HAVE_FBLASLAPACK) || defined(PETSC_HAVE_F2CBLASLAPACK)
   PetscBLASInt   l,bs=BLOCKSIZE;
 #endif
@@ -32,15 +32,17 @@ PetscErrorCode BVMult_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pet
   PetscCall(PetscBLASIntCast(m_,&m));
   PetscCall(PetscBLASIntCast(n_,&n));
   PetscCall(PetscBLASIntCast(k_,&k));
+  PetscCall(PetscBLASIntCast(lda_,&lda));
   PetscCall(PetscBLASIntCast(ldb_,&ldb));
+  PetscCall(PetscBLASIntCast(ldc_,&ldc));
 #if defined(PETSC_HAVE_FBLASLAPACK) || defined(PETSC_HAVE_F2CBLASLAPACK)
   l = m % bs;
-  if (l) PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&k,&alpha,(PetscScalar*)A,&m,(PetscScalar*)B,&ldb,&beta,C,&m));
+  if (l) PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&k,&alpha,(PetscScalar*)A,&lda,(PetscScalar*)B,&ldb,&beta,C,&ldc));
   for (;l<m;l+=bs) {
-    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&bs,&n,&k,&alpha,(PetscScalar*)A+l,&m,(PetscScalar*)B,&ldb,&beta,C+l,&m));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&bs,&n,&k,&alpha,(PetscScalar*)A+l,&lda,(PetscScalar*)B,&ldb,&beta,C+l,&ldc));
   }
 #else
-  if (m) PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&n,&k,&alpha,(PetscScalar*)A,&m,(PetscScalar*)B,&ldb,&beta,C,&m));
+  if (m) PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&n,&k,&alpha,(PetscScalar*)A,&lda,(PetscScalar*)B,&ldb,&beta,C,&ldc));
 #endif
   PetscCall(PetscLogFlops(2.0*m*n*k));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -49,16 +51,17 @@ PetscErrorCode BVMult_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pet
 /*
     y := alpha*A*x + beta*y
 
-    A is nxk (ld=n)
+    A is nxk (ld=lda)
 */
-PetscErrorCode BVMultVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *A,const PetscScalar *x,PetscScalar beta,PetscScalar *y)
+PetscErrorCode BVMultVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *A,PetscInt lda_,const PetscScalar *x,PetscScalar beta,PetscScalar *y)
 {
-  PetscBLASInt   n,k,one=1;
+  PetscBLASInt   n,k,lda,one=1;
 
   PetscFunctionBegin;
   PetscCall(PetscBLASIntCast(n_,&n));
   PetscCall(PetscBLASIntCast(k_,&k));
-  if (n) PetscCallBLAS("BLASgemv",BLASgemv_("N",&n,&k,&alpha,A,&n,x,&one,&beta,y,&one));
+  PetscCall(PetscBLASIntCast(lda_,&lda));
+  if (n) PetscCallBLAS("BLASgemv",BLASgemv_("N",&n,&k,&alpha,A,&lda,x,&one,&beta,y,&one));
   PetscCall(PetscLogFlops(2.0*n*k));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -66,12 +69,12 @@ PetscErrorCode BVMultVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar 
 /*
     A(:,s:e-1) := A*B(:,s:e-1)
 
-    A is mxk (ld=m), B is kxn (ld=ldb)  n=e-s
+    A is mxk (ld=lda), B is kxn (ld=ldb), n=e-s
 */
-PetscErrorCode BVMultInPlace_BLAS_Private(BV bv,PetscInt m_,PetscInt k_,PetscInt ldb_,PetscInt s,PetscInt e,PetscScalar *A,const PetscScalar *B,PetscBool btrans)
+PetscErrorCode BVMultInPlace_BLAS_Private(BV bv,PetscInt m_,PetscInt k_,PetscInt s,PetscInt e,PetscScalar *A,PetscInt lda_,const PetscScalar *B,PetscInt ldb_,PetscBool btrans)
 {
   PetscScalar    *pb,zero=0.0,one=1.0;
-  PetscBLASInt   m,n,k,l,ldb,bs=BLOCKSIZE;
+  PetscBLASInt   m,n,k,l,lda,ldb,bs=BLOCKSIZE;
   PetscInt       j,n_=e-s;
   const char     *bt;
 
@@ -79,6 +82,7 @@ PetscErrorCode BVMultInPlace_BLAS_Private(BV bv,PetscInt m_,PetscInt k_,PetscInt
   PetscCall(PetscBLASIntCast(m_,&m));
   PetscCall(PetscBLASIntCast(n_,&n));
   PetscCall(PetscBLASIntCast(k_,&k));
+  PetscCall(PetscBLASIntCast(lda_,&lda));
   PetscCall(PetscBLASIntCast(ldb_,&ldb));
   PetscCall(BVAllocateWork_Private(bv,BLOCKSIZE*n_));
   if (PetscUnlikely(btrans)) {
@@ -90,12 +94,12 @@ PetscErrorCode BVMultInPlace_BLAS_Private(BV bv,PetscInt m_,PetscInt k_,PetscInt
   }
   l = m % bs;
   if (l) {
-    PetscCallBLAS("BLASgemm",BLASgemm_("N",bt,&l,&n,&k,&one,A,&m,pb,&ldb,&zero,bv->work,&l));
-    for (j=0;j<n;j++) PetscCall(PetscArraycpy(A+(s+j)*m,bv->work+j*l,l));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N",bt,&l,&n,&k,&one,A,&lda,pb,&ldb,&zero,bv->work,&l));
+    for (j=0;j<n;j++) PetscCall(PetscArraycpy(A+(s+j)*lda,bv->work+j*l,l));
   }
   for (;l<m;l+=bs) {
-    PetscCallBLAS("BLASgemm",BLASgemm_("N",bt,&bs,&n,&k,&one,A+l,&m,pb,&ldb,&zero,bv->work,&bs));
-    for (j=0;j<n;j++) PetscCall(PetscArraycpy(A+(s+j)*m+l,bv->work+j*bs,bs));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N",bt,&bs,&n,&k,&one,A+l,&lda,pb,&ldb,&zero,bv->work,&bs));
+    for (j=0;j<n;j++) PetscCall(PetscArraycpy(A+(s+j)*lda+l,bv->work+j*bs,bs));
   }
   PetscCall(PetscLogFlops(2.0*m*n*k));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -156,57 +160,73 @@ PetscErrorCode BVMultInPlace_Vecs_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt
 /*
     B := alpha*A + beta*B
 
-    A,B are nxk (ld=n)
+    A,B are nxk
 */
-PetscErrorCode BVAXPY_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *A,PetscScalar beta,PetscScalar *B)
+PetscErrorCode BVAXPY_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *A,PetscInt lda_,PetscScalar beta,PetscScalar *B,PetscInt ldb_)
 {
   PetscBLASInt   m,one=1;
+  PetscInt       i,j;
 
   PetscFunctionBegin;
-  PetscCall(PetscBLASIntCast(n_*k_,&m));
-  if (beta!=(PetscScalar)1.0) {
-    PetscCallBLAS("BLASscal",BLASscal_(&m,&beta,B,&one));
-    PetscCall(PetscLogFlops(m));
+  if (lda_==n_ && ldb_==n_) {
+    PetscCall(PetscBLASIntCast(n_*k_,&m));
+    if (beta!=(PetscScalar)1.0) PetscCallBLAS("BLASscal",BLASscal_(&m,&beta,B,&one));
+    PetscCallBLAS("BLASaxpy",BLASaxpy_(&m,&alpha,A,&one,B,&one));
+  } else {
+    if (beta!=(PetscScalar)1.0) {
+      for (j=0;j<k_;j++) {
+        for (i=0;i<n_;i++) {
+          B[i+j*ldb_] = alpha*A[i+j*lda_] + beta*B[i+j*ldb_];
+        }
+      }
+    } else {
+      for (j=0;j<k_;j++) {
+        for (i=0;i<n_;i++) {
+          B[i+j*ldb_] += alpha*A[i+j*lda_];
+        }
+      }
+    }
   }
-  PetscCallBLAS("BLASaxpy",BLASaxpy_(&m,&alpha,A,&one,B,&one));
-  PetscCall(PetscLogFlops(2.0*m));
+  PetscCall(PetscLogFlops((beta==(PetscScalar)1.0)?2.0*n_*k_:3.0*n_*k_));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 /*
     C := A'*B
 
-    A' is mxk (ld=k), B is kxn (ld=k), C is mxn (ld=ldc)
+    A' is mxk (ld=lda), B is kxn (ld=ldb), C is mxn (ld=ldc)
 */
-PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscInt ldc_,const PetscScalar *A,const PetscScalar *B,PetscScalar *C,PetscBool mpi)
+PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,const PetscScalar *A,PetscInt lda_,const PetscScalar *B,PetscInt ldb_,PetscScalar *C,PetscInt ldc_,PetscBool mpi)
 {
   PetscScalar    zero=0.0,one=1.0,*CC;
-  PetscBLASInt   m,n,k,ldc,j;
+  PetscBLASInt   m,n,k,lda,ldb,ldc,j;
   PetscMPIInt    len;
 
   PetscFunctionBegin;
   PetscCall(PetscBLASIntCast(m_,&m));
   PetscCall(PetscBLASIntCast(n_,&n));
   PetscCall(PetscBLASIntCast(k_,&k));
+  PetscCall(PetscBLASIntCast(lda_,&lda));
+  PetscCall(PetscBLASIntCast(ldb_,&ldb));
   PetscCall(PetscBLASIntCast(ldc_,&ldc));
   if (mpi) {
     if (ldc==m) {
       PetscCall(BVAllocateWork_Private(bv,m*n));
-      if (k) PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&k,(PetscScalar*)B,&k,&zero,bv->work,&ldc));
+      if (k) PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&lda,(PetscScalar*)B,&ldb,&zero,bv->work,&ldc));
       else PetscCall(PetscArrayzero(bv->work,m*n));
       PetscCall(PetscMPIIntCast(m*n,&len));
       PetscCall(MPIU_Allreduce(bv->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
     } else {
       PetscCall(BVAllocateWork_Private(bv,2*m*n));
       CC = bv->work+m*n;
-      if (k) PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&k,(PetscScalar*)B,&k,&zero,bv->work,&m));
+      if (k) PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&lda,(PetscScalar*)B,&ldb,&zero,bv->work,&m));
       else PetscCall(PetscArrayzero(bv->work,m*n));
       PetscCall(PetscMPIIntCast(m*n,&len));
       PetscCall(MPIU_Allreduce(bv->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
       for (j=0;j<n;j++) PetscCall(PetscArraycpy(C+j*ldc,CC+j*m,m));
     }
   } else {
-    if (k) PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&k,(PetscScalar*)B,&k,&zero,C,&ldc));
+    if (k) PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&lda,(PetscScalar*)B,&ldb,&zero,C,&ldc));
   }
   PetscCall(PetscLogFlops(2.0*m*n*k));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -215,25 +235,26 @@ PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pets
 /*
     y := A'*x
 
-    A is nxk (ld=n)
+    A is nxk (ld=lda)
 */
-PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscScalar *A,const PetscScalar *x,PetscScalar *y,PetscBool mpi)
+PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscScalar *A,PetscInt lda_,const PetscScalar *x,PetscScalar *y,PetscBool mpi)
 {
   PetscScalar    zero=0.0,done=1.0;
-  PetscBLASInt   n,k,one=1;
+  PetscBLASInt   n,k,lda,one=1;
   PetscMPIInt    len;
 
   PetscFunctionBegin;
   PetscCall(PetscBLASIntCast(n_,&n));
   PetscCall(PetscBLASIntCast(k_,&k));
+  PetscCall(PetscBLASIntCast(lda_,&lda));
   if (mpi) {
     PetscCall(BVAllocateWork_Private(bv,k));
-    if (n) PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,x,&one,&zero,bv->work,&one));
+    if (n) PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&lda,x,&one,&zero,bv->work,&one));
     else PetscCall(PetscArrayzero(bv->work,k));
     PetscCall(PetscMPIIntCast(k,&len));
     PetscCall(MPIU_Allreduce(bv->work,y,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
   } else {
-    if (n) PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,x,&one,&zero,y,&one));
+    if (n) PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&lda,x,&one,&zero,y,&one));
   }
   PetscCall(PetscLogFlops(2.0*n*k));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -251,7 +272,7 @@ PetscErrorCode BVScale_BLAS_Private(BV bv,PetscInt n_,PetscScalar *A,PetscScalar
   else if (alpha!=(PetscScalar)1.0) {
     PetscCall(PetscBLASIntCast(n_,&n));
     PetscCallBLAS("BLASscal",BLASscal_(&n,&alpha,A,&one));
-    PetscCall(PetscLogFlops(n));
+    PetscCall(PetscLogFlops(1.0*n));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }

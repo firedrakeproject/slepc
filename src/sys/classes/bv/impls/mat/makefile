@@ -9,6 +9,7 @@
 #
 
 LIBBASE  = libslepcsys
+DIRS     = matcuda
 MANSEC   = BV
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

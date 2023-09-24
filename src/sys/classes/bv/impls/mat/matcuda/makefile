@@ -7,9 +7,9 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
+#requirespackage 'PETSC_HAVE_CUDA'
 
 LIBBASE  = libslepcsys
-DIRS     = vecs contiguous svec mat tensor cuda
 MANSEC   = BV
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

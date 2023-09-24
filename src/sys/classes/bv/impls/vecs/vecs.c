@@ -524,6 +524,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
       }
     }
   }
+  if (!bv->ld) bv->ld = bv->n;
+  PetscCheck(bv->ld==bv->n,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVVECS does not support a user-defined leading dimension");
 
   if (PetscUnlikely(bv->Acreate)) {
     for (j=0;j<bv->m;j++) PetscCall(MatGetColumnVector(bv->Acreate,ctx->V[j],j));

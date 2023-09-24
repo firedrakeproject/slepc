@@ -45,6 +45,8 @@ cdef extern from * nogil:
     PetscErrorCode BVSetSizesFromVec(SlepcBV,PetscVec,PetscInt)
     PetscErrorCode BVGetSizes(SlepcBV,PetscInt*,PetscInt*,PetscInt*)
     PetscErrorCode BVResize(SlepcBV,PetscInt,PetscBool)
+    PetscErrorCode BVSetLeadingDimension(SlepcBV,PetscInt)
+    PetscErrorCode BVGetLeadingDimension(SlepcBV,PetscInt*)
 
     PetscErrorCode BVSetOptionsPrefix(SlepcBV,char[])
     PetscErrorCode BVGetOptionsPrefix(SlepcBV,char*[])

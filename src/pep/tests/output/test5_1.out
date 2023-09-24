@@ -27,7 +27,7 @@ PEP Object: pep 1 MPI process
   convergence test: relative to the eigenvalue
   extraction type: NORM
 BV Object: 1 MPI process
-  type: svec
+  type: mat
   14 columns of global length 6
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)

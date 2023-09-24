@@ -8,7 +8,7 @@ BV Object: X 1 MPI process
   doing matmult as a single matrix-matrix product
 BV Object: X 1 MPI process
   type: svec
-Vec Object: X_0 1 MPI process
+Vec Object: 1 MPI process
   type: seq
 -2.
 1.
@@ -20,6 +20,8 @@ Vec Object: X_0 1 MPI process
 0.
 0.
 0.
+Vec Object: 1 MPI process
+  type: seq
 0.
 -1.
 2.
@@ -30,6 +32,8 @@ Vec Object: X_0 1 MPI process
 0.
 0.
 0.
+Vec Object: 1 MPI process
+  type: seq
 0.
 0.
 0.
@@ -40,6 +44,8 @@ Vec Object: X_0 1 MPI process
 0.
 0.
 0.
+Vec Object: 1 MPI process
+  type: seq
 0.
 0.
 0.
@@ -50,6 +56,8 @@ Vec Object: X_0 1 MPI process
 0.
 0.
 0.
+Vec Object: 1 MPI process
+  type: seq
 0.
 0.
 0.
@@ -62,7 +70,7 @@ Vec Object: X_0 1 MPI process
 0.
 BV Object: Y 1 MPI process
   type: svec
-Vec Object: Y_0 1 MPI process
+Vec Object: 1 MPI process
   type: seq
 0.25
 0.25
@@ -74,6 +82,8 @@ Vec Object: Y_0 1 MPI process
 0.25
 0.25
 0.25
+Vec Object: 1 MPI process
+  type: seq
 0.5
 0.5
 0.5
@@ -84,6 +94,8 @@ Vec Object: Y_0 1 MPI process
 0.5
 0.5
 0.5
+Vec Object: 1 MPI process
+  type: seq
 0.75
 0.75
 0.75
@@ -104,7 +116,7 @@ Mat Object: Q 1 MPI process
 After BVMult - - - - - - - - -
 BV Object: Y 1 MPI process
   type: svec
-Vec Object: Y_0 1 MPI process
+Vec Object: 1 MPI process
   type: seq
 2.25
 0.25
@@ -116,6 +128,8 @@ Vec Object: Y_0 1 MPI process
 -10.75
 0.25
 0.25
+Vec Object: 1 MPI process
+  type: seq
 -7.5
 5.5
 14.5
@@ -126,6 +140,8 @@ Vec Object: Y_0 1 MPI process
 -10.5
 0.5
 0.5
+Vec Object: 1 MPI process
+  type: seq
 -7.25
 0.75
 24.75
@@ -139,7 +155,7 @@ Vec Object: Y_0 1 MPI process
 After BVMultVec - - - - - - -
 BV Object: Y 1 MPI process
   type: svec
-Vec Object: Y_0 1 MPI process
+Vec Object: 1 MPI process
   type: seq
 6.25
 -2.75
@@ -151,6 +167,8 @@ Vec Object: Y_0 1 MPI process
 -12.125
 0.25
 0.25
+Vec Object: 1 MPI process
+  type: seq
 -7.5
 5.5
 14.5
@@ -161,6 +179,8 @@ Vec Object: Y_0 1 MPI process
 -10.5
 0.5
 0.5
+Vec Object: 1 MPI process
+  type: seq
 -7.25
 0.75
 24.75
@@ -188,7 +208,7 @@ Vec Object: z 1 MPI process
 After BVMultInPlace - - - - -
 BV Object: X 1 MPI process
   type: svec
-Vec Object: X_0 1 MPI process
+Vec Object: 1 MPI process
   type: seq
 -4.
 2.
@@ -200,6 +220,8 @@ Vec Object: X_0 1 MPI process
 0.
 0.
 0.
+Vec Object: 1 MPI process
+  type: seq
 -8.
 5.
 14.
@@ -210,6 +232,8 @@ Vec Object: X_0 1 MPI process
 -11.
 0.
 0.
+Vec Object: 1 MPI process
+  type: seq
 -8.
 0.
 24.
@@ -220,6 +244,8 @@ Vec Object: X_0 1 MPI process
 -11.
 0.
 0.
+Vec Object: 1 MPI process
+  type: seq
 0.
 0.
 0.
@@ -230,6 +256,8 @@ Vec Object: X_0 1 MPI process
 0.
 0.
 0.
+Vec Object: 1 MPI process
+  type: seq
 0.
 0.
 0.

@@ -68,6 +68,7 @@ struct _p_BV {
   PetscInt           l;            /* number of leading columns */
   PetscInt           k;            /* number of active columns */
   PetscInt           nc;           /* number of constraints */
+  PetscInt           ld;           /* leading dimension */
   BVOrthogType       orthog_type;  /* the method of vector orthogonalization */
   BVOrthogRefineType orthog_ref;   /* refinement method */
   PetscReal          orthog_eta;   /* refinement threshold */
@@ -101,7 +102,7 @@ struct _p_BV {
   PetscRandom        rand;         /* random number generator */
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */
   Mat                Aget;         /* matrix returned for BVGetMat() */
-  PetscBool          cuda;         /* true if GPU must be used in SVEC */
+  PetscBool          cuda;         /* true if GPU must be used */
   PetscBool          sfocalled;    /* setfromoptions has been called */
   PetscScalar        *work;
   PetscInt           lwork;
@@ -249,23 +250,23 @@ SLEPC_INTERN PetscErrorCode BVView_Vecs(BV,PetscViewer);
 
 SLEPC_INTERN PetscErrorCode BVAllocateWork_Private(BV,PetscInt);
 
-SLEPC_INTERN PetscErrorCode BVMult_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar,const PetscScalar*,const PetscScalar*,PetscScalar,PetscScalar*);
-SLEPC_INTERN PetscErrorCode BVMultVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,const PetscScalar*,PetscScalar,PetscScalar*);
-SLEPC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,const PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVMult_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscInt,const PetscScalar*,PetscInt,PetscScalar,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode BVMultVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscInt,const PetscScalar*,PetscScalar,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscInt,const PetscScalar*,PetscInt,PetscBool);
 SLEPC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(BV,PetscInt,PetscInt,PetscInt,Vec*,const PetscScalar*,PetscBool);
-SLEPC_INTERN PetscErrorCode BVAXPY_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscScalar,PetscScalar*);
-SLEPC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
-SLEPC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVAXPY_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscInt,PetscScalar,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,const PetscScalar*,PetscInt,const PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscBool);
+SLEPC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,const PetscScalar*,PetscInt,const PetscScalar*,PetscScalar*,PetscBool);
 SLEPC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
-SLEPC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,NormType,PetscReal*,PetscBool);
-SLEPC_INTERN PetscErrorCode BVNormalize_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,PetscInt,NormType,PetscReal*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVNormalize_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscScalar*,PetscBool);
 SLEPC_INTERN PetscErrorCode BVGetMat_Default(BV,Mat*);
 SLEPC_INTERN PetscErrorCode BVRestoreMat_Default(BV,Mat*);
 SLEPC_INTERN PetscErrorCode BVMatCholInv_LAPACK_Private(BV,Mat,Mat);
 SLEPC_INTERN PetscErrorCode BVMatTriInv_LAPACK_Private(BV,Mat,Mat);
 SLEPC_INTERN PetscErrorCode BVMatSVQB_LAPACK_Private(BV,Mat,Mat);
-SLEPC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
-SLEPC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
 
 /* reduction operations used in BVOrthogonalize and BVNormalize */
 SLEPC_EXTERN MPI_Op MPIU_TSQR, MPIU_LAPY2;
@@ -452,7 +453,83 @@ static inline PetscErrorCode BV_OrthogonalizeColumn_Safe(BV bv,PetscInt j,PetscS
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+/*
+   BV_SetDefaultLD - set the default value of the leading dimension, based on
+   the local size.
+*/
+static inline PetscErrorCode BV_SetDefaultLD(BV bv,PetscInt nloc)
+{
+  size_t bytes,align;
+
+  PetscFunctionBegin;
+  if (bv->ld) {   /* set by user */
+    PetscCheck(bv->ld>=nloc,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The leading dimension %" PetscInt_FMT " should be larger or equal to the local number of rows %" PetscInt_FMT,bv->ld,nloc);
+  } else {
+    align  = PetscMax(PETSC_MEMALIGN,16);   /* assume that CUDA requires 16-byte alignment */
+    bytes  = (nloc*sizeof(PetscScalar) + align - 1) & ~(align - 1);
+    bv->ld = bytes/sizeof(PetscScalar);
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 #if defined(PETSC_HAVE_CUDA)
+/*
+   BV_MatDenseCUDAGetArrayRead - if Q is MATSEQDENSE it will allocate memory on the
+   GPU and copy the contents; otherwise, calls MatDenseCUDAGetArrayRead()
+*/
+static inline PetscErrorCode BV_MatDenseCUDAGetArrayRead(BV bv,Mat Q,const PetscScalar **d_q)
+{
+  const PetscScalar *q;
+  PetscInt          ldq,mq;
+  PetscCuBLASInt    ldq_=0;
+  PetscBool         matiscuda;
+
+  PetscFunctionBegin;
+  (void)bv; // avoid unused parameter warning
+  PetscCall(MatGetSize(Q,NULL,&mq));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
+  PetscCall(PetscCuBLASIntCast(ldq,&ldq_));
+  PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSECUDA,&matiscuda));
+  if (matiscuda) PetscCall(MatDenseCUDAGetArrayRead(Q,d_q));
+  else {
+    PetscCall(MatDenseGetArrayRead(Q,&q));
+    PetscCallCUDA(cudaMalloc((void**)d_q,ldq*mq*sizeof(PetscScalar)));
+    PetscCallCUDA(cudaMemcpy((void*)*d_q,q,ldq*mq*sizeof(PetscScalar),cudaMemcpyHostToDevice));
+    PetscCall(PetscLogCpuToGpu(ldq*mq*sizeof(PetscScalar)));
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*
+   BV_MatDenseCUDARestoreArrayRead - restores the pointer obtained with BV_MatDenseCUDAGetArrayRead(),
+   freeing the GPU memory in case of MATSEQDENSE
+*/
+static inline PetscErrorCode BV_MatDenseCUDARestoreArrayRead(BV bv,Mat Q,const PetscScalar **d_q)
+{
+  PetscBool matiscuda;
+
+  PetscFunctionBegin;
+  (void)bv; // avoid unused parameter warning
+  PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSECUDA,&matiscuda));
+  if (matiscuda) PetscCall(MatDenseCUDARestoreArrayRead(Q,d_q));
+  else {
+    PetscCall(MatDenseRestoreArrayRead(Q,NULL));
+    PetscCallCUDA(cudaFree((void*)*d_q));
+    *d_q = NULL;
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+SLEPC_INTERN PetscErrorCode BVMult_BLAS_CUDA(BV,PetscInt,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscInt,const PetscScalar*,PetscInt,PetscScalar,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode BVMultVec_BLAS_CUDA(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscInt,const PetscScalar*,PetscScalar,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BVMultInPlace_BLAS_CUDA(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscInt,const PetscScalar*,PetscInt,PetscBool);
+SLEPC_INTERN PetscErrorCode BVAXPY_BLAS_CUDA(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscInt,PetscScalar,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode BVDot_BLAS_CUDA(BV,PetscInt,PetscInt,PetscInt,const PetscScalar*,PetscInt,const PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscBool);
+SLEPC_INTERN PetscErrorCode BVDotVec_BLAS_CUDA(BV,PetscInt,PetscInt,const PetscScalar*,PetscInt,const PetscScalar*,PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVScale_BLAS_CUDA(BV,PetscInt,PetscScalar*,PetscScalar);
+
+SLEPC_INTERN PetscErrorCode BV_ConjugateCUDAArray(PetscScalar*,PetscInt);
+
 SLEPC_INTERN PetscErrorCode BV_CleanCoefficients_CUDA(BV,PetscInt,PetscScalar*);
 SLEPC_INTERN PetscErrorCode BV_AddCoefficients_CUDA(BV,PetscInt,PetscScalar*,PetscScalar*);
 SLEPC_INTERN PetscErrorCode BV_SetValue_CUDA(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar);

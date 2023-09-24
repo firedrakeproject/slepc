@@ -198,7 +198,7 @@ view the particular settings that are currently being used::
       tolerance: 1e-08
       convergence test: relative to the eigenvalue
     BV Object: 1 MPI process
-      type: svec
+      type: mat
       17 columns of global length 30
       orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)

@@ -17,7 +17,7 @@ int main(int argc,char **argv)
   Vec            t,r,v;
   Mat            B,Ymat;
   BV             X,Y,Z=NULL,Zcopy=NULL;
-  PetscInt       i,j,m=10,n,k=5,rep=1,Istart,Iend;
+  PetscInt       i,j,m=10,n,k=5,rep=1,Istart,Iend,ld;
   PetscScalar    *pZ;
   PetscReal      norm;
   PetscViewer    view;
@@ -165,9 +165,10 @@ int main(int argc,char **argv)
       PetscCall(BVGetArray(Z,&pZ));
       if (Istart==0) {
         PetscCheck(Iend>2,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"First process must have at least 3 rows");
-        pZ[Iend]   = 5.0;   /* modify 3 first entries of second column */
-        pZ[Iend+1] = -4.0;
-        pZ[Iend+2] = 1.0;
+        PetscCall(BVGetLeadingDimension(Z,&ld));
+        pZ[ld]   = 5.0;   /* modify 3 first entries of second column */
+        pZ[ld+1] = -4.0;
+        pZ[ld+2] = 1.0;
       }
       PetscCall(BVRestoreArray(Z,&pZ));
       if (verbose) PetscCall(BVView(Z,view));
@@ -195,13 +196,12 @@ int main(int argc,char **argv)
    testset:
       output_file: output/test7_1.out
       filter: grep -v "Using method"
-      args: -m 12
       test:
          suffix: 1
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult vecs
       test:
          suffix: 1_cuda
-         args: -bv_type svec -mat_type aijcusparse -bv_matmult vecs
+         args: -bv_type {{svec mat}} -mat_type aijcusparse -bv_matmult vecs
          requires: cuda
       test:
          suffix: 1_mat
@@ -210,14 +210,14 @@ int main(int argc,char **argv)
    testset:
       output_file: output/test7_2.out
       filter: grep -v "Using method"
-      args: -m 40 -n 44 -k 9
+      args: -m 34 -n 38 -k 9
       nsize: 2
       test:
          suffix: 2
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult vecs
       test:
          suffix: 2_cuda
-         args: -bv_type svec -mat_type aijcusparse -bv_matmult vecs
+         args: -bv_type {{svec mat}} -mat_type aijcusparse -bv_matmult vecs
          requires: cuda
       test:
          suffix: 2_mat

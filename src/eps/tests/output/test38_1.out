@@ -10,7 +10,7 @@ EPS Object: 1 MPI process
       number of column vectors (ncv): 30
       maximum number of iterations: 100
     BV Object: (eps_lyapii_) 1 MPI process
-      type: svec
+      type: mat
       31 columns of global length 100
       vector orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)
@@ -24,7 +24,7 @@ EPS Object: 1 MPI process
   maximum number of iterations: 10000
   convergence test: relative to the eigenvalue
 BV Object: 1 MPI process
-  type: svec
+  type: mat
   2 columns of global length 100
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)

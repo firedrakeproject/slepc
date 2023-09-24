@@ -115,7 +115,7 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      args: -n 26 -mfn_type {{krylov expokit}}
+      args: -mfn_type {{krylov expokit}}
       output_file: output/test2_1.out
       test:
          suffix: 1

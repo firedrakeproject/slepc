@@ -1,7 +1,7 @@
 Test BV with 5 columns of dimension 10.
 BV Object: X 1 MPI process
   type: svec
-  5 columns of global length 10
+  5 columns of global length 10 (CUDA)
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
   block orthogonalization method: GS
@@ -9,7 +9,7 @@ BV Object: X 1 MPI process
 BV Object: X 1 MPI process
   type: svec
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 -2.
 1.
 4.
@@ -21,7 +21,7 @@ Vec Object: 1 MPI process
 0.
 0.
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 0.
 -1.
 2.
@@ -33,7 +33,7 @@ Vec Object: 1 MPI process
 0.
 0.
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 0.
 0.
 0.
@@ -45,7 +45,7 @@ Vec Object: 1 MPI process
 0.
 0.
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 0.
 0.
 0.
@@ -57,7 +57,7 @@ Vec Object: 1 MPI process
 0.
 0.
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 0.
 0.
 0.
@@ -71,7 +71,7 @@ Vec Object: 1 MPI process
 BV Object: Y 1 MPI process
   type: svec
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 0.25
 0.25
 0.25
@@ -83,7 +83,7 @@ Vec Object: 1 MPI process
 0.25
 0.25
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 0.5
 0.5
 0.5
@@ -95,7 +95,7 @@ Vec Object: 1 MPI process
 0.5
 0.5
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 0.75
 0.75
 0.75
@@ -117,7 +117,7 @@ After BVMult - - - - - - - - -
 BV Object: Y 1 MPI process
   type: svec
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 2.25
 0.25
 -5.75
@@ -129,7 +129,7 @@ Vec Object: 1 MPI process
 0.25
 0.25
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 -7.5
 5.5
 14.5
@@ -141,7 +141,7 @@ Vec Object: 1 MPI process
 0.5
 0.5
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 -7.25
 0.75
 24.75
@@ -156,7 +156,7 @@ After BVMultVec - - - - - - -
 BV Object: Y 1 MPI process
   type: svec
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 6.25
 -2.75
 -11.75
@@ -168,7 +168,7 @@ Vec Object: 1 MPI process
 0.25
 0.25
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 -7.5
 5.5
 14.5
@@ -180,7 +180,7 @@ Vec Object: 1 MPI process
 0.5
 0.5
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 -7.25
 0.75
 24.75
@@ -209,7 +209,7 @@ After BVMultInPlace - - - - -
 BV Object: X 1 MPI process
   type: svec
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 -4.
 2.
 8.
@@ -221,7 +221,7 @@ Vec Object: 1 MPI process
 0.
 0.
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 -8.
 5.
 14.
@@ -233,7 +233,7 @@ Vec Object: 1 MPI process
 0.
 0.
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 -8.
 0.
 24.
@@ -245,7 +245,7 @@ Vec Object: 1 MPI process
 0.
 0.
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 0.
 0.
 0.
@@ -257,7 +257,7 @@ Vec Object: 1 MPI process
 0.
 0.
 Vec Object: 1 MPI process
-  type: seq
+  type: seqcuda
 0.
 0.
 0.

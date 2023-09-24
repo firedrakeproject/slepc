@@ -20,7 +20,7 @@ PEP Object: pep 1 MPI process
   computed matrix norms: 6., 1.5, 1.
   extraction type: NONE
 BV Object: 1 MPI process
-  type: svec
+  type: mat
   12 columns of global length 6
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
