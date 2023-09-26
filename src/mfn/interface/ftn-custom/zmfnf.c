@@ -179,4 +179,3 @@ SLEPC_EXTERN void mfngettolerances01_(MFN *mfn,PetscReal *tol,PetscInt *maxits,P
 {
   mfngettolerances_(mfn,tol,maxits,ierr);
 }
-

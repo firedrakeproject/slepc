@@ -489,4 +489,3 @@ L100:
   for (j = 0; j < 4; ++j) coltyp[j] = ctot[j];
   PetscFunctionReturn(PETSC_SUCCESS);
 }
-

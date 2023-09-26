@@ -25,4 +25,3 @@
 #define MFNEXPOKIT     'expokit'
 
 #endif
-

@@ -44,4 +44,3 @@ SLEPC_EXTERN void slepchasexternalpackage_(char* pkg,PetscBool *has,PetscErrorCo
   *ierr = SlepcHasExternalPackage(t1,has);if (*ierr) return;
   FREECHAR(pkg,t1);
 }
-

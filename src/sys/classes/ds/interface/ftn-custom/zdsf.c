@@ -129,4 +129,3 @@ SLEPC_EXTERN void dssort_(DS *ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar
   CHKFORTRANNULLINTEGER(k);
   *ierr = DSSort(*ds,eigr,eigi,rr,ri,k);
 }
-

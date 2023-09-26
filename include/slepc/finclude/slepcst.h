@@ -28,4 +28,3 @@
 #define STFILTER   'filter'
 
 #endif
-

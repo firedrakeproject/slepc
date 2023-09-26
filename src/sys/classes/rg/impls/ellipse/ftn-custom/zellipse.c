@@ -71,4 +71,3 @@ SLEPC_EXTERN void rgellipsegetparameters011_(RG *rg,PetscScalar *center,PetscRea
 {
   rgellipsegetparameters_(rg,center,radius,vscale,ierr);
 }
-

@@ -46,4 +46,3 @@ SLEPC_EXTERN void nepnleigsgetrkshifts_(NEP *nep,PetscInt *ns,PetscScalar *pshif
   *ns = n;
   *ierr = PetscFree(oshifts);
 }
-

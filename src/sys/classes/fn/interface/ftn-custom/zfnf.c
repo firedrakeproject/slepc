@@ -99,4 +99,3 @@ SLEPC_EXTERN void fngettype_(FN *fn,char *name,PetscErrorCode *ierr,PETSC_FORTRA
   *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
-

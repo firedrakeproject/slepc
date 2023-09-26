@@ -54,4 +54,3 @@
 #include <../src/sys/classes/st/f90-mod/ftn-auto-interfaces/slepcst.h90>
         end interface
         end module
-
