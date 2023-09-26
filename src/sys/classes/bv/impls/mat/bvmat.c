@@ -60,6 +60,7 @@ static PetscErrorCode BVMultInPlace_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt          ldq;
 
   PetscFunctionBegin;
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->A,&pv));
   PetscCall(MatDenseGetArrayRead(Q,&q));
@@ -77,6 +78,7 @@ static PetscErrorCode BVMultInPlaceHermitianTranspose_Mat(BV V,Mat Q,PetscInt s,
   PetscInt          ldq;
 
   PetscFunctionBegin;
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->A,&pv));
   PetscCall(MatDenseGetArrayRead(Q,&q));
@@ -152,6 +154,7 @@ static PetscErrorCode BVScale_Mat(BV bv,PetscInt j,PetscScalar alpha)
   PetscScalar    *array;
 
   PetscFunctionBegin;
+  if (!bv->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetArray(ctx->A,&array));
   if (PetscUnlikely(j<0)) PetscCall(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->ld,array+(bv->nc+bv->l)*bv->ld,alpha));
   else PetscCall(BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->ld,alpha));

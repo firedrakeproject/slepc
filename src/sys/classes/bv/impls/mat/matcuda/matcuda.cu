@@ -76,7 +76,7 @@ PetscErrorCode BVMultInPlace_Mat_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  if (!V->n) PetscFunctionReturn(PETSC_SUCCESS);
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseCUDAGetArray(ctx->A,&d_pv));
   PetscCall(BV_MatDenseCUDAGetArrayRead(V,Q,&d_q));
@@ -94,7 +94,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Mat_CUDA(BV V,Mat Q,PetscInt s,Pe
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  if (!V->n) PetscFunctionReturn(PETSC_SUCCESS);
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseCUDAGetArray(ctx->A,&d_pv));
   PetscCall(BV_MatDenseCUDAGetArrayRead(V,Q,&d_q));
@@ -168,6 +168,7 @@ PetscErrorCode BVScale_Mat_CUDA(BV bv,PetscInt j,PetscScalar alpha)
   PetscInt       n=0;
 
   PetscFunctionBegin;
+  if (!bv->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseCUDAGetArray(ctx->A,&d_array));
   if (PetscUnlikely(j<0)) {
     d_A = d_array+(bv->nc+bv->l)*bv->ld;
