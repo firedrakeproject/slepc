@@ -565,4 +565,3 @@ SLEPC_EXTERN void pepsetinitialspace1_(PEP *pep,PetscInt *n,Vec *is,PetscErrorCo
   CHKFORTRANNULLOBJECT(is);
   *ierr = PEPSetInitialSpace(*pep,*n,is);
 }
-

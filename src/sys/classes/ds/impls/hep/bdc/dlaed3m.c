@@ -314,4 +314,3 @@ L110:
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
-

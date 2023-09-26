@@ -32,4 +32,3 @@ SLEPC_EXTERN void pepstoargetinertias_(PEP *pep,PetscInt *nshift,PetscReal *shif
   *ierr = PetscFree(oshifts);if (*ierr) return;
   *ierr = PetscFree(oinertias);
 }
-

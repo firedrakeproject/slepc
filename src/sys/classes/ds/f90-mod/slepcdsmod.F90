@@ -54,4 +54,3 @@
 #include <../src/sys/classes/ds/f90-mod/ftn-auto-interfaces/slepcds.h90>
         end interface
         end module
-

@@ -128,4 +128,3 @@ SLEPC_EXTERN void rgintervalgetendpoints0111_(RG *rg,PetscReal *a,PetscReal *b,P
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
-

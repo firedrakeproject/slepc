@@ -46,4 +46,3 @@ SLEPC_EXTERN void slepcinitializefortran_(PetscErrorCode *info)
 {
   *info = SlepcInitializeFortran();
 }
-

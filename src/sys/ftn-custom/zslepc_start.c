@@ -80,4 +80,3 @@ SLEPC_EXTERN void slepcfinalize_(PetscErrorCode *ierr)
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
 }
-

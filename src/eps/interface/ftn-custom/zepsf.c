@@ -584,4 +584,3 @@ SLEPC_EXTERN void epssetleftinitialspace1_(EPS *eps,PetscInt *n,Vec *isl,PetscEr
   CHKFORTRANNULLOBJECT(isl);
   *ierr = EPSSetLeftInitialSpace(*eps,*n,isl);
 }
-

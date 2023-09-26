@@ -71,4 +71,3 @@ SLEPC_EXTERN void epskrylovschurgetsubcommmats_(EPS *eps,Mat *A,Mat *B,PetscErro
   CHKFORTRANNULLOBJECT(B);
   *ierr = EPSKrylovSchurGetSubcommMats(*eps,A,B);
 }
-

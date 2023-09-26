@@ -108,4 +108,3 @@ SLEPC_EXTERN void fnrationalgetdenominator1_(FN *fn,PetscInt *nq,PetscScalar *qc
 {
   fnrationalgetdenominator_(fn,nq,qcoeff,ierr);
 }
-

@@ -99,4 +99,3 @@ SLEPC_EXTERN void stviewfromoptions_(ST *st,PetscObject obj,char* type,PetscErro
   *ierr = STViewFromOptions(*st,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }
-

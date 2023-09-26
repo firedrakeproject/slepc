@@ -36,4 +36,3 @@ SLEPC_EXTERN void dspepgetcoefficients_(DS *ds,PetscReal *pbc,PetscErrorCode *ie
   *ierr = PetscArraycpy(pbc,opbc,3*(d+1)); if (*ierr) return;
   *ierr = PetscFree(opbc);
 }
-

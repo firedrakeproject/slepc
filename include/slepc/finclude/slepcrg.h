@@ -25,4 +25,3 @@
 #define RGRING      'ring'
 
 #endif
-
