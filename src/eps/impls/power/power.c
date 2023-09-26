@@ -1187,9 +1187,9 @@ static PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    if (power->sign_normalization) PetscCall(PetscViewerASCIIPrintf(viewer,"  normalizing Bx by the sign of the first nonzero element\n"));
-    else PetscCall(PetscViewerASCIIPrintf(viewer,"  not normalizing Bx by the sign of the first nonzero element\n"));
     if (power->nonlinear) {
+      if (power->sign_normalization) PetscCall(PetscViewerASCIIPrintf(viewer,"  normalizing Bx by the sign of the first nonzero element\n"));
+      else PetscCall(PetscViewerASCIIPrintf(viewer,"  not normalizing Bx by the sign of the first nonzero element\n"));
       PetscCall(PetscViewerASCIIPrintf(viewer,"  using nonlinear inverse iteration\n"));
       if (power->update) PetscCall(PetscViewerASCIIPrintf(viewer,"  updating the residual monolithically\n"));
       if (!power->snes) PetscCall(EPSPowerGetSNES(eps,&power->snes));
