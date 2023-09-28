@@ -246,34 +246,6 @@ PetscErrorCode BVCopyColumn_Mat_CUDA(BV V,PetscInt j,PetscInt i)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode BVResize_Mat_CUDA(BV bv,PetscInt m,PetscBool copy)
-{
-  BV_MAT            *ctx = (BV_MAT*)bv->data;
-  const PetscScalar *d_pv;
-  PetscScalar       *d_pnew;
-  Mat               A;
-  VecType           vtype;
-  char              str[50];
-
-  PetscFunctionBegin;
-  PetscCall(VecGetType(bv->t,&vtype));
-  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,NULL,&A));
-  if (((PetscObject)bv)->name) {
-    PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
-    PetscCall(PetscObjectSetName((PetscObject)A,str));
-  }
-  if (copy) {
-    PetscCall(MatDenseCUDAGetArrayRead(ctx->A,&d_pv));
-    PetscCall(MatDenseCUDAGetArrayWrite(A,&d_pnew));
-    PetscCallCUDA(cudaMemcpy(d_pnew,d_pv,PetscMin(m,bv->m)*bv->ld*sizeof(PetscScalar),cudaMemcpyDeviceToDevice));
-    PetscCall(MatDenseCUDARestoreArrayRead(ctx->A,&d_pv));
-    PetscCall(MatDenseCUDARestoreArrayWrite(A,&d_pnew));
-  }
-  PetscCall(MatDestroy(&ctx->A));
-  ctx->A = A;
-  PetscFunctionReturn(PETSC_SUCCESS);
-}
-
 PetscErrorCode BVGetColumn_Mat_CUDA(BV bv,PetscInt j,Vec*)
 {
   BV_MAT         *ctx = (BV_MAT*)bv->data;
