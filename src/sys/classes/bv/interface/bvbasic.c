@@ -1346,21 +1346,26 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
 @*/
 PetscErrorCode BVCreateMat(BV bv,Mat *A)
 {
-  PetscScalar       *aa;
-  const PetscScalar *vv;
-  PetscInt          j;
+  PetscInt ksave,lsave;
+  Mat      B;
+  VecType  vtype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscAssertPointer(A,2);
 
-  PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,bv->N,bv->m,NULL,A));
-  PetscCall(MatDenseGetArrayWrite(*A,&aa));
-  PetscCall(BVGetArrayRead(bv,&vv));
-  for (j=0;j<bv->m;j++) PetscCall(PetscArraycpy(aa+j*bv->n,vv+j*bv->ld,bv->n));
-  PetscCall(BVRestoreArrayRead(bv,&vv));
-  PetscCall(MatDenseRestoreArrayWrite(*A,&aa));
+  PetscCall(VecGetType(bv->t,&vtype));
+  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),vtype,bv->n,PETSC_DECIDE,bv->N,bv->m,bv->ld,NULL,A));
+  lsave = bv->l;
+  ksave = bv->k;
+  bv->l = 0;
+  bv->k = bv->m;
+  PetscCall(BVGetMat(bv,&B));
+  PetscCall(MatCopy(B,*A,SAME_NONZERO_PATTERN));
+  PetscCall(BVRestoreMat(bv,&B));
+  bv->l = lsave;
+  bv->k = ksave;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

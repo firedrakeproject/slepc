@@ -417,7 +417,7 @@ PetscErrorCode BVOrthonormalizeColumn(BV bv,PetscInt j,PetscBool replace,PetscRe
   if (nrm!=1.0 && nrm!=0.0) {
     alpha = 1.0/nrm;
     PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-    if (bv->n) PetscUseTypeMethod(bv,scale,j,alpha);
+    PetscUseTypeMethod(bv,scale,j,alpha);
     PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   }
   if (norm) *norm = nrm;

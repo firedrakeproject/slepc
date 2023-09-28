@@ -76,7 +76,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  if (!V->n) PetscFunctionReturn(PETSC_SUCCESS);
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(VecCUDAGetArray(ctx->v,&d_pv));
   PetscCall(BV_MatDenseCUDAGetArrayRead(V,Q,&d_q));
@@ -94,7 +94,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,P
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  if (!V->n) PetscFunctionReturn(PETSC_SUCCESS);
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(VecCUDAGetArray(ctx->v,&d_pv));
   PetscCall(BV_MatDenseCUDAGetArrayRead(V,Q,&d_q));
@@ -168,6 +168,7 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
   PetscInt       n=0;
 
   PetscFunctionBegin;
+  if (!bv->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(VecCUDAGetArray(ctx->v,&d_array));
   if (PetscUnlikely(j<0)) {
     d_A = d_array+(bv->nc+bv->l)*bv->ld;
@@ -222,12 +223,11 @@ PetscErrorCode BVCopy_Svec_CUDA(BV V,BV W)
   BV_SVEC           *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
   const PetscScalar *d_pv;
   PetscScalar       *d_pw;
-  PetscInt          j;
 
   PetscFunctionBegin;
   PetscCall(VecCUDAGetArrayRead(v->v,&d_pv));
   PetscCall(VecCUDAGetArray(w->v,&d_pw));
-  for (j=0;j<V->k-V->l;j++) PetscCallCUDA(cudaMemcpy(d_pw+(W->nc+W->l+j)*W->ld,d_pv+(V->nc+V->l+j)*V->ld,V->n*sizeof(PetscScalar),cudaMemcpyDeviceToDevice));
+  PetscCallCUDA(cudaMemcpy2D(d_pw+(W->nc+W->l)*W->ld,W->ld*sizeof(PetscScalar),d_pv+(V->nc+V->l)*V->ld,V->ld*sizeof(PetscScalar),V->n*sizeof(PetscScalar),V->k-V->l,cudaMemcpyDeviceToDevice));
   PetscCall(VecCUDARestoreArrayRead(v->v,&d_pv));
   PetscCall(VecCUDARestoreArray(w->v,&d_pw));
   PetscFunctionReturn(PETSC_SUCCESS);

@@ -76,7 +76,7 @@ PetscErrorCode BVMultInPlace_Mat_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  if (!V->n) PetscFunctionReturn(PETSC_SUCCESS);
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseCUDAGetArray(ctx->A,&d_pv));
   PetscCall(BV_MatDenseCUDAGetArrayRead(V,Q,&d_q));
@@ -94,7 +94,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Mat_CUDA(BV V,Mat Q,PetscInt s,Pe
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  if (!V->n) PetscFunctionReturn(PETSC_SUCCESS);
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseCUDAGetArray(ctx->A,&d_pv));
   PetscCall(BV_MatDenseCUDAGetArrayRead(V,Q,&d_q));
@@ -168,6 +168,7 @@ PetscErrorCode BVScale_Mat_CUDA(BV bv,PetscInt j,PetscScalar alpha)
   PetscInt       n=0;
 
   PetscFunctionBegin;
+  if (!bv->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseCUDAGetArray(ctx->A,&d_array));
   if (PetscUnlikely(j<0)) {
     d_A = d_array+(bv->nc+bv->l)*bv->ld;
@@ -222,12 +223,11 @@ PetscErrorCode BVCopy_Mat_CUDA(BV V,BV W)
   BV_MAT            *v = (BV_MAT*)V->data,*w = (BV_MAT*)W->data;
   const PetscScalar *d_pv;
   PetscScalar       *d_pw;
-  PetscInt          j;
 
   PetscFunctionBegin;
   PetscCall(MatDenseCUDAGetArrayRead(v->A,&d_pv));
   PetscCall(MatDenseCUDAGetArray(w->A,&d_pw));
-  for (j=0;j<V->k-V->l;j++) PetscCallCUDA(cudaMemcpy(d_pw+(W->nc+W->l+j)*W->ld,d_pv+(V->nc+V->l+j)*V->ld,V->n*sizeof(PetscScalar),cudaMemcpyDeviceToDevice));
+  PetscCallCUDA(cudaMemcpy2D(d_pw+(W->nc+W->l)*W->ld,W->ld*sizeof(PetscScalar),d_pv+(V->nc+V->l)*V->ld,V->ld*sizeof(PetscScalar),V->n*sizeof(PetscScalar),V->k-V->l,cudaMemcpyDeviceToDevice));
   PetscCall(MatDenseCUDARestoreArrayRead(v->A,&d_pv));
   PetscCall(MatDenseCUDARestoreArray(w->A,&d_pw));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -242,34 +242,6 @@ PetscErrorCode BVCopyColumn_Mat_CUDA(BV V,PetscInt j,PetscInt i)
   PetscCall(MatDenseCUDAGetArray(v->A,&d_pv));
   PetscCallCUDA(cudaMemcpy(d_pv+(V->nc+i)*V->ld,d_pv+(V->nc+j)*V->ld,V->n*sizeof(PetscScalar),cudaMemcpyDeviceToDevice));
   PetscCall(MatDenseCUDARestoreArray(v->A,&d_pv));
-  PetscFunctionReturn(PETSC_SUCCESS);
-}
-
-PetscErrorCode BVResize_Mat_CUDA(BV bv,PetscInt m,PetscBool copy)
-{
-  BV_MAT            *ctx = (BV_MAT*)bv->data;
-  const PetscScalar *d_pv;
-  PetscScalar       *d_pnew;
-  Mat               A;
-  VecType           vtype;
-  char              str[50];
-
-  PetscFunctionBegin;
-  PetscCall(VecGetType(bv->t,&vtype));
-  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,NULL,&A));
-  if (((PetscObject)bv)->name) {
-    PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
-    PetscCall(PetscObjectSetName((PetscObject)A,str));
-  }
-  if (copy) {
-    PetscCall(MatDenseCUDAGetArrayRead(ctx->A,&d_pv));
-    PetscCall(MatDenseCUDAGetArrayWrite(A,&d_pnew));
-    PetscCallCUDA(cudaMemcpy(d_pnew,d_pv,PetscMin(m,bv->m)*bv->ld*sizeof(PetscScalar),cudaMemcpyDeviceToDevice));
-    PetscCall(MatDenseCUDARestoreArrayRead(ctx->A,&d_pv));
-    PetscCall(MatDenseCUDARestoreArrayWrite(A,&d_pnew));
-  }
-  PetscCall(MatDestroy(&ctx->A));
-  ctx->A = A;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

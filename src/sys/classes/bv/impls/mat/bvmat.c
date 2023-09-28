@@ -60,6 +60,7 @@ static PetscErrorCode BVMultInPlace_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt          ldq;
 
   PetscFunctionBegin;
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->A,&pv));
   PetscCall(MatDenseGetArrayRead(Q,&q));
@@ -77,6 +78,7 @@ static PetscErrorCode BVMultInPlaceHermitianTranspose_Mat(BV V,Mat Q,PetscInt s,
   PetscInt          ldq;
 
   PetscFunctionBegin;
+  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->A,&pv));
   PetscCall(MatDenseGetArrayRead(Q,&q));
@@ -152,6 +154,7 @@ static PetscErrorCode BVScale_Mat(BV bv,PetscInt j,PetscScalar alpha)
   PetscScalar    *array;
 
   PetscFunctionBegin;
+  if (!bv->n) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(MatDenseGetArray(ctx->A,&array));
   if (PetscUnlikely(j<0)) PetscCall(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->ld,array+(bv->nc+bv->l)*bv->ld,alpha));
   else PetscCall(BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->ld,alpha));
@@ -259,9 +262,7 @@ static PetscErrorCode BVCopyColumn_Mat(BV V,PetscInt j,PetscInt i)
 static PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
 {
   BV_MAT            *ctx = (BV_MAT*)bv->data;
-  PetscScalar       *pnew;
-  const PetscScalar *pA;
-  Mat               A;
+  Mat               A,Msrc,Mdst;
   VecType           vtype;
   char              str[50];
 
@@ -273,11 +274,11 @@ static PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
     PetscCall(PetscObjectSetName((PetscObject)A,str));
   }
   if (copy) {
-    PetscCall(MatDenseGetArrayRead(ctx->A,&pA));
-    PetscCall(MatDenseGetArrayWrite(A,&pnew));
-    PetscCall(PetscArraycpy(pnew,pA,PetscMin(m,bv->m)*bv->ld));
-    PetscCall(MatDenseRestoreArrayRead(ctx->A,&pA));
-    PetscCall(MatDenseRestoreArrayWrite(A,&pnew));
+    PetscCall(MatDenseGetSubMatrix(ctx->A,PETSC_DECIDE,PETSC_DECIDE,PETSC_DECIDE,PetscMin(m,bv->m),&Msrc));
+    PetscCall(MatDenseGetSubMatrix(A,PETSC_DECIDE,PETSC_DECIDE,PETSC_DECIDE,PetscMin(m,bv->m),&Mdst));
+    PetscCall(MatCopy(Msrc,Mdst,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(ctx->A,&Msrc));
+    PetscCall(MatDenseRestoreSubMatrix(A,&Mdst));
   }
   PetscCall(MatDestroy(&ctx->A));
   ctx->A = A;
@@ -452,7 +453,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     bv->ops->matmult          = BVMatMult_Mat_CUDA;
     bv->ops->copy             = BVCopy_Mat_CUDA;
     bv->ops->copycolumn       = BVCopyColumn_Mat_CUDA;
-    bv->ops->resize           = BVResize_Mat_CUDA;
     bv->ops->getcolumn        = BVGetColumn_Mat_CUDA;
     bv->ops->restorecolumn    = BVRestoreColumn_Mat_CUDA;
     bv->ops->restoresplit     = BVRestoreSplit_Mat_CUDA;
@@ -471,7 +471,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     bv->ops->matmult          = BVMatMult_Mat;
     bv->ops->copy             = BVCopy_Mat;
     bv->ops->copycolumn       = BVCopyColumn_Mat;
-    bv->ops->resize           = BVResize_Mat;
     bv->ops->getcolumn        = BVGetColumn_Mat;
     bv->ops->restorecolumn    = BVRestoreColumn_Mat;
     bv->ops->getmat           = BVGetMat_Default;
@@ -480,6 +479,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->norm             = BVNorm_Mat;
   bv->ops->norm_local       = BVNorm_Local_Mat;
   bv->ops->normalize        = BVNormalize_Mat;
+  bv->ops->resize           = BVResize_Mat;
   bv->ops->getarray         = BVGetArray_Mat;
   bv->ops->restorearray     = BVRestoreArray_Mat;
   bv->ops->getarrayread     = BVGetArrayRead_Mat;
