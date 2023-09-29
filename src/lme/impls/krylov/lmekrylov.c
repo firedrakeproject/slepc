@@ -50,7 +50,7 @@ static PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed
   PetscInt       n=0,m,ldh,ldg=0,i,j,rank=0,lrank,pass,nouter=0,its;
   PetscReal      bnorm,beta,errest;
   PetscBool      breakdown;
-  PetscScalar    *Harray,*G=NULL,*Gnew=NULL,*L,*U,*r,*Qarray,sone=1.0,zero=0.0;
+  PetscScalar    *Harray,*G=NULL,*Gnew=NULL,*L=NULL,*U=NULL,*r,*Qarray,sone=1.0,zero=0.0;
   PetscBLASInt   n_,m_,rk_;
   Mat            Q,H;
 
