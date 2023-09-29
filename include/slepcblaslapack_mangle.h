@@ -99,6 +99,18 @@
 
 /* subroutines with different signature in real/complex */
 #define LAPACKggev_  PETSCBLAS(ggev,GGEV)
+#if !defined(SLEPC_MISSING_LAPACK_GGEV3)   /* ggev and ggev3 have the same signature */
+#define LAPACKggev3_ PETSCBLAS(ggev3,GGEV3)
+#define LAPACKggevalt_ LAPACKggev3_
+#else
+#define LAPACKggevalt_ LAPACKggev_
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_GGES3)   /* gges and gges3 have the same signature */
+#define LAPACKgges3_ PETSCBLAS(gges3,GGES3)
+#define LAPACKggesalt_ LAPACKgges3_
+#else
+#define LAPACKggesalt_ LAPACKgges_
+#endif
 #if !defined(SLEPC_MISSING_LAPACK_GGSVD)
 #define LAPACKggsvd_ PETSCBLAS(ggsvd,GGSVD)
 #endif

@@ -94,29 +94,17 @@ static PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_PEP            *ctx = (DS_PEP*)ds->data;
   PetscInt          i,j,k,off;
-  PetscScalar       *A,*B,*W,*X,*U,*Y,*work,*beta;
+  PetscScalar       *A,*B,*W,*X,*U,*Y,*work,*beta,a;
   const PetscScalar *Ed,*Ei;
   PetscReal         *ca,*cb,*cg,norm,done=1.0;
-  PetscBLASInt      info,n,ld,ldd,nd,lrwork=0,lwork,one=1,zero=0,cols;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal         *rwork;
-#endif
+  PetscBLASInt      info,n,ld,ldd,nd,lwork,one=1,zero=0,cols;
+  PetscBool         useggev3=(ds->method==1)?PETSC_TRUE:PETSC_FALSE;
 
   PetscFunctionBegin;
   PetscCall(PetscBLASIntCast(ds->n*ctx->d,&nd));
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   PetscCall(PetscBLASIntCast(ds->ld*ctx->d,&ldd));
-#if defined(PETSC_USE_COMPLEX)
-  PetscCall(PetscBLASIntCast(nd+2*nd,&lwork));
-  PetscCall(PetscBLASIntCast(8*nd,&lrwork));
-#else
-  PetscCall(PetscBLASIntCast(nd+8*nd,&lwork));
-#endif
-  PetscCall(DSAllocateWork_Private(ds,lwork,lrwork,0));
-  beta = ds->work;
-  work = ds->work + nd;
-  lwork -= nd;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_B));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
@@ -182,13 +170,27 @@ static PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* solve generalized eigenproblem */
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&W));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
+  lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
-  rwork = ds->rwork;
-  PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,beta,U,&ldd,W,&ldd,work,&lwork,rwork,&info));
+  if (useggev3) PetscCallBLAS("LAPACKggev3",LAPACKggev3_("V","V",&nd,A,&ldd,B,&ldd,wr,NULL,U,&ldd,W,&ldd,&a,&lwork,NULL,&info));
+  else PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,NULL,U,&ldd,W,&ldd,&a,&lwork,NULL,&info));
+  PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork));
+  PetscCall(DSAllocateWork_Private(ds,lwork+nd,8*nd,0));
+  beta  = ds->work;
+  work  = ds->work + nd;
+  if (useggev3) PetscCallBLAS("LAPACKggev3",LAPACKggev3_("V","V",&nd,A,&ldd,B,&ldd,wr,beta,U,&ldd,W,&ldd,work,&lwork,ds->rwork,&info));
+  else PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,beta,U,&ldd,W,&ldd,work,&lwork,ds->rwork,&info));
 #else
-  PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,U,&ldd,W,&ldd,work,&lwork,&info));
+  if (useggev3) PetscCallBLAS("LAPACKggev3",LAPACKggev3_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,NULL,U,&ldd,W,&ldd,&a,&lwork,&info));
+  else PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,NULL,U,&ldd,W,&ldd,&a,&lwork,&info));
+  PetscCall(PetscBLASIntCast((PetscInt)a,&lwork));
+  PetscCall(DSAllocateWork_Private(ds,lwork+nd,0,0));
+  beta = ds->work;
+  work = ds->work + nd;
+  if (useggev3) PetscCallBLAS("LAPACKggev3",LAPACKggev3_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,U,&ldd,W,&ldd,work,&lwork,&info));
+  else PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,U,&ldd,W,&ldd,work,&lwork,&info));
 #endif
-  SlepcCheckLapackInfo("ggev",info);
+  SlepcCheckLapackInfo(useggev3?"ggev3":"ggev",info);
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
 
@@ -520,6 +522,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   ds->ops->view          = DSView_PEP;
   ds->ops->vectors       = DSVectors_PEP;
   ds->ops->solve[0]      = DSSolve_PEP_QZ;
+#if !defined(SLEPC_MISSING_LAPACK_GGES3)
+  ds->ops->solve[1]      = DSSolve_PEP_QZ;
+#endif
   ds->ops->sort          = DSSort_PEP;
 #if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize   = DSSynchronize_PEP;

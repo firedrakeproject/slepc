@@ -501,6 +501,7 @@ static PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscInt       i;
   PetscBLASInt   lwork,info,n,ld,iaux;
   PetscScalar    *A,*B,*Z,*Q;
+  PetscBool      usegges3=(ds->method==1)?PETSC_TRUE:PETSC_FALSE;
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
@@ -514,23 +515,27 @@ static PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Z],&Z));
 #if !defined(PETSC_USE_COMPLEX)
-  PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,&info));
+  if (usegges3) PetscCallBLAS("LAPACKgges3",LAPACKgges3_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,&info));
+  else PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,&info));
   PetscCall(PetscBLASIntCast((PetscInt)a,&lwork));
   PetscCall(DSAllocateWork_Private(ds,lwork+ld,0,0));
   beta = ds->work;
   work = beta+ds->n;
   PetscCall(PetscBLASIntCast(ds->lwork-ds->n,&lwork));
-  PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,NULL,&info));
+  if (usegges3) PetscCallBLAS("LAPACKgges3",LAPACKgges3_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,NULL,&info));
+  else PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,NULL,&info));
 #else
-  PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,NULL,&info));
+  if (usegges3) PetscCallBLAS("LAPACKgges3",LAPACKgges3_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,NULL,&info));
+  else PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,NULL,&info));
   PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork));
   PetscCall(DSAllocateWork_Private(ds,lwork+ld,8*ld,0));
   beta = ds->work;
   work = beta+ds->n;
   PetscCall(PetscBLASIntCast(ds->lwork-ds->n,&lwork));
-  PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,NULL,&info));
+  if (usegges3) PetscCallBLAS("LAPACKgges3",LAPACKgges3_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,NULL,&info));
+  else PetscCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,NULL,&info));
 #endif
-  SlepcCheckLapackInfo("gges",info);
+  SlepcCheckLapackInfo(usegges3?"gges3":"gges",info);
   for (i=0;i<n;i++) {
     if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
     else wr[i] /= beta[i];
@@ -676,6 +681,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GNHEP(DS ds)
   ds->ops->view            = DSView_GNHEP;
   ds->ops->vectors         = DSVectors_GNHEP;
   ds->ops->solve[0]        = DSSolve_GNHEP;
+#if !defined(SLEPC_MISSING_LAPACK_GGES3)
+  ds->ops->solve[1]        = DSSolve_GNHEP;
+#endif
   ds->ops->sort            = DSSort_GNHEP;
 #if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize     = DSSynchronize_GNHEP;
