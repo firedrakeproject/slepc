@@ -201,7 +201,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidIntPointer(its,2);
+  PetscAssertPointer(its,2);
   *its = svd->its;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -228,7 +228,8 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 .  SVD_CONVERGED_USER - converged due to a user-defined condition
 .  SVD_CONVERGED_MAXIT - reached the maximum number of iterations with SVD_CONV_MAXIT criterion
 .  SVD_DIVERGED_ITS - required more than max_it iterations to reach convergence
--  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
+.  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
+-  SVD_DIVERGED_SYMMETRY_LOST - underlying indefinite eigensolver was not able to keep symmetry
 
    Can only be called after the call to SVDSolve() is complete.
 
@@ -240,7 +241,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidIntPointer(reason,2);
+  PetscAssertPointer(reason,2);
   SVDCheckSolved(svd,1);
   *reason = svd->reason;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -268,7 +269,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidIntPointer(nconv,2);
+  PetscAssertPointer(nconv,2);
   SVDCheckSolved(svd,1);
   *nconv = svd->nconv;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -484,14 +485,15 @@ static PetscErrorCode SVDComputeResidualNorms_Hyperbolic(SVD svd,PetscReal sigma
 @*/
 PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *error)
 {
-  PetscReal      sigma,norm1,norm2;
+  PetscReal      sigma,norm1,norm2,c,s;
   Vec            u=NULL,v=NULL,x=NULL,y=NULL,z=NULL;
+  PetscReal      vecnorm=1.0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,i,2);
   PetscValidLogicalCollectiveEnum(svd,type,3);
-  PetscValidRealPointer(error,4);
+  PetscAssertPointer(error,4);
   SVDCheckSolved(svd,1);
 
   /* allocate work vectors */
@@ -504,7 +506,6 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       y = svd->workr[1];
       break;
     case SVD_GENERALIZED:
-      PetscCheck(type!=SVD_ERROR_RELATIVE,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"In GSVD the error should be either absolute or relative to the norms");
       PetscCall(SVDSetWorkVecs(svd,1,3));
       u = svd->workl[0];
       v = svd->workr[0];
@@ -521,7 +522,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       break;
   }
 
-  /* compute residual norm and error */
+  /* compute residual norm */
   PetscCall(SVDGetSingularTriplet(svd,i,&sigma,u,v));
   switch (svd->problem_type) {
     case SVD_STANDARD:
@@ -535,16 +536,41 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       break;
   }
   *error = SlepcAbs(norm1,norm2);
+
+  /* compute 2-norm of eigenvector of the cyclic form */
+  if (type!=SVD_ERROR_ABSOLUTE) {
+    switch (svd->problem_type) {
+      case SVD_STANDARD:
+        vecnorm = PETSC_SQRT2;
+        break;
+      case SVD_GENERALIZED:
+        PetscCall(VecNorm(v,NORM_2,&vecnorm));
+        vecnorm = PetscSqrtReal(1.0+vecnorm*vecnorm);
+        break;
+      case SVD_HYPERBOLIC:
+        PetscCall(VecNorm(u,NORM_2,&vecnorm));
+        vecnorm = PetscSqrtReal(1.0+vecnorm*vecnorm);
+        break;
+    }
+  }
+
+  /* compute error */
   switch (type) {
     case SVD_ERROR_ABSOLUTE:
       break;
     case SVD_ERROR_RELATIVE:
-      *error /= sigma;
+      if (svd->isgeneralized) {
+        s = 1.0/PetscSqrtReal(1.0+sigma*sigma);
+        c = sigma*s;
+        norm1 /= c*vecnorm;
+        norm2 /= s*vecnorm;
+        *error = PetscMax(norm1,norm2);
+      } else *error /= sigma*vecnorm;
       break;
     case SVD_ERROR_NORM:
       if (!svd->nrma) PetscCall(MatNorm(svd->OP,NORM_INFINITY,&svd->nrma));
       if (svd->isgeneralized && !svd->nrmb) PetscCall(MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb));
-      *error /= PetscMax(svd->nrma,svd->nrmb);
+      *error /= PetscMax(svd->nrma,svd->nrmb)*vecnorm;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");

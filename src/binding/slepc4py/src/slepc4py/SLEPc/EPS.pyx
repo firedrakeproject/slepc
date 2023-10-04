@@ -309,7 +309,7 @@ cdef class EPS(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcEPS neweps = NULL
         CHKERR( EPSCreate(ccomm, &neweps) )
-        SlepcCLEAR(self.obj); self.eps = neweps
+        CHKERR( SlepcCLEAR(self.obj) ); self.eps = neweps
         return self
 
     def setType(self, eps_type):
@@ -357,7 +357,7 @@ cdef class EPS(Object):
         prefix: string
                 The prefix string set for this EPS object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( EPSGetOptionsPrefix(self.eps, &prefix) )
         return bytes2str(prefix)
 
@@ -384,7 +384,7 @@ cdef class EPS(Object):
             E1.setOptionsPrefix("eig1_")
             E2.setOptionsPrefix("eig2_")
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( EPSSetOptionsPrefix(self.eps, cval) )
 
@@ -398,7 +398,7 @@ cdef class EPS(Object):
         prefix: string
                 The prefix string to prepend to all EPS option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( EPSAppendOptionsPrefix(self.eps, cval) )
 
@@ -945,7 +945,7 @@ cdef class EPS(Object):
         """
         cdef ST st = ST()
         CHKERR( EPSGetST(self.eps, &st.st) )
-        PetscINCREF(st.obj)
+        CHKERR( PetscINCREF(st.obj) )
         return st
 
     def setST(self, ST st):
@@ -971,7 +971,7 @@ cdef class EPS(Object):
         """
         cdef BV bv = BV()
         CHKERR( EPSGetBV(self.eps, &bv.bv) )
-        PetscINCREF(bv.obj)
+        CHKERR( PetscINCREF(bv.obj) )
         return bv
 
     def setBV(self, BV bv):
@@ -996,7 +996,7 @@ cdef class EPS(Object):
         """
         cdef DS ds = DS()
         CHKERR( EPSGetDS(self.eps, &ds.ds) )
-        PetscINCREF(ds.obj)
+        CHKERR( PetscINCREF(ds.obj) )
         return ds
 
     def setDS(self, DS ds):
@@ -1021,7 +1021,7 @@ cdef class EPS(Object):
         """
         cdef RG rg = RG()
         CHKERR( EPSGetRG(self.eps, &rg.rg) )
-        PetscINCREF(rg.obj)
+        CHKERR( PetscINCREF(rg.obj) )
         return rg
 
     def setRG(self, RG rg):
@@ -1049,9 +1049,9 @@ cdef class EPS(Object):
         cdef Mat A = Mat()
         cdef Mat B = Mat()
         CHKERR( EPSGetOperators(self.eps, &A.mat, &B.mat) )
-        PetscINCREF(A.obj)
+        CHKERR( PetscINCREF(A.obj) )
         if B.mat:
-            PetscINCREF(B.obj)
+            CHKERR( PetscINCREF(B.obj) )
             return (A, B)
         else:
             return (A, None)
@@ -1936,8 +1936,8 @@ cdef class EPS(Object):
         cdef Mat A = Mat()
         cdef Mat B = Mat()
         CHKERR( EPSKrylovSchurGetSubcommMats(self.eps, &A.mat, &B.mat) )
-        PetscINCREF(A.obj)
-        PetscINCREF(B.obj)
+        CHKERR( PetscINCREF(A.obj) )
+        CHKERR( PetscINCREF(B.obj) )
         return (A, B)
 
     def updateKrylovSchurSubcommMats(self, s=1.0, a=1.0, Mat Au=None,
@@ -2081,7 +2081,7 @@ cdef class EPS(Object):
         """
         cdef KSP ksp = KSP()
         CHKERR( EPSKrylovSchurGetKSP(self.eps, &ksp.ksp) )
-        PetscINCREF(ksp.obj)
+        CHKERR( PetscINCREF(ksp.obj) )
         return ksp
 
     #

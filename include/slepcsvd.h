@@ -11,8 +11,7 @@
    User interface for SLEPc's singular value solvers
 */
 
-#if !defined(SLEPCSVD_H)
-#define SLEPCSVD_H
+#pragma once
 
 #include <slepceps.h>
 #include <slepcbv.h>
@@ -21,6 +20,7 @@
 /* SUBMANSEC = SVD */
 
 SLEPC_EXTERN PetscErrorCode SVDInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode SVDFinalizePackage(void);
 
 /*S
      SVD - Abstract SLEPc object that manages all the singular value
@@ -127,6 +127,7 @@ typedef enum {/* converged */
               /* diverged */
               SVD_DIVERGED_ITS                 = -1,
               SVD_DIVERGED_BREAKDOWN           = -2,
+              SVD_DIVERGED_SYMMETRY_LOST       = -3,
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
 SLEPC_EXTERN const char *const*SVDConvergedReasons;
 
@@ -142,14 +143,14 @@ SLEPC_EXTERN PetscErrorCode SVDGetProblemType(SVD,SVDProblemType*);
 SLEPC_EXTERN PetscErrorCode SVDIsGeneralized(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDIsHyperbolic(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDSetOperators(SVD,Mat,Mat);
-PETSC_DEPRECATED_FUNCTION("Use SVDSetOperators()") static inline PetscErrorCode SVDSetOperator(SVD svd,Mat A) {return SVDSetOperators(svd,A,NULL);}
+PETSC_DEPRECATED_FUNCTION(3, 15, 0, "SVDSetOperators()", ) static inline PetscErrorCode SVDSetOperator(SVD svd,Mat A) {return SVDSetOperators(svd,A,PETSC_NULLPTR);}
 SLEPC_EXTERN PetscErrorCode SVDGetOperators(SVD,Mat*,Mat*);
-PETSC_DEPRECATED_FUNCTION("Use SVDGetOperators()") static inline PetscErrorCode SVDGetOperator(SVD svd,Mat *A) {return SVDGetOperators(svd,A,NULL);}
+PETSC_DEPRECATED_FUNCTION(3, 15, 0, "SVDGetOperators()", ) static inline PetscErrorCode SVDGetOperator(SVD svd,Mat *A) {return SVDGetOperators(svd,A,PETSC_NULLPTR);}
 SLEPC_EXTERN PetscErrorCode SVDSetSignature(SVD,Vec);
 SLEPC_EXTERN PetscErrorCode SVDGetSignature(SVD,Vec*);
 SLEPC_EXTERN PetscErrorCode SVDSetInitialSpaces(SVD,PetscInt,Vec[],PetscInt,Vec[]);
-PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") static inline PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt nr,Vec *isr) {return SVDSetInitialSpaces(svd,nr,isr,0,NULL);}
-PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") static inline PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt nl,Vec *isl) {return SVDSetInitialSpaces(svd,0,NULL,nl,isl);}
+PETSC_DEPRECATED_FUNCTION(3, 1, 0, "SVDSetInitialSpaces()", ) static inline PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt nr,Vec *isr) {return SVDSetInitialSpaces(svd,nr,isr,0,PETSC_NULLPTR);}
+PETSC_DEPRECATED_FUNCTION(3, 1, 0, "SVDSetInitialSpaces()", ) static inline PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt nl,Vec *isl) {return SVDSetInitialSpaces(svd,0,PETSC_NULLPTR,nl,isl);}
 SLEPC_EXTERN PetscErrorCode SVDSetImplicitTranspose(SVD,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDGetImplicitTranspose(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDSetDimensions(SVD,PetscInt,PetscInt,PetscInt);
@@ -181,17 +182,17 @@ SLEPC_EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
 SLEPC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 SLEPC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode SVDComputeError(SVD,PetscInt,SVDErrorType,PetscReal*);
-PETSC_DEPRECATED_FUNCTION("Use SVDComputeError()") static inline PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *r) {return SVDComputeError(svd,i,SVD_ERROR_RELATIVE,r);}
-PETSC_DEPRECATED_FUNCTION("Use SVDComputeError() with SVD_ERROR_ABSOLUTE") static inline PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *r1,PETSC_UNUSED PetscReal *r2) {return SVDComputeError(svd,i,SVD_ERROR_ABSOLUTE,r1);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "SVDComputeError()", ) static inline PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *r) {return SVDComputeError(svd,i,SVD_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "SVDComputeError() with SVD_ERROR_ABSOLUTE", ) static inline PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *r1,PETSC_UNUSED PetscReal *r2) {return SVDComputeError(svd,i,SVD_ERROR_ABSOLUTE,r1);}
 SLEPC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 SLEPC_EXTERN PetscErrorCode SVDViewFromOptions(SVD,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode SVDErrorView(SVD,SVDErrorType,PetscViewer);
-PETSC_DEPRECATED_FUNCTION("Use SVDErrorView()") static inline PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer v) {return SVDErrorView(svd,SVD_ERROR_RELATIVE,v);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "SVDErrorView()", ) static inline PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer v) {return SVDErrorView(svd,SVD_ERROR_RELATIVE,v);}
 SLEPC_EXTERN PetscErrorCode SVDErrorViewFromOptions(SVD);
 SLEPC_EXTERN PetscErrorCode SVDConvergedReasonView(SVD,PetscViewer);
 SLEPC_EXTERN PetscErrorCode SVDConvergedReasonViewFromOptions(SVD);
-PETSC_DEPRECATED_FUNCTION("Use SVDConvergedReasonView() (since version 3.14)") static inline PetscErrorCode SVDReasonView(SVD svd,PetscViewer v) {return SVDConvergedReasonView(svd,v);}
-PETSC_DEPRECATED_FUNCTION("Use SVDConvergedReasonViewFromOptions() (since version 3.14)") static inline PetscErrorCode SVDReasonViewFromOptions(SVD svd) {return SVDConvergedReasonViewFromOptions(svd);}
+PETSC_DEPRECATED_FUNCTION(3, 14, 0, "SVDConvergedReasonView()", ) static inline PetscErrorCode SVDReasonView(SVD svd,PetscViewer v) {return SVDConvergedReasonView(svd,v);}
+PETSC_DEPRECATED_FUNCTION(3, 14, 0, "SVDConvergedReasonViewFromOptions()", ) static inline PetscErrorCode SVDReasonViewFromOptions(SVD svd) {return SVDConvergedReasonViewFromOptions(svd);}
 SLEPC_EXTERN PetscErrorCode SVDValuesView(SVD,PetscViewer);
 SLEPC_EXTERN PetscErrorCode SVDValuesViewFromOptions(SVD);
 SLEPC_EXTERN PetscErrorCode SVDVectorsView(SVD,PetscViewer);
@@ -320,5 +321,3 @@ SLEPC_EXTERN PetscErrorCode SVDKSVDSetEigenMethod(SVD,SVDKSVDEigenMethod);
 SLEPC_EXTERN PetscErrorCode SVDKSVDGetEigenMethod(SVD,SVDKSVDEigenMethod*);
 SLEPC_EXTERN PetscErrorCode SVDKSVDSetPolarMethod(SVD,SVDKSVDPolarMethod);
 SLEPC_EXTERN PetscErrorCode SVDKSVDGetPolarMethod(SVD,SVDKSVDPolarMethod*);
-
-#endif

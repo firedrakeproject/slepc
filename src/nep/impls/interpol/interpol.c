@@ -32,7 +32,7 @@ typedef struct {
   PetscInt  deg;       /* actual degree of interpolation polynomial */
 } NEP_INTERPOL;
 
-PetscErrorCode NEPSetUp_Interpol(NEP nep)
+static PetscErrorCode NEPSetUp_Interpol(NEP nep)
 {
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   ST             st;
@@ -112,7 +112,7 @@ static PetscErrorCode ChebyshevNodes(PetscInt d,PetscReal a,PetscReal b,PetscSca
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSolve_Interpol(NEP nep)
+static PetscErrorCode NEPSolve_Interpol(NEP nep)
 {
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   Mat            *A,*P;
@@ -226,7 +226,7 @@ static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,Pe
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSetFromOptions_Interpol(NEP nep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode NEPSetFromOptions_Interpol(NEP nep,PetscOptionItems *PetscOptionsObject)
 {
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   PetscInt       i;
@@ -416,12 +416,12 @@ PetscErrorCode NEPInterpolGetPEP(NEP nep,PEP *pep)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(pep,2);
+  PetscAssertPointer(pep,2);
   PetscUseMethod(nep,"NEPInterpolGetPEP_C",(NEP,PEP*),(nep,pep));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
+static PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
 {
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   PetscBool      isascii;
@@ -439,7 +439,7 @@ PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPReset_Interpol(NEP nep)
+static PetscErrorCode NEPReset_Interpol(NEP nep)
 {
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
@@ -448,7 +448,7 @@ PetscErrorCode NEPReset_Interpol(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPDestroy_Interpol(NEP nep)
+static PetscErrorCode NEPDestroy_Interpol(NEP nep)
 {
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 

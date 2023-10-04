@@ -215,7 +215,7 @@ cdef class NEP(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcNEP newnep = NULL
         CHKERR( NEPCreate(ccomm, &newnep) )
-        SlepcCLEAR(self.obj); self.nep = newnep
+        CHKERR( SlepcCLEAR(self.obj) ); self.nep = newnep
         return self
 
     def setType(self, nep_type):
@@ -254,7 +254,7 @@ cdef class NEP(Object):
         prefix: string
             The prefix string set for this NEP object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( NEPGetOptionsPrefix(self.nep, &prefix) )
         return bytes2str(prefix)
 
@@ -268,7 +268,7 @@ cdef class NEP(Object):
         prefix: string
             The prefix string to prepend to all NEP option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( NEPSetOptionsPrefix(self.nep, cval) )
 
@@ -282,7 +282,7 @@ cdef class NEP(Object):
         prefix: string
             The prefix string to prepend to all NEP option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( NEPAppendOptionsPrefix(self.nep, cval) )
 
@@ -509,7 +509,7 @@ cdef class NEP(Object):
         """
         cdef KSP ksp = KSP()
         CHKERR( NEPRefineGetKSP(self.nep, &ksp.ksp) )
-        PetscINCREF(ksp.obj)
+        CHKERR( PetscINCREF(ksp.obj) )
         return ksp
 
     def getTrackAll(self):
@@ -593,7 +593,7 @@ cdef class NEP(Object):
         """
         cdef BV bv = BV()
         CHKERR( NEPGetBV(self.nep, &bv.bv) )
-        PetscINCREF(bv.obj)
+        CHKERR( PetscINCREF(bv.obj) )
         return bv
 
     def setBV(self, BV bv):
@@ -618,7 +618,7 @@ cdef class NEP(Object):
         """
         cdef RG rg = RG()
         CHKERR( NEPGetRG(self.nep, &rg.rg) )
-        PetscINCREF(rg.obj)
+        CHKERR( PetscINCREF(rg.obj) )
         return rg
 
     def setRG(self, RG rg):
@@ -643,7 +643,7 @@ cdef class NEP(Object):
         """
         cdef DS ds = DS()
         CHKERR( NEPGetDS(self.nep, &ds.ds) )
-        PetscINCREF(ds.obj)
+        CHKERR( PetscINCREF(ds.obj) )
         return ds
 
     def setDS(self, DS ds):
@@ -976,8 +976,8 @@ cdef class NEP(Object):
         cdef Mat F = Mat()
         cdef Mat P = Mat()
         CHKERR( NEPGetFunction(self.nep, &F.mat, &P.mat, NULL, NULL) )
-        PetscINCREF(F.obj)
-        PetscINCREF(P.obj)
+        CHKERR( PetscINCREF(F.obj) )
+        CHKERR( PetscINCREF(P.obj) )
         cdef object function = self.get_attr('__function__')
         return (F, P, function)
 
@@ -1016,7 +1016,7 @@ cdef class NEP(Object):
         """
         cdef Mat J = Mat()
         CHKERR( NEPGetJacobian(self.nep, &J.mat, NULL, NULL) )
-        PetscINCREF(J.obj)
+        CHKERR( PetscINCREF(J.obj) )
         cdef object jacobian = self.get_attr('__jacobian__')
         return (J, jacobian)
 
@@ -1073,8 +1073,8 @@ cdef class NEP(Object):
         cdef object functions = []
         for i in range(n):
             CHKERR( NEPGetSplitOperatorTerm(self.nep, i, &mat, &fn) )
-            A = Mat(); A.mat = mat; PetscINCREF(A.obj)
-            f = FN();  f.fn = fn;   PetscINCREF(f.obj)
+            A = Mat(); A.mat = mat; CHKERR( PetscINCREF(A.obj) )
+            f = FN();  f.fn = fn;   CHKERR( PetscINCREF(f.obj) )
             matrices.append(A)
             functions.append(f)
         return (matrices, functions, mstr)
@@ -1120,7 +1120,7 @@ cdef class NEP(Object):
         cdef object matrices = []
         for i in range(n):
             CHKERR( NEPGetSplitPreconditionerTerm(self.nep, i, &mat) )
-            P = Mat(); P.mat = mat; PetscINCREF(P.obj)
+            P = Mat(); P.mat = mat; CHKERR( PetscINCREF(P.obj) )
             matrices.append(P)
         return (matrices, mstr)
 
@@ -1327,7 +1327,7 @@ cdef class NEP(Object):
         """
         cdef KSP ksp = KSP()
         CHKERR( NEPRIIGetKSP(self.nep, &ksp.ksp) )
-        PetscINCREF(ksp.obj)
+        CHKERR( PetscINCREF(ksp.obj) )
         return ksp
 
     #
@@ -1380,7 +1380,7 @@ cdef class NEP(Object):
         """
         cdef EPS eps = EPS()
         CHKERR( NEPSLPGetEPS(self.nep, &eps.eps) )
-        PetscINCREF(eps.obj)
+        CHKERR( PetscINCREF(eps.obj) )
         return eps
 
     def setSLPEPSLeft(self, EPS eps):
@@ -1406,7 +1406,7 @@ cdef class NEP(Object):
         """
         cdef EPS eps = EPS()
         CHKERR( NEPSLPGetEPSLeft(self.nep, &eps.eps) )
-        PetscINCREF(eps.obj)
+        CHKERR( PetscINCREF(eps.obj) )
         return eps
 
     def setSLPKSP(self, KSP ksp):
@@ -1431,7 +1431,7 @@ cdef class NEP(Object):
         """
         cdef KSP ksp = KSP()
         CHKERR( NEPSLPGetKSP(self.nep, &ksp.ksp) )
-        PetscINCREF(ksp.obj)
+        CHKERR( PetscINCREF(ksp.obj) )
         return ksp
 
     #
@@ -1458,7 +1458,7 @@ cdef class NEP(Object):
         """
         cdef KSP ksp = KSP()
         CHKERR( NEPNArnoldiGetKSP(self.nep, &ksp.ksp) )
-        PetscINCREF(ksp.obj)
+        CHKERR( PetscINCREF(ksp.obj) )
         return ksp
 
     def setNArnoldiLagPreconditioner(self, lag):
@@ -1517,7 +1517,7 @@ cdef class NEP(Object):
         """
         cdef PEP pep = PEP()
         CHKERR( NEPInterpolGetPEP(self.nep, &pep.pep) )
-        PetscINCREF(pep.obj)
+        CHKERR( PetscINCREF(pep.obj) )
         return pep
 
     def setInterpolInterpolation(self, tol=None, deg=None):
@@ -1704,7 +1704,7 @@ cdef class NEP(Object):
         """
         cdef EPS eps = EPS()
         CHKERR( NEPNLEIGSGetEPS(self.nep, &eps.eps) )
-        PetscINCREF(eps.obj)
+        CHKERR( PetscINCREF(eps.obj) )
         return eps
 
     def setNLEIGSRKShifts(self, shifts):

@@ -500,7 +500,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveEnum(bv,type,2);
-  PetscValidRealPointer(val,3);
+  PetscAssertPointer(val,3);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
@@ -544,7 +544,7 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidHeaderSpecific(v,VEC_CLASSID,2);
   PetscValidLogicalCollectiveEnum(bv,type,3);
-  PetscValidRealPointer(val,4);
+  PetscAssertPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   PetscValidType(v,2);
@@ -586,7 +586,7 @@ PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidHeaderSpecific(v,VEC_CLASSID,2);
   PetscValidLogicalCollectiveEnum(bv,type,3);
-  PetscValidRealPointer(val,4);
+  PetscAssertPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   PetscValidType(v,2);
@@ -625,7 +625,7 @@ PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveEnum(bv,type,3);
-  PetscValidRealPointer(val,4);
+  PetscAssertPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
@@ -667,7 +667,7 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidLogicalCollectiveEnum(bv,type,3);
-  PetscValidRealPointer(val,4);
+  PetscAssertPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
@@ -711,7 +711,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidLogicalCollectiveEnum(bv,type,3);
-  PetscValidRealPointer(val,4);
+  PetscAssertPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
@@ -766,7 +766,7 @@ PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidLogicalCollectiveEnum(bv,type,3);
-  PetscValidRealPointer(val,4);
+  PetscAssertPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 

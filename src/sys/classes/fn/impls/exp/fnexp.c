@@ -14,14 +14,14 @@
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode FNEvaluateFunction_Exp(FN fn,PetscScalar x,PetscScalar *y)
+static PetscErrorCode FNEvaluateFunction_Exp(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
   *y = PetscExpScalar(x);
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
+static PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
   *y = PetscExpScalar(x);
@@ -29,9 +29,9 @@ PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 }
 
 #define MAX_PADE 6
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
+#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
 
-PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
+static PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
 {
   PetscBLASInt      n=0,ld,ld2,*ipiv,info,inc=1;
   PetscInt          m,j,k,sexp;
@@ -125,6 +125,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+#if defined(PETSC_HAVE_COMPLEX)
 /*
  * Set scaling factor (s) and Pade degree (k,m)
  */
@@ -154,7 +155,6 @@ static PetscErrorCode sexpm_params(PetscReal nrm,PetscInt *s,PetscInt *k,PetscIn
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#if defined(PETSC_HAVE_COMPLEX)
 /*
  * Partial fraction form coefficients.
  * If query, the function returns the size necessary to store the coefficients.
@@ -408,7 +408,7 @@ static PetscErrorCode getisreal(PetscInt n,PetscComplex *a,PetscBool *result)
  *     SIAM J. Matrix Anal. Appl. 37(1):145-170, 2016.
  *     https://doi.org/10.1137/15M1027553
  */
-PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
+static PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 {
 #if !defined(PETSC_HAVE_COMPLEX)
   PetscFunctionBegin;
@@ -1654,7 +1654,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
 
-PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
+static PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
 {
   PetscBool      isascii;
   char           str[50];

@@ -7,15 +7,42 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-        module slepcpepdef
-        use slepcsys
-        use slepcstdef
-        use slepcbvdef
-        use slepcrgdef
-        use slepcdsdef
+        module slepcpepdefdummy
         use slepcepsdef
 #include <../src/pep/f90-mod/slepcpep.h>
         end module
+
+        module slepcpepdef
+        use slepcpepdefdummy
+        interface operator (.ne.)
+          function pepnotequal(A,B)
+            import tPEP
+            logical pepnotequal
+            type(tPEP), intent(in) :: A,B
+          end function
+        end interface operator (.ne.)
+        interface operator (.eq.)
+          function pepequals(A,B)
+            import tPEP
+            logical pepequals
+            type(tPEP), intent(in) :: A,B
+          end function
+        end interface operator (.eq.)
+        end module
+
+        function pepnotequal(A,B)
+          use slepcpepdefdummy, only: tPEP
+          logical pepnotequal
+          type(tPEP), intent(in) :: A,B
+          pepnotequal = (A%v .ne. B%v)
+        end function
+
+        function pepequals(A,B)
+          use slepcpepdefdummy, only: tPEP
+          logical pepequals
+          type(tPEP), intent(in) :: A,B
+          pepequals = (A%v .eq. B%v)
+        end function
 
         module slepcpep
         use slepcpepdef

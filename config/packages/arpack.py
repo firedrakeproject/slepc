@@ -91,15 +91,15 @@ class Arpack(package.Package):
       confopt = ['-DCMAKE_INSTALL_PREFIX='+prefixdir, '-DCMAKE_INSTALL_NAME_DIR:STRING="'+os.path.join(prefixdir,'lib')+'"', '-DCMAKE_INSTALL_LIBDIR:STRING="lib"', '-DCMAKE_C_COMPILER="'+petsc.cc+'"', '-DCMAKE_C_FLAGS:STRING="'+petsc.getCFlags()+'"', '-DCMAKE_Fortran_COMPILER="'+petsc.fc+'"', '-DCMAKE_Fortran_FLAGS:STRING="'+petsc.getFFlags()+'"', '-DBLAS_LIBRARIES="'+petsc.blaslapack_lib+'"']
       if not petsc.mpiuni and not petsc.msmpi:
         confopt = confopt + ['-DMPI=ON', '-DMPI_C_COMPILER="'+petsc.cc+'"', '-DMPI_Fortran_COMPILER="'+petsc.fc+'"']
-      confopt = confopt + ['-DCMAKE_BUILD_TYPE='+ ('Debug' if petsc.debug else 'Release')]
+      confopt.append('-DCMAKE_BUILD_TYPE='+('Debug' if petsc.debug else 'Release'))
       if petsc.buildsharedlib:
         confopt = confopt + ['-DBUILD_SHARED_LIBS=ON', '-DCMAKE_INSTALL_RPATH:PATH='+os.path.join(prefixdir,'lib')]
       else:
-        confopt = confopt + ['-DBUILD_SHARED_LIBS=OFF']
+        confopt.append('-DBUILD_SHARED_LIBS=OFF')
       if petsc.ind64:
-        confopt = confopt + ['-DINTERFACE64=1']
+        confopt.append('-DINTERFACE64=1')
       if 'MSYSTEM' in os.environ:
-        confopt = confopt + ['-G "MSYS Makefiles"']
+        confopt.append('-G "MSYS Makefiles"')
       (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.cmake+' '+' '.join(confopt)+' '+self.buildflags+' .. && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
 
     else: # Build with autoreconf
@@ -112,9 +112,9 @@ class Arpack(package.Package):
       if not petsc.mpiuni and not petsc.msmpi:
         confopt = confopt + ['--enable-mpi MPICC="'+petsc.cc+'"', 'MPIF77="'+petsc.fc+'"', 'MPIFC="'+petsc.fc+'"']
       if not petsc.buildsharedlib:
-        confopt = confopt + ['--disable-shared']
+        confopt.append('--disable-shared')
       if petsc.ind64:
-        confopt = confopt + ['INTERFACE64=1']
+        confopt.append('INTERFACE64=1')
       (result,output) = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+' '.join(confopt)+' && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
 
     if result:

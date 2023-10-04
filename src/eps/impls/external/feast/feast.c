@@ -45,7 +45,7 @@ typedef struct {
 #endif
 } EPS_FEAST;
 
-PetscErrorCode EPSSetUp_FEAST(EPS eps)
+static PetscErrorCode EPSSetUp_FEAST(EPS eps)
 {
   PetscInt       ncv;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
@@ -77,7 +77,7 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_FEAST(EPS eps)
+static PetscErrorCode EPSSolve_FEAST(EPS eps)
 {
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   MKL_INT        fpm[128],ijob,n,ncv,nconv,loop,info;
@@ -123,7 +123,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 
     FEAST_RCI(&ijob,&n,&Ze,SCALAR_CAST ctx->work1,ctx->work2,SCALAR_CAST ctx->Aq,SCALAR_CAST ctx->Bq,fpm,&epsout,&loop,&eps->inta,&eps->intb,&ncv,evals,SCALAR_CAST pV,&nconv,eps->errest,&info);
 
-    PetscCheck(ncv==eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"FEAST changed value of ncv to %d",ncv);
+    PetscCheck(ncv==eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"FEAST changed value of ncv to %d",(int)ncv);
     if (ijob == 10) {
       /* set new quadrature point */
       PetscCall(STSetShift(eps->st,Ze.real));
@@ -167,7 +167,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
         PetscCall(VecResetArray(x));
         PetscCall(VecResetArray(y));
       }
-    } else PetscCheck(ijob==0 || ijob==-2,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in FEAST reverse communication interface (ijob=%d)",ijob);
+    } else PetscCheck(ijob==0 || ijob==-2,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in FEAST reverse communication interface (ijob=%d)",(int)ijob);
 
   } while (ijob);
 
@@ -183,7 +183,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
         eps->reason = EPS_DIVERGED_ITS;
         break;
       default:
-        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",info);
+        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",(int)info);
     }
   }
 
@@ -196,7 +196,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_FEAST(EPS eps)
+static PetscErrorCode EPSReset_FEAST(EPS eps)
 {
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
 
@@ -205,7 +205,7 @@ PetscErrorCode EPSReset_FEAST(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_FEAST(EPS eps)
+static PetscErrorCode EPSDestroy_FEAST(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
@@ -214,7 +214,7 @@ PetscErrorCode EPSDestroy_FEAST(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_FEAST(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_FEAST(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   PetscInt       n;
@@ -231,7 +231,7 @@ PetscErrorCode EPSSetFromOptions_FEAST(EPS eps,PetscOptionItems *PetscOptionsObj
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
 {
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   PetscBool      isascii;
@@ -242,7 +242,7 @@ PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
+static PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
 {
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) PetscCall(STSetType(eps->st,STSINVERT));
@@ -314,7 +314,7 @@ PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(npoints,2);
+  PetscAssertPointer(npoints,2);
   PetscUseMethod(eps,"EPSFEASTGetNumPoints_C",(EPS,PetscInt*),(eps,npoints));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

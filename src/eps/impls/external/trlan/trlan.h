@@ -11,8 +11,7 @@
    Private data structure used by the TRLAN interface
 */
 
-#if !defined(SLEPC_TRLAN_H)
-#define SLEPC_TRLAN_H
+#pragma once
 
 typedef struct {
   PetscBLASInt       maxlan;
@@ -35,6 +34,3 @@ typedef struct {
 #endif
 
 SLEPC_EXTERN void TRLan_(PetscBLASInt(*op)(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*),PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
-
-#endif
-

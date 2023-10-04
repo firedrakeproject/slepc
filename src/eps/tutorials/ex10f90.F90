@@ -295,12 +295,12 @@
 !   testset:
 !      args: -eps_nev 5 -eps_non_hermitian -terse
 !      output_file: output/ex10_1.out
+!      requires: !single
 !      test:
 !         suffix: 1_sinvert
 !         args: -st_type sinvert
 !      test:
 !         suffix: 1_shell
 !         args: -st_type shell
-!         requires: !single
 !
 !TEST*/

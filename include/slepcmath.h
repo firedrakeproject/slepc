@@ -12,8 +12,7 @@
    This file is included by slepcsys.h and should not be used directly.
 */
 
-#if !defined(SLEPCMATH_H)
-#define SLEPCMATH_H
+#pragma once
 
 /* SUBMANSEC = sys */
 
@@ -58,9 +57,9 @@ static inline PetscReal SlepcAbs(PetscReal x,PetscReal y)
 
   w = PetscMax(xabs,yabs);
   z = PetscMin(xabs,yabs);
-  if (PetscUnlikely(z == 0.0)) return w;
+  if (PetscUnlikely(z == (PetscReal)0.0)) return w;
   t = z/w;
-  return w*PetscSqrtReal(1.0+t*t);
+  return w*PetscSqrtReal((PetscReal)1.0+t*t);
 }
 
 /*MC
@@ -92,8 +91,6 @@ M*/
 #define SlepcAbsEigenvalue(x,y) PetscAbsScalar(x)
 #endif
 
-#endif
-
 /*
    SlepcSetFlushToZero - Set the FTZ flag in floating-point arithmetic.
 */
@@ -122,4 +119,3 @@ static inline PetscErrorCode SlepcResetFlushToZero(unsigned int *state)
 #endif
   PetscFunctionReturn(PETSC_SUCCESS);
 }
-

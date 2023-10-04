@@ -159,7 +159,7 @@ static PetscErrorCode EPSConv_Cross(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSetUp_Cross(SVD svd)
+static PetscErrorCode SVDSetUp_Cross(SVD svd)
 {
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   ST             st;
@@ -253,7 +253,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_Cross(SVD svd)
+static PetscErrorCode SVDSolve_Cross(SVD svd)
 {
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   PetscInt       i;
@@ -281,7 +281,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDComputeVectors_Cross(SVD svd)
+static PetscErrorCode SVDComputeVectors_Cross(SVD svd)
 {
   SVD_CROSS         *cross = (SVD_CROSS*)svd->data;
   PetscInt          i,mloc,ploc;
@@ -373,7 +373,7 @@ static PetscErrorCode EPSMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSetFromOptions_Cross(SVD svd,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode SVDSetFromOptions_Cross(SVD svd,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      set,val;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
@@ -463,7 +463,7 @@ PetscErrorCode SVDCrossGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(explicitmat,2);
+  PetscAssertPointer(explicitmat,2);
   PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -543,12 +543,12 @@ PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(eps,2);
+  PetscAssertPointer(eps,2);
   PetscUseMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
+static PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
 {
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   PetscBool      isascii;
@@ -565,7 +565,7 @@ PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDReset_Cross(SVD svd)
+static PetscErrorCode SVDReset_Cross(SVD svd)
 {
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
@@ -576,7 +576,7 @@ PetscErrorCode SVDReset_Cross(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDDestroy_Cross(SVD svd)
+static PetscErrorCode SVDDestroy_Cross(SVD svd)
 {
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 

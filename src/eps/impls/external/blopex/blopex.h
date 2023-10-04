@@ -8,16 +8,11 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPC_BLOPEX_H)
-#define SLEPC_BLOPEX_H
+#pragma once
 
 #include <lobpcg.h>
 #include "petsc-interface.h"
 
 SLEPC_INTERN PetscInt slepc_blopex_useconstr;
 
-extern int
-SLEPCSetupInterpreter(mv_InterfaceInterpreter *ii);
-
-#endif
-
+SLEPC_INTERN int SLEPCSetupInterpreter(mv_InterfaceInterpreter*);

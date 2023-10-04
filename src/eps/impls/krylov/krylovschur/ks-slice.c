@@ -554,7 +554,7 @@ PetscErrorCode EPSComputeVectors_Slice(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
+#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
 
 static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {

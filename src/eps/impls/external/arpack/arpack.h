@@ -11,8 +11,7 @@
    Private data structure used by the ARPACK interface
 */
 
-#if !defined(SLEPC_ARPACK_H)
-#define SLEPC_ARPACK_H
+#pragma once
 
 typedef struct {
   PetscInt     *select;
@@ -181,6 +180,3 @@ SLEPC_EXTERN void   SLEPC_ARPACK(neupd,NEUPD)(COMM_ARG PetscInt*,char*,PetscInt*
 SLEPC_EXTERN void   SLEPC_ARPACK(naupd,NAUPD)(COMM_ARG PetscInt*,char*,PetscInt*,const char*,PetscInt*,PetscReal*,PetscScalar*,PetscInt*,PetscScalar*,PetscInt*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscReal*,PetscInt*,int,int);
 SLEPC_EXTERN void   SLEPC_ARPACK(neupd,NEUPD)(COMM_ARG PetscInt*,char*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscScalar*,PetscScalar*,char*,PetscInt*,const char*,PetscInt*,PetscReal*,PetscScalar*,PetscInt*,PetscScalar*,PetscInt*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscReal*,PetscInt*,int,int,int);
 #endif
-
-#endif
-

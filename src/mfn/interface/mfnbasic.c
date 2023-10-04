@@ -201,7 +201,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   MFN            mfn;
 
   PetscFunctionBegin;
-  PetscValidPointer(outmfn,2);
+  PetscAssertPointer(outmfn,2);
   *outmfn = NULL;
   PetscCall(MFNInitializePackage());
   PetscCall(SlepcHeaderCreate(mfn,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView));
@@ -266,7 +266,7 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)mfn,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -302,7 +302,7 @@ PetscErrorCode MFNGetType(MFN mfn,MFNType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)mfn)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -487,7 +487,7 @@ PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(bv,2);
+  PetscAssertPointer(bv,2);
   if (!mfn->V) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)mfn),&mfn->V));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)mfn->V,(PetscObject)mfn,0));
@@ -545,7 +545,7 @@ PetscErrorCode MFNGetFN(MFN mfn,FN *fn)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(fn,2);
+  PetscAssertPointer(fn,2);
   if (!mfn->fn) {
     PetscCall(FNCreate(PetscObjectComm((PetscObject)mfn),&mfn->fn));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)mfn->fn,(PetscObject)mfn,0));

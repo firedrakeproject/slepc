@@ -43,6 +43,7 @@ cdef extern from * nogil:
         SVD_CONVERGED_MAXIT
         SVD_DIVERGED_ITS
         SVD_DIVERGED_BREAKDOWN
+        SVD_DIVERGED_SYMMETRY_LOST
         SVD_CONVERGED_ITERATING
 
     ctypedef PetscErrorCode (*SlepcSVDCtxDel)(void*)
@@ -155,7 +156,7 @@ cdef extern from * nogil:
 cdef inline SVD ref_SVD(SlepcSVD svd):
     cdef SVD ob = <SVD> SVD()
     ob.svd = svd
-    PetscINCREF(ob.obj)
+    CHKERR( PetscINCREF(ob.obj) )
     return ob
 
 # -----------------------------------------------------------------------------

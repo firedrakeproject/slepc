@@ -533,7 +533,7 @@ As mentioned above, scaling can sometimes improve the accuracy of the computed s
 
 If good accuracy is required, one possibility is to perform a few steps of iterative refinement on the solution computed by the polynomial eigensolver algorithm. Iterative refinement can be seen as the Newton method applied to a set of nonlinear equations related to the polynomial eigenvalue problem \citep{Betcke:2011:PER}. It is well known that global convergence of Newton's iteration is guaranteed only if the initial guess is close enough to the exact solution, so we still need an eigensolver such as TOAR to compute this initial guess.
 
-Iterative refinement can be very costly (sometimes a single refinement step is more expensive than the whole iteration to compute the initial guess with TOAR), that is why in \slepc it is disabled by default. When the user activates it, the computation of Newton iterations will take place within \ident{PEPSolve} as a final stage (identified as \texttt{PEPRefine} in the \Verb!-log_summary! report).
+Iterative refinement can be very costly (sometimes a single refinement step is more expensive than the whole iteration to compute the initial guess with TOAR), that is why in \slepc it is disabled by default. When the user activates it, the computation of Newton iterations will take place within \ident{PEPSolve} as a final stage (identified as \texttt{PEPRefine} in the \Verb!-log_view! report).
 
 	\findex{PEPSetRefine}
 	\begin{Verbatim}[fontsize=\small]

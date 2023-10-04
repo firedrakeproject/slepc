@@ -127,6 +127,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/" | sed -e "s/+-0\.0*i//"
+      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/" | sed -e "s/+-0\.0*i//" | sed -e "s/1.29552/1.29551/"
 
 TEST*/

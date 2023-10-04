@@ -27,8 +27,10 @@ DIRS = src include
 
 # Include the rest of makefiles
 include ./${PETSC_ARCH}/lib/slepc/conf/slepcvariables
-include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-include ${PETSC_DIR}/lib/petsc/conf/rules.utils
+include ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/slepcvariables  # required in prefix builds
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules.doc
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules.utils
 
 # This makefile doesn't really do any work. Sub-makes still benefit from parallelism.
 .NOTPARALLEL:
@@ -92,14 +94,20 @@ chk_slepcdir:
           printf "******************************************************"${PETSC_TEXT_NORMAL}"\n" ; \
         fi
 
-allfortranstubs:
-	-@${RM} -rf ${PETSC_ARCH}/include/slepc/finclude/ftn-auto/*-tmpdir
-	@${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/generatefortranstubs.py ${BFORT} ${VERBOSE}
-	-@${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/generatefortranstubs.py -merge ${VERBOSE}
-	-@${RM} -rf include/slepc/finclude/ftn-auto/*-tmpdir
+allfortranstubs: deletefortranstubs
+	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch=${PETSC_ARCH} --bfort=${BFORT} --mode=generate --verbose=${V}
+	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch=${PETSC_ARCH} --mode=merge --verbose=${V}
+
+#copy of allfortranstubs with PETSC_ARCH=''
+allfortranstubsinplace: deletefortranstubs
+	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch='' --bfort=${BFORT} --mode=generate --verbose=${V}
+	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch='' --mode=merge --verbose=${V}
 
 deletefortranstubs:
-	-@find . -type d -name ftn-auto | xargs rm -rf
+	-@find src -type d -name ftn-auto* | xargs rm -rf
+	-@if [ -n "${PETSC_ARCH}" ] && [ -d ${PETSC_ARCH} ] && [ -d ${PETSC_ARCH}/src ]; then \
+          find ${PETSC_ARCH}/src -type d -name ftn-auto* | xargs rm -rf ;\
+        fi
 
 reconfigure: allclean
 	@unset MAKEFLAGS && ${PYTHON} ${PETSC_ARCH}/lib/slepc/conf/reconfigure-${PETSC_ARCH}.py
@@ -110,8 +118,8 @@ RUN_TEST = ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_D
 
 check_install: check
 check:
-	-@echo "Running check examples to verify correct installation"
-	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
+	-@echo "Running SLEPc check examples to verify correct installation"
+	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR}, and PETSC_ARCH=${PETSC_ARCH}"
 	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
            echo "Running with batch filesystem, cannot run make check"; \
         elif [ "${MPIEXEC}" = "/bin/false" ]; then \
@@ -131,7 +139,11 @@ check_build:
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10
 	+@if [ ! "${MPI_IS_MPIUNI}" ]; then cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_mpi; fi
-	+@grep -E "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
+	+@if [ -f ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h ]; then \
+           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h | tee .ftn.log > /dev/null; \
+         elif [ -f ${PETSC_DIR}/include/petscconf.h ]; then \
+           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
+         fi; \
          if test -s .ftn.log; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest7f; \
          fi ; ${RM} .ftn.log
@@ -142,7 +154,7 @@ check_build:
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest5_blopex; \
          fi
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
-	-@echo "Completed test examples"
+	-@echo "Completed SLEPc check examples"
 
 # ******** Rules for make install **********************************************************************
 
@@ -214,66 +226,24 @@ clean:: allclean
 #********* Rules for printing library properties useful for building applications **********************
 
 getlinklibs_slepc:
-	-@echo ${SLEPC_LIB}
+	-@${OMAKE} -f gmakefile gmakegetlinklibs_slepc
 
 getincludedirs_slepc:
-	-@echo ${SLEPC_CC_INCLUDES}
+	-@${OMAKE} -f gmakefile gmakegetincludedirs_slepc
 
 info:
-	-@echo "=========================================="
-	-@echo Starting make run on `hostname` at `date +'%a, %d %b %Y %H:%M:%S %z'`
-	-@echo Machine characteristics: `uname -a`
-	-@echo "-----------------------------------------"
-	-@echo "Using SLEPc directory: ${SLEPC_DIR}"
-	-@echo "Using PETSc directory: ${PETSC_DIR}"
-	-@echo "Using PETSc arch: ${PETSC_ARCH}"
-	-@echo "-----------------------------------------"
-	-@grep "define SLEPC_VERSION" ${SLEPC_DIR}/include/slepcversion.h | ${SED} "s/........//" | head -n 7
-	-@echo "-----------------------------------------"
-	-@echo "Using SLEPc configure options: ${SLEPC_CONFIGURE_OPTIONS}"
-	-@echo "Using SLEPc configuration flags:"
-	-@grep "\#define " ${SLEPCCONF_H} | tail -n +2
-	-@echo "-----------------------------------------"
-	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//" | head -n 7
-	-@echo "-----------------------------------------"
-	-@echo "Using PETSc configure options: ${CONFIGURE_OPTIONS}"
-	-@echo "Using PETSc configuration flags:"
-	-@grep "\#define " ${PETSCCONF_H} | tail -n +2
-	-@echo "-----------------------------------------"
-	-@echo "Using C/C++ include paths: ${SLEPC_CC_INCLUDES}"
-	-@echo "Using C compile: ${PETSC_CCOMPILE_SINGLE}"
-	-@if [ "${CXX}" != "" ]; then \
-           echo "Using C++ compile: ${PETSC_CXXCOMPILE_SINGLE}";\
-         fi
-	-@if [ "${FC}" != "" ]; then \
-	   echo "Using Fortran include/module paths: ${SLEPC_FC_INCLUDES}";\
-	   echo "Using Fortran compile: ${PETSC_FCOMPILE_SINGLE}";\
-         fi
-	-@if [ "${CUDAC}" != "" ]; then \
-	   echo "Using CUDA compile: ${PETSC_CUCOMPILE_SINGLE}";\
-         fi
-	-@echo "-----------------------------------------"
-	-@echo "Using C/C++ linker: ${PCC_LINKER}"
-	-@echo "Using C/C++ flags: ${PCC_LINKER_FLAGS}"
-	-@if [ "${FC}" != "" ]; then \
-	   echo "Using Fortran linker: ${FC_LINKER}";\
-	   echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
-         fi
-	-@echo "-----------------------------------------"
-	-@echo "Using libraries: ${SLEPC_LIB}"
-	-@echo "------------------------------------------"
-	-@echo "Using mpiexec: ${MPIEXEC}"
-	-@echo "------------------------------------------"
-	-@echo "Using MAKE: ${MAKE}"
-	-@echo "Default MAKEFLAGS: MAKE_NP:${MAKE_NP} MAKE_LOAD:${MAKE_LOAD} MAKEFLAGS:${MAKEFLAGS}"
-	-@echo "=========================================="
+	+@${OMAKE} -f gmakefile gmakeinfo
 
 check_usermakefile:
 	-@echo "Testing compile with user makefile"
-	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
+	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR}, and PETSC_ARCH=${PETSC_ARCH}"
 	@cd src/eps/tutorials; ${RUN_TEST} clean-legacy
 	@cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10
-	@grep -E "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
+	@if [ -f ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h ]; then \
+           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h | tee .ftn.log > /dev/null; \
+         elif [ -f ${PETSC_DIR}/include/petscconf.h ]; then \
+           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
+         fi; \
          if test -s .ftn.log; then \
           cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10f90; \
          fi; ${RM} .ftn.log;
@@ -382,21 +352,6 @@ allcleanhtml:
 
 # ******** Rules for checking coding standards *********************************************************
 
-vermin_slepc:
-	@vermin -vvv -t=3.4- ${VERMIN_OPTIONS} ${SLEPC_DIR}/config
-
-lint_slepc:
-	${PYTHON3} ${SLEPC_DIR}/lib/slepc/bin/maint/slepcClangLinter.py $(LINTER_OPTIONS)
-
-help-lint_slepc:
-	@${PYTHON3} ${SLEPC_DIR}/lib/slepc/bin/maint/slepcClangLinter.py --help
-	-@echo "Basic usage:"
-	-@echo "   make lint_slepc <options>"
-	-@echo
-	-@echo "Options:"
-	-@echo "  LINTER_OPTIONS=\"--linter_options ...\"  See above for available options"
-	-@echo
-
 countfortranfunctions:
 	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto` \
 	`find ${SLEPC_DIR}/src -name ftn-custom`; do cd $$D; \
@@ -448,7 +403,7 @@ checkbadfortranstubs:
 # Compare ABI/API of two versions of PETSc library with the old one defined by PETSC_{DIR,ARCH}_ABI_OLD
 abitest:
 	@if [ "x${SLEPC_DIR_ABI_OLD}" = "x" ] || [ "x${PETSC_ARCH_ABI_OLD}" = "x" ] || [ "x${PETSC_DIR_ABI_OLD}" = "x" ]; \
-		then printf "You must set environment variables SLEPC_DIR_ABI_OLD, PETSC_ARCH_ABI_OLD and PETSC_DIR_ABI_OLD to run abitest\n"; \
+		then printf "You must set environment variables SLEPC_DIR_ABI_OLD, PETSC_ARCH_ABI_OLD, and PETSC_DIR_ABI_OLD to run abitest\n"; \
 		exit 1; \
 	fi;
 	-@echo "Comparing ABI/API of the following two SLEPc versions (you must have already configured and built them using GCC and with -g):"

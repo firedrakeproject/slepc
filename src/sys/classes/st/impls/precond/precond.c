@@ -39,7 +39,7 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STPostSolve_Precond(ST st)
+static PetscErrorCode STPostSolve_Precond(ST st)
 {
   PetscFunctionBegin;
   if (st->matmode == ST_MATMODE_INPLACE && !(st->Pmat || (PetscAbsScalar(st->sigma)>=PETSC_MAX_REAL && st->nmat>1))) {
@@ -58,7 +58,7 @@ PetscErrorCode STPostSolve_Precond(ST st)
    if nmat=1:  ---       A-sI      NULL
    if nmat=2:  ---       A-sB      NULL
 */
-PetscErrorCode STComputeOperator_Precond(ST st)
+static PetscErrorCode STComputeOperator_Precond(ST st)
 {
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
@@ -97,7 +97,7 @@ PetscErrorCode STComputeOperator_Precond(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetUp_Precond(ST st)
+static PetscErrorCode STSetUp_Precond(ST st)
 {
   ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
@@ -109,7 +109,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
+static PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
 {
   ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
@@ -200,12 +200,12 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *ksphasmat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidBoolPointer(ksphasmat,2);
+  PetscAssertPointer(ksphasmat,2);
   PetscUseMethod(st,"STPrecondGetKSPHasMat_C",(ST,PetscBool*),(st,ksphasmat));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STDestroy_Precond(ST st)
+static PetscErrorCode STDestroy_Precond(ST st)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(st->data));

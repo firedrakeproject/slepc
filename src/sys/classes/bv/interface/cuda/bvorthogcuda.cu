@@ -121,7 +121,7 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
 }
 
 /* pointwise multiplication */
-__global__ void PointwiseMult_kernel(PetscInt xcount,PetscScalar *a,const PetscScalar *b,PetscInt n)
+static __global__ void PointwiseMult_kernel(PetscInt xcount,PetscScalar *a,const PetscScalar *b,PetscInt n)
 {
   PetscInt x;
 
@@ -130,7 +130,7 @@ __global__ void PointwiseMult_kernel(PetscInt xcount,PetscScalar *a,const PetscS
 }
 
 /* pointwise division */
-__global__ void PointwiseDiv_kernel(PetscInt xcount,PetscScalar *a,const PetscScalar *b,PetscInt n)
+static __global__ void PointwiseDiv_kernel(PetscInt xcount,PetscScalar *a,const PetscScalar *b,PetscInt n)
 {
   PetscInt x;
 

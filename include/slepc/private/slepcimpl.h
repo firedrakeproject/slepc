@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCIMPL_H)
-#define SLEPCIMPL_H
+#pragma once
 
 #include <slepcsys.h>
 #include <petsc/private/petscimpl.h>
@@ -62,6 +61,7 @@ static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscS
 #if defined(PETSC_USE_COMPLEX)
   re = PetscRealPart(eigr);
   im = PetscImaginaryPart(eigr);
+  (void)eigi;
 #else
   re = eigr;
   im = eigi;
@@ -97,6 +97,8 @@ static inline PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec 
   vname[count-1] = 'i';
   PetscCall(PetscObjectSetName((PetscObject)xi,vname));
   PetscCall(VecView(xi,viewer));
+#else
+  (void)xi;
 #endif
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -109,10 +111,10 @@ static inline PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec 
 #endif
 
 /* Private functions that are shared by several classes */
-SLEPC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
-SLEPC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
-SLEPC_EXTERN PetscErrorCode SlepcMonitorMakeKey_Internal(const char[],PetscViewerType,PetscViewerFormat,char[]);
-SLEPC_EXTERN PetscErrorCode PetscViewerAndFormatCreate_Internal(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcMonitorMakeKey_Internal(const char[],PetscViewerType,PetscViewerFormat,char[]);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode PetscViewerAndFormatCreate_Internal(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
 
 SLEPC_INTERN PetscErrorCode SlepcCitationsInitialize(void);
 SLEPC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);
@@ -185,6 +187,4 @@ static inline PetscErrorCode SlepcKernelSetGrid2DTiles(PetscInt rows,PetscInt co
 }
 #undef X_AXIS
 #undef Y_AXIS
-#endif
-
 #endif

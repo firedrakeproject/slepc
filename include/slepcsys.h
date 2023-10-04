@@ -12,8 +12,7 @@
    by all other SLEPc include files.
 */
 
-#if !defined(SLEPCSYS_H)
-#define SLEPCSYS_H
+#pragma once
 
 #include <petscsys.h>
 
@@ -37,6 +36,14 @@
 #else
 #define SLEPC_EXTERN extern SLEPC_VISIBILITY_PUBLIC
 #define SLEPC_INTERN extern SLEPC_VISIBILITY_INTERNAL
+#endif
+
+#if defined(PETSC_USE_SINGLE_LIBRARY)
+  #define SLEPC_SINGLE_LIBRARY_VISIBILITY_INTERNAL SLEPC_VISIBILITY_INTERNAL
+  #define SLEPC_SINGLE_LIBRARY_INTERN              SLEPC_INTERN
+#else
+  #define SLEPC_SINGLE_LIBRARY_VISIBILITY_INTERNAL SLEPC_VISIBILITY_PUBLIC
+  #define SLEPC_SINGLE_LIBRARY_INTERN              SLEPC_EXTERN
 #endif
 
 /* ========================================================================== */
@@ -112,5 +119,3 @@ SLEPC_EXTERN PetscBool SlepcFinalizeCalled;
 #if defined(PETSC_USE_DEBUG)
 SLEPC_EXTERN PetscErrorCode SlepcDebugViewMatrix(PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt,const char*,const char*);
 #endif
-#endif
-

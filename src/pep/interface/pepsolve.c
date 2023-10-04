@@ -192,7 +192,7 @@ PetscErrorCode PEPGetIterationNumber(PEP pep,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidIntPointer(its,2);
+  PetscAssertPointer(its,2);
   *its = pep->its;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -219,7 +219,7 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidIntPointer(nconv,2);
+  PetscAssertPointer(nconv,2);
   PEPCheckSolved(pep,1);
   *nconv = pep->nconv;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -258,7 +258,7 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(reason,2);
+  PetscAssertPointer(reason,2);
   PEPCheckSolved(pep,1);
   *reason = pep->reason;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -355,7 +355,7 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidRealPointer(errest,3);
+  PetscAssertPointer(errest,3);
   PEPCheckSolved(pep,1);
   PetscCheck(i>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<pep->nconv,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see PEPGetConverged()");
@@ -477,7 +477,7 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,i,2);
   PetscValidLogicalCollectiveEnum(pep,type,3);
-  PetscValidRealPointer(error,4);
+  PetscAssertPointer(error,4);
   PEPCheckSolved(pep,1);
 
   /* allocate work vectors */

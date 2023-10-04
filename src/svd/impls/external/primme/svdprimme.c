@@ -144,7 +144,7 @@ static void multMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,
   PetscFunctionReturnVoid();
 }
 
-PetscErrorCode SVDSetUp_PRIMME(SVD svd)
+static PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 {
   PetscMPIInt        numProcs,procID;
   PetscInt           n,m,nloc,mloc;
@@ -225,7 +225,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_PRIMME(SVD svd)
+static PetscErrorCode SVDSolve_PRIMME(SVD svd)
 {
   SVD_PRIMME     *ops = (SVD_PRIMME*)svd->data;
   PetscScalar    *svecs, *a;
@@ -283,7 +283,7 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDReset_PRIMME(SVD svd)
+static PetscErrorCode SVDReset_PRIMME(SVD svd)
 {
   SVD_PRIMME     *ops = (SVD_PRIMME*)svd->data;
 
@@ -294,7 +294,7 @@ PetscErrorCode SVDReset_PRIMME(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDDestroy_PRIMME(SVD svd)
+static PetscErrorCode SVDDestroy_PRIMME(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(svd->data));
@@ -305,7 +305,7 @@ PetscErrorCode SVDDestroy_PRIMME(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
+static PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
 {
   PetscBool      isascii;
   SVD_PRIMME     *ctx = (SVD_PRIMME*)svd->data;
@@ -324,7 +324,7 @@ PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSetFromOptions_PRIMME(SVD svd,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode SVDSetFromOptions_PRIMME(SVD svd,PetscOptionItems *PetscOptionsObject)
 {
   SVD_PRIMME      *ctx = (SVD_PRIMME*)svd->data;
   PetscInt        bs;
@@ -419,7 +419,7 @@ PetscErrorCode SVDPRIMMEGetBlockSize(SVD svd,PetscInt *bs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidIntPointer(bs,2);
+  PetscAssertPointer(bs,2);
   PetscUseMethod(svd,"SVDPRIMMEGetBlockSize_C",(SVD,PetscInt*),(svd,bs));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -489,7 +489,7 @@ PetscErrorCode SVDPRIMMEGetMethod(SVD svd,SVDPRIMMEMethod *method)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(method,2);
+  PetscAssertPointer(method,2);
   PetscUseMethod(svd,"SVDPRIMMEGetMethod_C",(SVD,SVDPRIMMEMethod*),(svd,method));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

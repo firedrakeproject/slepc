@@ -11,7 +11,7 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
@@ -21,7 +21,7 @@ PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
 {
   PetscViewerFormat format;
 
@@ -225,7 +225,7 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+static PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   switch (mat) {
@@ -300,7 +300,7 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscFunctionBegin;
   if (!rr || wr == rr) PetscCall(DSSort_NHEP_Total(ds,DS_MAT_A,DS_MAT_Q,wr,wi));
@@ -315,7 +315,7 @@ static PetscErrorCode DSSortWithPermutation_NHEP(DS ds,PetscInt *perm,PetscScala
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
+static PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
 {
   PetscInt          i;
   PetscBLASInt      n,ld,incx=1;
@@ -339,18 +339,18 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(wi,3);
+  PetscAssertPointer(wi,3);
 #endif
   PetscCall(DSSolve_NHEP_Private(ds,DS_MAT_A,DS_MAT_Q,wr,wi));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k;
   PetscMPIInt    n,rank,off=0,size,ldn;
@@ -391,7 +391,7 @@ PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n,PetscBool trim)
+static PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A;
@@ -424,7 +424,7 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
+static PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 {
   PetscScalar    *work;
   PetscReal      *rwork;
@@ -463,7 +463,7 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gammaout)
+static PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gammaout)
 {
   PetscInt          i,j;
   PetscBLASInt      *ipiv,info,n,ld,one=1,ncol;

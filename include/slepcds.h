@@ -11,8 +11,7 @@
    User interface for the direct solver object in SLEPc
 */
 
-#if !defined(SLEPCDS_H)
-#define SLEPCDS_H
+#pragma once
 
 #include <slepcsc.h>
 #include <slepcfn.h>
@@ -23,6 +22,8 @@
 #define DS_MAX_SOLVE 6
 
 SLEPC_EXTERN PetscErrorCode DSInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode DSFinalizePackage(void);
+
 /*S
     DS - Direct solver (or dense system), to represent low-dimensional
     eigenproblems that must be solved within iterative solvers. This is an
@@ -191,7 +192,7 @@ SLEPC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSSortWithPermutation(DS,PetscInt*,PetscScalar*,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode DSSynchronize(DS,PetscScalar*,PetscScalar*);
-PETSC_DEPRECATED_FUNCTION("Use DSGetMat()+MatDenseGetSubMatrix()+MatCopy()") static inline PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscInt Ar,PetscInt Ac,PetscInt rows,PetscInt cols,PetscBool out)
+PETSC_DEPRECATED_FUNCTION(3, 18, 0, "DSGetMat()+MatDenseGetSubMatrix()+MatCopy()", ) static inline PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscInt Ar,PetscInt Ac,PetscInt rows,PetscInt cols,PetscBool out)
 {
   Mat M,M0,A0;
   PetscFunctionBegin;
@@ -250,5 +251,3 @@ SLEPC_EXTERN PetscErrorCode DSNEPGetComputeMatrixFunction(DS,PetscErrorCode (**)
 
 SLEPC_EXTERN PetscFunctionList DSList;
 SLEPC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));
-
-#endif

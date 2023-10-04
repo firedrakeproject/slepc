@@ -11,8 +11,7 @@
    Private header for SLP
 */
 
-#if !defined(SLEPC_SLP_H)
-#define SLEPC_SLP_H
+#pragma once
 
 typedef struct {
   EPS       eps;      /* linear eigensolver for T*z = mu*Tp*z */
@@ -23,5 +22,3 @@ typedef struct {
 
 SLEPC_INTERN PetscErrorCode NEPSolve_SLP(NEP);
 SLEPC_INTERN PetscErrorCode NEPSolve_SLP_Twosided(NEP);
-
-#endif

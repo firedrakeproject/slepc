@@ -90,7 +90,7 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
+static PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscReal         eta;
   PetscBool         isfilt=PETSC_FALSE;
@@ -190,7 +190,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUpSort_KrylovSchur(EPS eps)
+static PetscErrorCode EPSSetUpSort_KrylovSchur(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   SlepcSC         sc;
@@ -405,7 +405,7 @@ PetscErrorCode EPSKrylovSchurGetRestart(EPS eps,PetscReal *keep)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidRealPointer(keep,2);
+  PetscAssertPointer(keep,2);
   PetscUseMethod(eps,"EPSKrylovSchurGetRestart_C",(EPS,PetscReal*),(eps,keep));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -480,7 +480,7 @@ PetscErrorCode EPSKrylovSchurGetLocking(EPS eps,PetscBool *lock)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(lock,2);
+  PetscAssertPointer(lock,2);
   PetscUseMethod(eps,"EPSKrylovSchurGetLocking_C",(EPS,PetscBool*),(eps,lock));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -579,7 +579,7 @@ PetscErrorCode EPSKrylovSchurGetPartitions(EPS eps,PetscInt *npart)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(npart,2);
+  PetscAssertPointer(npart,2);
   PetscUseMethod(eps,"EPSKrylovSchurGetPartitions_C",(EPS,PetscInt*),(eps,npart));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -658,7 +658,7 @@ PetscErrorCode EPSKrylovSchurGetDetectZeros(EPS eps,PetscBool *detect)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(detect,2);
+  PetscAssertPointer(detect,2);
   PetscUseMethod(eps,"EPSKrylovSchurGetDetectZeros_C",(EPS,PetscBool*),(eps,detect));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -856,7 +856,7 @@ PetscErrorCode EPSKrylovSchurGetSubintervals(EPS eps,PetscReal **subint)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(subint,2);
+  PetscAssertPointer(subint,2);
   PetscUseMethod(eps,"EPSKrylovSchurGetSubintervals_C",(EPS,PetscReal**),(eps,subint));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -954,7 +954,7 @@ PetscErrorCode EPSKrylovSchurGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(n,2);
+  PetscAssertPointer(n,2);
   PetscUseMethod(eps,"EPSKrylovSchurGetInertias_C",(EPS,PetscInt*,PetscReal**,PetscInt**),(eps,n,shifts,inertias));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1344,7 +1344,7 @@ PetscErrorCode EPSKrylovSchurGetKSP(EPS eps,KSP *ksp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscBool       flg,lock,b,f1,f2,f3,isfilt;
@@ -1392,7 +1392,7 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOpti
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscBool       isascii,isfilt;
@@ -1432,7 +1432,7 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
+static PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 {
   PetscBool      isfilt;
 
@@ -1461,7 +1461,7 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_KrylovSchur(EPS eps)
+static PetscErrorCode EPSReset_KrylovSchur(EPS eps)
 {
   PetscBool      isfilt;
 
@@ -1471,7 +1471,7 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetDefaultST_KrylovSchur(EPS eps)
+static PetscErrorCode EPSSetDefaultST_KrylovSchur(EPS eps)
 {
   PetscFunctionBegin;
   if (eps->which==EPS_ALL) {

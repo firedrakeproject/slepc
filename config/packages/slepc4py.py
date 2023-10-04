@@ -56,12 +56,6 @@ class Slepc4py(package.Package):
     elif not self.have_petsc4py:
       self.log.Exit('petsc4py is required but had been marked as not installed')
 
-    # Check for cython
-    try:
-      import Cython
-    except ImportError:
-      self.log.Exit('--with-slepc4py requires that cython is installed on your system')
-
     builddir = os.path.join(slepc.dir,'src','binding','slepc4py')
     destdir  = os.path.join(slepc.prefixdir,'lib')
 
@@ -73,7 +67,7 @@ class Slepc4py(package.Package):
     rule =  'slepc4pybuild:\n'
     rule += '\t@echo "*** Building slepc4py ***"\n'
     rule += '\t@${RM} -f '+os.path.join(confdir,'slepc4py.errorflg')+'\n'
-    rule += '\t@cd '+builddir+' && \\\n'
+    rule += '\t@cd '+builddir+' && ${RM} -rf build && \\\n'
     rule += '\t   %s ${PYTHON} setup.py build 2>&1 || \\\n' % envvars
     rule += '\t   (echo "**************************ERROR*************************************" && \\\n'
     rule += '\t   echo "Error building slepc4py." && \\\n'

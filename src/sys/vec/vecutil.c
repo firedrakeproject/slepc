@@ -138,13 +138,13 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
 PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev)
 {
   PetscFunctionBegin;
-  PetscValidPointer(V,1);
+  PetscAssertPointer(V,1);
   PetscValidHeaderSpecific(*V,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(*V,nv,2);
   PetscValidLogicalCollectiveInt(*V,nw,4);
   if (nv<=0 || nw<=0) PetscFunctionReturn(PETSC_SUCCESS);
   if (W) {
-    PetscValidPointer(W,3);
+    PetscAssertPointer(W,3);
     PetscValidHeaderSpecific(*W,VEC_CLASSID,3);
     PetscCheckSameComm(*V,1,*W,3);
   }
@@ -180,13 +180,13 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
 PetscErrorCode VecCheckOrthonormality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev)
 {
   PetscFunctionBegin;
-  PetscValidPointer(V,1);
+  PetscAssertPointer(V,1);
   PetscValidHeaderSpecific(*V,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(*V,nv,2);
   PetscValidLogicalCollectiveInt(*V,nw,4);
   if (nv<=0 || nw<=0) PetscFunctionReturn(PETSC_SUCCESS);
   if (W) {
-    PetscValidPointer(W,3);
+    PetscAssertPointer(W,3);
     PetscValidHeaderSpecific(*W,VEC_CLASSID,3);
     PetscCheckSameComm(*V,1,*W,3);
   }
@@ -221,7 +221,7 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(v,VEC_CLASSID,1);
-  PetscValidPointer(newv,2);
+  PetscAssertPointer(newv,2);
   PetscValidType(v,1);
 
   PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&standard,VECSEQ,VECMPI,""));

@@ -79,15 +79,10 @@ class SlepcConfig(PetscConfig):
         self.configdict['SLEPC_DIR'] = SLEPC_DIR
         self.configdict['SLEPC_LIB'] = slepc_confdict['SLEPC_LIB']
         dirlist = []
-        for external in [
-            'ARPACK_LIB', 'BLOPEX_LIB', 'ELPA_LIB',
-            'EVSL_LIB', 'HPDDM_LIB', 'PRIMME_LIB',
-            'SLICOT_LIB', 'TRLAN_LIB',
-        ]:
-            flags = split_quoted(slepc_confdict[external])
-            for entry in [lib[2:] for lib in flags if lib.startswith('-L')]:
-                if entry not in dirlist:
-                    dirlist.append(entry)
+        flags = split_quoted(slepc_confdict['SLEPC_EXTERNAL_LIB'])
+        for entry in [lib[2:] for lib in flags if lib.startswith('-L')]:
+            if entry not in dirlist:
+                dirlist.append(entry)
         self.configdict['SLEPC_EXTERNAL_LIB_DIR'] = dirlist
 
     def configure_extension(self, extension):
@@ -116,7 +111,7 @@ class SlepcConfig(PetscConfig):
         slepc_cfg['runtime_library_dirs'] = [
             strip_prefix(SLEPC_DESTDIR, d) for d in SLEPC_LIB_DIR
         ]
-        self._configure_ext(extension, slepc_cfg, preppend=True)
+        self._configure_ext(extension, slepc_cfg, append=True)
         if self['BUILDSHAREDLIB'] == 'no':
             from petsc4py.lib import ImportPETSc
             PETSc = ImportPETSc(PETSC_ARCH)

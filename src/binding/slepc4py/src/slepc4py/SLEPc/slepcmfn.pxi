@@ -57,7 +57,7 @@ cdef extern from * nogil:
 cdef inline MFN ref_MFN(SlepcMFN mfn):
     cdef MFN ob = <MFN> MFN()
     ob.mfn = mfn
-    PetscINCREF(ob.obj)
+    CHKERR( PetscINCREF(ob.obj) )
     return ob
 
 # -----------------------------------------------------------------------------

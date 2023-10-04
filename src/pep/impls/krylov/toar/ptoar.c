@@ -47,7 +47,7 @@ static const char citation[] =
   "   doi = \"https://doi.org/10.1137/15M1022458\"\n"
   "}\n";
 
-PetscErrorCode PEPSetUp_TOAR(PEP pep)
+static PetscErrorCode PEPSetUp_TOAR(PEP pep)
 {
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscBool      sinv,flg;
@@ -428,7 +428,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSolve_TOAR(PEP pep)
+static PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscInt       i,j,k,l,nv=0,ld,lds,nq=0,nconv=0;
@@ -675,7 +675,7 @@ PetscErrorCode PEPTOARGetRestart(PEP pep,PetscReal *keep)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidRealPointer(keep,2);
+  PetscAssertPointer(keep,2);
   PetscUseMethod(pep,"PEPTOARGetRestart_C",(PEP,PetscReal*),(pep,keep));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -749,12 +749,12 @@ PetscErrorCode PEPTOARGetLocking(PEP pep,PetscBool *lock)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidBoolPointer(lock,2);
+  PetscAssertPointer(lock,2);
   PetscUseMethod(pep,"PEPTOARGetLocking_C",(PEP,PetscBool*),(pep,lock));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetFromOptions_TOAR(PEP pep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode PEPSetFromOptions_TOAR(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,lock;
   PetscReal      keep;
@@ -772,7 +772,7 @@ PetscErrorCode PEPSetFromOptions_TOAR(PEP pep,PetscOptionItems *PetscOptionsObje
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPView_TOAR(PEP pep,PetscViewer viewer)
+static PetscErrorCode PEPView_TOAR(PEP pep,PetscViewer viewer)
 {
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscBool      isascii;
@@ -786,7 +786,7 @@ PetscErrorCode PEPView_TOAR(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPDestroy_TOAR(PEP pep)
+static PetscErrorCode PEPDestroy_TOAR(PEP pep)
 {
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
 

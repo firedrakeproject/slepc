@@ -94,20 +94,22 @@ class SVDConvergedReason(object):
     """
     SVD convergence reasons
 
-    - `CONVERGED_TOL`:       All eigenpairs converged to requested tolerance.
-    - `CONVERGED_USER`:      User-defined convergence criterion satisfied.
-    - `CONVERGED_MAXIT`:     Maximum iterations completed in case MAXIT convergence criterion.
-    - `DIVERGED_ITS`:        Maximum number of iterations exceeded.
-    - `DIVERGED_BREAKDOWN`:  Solver failed due to breakdown.
-    - `CONVERGED_ITERATING`: Iteration not finished yet.
+    - `CONVERGED_TOL`:          All eigenpairs converged to requested tolerance.
+    - `CONVERGED_USER`:         User-defined convergence criterion satisfied.
+    - `CONVERGED_MAXIT`:        Maximum iterations completed in case MAXIT convergence criterion.
+    - `DIVERGED_ITS`:           Maximum number of iterations exceeded.
+    - `DIVERGED_BREAKDOWN`:     Solver failed due to breakdown.
+    - `DIVERGED_SYMMETRY_LOST`: Underlying indefinite eigensolver was not able to keep symmetry.
+    - `CONVERGED_ITERATING`:    Iteration not finished yet.
     """
-    CONVERGED_TOL       = SVD_CONVERGED_TOL
-    CONVERGED_USER      = SVD_CONVERGED_USER
-    CONVERGED_MAXIT     = SVD_CONVERGED_MAXIT
-    DIVERGED_ITS        = SVD_DIVERGED_ITS
-    DIVERGED_BREAKDOWN  = SVD_DIVERGED_BREAKDOWN
-    CONVERGED_ITERATING = SVD_CONVERGED_ITERATING
-    ITERATING           = SVD_CONVERGED_ITERATING
+    CONVERGED_TOL          = SVD_CONVERGED_TOL
+    CONVERGED_USER         = SVD_CONVERGED_USER
+    CONVERGED_MAXIT        = SVD_CONVERGED_MAXIT
+    DIVERGED_ITS           = SVD_DIVERGED_ITS
+    DIVERGED_BREAKDOWN     = SVD_DIVERGED_BREAKDOWN
+    DIVERGED_SYMMETRY_LOST = SVD_DIVERGED_SYMMETRY_LOST
+    CONVERGED_ITERATING    = SVD_CONVERGED_ITERATING
+    ITERATING              = SVD_CONVERGED_ITERATING
 
 class SVDTRLanczosGBidiag(object):
     """
@@ -183,7 +185,7 @@ cdef class SVD(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcSVD newsvd = NULL
         CHKERR( SVDCreate(ccomm, &newsvd) )
-        SlepcCLEAR(self.obj); self.svd = newsvd
+        CHKERR( SlepcCLEAR(self.obj) ); self.svd = newsvd
         return self
 
     def setType(self, svd_type):
@@ -231,7 +233,7 @@ cdef class SVD(Object):
         prefix: string
                 The prefix string set for this SVD object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( SVDGetOptionsPrefix(self.svd, &prefix) )
         return bytes2str(prefix)
 
@@ -258,7 +260,7 @@ cdef class SVD(Object):
             S1.setOptionsPrefix("svd1_")
             S2.setOptionsPrefix("svd2_")
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( SVDSetOptionsPrefix(self.svd, cval) )
 
@@ -272,7 +274,7 @@ cdef class SVD(Object):
         prefix: string
                 The prefix string to prepend to all SVD option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( SVDAppendOptionsPrefix(self.svd, cval) )
 
@@ -578,8 +580,8 @@ cdef class SVD(Object):
         cdef BV V = BV()
         cdef BV U = BV()
         CHKERR( SVDGetBV(self.svd, &V.bv, &U.bv) )
-        PetscINCREF(V.obj)
-        PetscINCREF(U.obj)
+        CHKERR( PetscINCREF(V.obj) )
+        CHKERR( PetscINCREF(U.obj) )
         return (V,U)
 
     def setBV(self, BV V,BV U=None):
@@ -608,7 +610,7 @@ cdef class SVD(Object):
         """
         cdef DS ds = DS()
         CHKERR( SVDGetDS(self.svd, &ds.ds) )
-        PetscINCREF(ds.obj)
+        CHKERR( PetscINCREF(ds.obj) )
         return ds
 
     def setDS(self, DS ds):
@@ -636,8 +638,8 @@ cdef class SVD(Object):
         cdef Mat A = Mat()
         cdef Mat B = Mat()
         CHKERR( SVDGetOperators(self.svd, &A.mat, &B.mat) )
-        PetscINCREF(A.obj)
-        PetscINCREF(B.obj)
+        CHKERR( PetscINCREF(A.obj) )
+        CHKERR( PetscINCREF(B.obj) )
         return (A, B)
 
     def setOperators(self, Mat A, Mat B=None):
@@ -669,7 +671,7 @@ cdef class SVD(Object):
         if (omega.vec == NULL):
             return None
         else:
-            PetscINCREF(omega.obj)
+            CHKERR( PetscINCREF(omega.obj) )
             return omega
 
     def setSignature(self, Vec omega=None):
@@ -1024,7 +1026,7 @@ cdef class SVD(Object):
         """
         cdef EPS eps = EPS()
         CHKERR( SVDCrossGetEPS(self.svd, &eps.eps) )
-        PetscINCREF(eps.obj)
+        CHKERR( PetscINCREF(eps.obj) )
         return eps
 
     def setCrossExplicitMatrix(self, flag=True):
@@ -1077,7 +1079,7 @@ cdef class SVD(Object):
         """
         cdef EPS eps = EPS()
         CHKERR( SVDCyclicGetEPS(self.svd, &eps.eps) )
-        PetscINCREF(eps.obj)
+        CHKERR( PetscINCREF(eps.obj) )
         return eps
 
     def setCyclicExplicitMatrix(self, flag=True):
@@ -1289,7 +1291,7 @@ cdef class SVD(Object):
         """
         cdef KSP ksp = KSP()
         CHKERR( SVDTRLanczosGetKSP(self.svd, &ksp.ksp) )
-        PetscINCREF(ksp.obj)
+        CHKERR( PetscINCREF(ksp.obj) )
         return ksp
 
     def setTRLanczosExplicitMatrix(self, flag=True):

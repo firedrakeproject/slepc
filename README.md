@@ -62,4 +62,5 @@ The development of SLEPc has been partially supported by the following grants:
 - Ministerio de Economia y Competitividad, TIN2013-41049-P.
 - Agencia Estatal de Investigacion, TIN2016-75985-P.
 - Agencia Estatal de Investigacion, PID2019-107379RB-I00.
+- Agencia Estatal de Investigacion, PID2022-139568NB-I00.
 

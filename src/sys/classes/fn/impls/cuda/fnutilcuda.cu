@@ -13,7 +13,7 @@
 
 #include "fnutilcuda.h"
 
-__global__ void set_diagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v,PetscInt xcount)
+static __global__ void set_diagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v,PetscInt xcount)
 {
   PetscInt x;
   x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x+threadIdx.x;

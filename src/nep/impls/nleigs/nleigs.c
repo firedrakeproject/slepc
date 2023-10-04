@@ -819,7 +819,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 /*
    NEPKrylovConvergence - This is the analogue to EPSKrylovConvergence.
 */
-PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal betah,PetscScalar betak,PetscInt *kout,Vec *w)
+static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal betah,PetscScalar betak,PetscInt *kout,Vec *w)
 {
   PetscInt       k,newk,marker,inside;
   PetscScalar    re,im;
@@ -858,7 +858,7 @@ PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscBool getall,PetscInt kini
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
+static PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 {
   PetscInt       k,in;
   PetscScalar    zero=0.0;
@@ -1066,7 +1066,7 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
 /*
   Compute a run of Arnoldi iterations
 */
-PetscErrorCode NEPNLEIGSTOARrun(NEP nep,Mat MK,Mat MH,BV W,PetscInt k,PetscInt *M,PetscReal *betah,PetscScalar *betak,PetscBool *breakdown,Vec *t_)
+static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,Mat MK,Mat MH,BV W,PetscInt k,PetscInt *M,PetscReal *betah,PetscScalar *betak,PetscBool *breakdown,Vec *t_)
 {
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i,j,m=*M,lwa,deg=ctx->nmat-1,lds,nqt,ld,l,ldh;
@@ -1437,7 +1437,7 @@ PetscErrorCode NEPNLEIGSGetRestart(NEP nep,PetscReal *keep)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidRealPointer(keep,2);
+  PetscAssertPointer(keep,2);
   PetscUseMethod(nep,"NEPNLEIGSGetRestart_C",(NEP,PetscReal*),(nep,keep));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1511,7 +1511,7 @@ PetscErrorCode NEPNLEIGSGetLocking(NEP nep,PetscBool *lock)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidBoolPointer(lock,2);
+  PetscAssertPointer(lock,2);
   PetscUseMethod(nep,"NEPNLEIGSGetLocking_C",(NEP,PetscBool*),(nep,lock));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1665,7 +1665,7 @@ PetscErrorCode NEPNLEIGSSetRKShifts(NEP nep,PetscInt ns,PetscScalar shifts[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,ns,2);
-  if (ns) PetscValidScalarPointer(shifts,3);
+  if (ns) PetscAssertPointer(shifts,3);
   PetscTryMethod(nep,"NEPNLEIGSSetRKShifts_C",(NEP,PetscInt,PetscScalar*),(nep,ns,shifts));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1708,8 +1708,8 @@ PetscErrorCode NEPNLEIGSGetRKShifts(NEP nep,PetscInt *ns,PetscScalar *shifts[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidIntPointer(ns,2);
-  PetscValidPointer(shifts,3);
+  PetscAssertPointer(ns,2);
+  PetscAssertPointer(shifts,3);
   PetscTryMethod(nep,"NEPNLEIGSGetRKShifts_C",(NEP,PetscInt*,PetscScalar**),(nep,ns,shifts));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1854,14 +1854,14 @@ PetscErrorCode NEPNLEIGSGetFullBasis(NEP nep,PetscBool *fullbasis)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidBoolPointer(fullbasis,2);
+  PetscAssertPointer(fullbasis,2);
   PetscUseMethod(nep,"NEPNLEIGSGetFullBasis_C",(NEP,PetscBool*),(nep,fullbasis));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 #define SHIFTMAX 30
 
-PetscErrorCode NEPSetFromOptions_NLEIGS(NEP nep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode NEPSetFromOptions_NLEIGS(NEP nep,PetscOptionItems *PetscOptionsObject)
 {
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i=0,k;
@@ -1904,7 +1904,7 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(NEP nep,PetscOptionItems *PetscOptionsOb
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
+static PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
 {
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscBool      isascii;
@@ -1943,7 +1943,7 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPReset_NLEIGS(NEP nep)
+static PetscErrorCode NEPReset_NLEIGS(NEP nep)
 {
   PetscInt       k;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
@@ -1964,7 +1964,7 @@ PetscErrorCode NEPReset_NLEIGS(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
+static PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
 {
   PetscInt       k;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;

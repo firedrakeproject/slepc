@@ -86,7 +86,7 @@ cdef class FN(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcFN newfn = NULL
         CHKERR( FNCreate(ccomm, &newfn) )
-        SlepcCLEAR(self.obj); self.fn = newfn
+        CHKERR( SlepcCLEAR(self.obj) ); self.fn = newfn
         return self
 
     def setType(self, fn_type):
@@ -132,7 +132,7 @@ cdef class FN(Object):
         prefix name.  The first character of all runtime options is
         AUTOMATICALLY the hyphen.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( FNSetOptionsPrefix(self.fn, cval) )
 
@@ -146,7 +146,7 @@ cdef class FN(Object):
         prefix: string
                 The prefix string set for this FN object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( FNGetOptionsPrefix(self.fn, &prefix) )
         return bytes2str(prefix)
 
@@ -449,8 +449,8 @@ cdef class FN(Object):
         cdef FN f1 = FN()
         cdef FN f2 = FN()
         CHKERR( FNCombineGetChildren(self.fn, &comb, &f1.fn, &f2.fn) )
-        PetscINCREF(f1.obj)
-        PetscINCREF(f2.obj)
+        CHKERR( PetscINCREF(f1.obj) )
+        CHKERR( PetscINCREF(f2.obj) )
         return (comb, f1, f2)
 
     def setPhiIndex(self, k):

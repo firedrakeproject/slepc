@@ -19,7 +19,7 @@
                Op               P         M
    if nmat=1:  p(A)             NULL      p(A)
 */
-PetscErrorCode STComputeOperator_Filter(ST st)
+static PetscErrorCode STComputeOperator_Filter(ST st)
 {
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
@@ -39,14 +39,14 @@ PetscErrorCode STComputeOperator_Filter(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetUp_Filter(ST st)
+static PetscErrorCode STSetUp_Filter(ST st)
 {
   PetscFunctionBegin;
   PetscCall(STSetWorkVecs(st,4));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STSetFromOptions_Filter(ST st,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode STSetFromOptions_Filter(ST st,PetscOptionItems *PetscOptionsObject)
 {
   PetscReal      array[2]={0,0};
   PetscInt       k;
@@ -318,7 +318,7 @@ PetscErrorCode STFilterGetDegree(ST st,PetscInt *deg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidIntPointer(deg,2);
+  PetscAssertPointer(deg,2);
   PetscUseMethod(st,"STFilterGetDegree_C",(ST,PetscInt*),(st,deg));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -352,12 +352,12 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidRealPointer(gamma,2);
+  PetscAssertPointer(gamma,2);
   PetscUseMethod(st,"STFilterGetThreshold_C",(ST,PetscReal*),(st,gamma));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STReset_Filter(ST st)
+static PetscErrorCode STReset_Filter(ST st)
 {
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
@@ -370,7 +370,7 @@ PetscErrorCode STReset_Filter(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
+static PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
 {
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
   PetscBool      isascii;
@@ -386,7 +386,7 @@ PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode STDestroy_Filter(ST st)
+static PetscErrorCode STDestroy_Filter(ST st)
 {
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 

@@ -52,7 +52,7 @@ typedef struct {
 #endif
 } EPS_EIG_MATSHELL;
 
-PetscErrorCode EPSSetUp_LyapII(EPS eps)
+static PetscErrorCode EPSSetUp_LyapII(EPS eps)
 {
   PetscRandom    rand;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
@@ -308,7 +308,7 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_LyapII(EPS eps)
+static PetscErrorCode EPSSolve_LyapII(EPS eps)
 {
   EPS_LYAPII          *ctx = (EPS_LYAPII*)eps->data;
   PetscInt            i,ldds,rk,nloc,mloc,nv,idx,k;
@@ -524,7 +524,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_LyapII(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_LyapII(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
   PetscInt       k,array[2]={PETSC_DEFAULT,PETSC_DEFAULT};
@@ -703,12 +703,12 @@ PetscErrorCode EPSLyapIIGetLME(EPS eps,LME *lme)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(lme,2);
+  PetscAssertPointer(lme,2);
   PetscUseMethod(eps,"EPSLyapIIGetLME_C",(EPS,LME*),(eps,lme));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_LyapII(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_LyapII(EPS eps,PetscViewer viewer)
 {
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
   PetscBool      isascii;
@@ -725,7 +725,7 @@ PetscErrorCode EPSView_LyapII(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_LyapII(EPS eps)
+static PetscErrorCode EPSReset_LyapII(EPS eps)
 {
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
 
@@ -734,7 +734,7 @@ PetscErrorCode EPSReset_LyapII(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_LyapII(EPS eps)
+static PetscErrorCode EPSDestroy_LyapII(EPS eps)
 {
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
 
@@ -749,7 +749,7 @@ PetscErrorCode EPSDestroy_LyapII(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetDefaultST_LyapII(EPS eps)
+static PetscErrorCode EPSSetDefaultST_LyapII(EPS eps)
 {
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) PetscCall(STSetType(eps->st,STSINVERT));

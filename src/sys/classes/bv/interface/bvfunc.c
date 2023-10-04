@@ -159,7 +159,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   BV             bv;
 
   PetscFunctionBegin;
-  PetscValidPointer(newbv,2);
+  PetscAssertPointer(newbv,2);
   *newbv = NULL;
   PetscCall(BVInitializePackage());
   PetscCall(SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView));
@@ -333,11 +333,11 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,s,2);
-  PetscValidIntPointer(m,3);
+  PetscAssertPointer(m,3);
   PetscValidLogicalCollectiveInt(V,*m,3);
   if (!*m) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCheck(*m>0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %" PetscInt_FMT ") cannot be negative",*m);
-  PetscValidPointer(W,4);
+  PetscAssertPointer(W,4);
   PetscValidHeaderSpecific(*W,VEC_CLASSID,4);
   PetscValidLogicalCollectiveBool(V,orth,5);
   PetscValidType(V,1);
@@ -409,11 +409,11 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
-  PetscValidIntPointer(nc,2);
+  PetscAssertPointer(nc,2);
   PetscValidLogicalCollectiveInt(V,*nc,2);
   if (!*nc) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCheck(*nc>0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %" PetscInt_FMT ") cannot be negative",*nc);
-  PetscValidPointer(C,3);
+  PetscAssertPointer(C,3);
   PetscValidHeaderSpecific(*C,VEC_CLASSID,3);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
@@ -511,7 +511,7 @@ PetscErrorCode BVGetOptionsPrefix(BV bv,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)bv,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -657,7 +657,7 @@ PetscErrorCode BVAllocateWork_Private(BV bv,PetscInt s)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#if defined(PETSC_USE_DEBUG)
+#if defined(PETSC_USE_DEBUG) && !defined(PETSC_CLANG_STATIC_ANALYZER)
 /*
    SlepcDebugBVView - partially view a BV object, to be used from within a debugger.
 

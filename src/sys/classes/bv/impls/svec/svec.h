@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPC_SVEC_H)
-#define SLEPC_SVEC_H
+#pragma once
 
 typedef struct {
   Vec       v;
@@ -35,6 +34,3 @@ SLEPC_INTERN PetscErrorCode BVRestoreSplit_Svec_CUDA(BV,BV*,BV*);
 SLEPC_INTERN PetscErrorCode BVGetMat_Svec_CUDA(BV,Mat*);
 SLEPC_INTERN PetscErrorCode BVRestoreMat_Svec_CUDA(BV,Mat*);
 #endif
-
-#endif
-

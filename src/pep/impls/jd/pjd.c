@@ -121,7 +121,7 @@ static PetscErrorCode PEPJDDuplicateBasis(PEP pep,BV *basis)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetUp_JD(PEP pep)
+static PetscErrorCode PEPSetUp_JD(PEP pep)
 {
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBool      isprecond,flg;
@@ -1161,7 +1161,7 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDSystemSetUp(PEP pep,PetscInt sz,PetscScalar *theta,Vec *u,Vec *p,Vec *ww)
+static PetscErrorCode PEPJDSystemSetUp(PEP pep,PetscInt sz,PetscScalar *theta,Vec *u,Vec *p,Vec *ww)
 {
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PEP_JD_PCSHELL *pcctx;
@@ -1193,7 +1193,7 @@ PetscErrorCode PEPJDSystemSetUp(PEP pep,PetscInt sz,PetscScalar *theta,Vec *u,Ve
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSolve_JD(PEP pep)
+static PetscErrorCode PEPSolve_JD(PEP pep)
 {
   PEP_JD          *pjd = (PEP_JD*)pep->data;
   PetscInt        k,nv,nvc,ld,minv,dim,bupdated=0,sz=1,kspsf=1,idx,off,maxits,nloc;
@@ -1462,7 +1462,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
+static PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1505,7 +1505,7 @@ PetscErrorCode PEPJDSetRestart(PEP pep,PetscReal keep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDGetRestart_JD(PEP pep,PetscReal *keep)
+static PetscErrorCode PEPJDGetRestart_JD(PEP pep,PetscReal *keep)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1533,12 +1533,12 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidRealPointer(keep,2);
+  PetscAssertPointer(keep,2);
   PetscUseMethod(pep,"PEPJDGetRestart_C",(PEP,PetscReal*),(pep,keep));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDSetFix_JD(PEP pep,PetscReal fix)
+static PetscErrorCode PEPJDSetFix_JD(PEP pep,PetscReal fix)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1582,7 +1582,7 @@ PetscErrorCode PEPJDSetFix(PEP pep,PetscReal fix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDGetFix_JD(PEP pep,PetscReal *fix)
+static PetscErrorCode PEPJDGetFix_JD(PEP pep,PetscReal *fix)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1616,12 +1616,12 @@ PetscErrorCode PEPJDGetFix(PEP pep,PetscReal *fix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidRealPointer(fix,2);
+  PetscAssertPointer(fix,2);
   PetscUseMethod(pep,"PEPJDGetFix_C",(PEP,PetscReal*),(pep,fix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDSetReusePreconditioner_JD(PEP pep,PetscBool reusepc)
+static PetscErrorCode PEPJDSetReusePreconditioner_JD(PEP pep,PetscBool reusepc)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1661,7 +1661,7 @@ PetscErrorCode PEPJDSetReusePreconditioner(PEP pep,PetscBool reusepc)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDGetReusePreconditioner_JD(PEP pep,PetscBool *reusepc)
+static PetscErrorCode PEPJDGetReusePreconditioner_JD(PEP pep,PetscBool *reusepc)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1689,12 +1689,12 @@ PetscErrorCode PEPJDGetReusePreconditioner(PEP pep,PetscBool *reusepc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidBoolPointer(reusepc,2);
+  PetscAssertPointer(reusepc,2);
   PetscUseMethod(pep,"PEPJDGetReusePreconditioner_C",(PEP,PetscBool*),(pep,reusepc));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
+static PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1739,7 +1739,7 @@ PetscErrorCode PEPJDSetMinimalityIndex(PEP pep,PetscInt mmidx)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDGetMinimalityIndex_JD(PEP pep,PetscInt *mmidx)
+static PetscErrorCode PEPJDGetMinimalityIndex_JD(PEP pep,PetscInt *mmidx)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1768,12 +1768,12 @@ PetscErrorCode PEPJDGetMinimalityIndex(PEP pep,PetscInt *mmidx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidIntPointer(mmidx,2);
+  PetscAssertPointer(mmidx,2);
   PetscUseMethod(pep,"PEPJDGetMinimalityIndex_C",(PEP,PetscInt*),(pep,mmidx));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDSetProjection_JD(PEP pep,PEPJDProjection proj)
+static PetscErrorCode PEPJDSetProjection_JD(PEP pep,PEPJDProjection proj)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1817,7 +1817,7 @@ PetscErrorCode PEPJDSetProjection(PEP pep,PEPJDProjection proj)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPJDGetProjection_JD(PEP pep,PEPJDProjection *proj)
+static PetscErrorCode PEPJDGetProjection_JD(PEP pep,PEPJDProjection *proj)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
@@ -1845,12 +1845,12 @@ PetscErrorCode PEPJDGetProjection(PEP pep,PEPJDProjection *proj)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(proj,2);
+  PetscAssertPointer(proj,2);
   PetscUseMethod(pep,"PEPJDGetProjection_C",(PEP,PEPJDProjection*),(pep,proj));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetFromOptions_JD(PEP pep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode PEPSetFromOptions_JD(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool       flg,b1;
   PetscReal       r1;
@@ -1879,7 +1879,7 @@ PetscErrorCode PEPSetFromOptions_JD(PEP pep,PetscOptionItems *PetscOptionsObject
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
+static PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
 {
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBool      isascii;
@@ -1896,7 +1896,7 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetDefaultST_JD(PEP pep)
+static PetscErrorCode PEPSetDefaultST_JD(PEP pep)
 {
   KSP            ksp;
 
@@ -1914,7 +1914,7 @@ PetscErrorCode PEPSetDefaultST_JD(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPReset_JD(PEP pep)
+static PetscErrorCode PEPReset_JD(PEP pep)
 {
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscInt       i;
@@ -1933,7 +1933,7 @@ PetscErrorCode PEPReset_JD(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPDestroy_JD(PEP pep)
+static PetscErrorCode PEPDestroy_JD(PEP pep)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(pep->data));

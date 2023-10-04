@@ -26,7 +26,7 @@ typedef struct {
 
 static const PetscReal rfactorial[MAX_INDEX+2] = { 1, 1, 0.5, 1.0/6, 1.0/24, 1.0/120, 1.0/720, 1.0/5040, 1.0/40320, 1.0/362880, 1.0/3628800, 1.0/39916800 };
 
-PetscErrorCode FNEvaluateFunction_Phi(FN fn,PetscScalar x,PetscScalar *y)
+static PetscErrorCode FNEvaluateFunction_Phi(FN fn,PetscScalar x,PetscScalar *y)
 {
   FN_PHI      *ctx = (FN_PHI*)fn->data;
   PetscInt    i;
@@ -42,7 +42,7 @@ PetscErrorCode FNEvaluateFunction_Phi(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
+static PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
 {
   FN_PHI      *ctx = (FN_PHI*)fn->data;
   PetscInt    i;
@@ -58,7 +58,7 @@ PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
+static PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
 {
   FN_PHI            *ctx = (FN_PHI*)fn->data;
   PetscInt          i,j,m,n,nh;
@@ -179,12 +179,12 @@ PetscErrorCode FNPhiGetIndex(FN fn,PetscInt *k)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidIntPointer(k,2);
+  PetscAssertPointer(k,2);
   PetscUseMethod(fn,"FNPhiGetIndex_C",(FN,PetscInt*),(fn,k));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
+static PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
 {
   FN_PHI         *ctx = (FN_PHI*)fn->data;
   PetscBool      isascii;
@@ -212,7 +212,7 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNSetFromOptions_Phi(FN fn,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode FNSetFromOptions_Phi(FN fn,PetscOptionItems *PetscOptionsObject)
 {
   FN_PHI         *ctx = (FN_PHI*)fn->data;
   PetscInt       k;
@@ -228,7 +228,7 @@ PetscErrorCode FNSetFromOptions_Phi(FN fn,PetscOptionItems *PetscOptionsObject)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
+static PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
 {
   FN_PHI *ctx = (FN_PHI*)fn->data,*ctx2 = (FN_PHI*)(*newfn)->data;
 
@@ -237,7 +237,7 @@ PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNDestroy_Phi(FN fn)
+static PetscErrorCode FNDestroy_Phi(FN fn)
 {
   FN_PHI         *ctx = (FN_PHI*)fn->data;
 

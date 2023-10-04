@@ -16,9 +16,12 @@ class Slicot(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'slicot'
     self.installable    = True
-    self.version        = '4.5'
-    self.archive        = 'slicot45.tar.gz'
-    self.url            = 'http://slicot.org/objects/software/shared/'+self.archive
+    self.downloadable   = True
+    self.gitcommit      = '401037e4992827cd7476baae615be6fe818b71d4'
+    #self.version        = '5.8'
+    obj = self.version if hasattr(self,'version') else self.gitcommit
+    self.url            = 'https://github.com/SLICOT/SLICOT-Reference/archive/'+('v'+obj if hasattr(self,'version') else obj)+'.tar.gz'
+    self.archive        = 'slicot-'+obj+'.tar.gz'
     self.supportsscalar = ['real']
     self.fortran        = True
     self.ProcessArgs(argdb)
@@ -50,11 +53,26 @@ class Slicot(package.Package):
     cont += 'ARCH      = '+petsc.ar+'\n'
     cont += 'ARCHFLAGS = '+petsc.ar_flags+'\n'
     cont += 'SLICOTLIB = ../'+libname+'\n'
-    self.WriteMakefile('make.inc',builddir,cont)
+    cont += 'LPKAUXLIB = ../'+libname+'\n'  # TODO: use a separate library for this
+    self.WriteMakefile('make_Unix.inc',builddir,cont)
+
+    # Patch top level makefile_Unix
+    (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.sedinplace+' -e "s?MAKE.?MAKE) -f makefile_Unix?" makefile_Unix')
+    if result:
+      self.log.Exit('Problem when patching file makefile_Unix')
+
+    # Patch makefile_Unix in src
+    sedargs = ' -e "s?make.inc?make_Unix.inc?"'
+    remfiles = ['MB04RD', 'MB04RS', 'MB04RT', 'MB04RV', 'MB04RW', 'MB04RZ', 'zelctg']
+    for f in remfiles:
+      sedargs = sedargs + ' -e "s?'+f+'.o??"'
+    (result,output) = self.RunCommand('cd '+os.path.join(builddir,'src')+' && '+petsc.sedinplace+' '+sedargs+' makefile_Unix')
+    if result:
+      self.log.Exit('Problem when patching file makefile_Unix in src')
 
     # Build package
     target = 'lib'
-    (result,output) = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make+' '+target)
+    (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.make+' -f makefile_Unix cleanlib && '+petsc.make+' -f makefile_Unix -j'+petsc.make_np+' '+target)
     if result:
       self.log.Exit('Installation of SLICOT failed')
 

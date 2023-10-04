@@ -75,7 +75,7 @@ cdef class MFN(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcMFN newmfn = NULL
         CHKERR( MFNCreate(ccomm, &newmfn) )
-        SlepcCLEAR(self.obj); self.mfn = newmfn
+        CHKERR( SlepcCLEAR(self.obj) ); self.mfn = newmfn
         return self
 
     def setType(self, mfn_type):
@@ -114,7 +114,7 @@ cdef class MFN(Object):
         prefix: string
             The prefix string set for this MFN object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( MFNGetOptionsPrefix(self.mfn, &prefix) )
         return bytes2str(prefix)
 
@@ -128,7 +128,7 @@ cdef class MFN(Object):
         prefix: string
             The prefix string to prepend to all MFN option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( MFNSetOptionsPrefix(self.mfn, cval) )
 
@@ -142,7 +142,7 @@ cdef class MFN(Object):
         prefix: string
             The prefix string to prepend to all MFN option requests.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( MFNAppendOptionsPrefix(self.mfn, cval) )
 
@@ -226,7 +226,7 @@ cdef class MFN(Object):
         """
         cdef FN fn = FN()
         CHKERR( MFNGetFN(self.mfn, &fn.fn) )
-        PetscINCREF(fn.obj)
+        CHKERR( PetscINCREF(fn.obj) )
         return fn
 
     def setFN(self, FN fn):
@@ -251,7 +251,7 @@ cdef class MFN(Object):
         """
         cdef BV bv = BV()
         CHKERR( MFNGetBV(self.mfn, &bv.bv) )
-        PetscINCREF(bv.obj)
+        CHKERR( PetscINCREF(bv.obj) )
         return bv
 
     def setBV(self, BV bv):
@@ -276,7 +276,7 @@ cdef class MFN(Object):
         """
         cdef Mat A = Mat()
         CHKERR( MFNGetOperator(self.mfn, &A.mat) )
-        PetscINCREF(A.obj)
+        CHKERR( PetscINCREF(A.obj) )
         return A
 
     def setOperator(self, Mat A):

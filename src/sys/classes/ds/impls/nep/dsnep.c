@@ -60,7 +60,7 @@ static PetscErrorCode DSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deri
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
 {
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       i;
@@ -73,7 +73,7 @@ PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
 {
   DS_NEP            *ctx = (DS_NEP*)ds->data;
   PetscViewerFormat format;
@@ -108,7 +108,7 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+static PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   PetscCheck(!rnorm,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
@@ -123,7 +123,7 @@ PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *dummy)
+static PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *dummy)
 {
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       n,l,i,*perm,lds;
@@ -148,7 +148,7 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
   PetscScalar    sigma,lambda,mu,re,re2,sone=1.0,szero=0.0;
@@ -528,7 +528,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       ld=ds->ld,k=0;
@@ -619,7 +619,7 @@ PetscErrorCode DSNEPSetFN(DS ds,PetscInt n,FN fn[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
-  PetscValidPointer(fn,3);
+  PetscAssertPointer(fn,3);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(fn[i],FN_CLASSID,3);
     PetscCheckSameComm(ds,1,fn[i],3);
@@ -658,7 +658,7 @@ PetscErrorCode DSNEPGetFN(DS ds,PetscInt k,FN *fn)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(fn,3);
+  PetscAssertPointer(fn,3);
   PetscUseMethod(ds,"DSNEPGetFN_C",(DS,PetscInt,FN*),(ds,k,fn));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -692,7 +692,7 @@ PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(n,2);
+  PetscAssertPointer(n,2);
   PetscUseMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -771,7 +771,7 @@ PetscErrorCode DSNEPGetMinimality(DS ds,PetscInt *n)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(n,2);
+  PetscAssertPointer(n,2);
   PetscUseMethod(ds,"DSNEPGetMinimality_C",(DS,PetscInt*),(ds,n));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -934,7 +934,7 @@ PetscErrorCode DSNEPGetIntegrationPoints(DS ds,PetscInt *ip)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(ip,2);
+  PetscAssertPointer(ip,2);
   PetscUseMethod(ds,"DSNEPGetIntegrationPoints_C",(DS,PetscInt*),(ds,ip));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1010,7 +1010,7 @@ PetscErrorCode DSNEPGetSamplingSize(DS ds,PetscInt *p)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(p,2);
+  PetscAssertPointer(p,2);
   PetscUseMethod(ds,"DSNEPGetSamplingSize_C",(DS,PetscInt*),(ds,p));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1170,12 +1170,12 @@ PetscErrorCode DSNEPGetRG(DS ds,RG *rg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(rg,2);
+  PetscAssertPointer(rg,2);
   PetscUseMethod(ds,"DSNEPGetRG_C",(DS,RG*),(ds,rg));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSetFromOptions_NEP(DS ds,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode DSSetFromOptions_NEP(DS ds,PetscOptionItems *PetscOptionsObject)
 {
   PetscInt       k;
   PetscBool      flg;
@@ -1214,7 +1214,7 @@ PetscErrorCode DSSetFromOptions_NEP(DS ds,PetscOptionItems *PetscOptionsObject)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSDestroy_NEP(DS ds)
+static PetscErrorCode DSDestroy_NEP(DS ds)
 {
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       i;
@@ -1242,7 +1242,7 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSMatGetSize_NEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+static PetscErrorCode DSMatGetSize_NEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
   DS_NEP *ctx = (DS_NEP*)ds->data;
 

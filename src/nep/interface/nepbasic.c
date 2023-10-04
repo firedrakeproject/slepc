@@ -47,7 +47,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   NEP            nep;
 
   PetscFunctionBegin;
-  PetscValidPointer(outnep,2);
+  PetscAssertPointer(outnep,2);
   *outnep = NULL;
   PetscCall(NEPInitializePackage());
   PetscCall(SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView));
@@ -158,7 +158,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)nep,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -194,7 +194,7 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)nep)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -411,7 +411,7 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(bv,2);
+  PetscAssertPointer(bv,2);
   if (!nep->V) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)nep),&nep->V));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)nep->V,(PetscObject)nep,0));
@@ -472,7 +472,7 @@ PetscErrorCode NEPGetRG(NEP nep,RG *rg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(rg,2);
+  PetscAssertPointer(rg,2);
   if (!nep->rg) {
     PetscCall(RGCreate(PetscObjectComm((PetscObject)nep),&nep->rg));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)nep->rg,(PetscObject)nep,0));
@@ -531,7 +531,7 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(ds,2);
+  PetscAssertPointer(ds,2);
   if (!nep->ds) {
     PetscCall(DSCreate(PetscObjectComm((PetscObject)nep),&nep->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)nep->ds,(PetscObject)nep,0));
@@ -563,7 +563,7 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(ksp,2);
+  PetscAssertPointer(ksp,2);
   if (!nep->refineksp) {
     if (nep->npart>1) {
       /* Split in subcomunicators */
@@ -638,7 +638,7 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidScalarPointer(target,2);
+  PetscAssertPointer(target,2);
   *target = nep->target;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -849,8 +849,8 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructu
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,nt,2);
   PetscCheck(nt>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %" PetscInt_FMT,nt);
-  PetscValidPointer(A,3);
-  PetscValidPointer(f,4);
+  PetscAssertPointer(A,3);
+  PetscAssertPointer(f,4);
   PetscValidLogicalCollectiveEnum(nep,str,5);
 
   for (i=0;i<nt;i++) {
@@ -986,7 +986,7 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
   PetscCheck(ntp>=0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Negative value of ntp = %" PetscInt_FMT,ntp);
   PetscCheck(nep->fui==NEP_USER_INTERFACE_SPLIT,PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"Must call NEPSetSplitOperator first");
   PetscCheck(ntp==0 || nep->nt==ntp,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The number of terms must be the same as in NEPSetSplitOperator()");
-  if (ntp) PetscValidPointer(P,3);
+  if (ntp) PetscAssertPointer(P,3);
   PetscValidLogicalCollectiveEnum(nep,strp,4);
 
   for (i=0;i<ntp;i++) {
@@ -1037,7 +1037,7 @@ PetscErrorCode NEPGetSplitPreconditionerTerm(NEP nep,PetscInt k,Mat *P)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,k,2);
-  PetscValidPointer(P,3);
+  PetscAssertPointer(P,3);
   NEPCheckSplit(nep,1);
   PetscCheck(k>=0 && k<nep->nt,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,nep->nt-1);
   PetscCheck(nep->P,PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"You have not called NEPSetSplitPreconditioner()");

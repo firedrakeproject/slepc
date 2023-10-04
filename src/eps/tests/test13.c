@@ -100,7 +100,10 @@ int main(int argc,char **argv)
       filter: sed -e "s/-1.98975/-1.98974/"
       test:
          suffix: 1
-         args: -eps_type {{krylovschur gd jd}}
+         args: -eps_type {{krylovschur gd}}
+      test:
+         suffix: 1_jd
+         args: -eps_type jd -st_ksp_type gmres
       test:
          suffix: 1_gd2
          args: -eps_type gd -eps_gd_double_expansion

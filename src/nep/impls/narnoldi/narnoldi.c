@@ -30,7 +30,7 @@ typedef struct {
   KSP      ksp;             /* linear solver object */
 } NEP_NARNOLDI;
 
-PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
+static PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 {
   PetscFunctionBegin;
   PetscCall(NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd));
@@ -44,7 +44,7 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSolve_NArnoldi(NEP nep)
+static PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 {
   NEP_NARNOLDI       *ctx = (NEP_NARNOLDI*)nep->data;
   Mat                T,H,A;
@@ -275,12 +275,12 @@ PetscErrorCode NEPNArnoldiGetLagPreconditioner(NEP nep,PetscInt *lag)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidIntPointer(lag,2);
+  PetscAssertPointer(lag,2);
   PetscUseMethod(nep,"NEPNArnoldiGetLagPreconditioner_C",(NEP,PetscInt*),(nep,lag));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPSetFromOptions_NArnoldi(NEP nep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode NEPSetFromOptions_NArnoldi(NEP nep,PetscOptionItems *PetscOptionsObject)
 {
   PetscInt       i;
   PetscBool      flg;
@@ -373,12 +373,12 @@ PetscErrorCode NEPNArnoldiGetKSP(NEP nep,KSP *ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(ksp,2);
+  PetscAssertPointer(ksp,2);
   PetscUseMethod(nep,"NEPNArnoldiGetKSP_C",(NEP,KSP*),(nep,ksp));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
+static PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
 {
   NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
   PetscBool      isascii;
@@ -395,7 +395,7 @@ PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPReset_NArnoldi(NEP nep)
+static PetscErrorCode NEPReset_NArnoldi(NEP nep)
 {
   NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
 
@@ -404,7 +404,7 @@ PetscErrorCode NEPReset_NArnoldi(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode NEPDestroy_NArnoldi(NEP nep)
+static PetscErrorCode NEPDestroy_NArnoldi(NEP nep)
 {
   NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
 

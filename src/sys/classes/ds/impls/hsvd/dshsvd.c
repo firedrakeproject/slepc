@@ -17,7 +17,7 @@ typedef struct {
   PetscBool reorth;        /* reorthogonalize left vectors */
 } DS_HSVD;
 
-PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
@@ -55,7 +55,7 @@ n-1 |                                      x|
     -----------------------------------------
 */
 
-PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
 {
   DS_HSVD           *ctx = (DS_HSVD*)ds->data;
   PetscViewerFormat format;
@@ -136,7 +136,7 @@ PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_HSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+static PetscErrorCode DSVectors_HSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   switch (mat) {
@@ -150,7 +150,7 @@ PetscErrorCode DSVectors_HSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_HSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_HSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   DS_HSVD        *ctx = (DS_HSVD*)ds->data;
   PetscInt       n,l,i,*perm,ld=ds->ld;
@@ -183,7 +183,7 @@ PetscErrorCode DSSort_HSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
+static PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
 {
   DS_HSVD           *ctx = (DS_HSVD*)ds->data;
   PetscInt          i;
@@ -211,7 +211,7 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSTruncate_HSVD(DS ds,PetscInt n,PetscBool trim)
+static PetscErrorCode DSTruncate_HSVD(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A;
@@ -245,7 +245,7 @@ PetscErrorCode DSTruncate_HSVD(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_HSVD        *ctx = (DS_HSVD*)ds->data;
   PetscInt       i,j,k=ds->k,rwu=0,iwu=0,swu=0,nv;
@@ -394,7 +394,7 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_HSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_HSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
   PetscMPIInt    n,rank,off=0,size,ldn,ld3,ld_;
@@ -452,7 +452,7 @@ PetscErrorCode DSSynchronize_HSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSMatGetSize_HSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+static PetscErrorCode DSMatGetSize_HSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
   DS_HSVD *ctx = (DS_HSVD*)ds->data;
 
@@ -554,7 +554,7 @@ PetscErrorCode DSHSVDGetDimensions(DS ds,PetscInt *m)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(m,2);
+  PetscAssertPointer(m,2);
   PetscUseMethod(ds,"DSHSVDGetDimensions_C",(DS,PetscInt*),(ds,m));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -626,12 +626,12 @@ PetscErrorCode DSHSVDGetReorthogonalize(DS ds,PetscBool *reorth)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidBoolPointer(reorth,2);
+  PetscAssertPointer(reorth,2);
   PetscUseMethod(ds,"DSHSVDGetReorthogonalize_C",(DS,PetscBool*),(ds,reorth));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSetFromOptions_HSVD(DS ds,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode DSSetFromOptions_HSVD(DS ds,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,reorth;
 
@@ -645,7 +645,7 @@ PetscErrorCode DSSetFromOptions_HSVD(DS ds,PetscOptionItems *PetscOptionsObject)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSDestroy_HSVD(DS ds)
+static PetscErrorCode DSDestroy_HSVD(DS ds)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(ds->data));

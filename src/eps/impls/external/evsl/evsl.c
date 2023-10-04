@@ -57,7 +57,7 @@ static void AMatvec_EVSL(double *xa,double *ya,void *data)
   PetscFunctionReturnVoid();
 }
 
-PetscErrorCode EPSSetUp_EVSL(EPS eps)
+static PetscErrorCode EPSSetUp_EVSL(EPS eps)
 {
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
   PetscMPIInt    size,rank;
@@ -159,7 +159,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_EVSL(EPS eps)
+static PetscErrorCode EPSSolve_EVSL(EPS eps)
 {
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
   PetscInt       i,j,k=0,sl,mlan,nevout,*ind,nevmax,rstart,rend,*nevloc,*disp,N;
@@ -330,7 +330,7 @@ PetscErrorCode EPSEVSLGetSlices(EPS eps,PetscInt *nslices)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(nslices,2);
+  PetscAssertPointer(nslices,2);
   PetscUseMethod(eps,"EPSEVSLGetSlices_C",(EPS,PetscInt*),(eps,nslices));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -692,12 +692,12 @@ PetscErrorCode EPSEVSLGetDamping(EPS eps,EPSEVSLDamping *damping)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(damping,2);
+  PetscAssertPointer(damping,2);
   PetscUseMethod(eps,"EPSEVSLGetDamping_C",(EPS,EPSEVSLDamping*),(eps,damping));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
 {
   PetscBool      isascii;
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
@@ -724,7 +724,7 @@ PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_EVSL(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_EVSL(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscReal        array[2]={0,0},th;
   PetscInt         k,i1,i2,i3,i4;
@@ -769,7 +769,7 @@ PetscErrorCode EPSSetFromOptions_EVSL(EPS eps,PetscOptionItems *PetscOptionsObje
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_EVSL(EPS eps)
+static PetscErrorCode EPSDestroy_EVSL(EPS eps)
 {
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
 
@@ -791,7 +791,7 @@ PetscErrorCode EPSDestroy_EVSL(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_EVSL(EPS eps)
+static PetscErrorCode EPSReset_EVSL(EPS eps)
 {
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
 

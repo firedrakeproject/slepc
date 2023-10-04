@@ -18,7 +18,7 @@ typedef struct {
   Mat Ae,Be;        /* converted matrices */
 } EPS_Elemental;
 
-PetscErrorCode EPSSetUp_Elemental(EPS eps)
+static PetscErrorCode EPSSetUp_Elemental(EPS eps)
 {
   EPS_Elemental  *ctx = (EPS_Elemental*)eps->data;
   Mat            A,B;
@@ -57,7 +57,7 @@ PetscErrorCode EPSSetUp_Elemental(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_Elemental(EPS eps)
+static PetscErrorCode EPSSolve_Elemental(EPS eps)
 {
   EPS_Elemental  *ctx = (EPS_Elemental*)eps->data;
   Mat            A = ctx->Ae,B = ctx->Be,Q,V;
@@ -90,14 +90,14 @@ PetscErrorCode EPSSolve_Elemental(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_Elemental(EPS eps)
+static PetscErrorCode EPSDestroy_Elemental(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_Elemental(EPS eps)
+static PetscErrorCode EPSReset_Elemental(EPS eps)
 {
   EPS_Elemental  *ctx = (EPS_Elemental*)eps->data;
 

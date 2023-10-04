@@ -11,9 +11,10 @@
    Include all top-level SLEPc functionality
 */
 
+#pragma once
+
 #include <slepcsvd.h>
 #include <slepcpep.h>
 #include <slepcnep.h>
 #include <slepcmfn.h>
 #include <slepclme.h>
-

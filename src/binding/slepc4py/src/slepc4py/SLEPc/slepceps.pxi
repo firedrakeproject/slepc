@@ -311,7 +311,7 @@ cdef extern from * nogil:
 cdef inline EPS ref_EPS(SlepcEPS eps):
     cdef EPS ob = <EPS> EPS()
     ob.eps = eps
-    PetscINCREF(ob.obj)
+    CHKERR( PetscINCREF(ob.obj) )
     return ob
 
 # -----------------------------------------------------------------------------

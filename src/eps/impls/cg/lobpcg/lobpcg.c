@@ -37,7 +37,7 @@ typedef struct {
   PetscInt  guard;     /* number of guard vectors */
 } EPS_LOBPCG;
 
-PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
+static PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
   PetscInt   k;
@@ -52,7 +52,7 @@ PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
+static PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 {
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
 
@@ -81,7 +81,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_LOBPCG(EPS eps)
+static PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
   PetscInt       i,j,k,nv,ini,nmat,nc,nconv,locked,its,prev=0;
@@ -461,7 +461,7 @@ PetscErrorCode EPSLOBPCGGetBlockSize(EPS eps,PetscInt *bs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(bs,2);
+  PetscAssertPointer(bs,2);
   PetscUseMethod(eps,"EPSLOBPCGGetBlockSize_C",(EPS,PetscInt*),(eps,bs));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -539,7 +539,7 @@ PetscErrorCode EPSLOBPCGGetRestart(EPS eps,PetscReal *restart)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidRealPointer(restart,2);
+  PetscAssertPointer(restart,2);
   PetscUseMethod(eps,"EPSLOBPCGGetRestart_C",(EPS,PetscReal*),(eps,restart));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -612,12 +612,12 @@ PetscErrorCode EPSLOBPCGGetLocking(EPS eps,PetscBool *lock)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(lock,2);
+  PetscAssertPointer(lock,2);
   PetscUseMethod(eps,"EPSLOBPCGGetLocking_C",(EPS,PetscBool*),(eps,lock));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
 {
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
   PetscBool      isascii;
@@ -632,7 +632,7 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_LOBPCG(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_LOBPCG(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      lock,flg;
   PetscInt       bs;
@@ -654,7 +654,7 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(EPS eps,PetscOptionItems *PetscOptionsOb
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
+static PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));

@@ -169,7 +169,7 @@ static void applyPreconditioner_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_
   PetscFunctionReturnVoid();
 }
 
-PetscErrorCode EPSSetUp_PRIMME(EPS eps)
+static PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
   PetscMPIInt    numProcs,procID;
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
@@ -306,7 +306,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_PRIMME(EPS eps)
+static PetscErrorCode EPSSolve_PRIMME(EPS eps)
 {
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
   PetscScalar    *a;
@@ -357,7 +357,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_PRIMME(EPS eps)
+static PetscErrorCode EPSReset_PRIMME(EPS eps)
 {
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
 
@@ -368,7 +368,7 @@ PetscErrorCode EPSReset_PRIMME(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_PRIMME(EPS eps)
+static PetscErrorCode EPSDestroy_PRIMME(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
@@ -379,7 +379,7 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 {
   PetscBool      isascii;
   EPS_PRIMME     *ctx = (EPS_PRIMME*)eps->data;
@@ -398,7 +398,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_PRIMME      *ctx = (EPS_PRIMME*)eps->data;
   PetscInt        bs;
@@ -493,7 +493,7 @@ PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(bs,2);
+  PetscAssertPointer(bs,2);
   PetscUseMethod(eps,"EPSPRIMMEGetBlockSize_C",(EPS,PetscInt*),(eps,bs));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -563,7 +563,7 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps,EPSPRIMMEMethod *method)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(method,2);
+  PetscAssertPointer(method,2);
   PetscUseMethod(eps,"EPSPRIMMEGetMethod_C",(EPS,EPSPRIMMEMethod*),(eps,method));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

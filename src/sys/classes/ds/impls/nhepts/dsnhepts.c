@@ -15,7 +15,7 @@ typedef struct {
   PetscScalar *wr,*wi;     /* eigenvalues of B */
 } DS_NHEPTS;
 
-PetscErrorCode DSAllocate_NHEPTS(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_NHEPTS(DS ds,PetscInt ld)
 {
   DS_NHEPTS      *ctx = (DS_NHEPTS*)ds->data;
 
@@ -33,7 +33,7 @@ PetscErrorCode DSAllocate_NHEPTS(DS ds,PetscInt ld)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSView_NHEPTS(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_NHEPTS(DS ds,PetscViewer viewer)
 {
   PetscViewerFormat format;
 
@@ -167,7 +167,7 @@ static PetscErrorCode DSVectors_NHEPTS_Eigen_All(DS ds,PetscBool left)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_NHEPTS(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+static PetscErrorCode DSVectors_NHEPTS(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   switch (mat) {
@@ -190,7 +190,7 @@ PetscErrorCode DSVectors_NHEPTS(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   DS_NHEPTS      *ctx = (DS_NHEPTS*)ds->data;
   PetscInt       i,j,cont,id=0,*p,*idx,*idx2;
@@ -241,7 +241,7 @@ PetscErrorCode DSSort_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSUpdateExtraRow_NHEPTS(DS ds)
+static PetscErrorCode DSUpdateExtraRow_NHEPTS(DS ds)
 {
   PetscInt          i;
   PetscBLASInt      n,ld,incx=1;
@@ -272,13 +272,13 @@ PetscErrorCode DSUpdateExtraRow_NHEPTS(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_NHEPTS      *ctx = (DS_NHEPTS*)ds->data;
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(wi,3);
+  PetscAssertPointer(wi,3);
 #endif
   PetscCall(DSSolve_NHEP_Private(ds,DS_MAT_A,DS_MAT_Q,wr,wi));
   PetscCall(DSSolve_NHEP_Private(ds,DS_MAT_B,DS_MAT_Z,ctx->wr,ctx->wi));
@@ -286,7 +286,7 @@ PetscErrorCode DSSolve_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_NHEPTS(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_NHEPTS(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k;
   PetscMPIInt    n,rank,off=0,size,ldn;
@@ -350,7 +350,7 @@ PetscErrorCode DSSynchronize_NHEPTS(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSGetTruncateSize_NHEPTS(DS ds,PetscInt l,PetscInt n,PetscInt *k)
+static PetscErrorCode DSGetTruncateSize_NHEPTS(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 {
 #if !defined(PETSC_USE_COMPLEX)
   const PetscScalar *A,*B;
@@ -370,7 +370,7 @@ PetscErrorCode DSGetTruncateSize_NHEPTS(DS ds,PetscInt l,PetscInt n,PetscInt *k)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSTruncate_NHEPTS(DS ds,PetscInt n,PetscBool trim)
+static PetscErrorCode DSTruncate_NHEPTS(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A,*B;
@@ -405,7 +405,7 @@ PetscErrorCode DSTruncate_NHEPTS(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSDestroy_NHEPTS(DS ds)
+static PetscErrorCode DSDestroy_NHEPTS(DS ds)
 {
   DS_NHEPTS      *ctx = (DS_NHEPTS*)ds->data;
 
@@ -416,7 +416,7 @@ PetscErrorCode DSDestroy_NHEPTS(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSMatGetSize_NHEPTS(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+static PetscErrorCode DSMatGetSize_NHEPTS(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
   PetscFunctionBegin;
   *rows = ((t==DS_MAT_A || t==DS_MAT_B) && ds->extrarow)? ds->n+1: ds->n;

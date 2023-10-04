@@ -8,13 +8,13 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCVERSION_H)
+#ifndef SLEPCVERSION_H
 #define SLEPCVERSION_H
 
 #define SLEPC_VERSION_RELEASE    0
 #define SLEPC_VERSION_MAJOR      3
 #define SLEPC_VERSION_MINOR      19
-#define SLEPC_VERSION_SUBMINOR   0
+#define SLEPC_VERSION_SUBMINOR   2
 #define SLEPC_RELEASE_DATE       "March 31, 2023"
 #define SLEPC_VERSION_DATE       "unknown"
 
@@ -53,4 +53,3 @@
   (0 == SLEPC_VERSION_LT(MAJOR,MINOR,SUBMINOR))
 
 #endif
-

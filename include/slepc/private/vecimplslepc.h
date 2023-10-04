@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCVECIMPL_H)
-#define SLEPCVECIMPL_H
+#pragma once
 
 #include <slepcvec.h>
 #include <slepc/private/slepcimpl.h>
@@ -92,8 +91,7 @@ typedef struct VecPool_ {
 } VecPool_;
 typedef VecPool_* VecPool;
 
-SLEPC_EXTERN PetscErrorCode SlepcVecPoolCreate(Vec,PetscInt,VecPool*);
-SLEPC_EXTERN PetscErrorCode SlepcVecPoolDestroy(VecPool*);
-SLEPC_EXTERN PetscErrorCode SlepcVecPoolGetVecs(VecPool,PetscInt,Vec**);
-SLEPC_EXTERN PetscErrorCode SlepcVecPoolRestoreVecs(VecPool,PetscInt,Vec**);
-#endif
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolCreate(Vec,PetscInt,VecPool*);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolDestroy(VecPool*);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolGetVecs(VecPool,PetscInt,Vec**);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcVecPoolRestoreVecs(VecPool,PetscInt,Vec**);

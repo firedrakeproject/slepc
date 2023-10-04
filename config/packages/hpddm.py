@@ -17,8 +17,8 @@ class HPDDM(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'hpddm'
     self.downloadable   = True
-    # self.gitcommit      = '6de1168878a50fd9ee55e80758cc9a6820d7b1f1'
-    self.version        = '2.2.3'
+    # self.gitcommit      = '89a9ca805bd0c6abb287d1f1b017cbb2d9ac5293'
+    self.version        = '2.2.4'
     obj = self.version if hasattr(self,'version') else self.gitcommit
     self.url            = 'https://github.com/hpddm/hpddm/archive/'+('v'+obj if hasattr(self,'version') else obj)+'.tar.gz'
     self.archive        = 'hpddm-'+obj+'.tar.gz'
@@ -28,8 +28,8 @@ class HPDDM(package.Package):
 
   def Precondition(self,slepc,petsc):
     pkg = self.packagename.upper()
-    if not petsc.cxxdialectcxx11:
-      self.log.Exit(pkg+' requires C++11')
+    if petsc.maxcxxdialect == '':
+      self.log.Exit(pkg+' requires a functioning C++ compiler')
     if not petsc.buildsharedlib:
       self.log.Exit(pkg+' requires a shared library build')
     if 'slepc' in petsc.packages:
@@ -74,8 +74,10 @@ class HPDDM(package.Package):
     l = self.slflag+d+' -L'+d+' -lhpddm_petsc'
     f = '-I'+incdir
     # Write configuration files
+    self.libflags = l
+    self.includeflags = f
     slepcconf.write('#define SLEPC_HAVE_HPDDM 1\n')
-    slepcvars.write('HPDDM_LIB = '+l+'\n')
-    slepcvars.write('HPDDM_INCLUDE = '+f+'\n')
+    slepcvars.write('HPDDM_LIB = '+self.libflags+'\n')
+    slepcvars.write('HPDDM_INCLUDE = '+self.includeflags+'\n')
     self.packageflags = l+' '+f
     self.havepackage = True

@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCBLASLAPACK_MANGLE_H)
-#define SLEPCBLASLAPACK_MANGLE_H
+#pragma once
 
 /* LAPACK functions without string parameters */
 #define BLASrot_     PETSCBLAS(rot,ROT)
@@ -66,7 +65,6 @@
 #if !defined(SLEPC_MISSING_LAPACK_TRSYL)
 #define LAPACKtrsyl_ PETSCBLAS(trsyl,TRSYL)
 #endif
-#define LAPACKtrtri_ PETSCBLAS(trtri,TRTRI)
 
 /* subroutines in which we use only the real version, do not care whether they have different name */
 #if !defined(SLEPC_MISSING_LAPACK_STEVR)
@@ -134,6 +132,4 @@
 #define BLASCOMPLEXgemm_   PETSCBLASCOMPLEX(gemm,GEMM)
 #define BLASCOMPLEXscal_   PETSCBLASCOMPLEX(scal,SCAL)
 #define LAPACKCOMPLEXgesv_ PETSCBLASCOMPLEX(gesv,GESV)
-#endif
-
 #endif

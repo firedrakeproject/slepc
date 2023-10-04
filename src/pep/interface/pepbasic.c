@@ -50,7 +50,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   PEP            pep;
 
   PetscFunctionBegin;
-  PetscValidPointer(outpep,2);
+  PetscAssertPointer(outpep,2);
   *outpep = NULL;
   PetscCall(PEPInitializePackage());
   PetscCall(SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView));
@@ -162,7 +162,7 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)pep,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -198,7 +198,7 @@ PetscErrorCode PEPGetType(PEP pep,PEPType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)pep)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -400,7 +400,7 @@ PetscErrorCode PEPGetBV(PEP pep,BV *bv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(bv,2);
+  PetscAssertPointer(bv,2);
   if (!pep->V) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)pep),&pep->V));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)pep->V,(PetscObject)pep,0));
@@ -461,7 +461,7 @@ PetscErrorCode PEPGetRG(PEP pep,RG *rg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(rg,2);
+  PetscAssertPointer(rg,2);
   if (!pep->rg) {
     PetscCall(RGCreate(PetscObjectComm((PetscObject)pep),&pep->rg));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)pep->rg,(PetscObject)pep,0));
@@ -520,7 +520,7 @@ PetscErrorCode PEPGetDS(PEP pep,DS *ds)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(ds,2);
+  PetscAssertPointer(ds,2);
   if (!pep->ds) {
     PetscCall(DSCreate(PetscObjectComm((PetscObject)pep),&pep->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)pep->ds,(PetscObject)pep,0));
@@ -579,7 +579,7 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(st,2);
+  PetscAssertPointer(st,2);
   if (!pep->st) {
     PetscCall(STCreate(PetscObjectComm((PetscObject)pep),&pep->st));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)pep->st,(PetscObject)pep,0));
@@ -611,7 +611,7 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(ksp,2);
+  PetscAssertPointer(ksp,2);
   if (!pep->refineksp) {
     if (pep->npart>1) {
       /* Split in subcomunicators */
@@ -688,7 +688,7 @@ PetscErrorCode PEPGetTarget(PEP pep,PetscScalar* target)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidScalarPointer(target,2);
+  PetscAssertPointer(target,2);
   *target = pep->target;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

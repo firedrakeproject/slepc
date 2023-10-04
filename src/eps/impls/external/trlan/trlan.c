@@ -20,7 +20,7 @@ static struct {
   Vec x,y;
 } globaldata;
 
-PetscErrorCode EPSSetUp_TRLAN(EPS eps)
+static PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
@@ -67,7 +67,7 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_TRLAN(EPS eps)
+static PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
   PetscInt       i;
   PetscBLASInt   ipar[32],n,lohi,stat,ncv;
@@ -131,7 +131,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_TRLAN(EPS eps)
+static PetscErrorCode EPSReset_TRLAN(EPS eps)
 {
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
@@ -140,7 +140,7 @@ PetscErrorCode EPSReset_TRLAN(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_TRLAN(EPS eps)
+static PetscErrorCode EPSDestroy_TRLAN(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));

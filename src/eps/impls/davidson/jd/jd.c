@@ -31,7 +31,7 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/davidson.h>
 
-PetscErrorCode EPSSetFromOptions_JD(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSSetFromOptions_JD(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,flg2,op,orth;
   PetscInt       opi,opi0;
@@ -73,7 +73,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps,PetscOptionItems *PetscOptionsObject
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetDefaultST_JD(EPS eps)
+static PetscErrorCode EPSSetDefaultST_JD(EPS eps)
 {
   KSP            ksp;
 
@@ -90,7 +90,7 @@ PetscErrorCode EPSSetDefaultST_JD(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSetUp_JD(EPS eps)
+static PetscErrorCode EPSSetUp_JD(EPS eps)
 {
   PetscBool      t;
   KSP            ksp;
@@ -106,7 +106,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
+static PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
 {
   PetscBool      isascii,opb;
   PetscReal      opf;
@@ -136,7 +136,7 @@ PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_JD(EPS eps)
+static PetscErrorCode EPSDestroy_JD(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
@@ -205,7 +205,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(krylovstart,2);
+  PetscAssertPointer(krylovstart,2);
   PetscUseMethod(eps,"EPSJDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -256,7 +256,7 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(blocksize,2);
+  PetscAssertPointer(blocksize,2);
   PetscUseMethod(eps,"EPSJDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -375,12 +375,12 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(initialsize,2);
+  PetscAssertPointer(initialsize,2);
   PetscUseMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
+static PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -456,12 +456,12 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidRealPointer(fix,2);
+  PetscAssertPointer(fix,2);
   PetscUseMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
+static PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -530,7 +530,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(constant,2);
+  PetscAssertPointer(constant,2);
   PetscUseMethod(eps,"EPSJDGetConstCorrectionTol_C",(EPS,PetscBool*),(eps,constant));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -581,7 +581,7 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(borth,2);
+  PetscAssertPointer(borth,2);
   PetscUseMethod(eps,"EPSJDGetBOrth_C",(EPS,PetscBool*),(eps,borth));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

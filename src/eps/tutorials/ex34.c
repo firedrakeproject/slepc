@@ -36,10 +36,12 @@ PetscErrorCode FormFunctionB(SNES,Vec,Vec,void*);
 PetscErrorCode MatMult_B(Mat A,Vec x,Vec y);
 PetscErrorCode FormFunctionAB(SNES,Vec,Vec,Vec,void*);
 PetscErrorCode BoundaryGlobalIndex(DM,const char*,IS*);
+PetscErrorCode FormNorm(SNES,Vec,PetscReal*,void*);
 
 typedef struct {
   IS    bdis; /* global indices for boundary DoFs */
   SNES  snes;
+  EPS   eps;
 } AppCtx;
 
 int main(int argc,char **argv)
@@ -57,7 +59,7 @@ int main(int argc,char **argv)
   PetscBool      nonlin,flg=PETSC_FALSE,update;
   SNES           snes;
   PetscReal      tol,relerr;
-  PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE;
+  PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE,use_custom_norm=PETSC_FALSE,sign_normalization=PETSC_TRUE;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -81,6 +83,10 @@ int main(int argc,char **argv)
     PetscCall(DMCreateMatrix(dm,&A));
     PetscCall(MatDuplicate(A,MAT_COPY_VALUES,&B));
   }
+  /* Check whether we should use a custom normalization */
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-use_custom_norm",&use_custom_norm,NULL));
+  /* Check whether we should normalize Bx by the sign of its first nonzero element */
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-sign_normalization",&sign_normalization,NULL));
 
   /*
      Compose callback functions and context that will be needed by the solver
@@ -90,11 +96,13 @@ int main(int argc,char **argv)
   if (flg) PetscCall(PetscObjectComposeFunction((PetscObject)A,"formFunctionAB",FormFunctionAB));
   PetscCall(PetscObjectComposeFunction((PetscObject)A,"formJacobian",FormJacobianA));
   PetscCall(PetscObjectComposeFunction((PetscObject)B,"formFunction",FormFunctionB));
+  if (use_custom_norm) PetscCall(PetscObjectComposeFunction((PetscObject)B,"formNorm",FormNorm));
   PetscCall(PetscContainerCreate(comm,&container));
   PetscCall(PetscContainerSetPointer(container,&user));
   PetscCall(PetscObjectCompose((PetscObject)A,"formFunctionCtx",(PetscObject)container));
   PetscCall(PetscObjectCompose((PetscObject)A,"formJacobianCtx",(PetscObject)container));
   PetscCall(PetscObjectCompose((PetscObject)B,"formFunctionCtx",(PetscObject)container));
+  if (use_custom_norm) PetscCall(PetscObjectCompose((PetscObject)B,"formNormCtx",(PetscObject)container));
   PetscCall(PetscContainerDestroy(&container));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -104,11 +112,14 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(comm,&eps));
   PetscCall(EPSSetOperators(eps,A,B));
   PetscCall(EPSSetProblemType(eps,EPS_GNHEP));
+  user.eps = eps;
   /*
      Use nonlinear inverse iteration
   */
   PetscCall(EPSSetType(eps,EPSPOWER));
   PetscCall(EPSPowerSetNonlinear(eps,PETSC_TRUE));
+  /* Set the Bx sign normalization (or not) */
+  PetscCall(EPSPowerSetSignNormalization(eps,sign_normalization));
   /*
     Attach DM to SNES
   */
@@ -176,7 +187,8 @@ int main(int argc,char **argv)
     PetscCall(FormFunctionB(snes,eigen,b,&user));
     PetscCall(VecAXPY(a,-k,b));
     PetscCall(VecNorm(a,NORM_2,&na));
-    PetscCall(VecNorm(b,NORM_2,&nb));
+    if (use_custom_norm) PetscCall(FormNorm(snes,b,&nb,&user));
+    else PetscCall(VecNorm(b,NORM_2,&nb));
     relerr = na/(nb*PetscAbsScalar(k));
     if (relerr<10*tol) PetscCall(PetscPrintf(comm,"k: %g, relative error below tol\n",(double)PetscRealPart(k)));
     else PetscCall(PetscPrintf(comm,"k: %g, relative error: %g\n",(double)PetscRealPart(k),(double)relerr));
@@ -447,6 +459,13 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+PetscErrorCode FormNorm(SNES snes,Vec Bx,PetscReal *norm,void *ctx)
+{
+  PetscFunctionBegin;
+  PetscCall(VecNorm(Bx,NORM_2,norm));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 PetscErrorCode MatMult_A(Mat A,Vec x,Vec y)
 {
   AppCtx         *userctx;
@@ -528,4 +547,29 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
          args: -use_shell_matrix -eps_power_update -init_eps_power_snes_mf_operator 1 -eps_power_snes_mf_operator 1 -form_function_ab {{0 1}} -eps_monitor_all
          output_file: output/ex34_6.out
          filter: sed -e "s/\([+-].*i\)//g" -e "1,3s/[0-9]//g" -e "/[45] EPS/d"
+      test:
+         suffix: 7
+         args: -use_custom_norm -sign_normalization 1 -eps_power_snes_mf_operator 1
+      test:
+         suffix: 8
+         args: -use_custom_norm -sign_normalization 1 -eps_power_update -form_function_ab {{0 1}} -eps_power_snes_mf_operator 1 -init_eps_power_snes_mf_operator 1
+         filter: sed -e "s/ with monolithic update//"
+      test:
+         suffix: 9
+         requires: !complex
+         args: -use_custom_norm {{0 1}} -sign_normalization 0 -eps_power_snes_mf_operator 1
+      test:
+         suffix: 10
+         requires: !complex
+         args: -use_custom_norm {{0 1}} -sign_normalization 0 -eps_power_update -form_function_ab {{0 1}} -eps_power_snes_mf_operator 1 -init_eps_power_snes_mf_operator 1
+         filter: sed -e "s/ with monolithic update//"
+      test:
+         suffix: 11
+         requires: complex
+         args: -use_custom_norm {{0 1}} -sign_normalization 0 -eps_power_snes_type nrichardson -eps_power_snes_atol 1e-12
+      test:
+         suffix: 12
+         requires: complex
+         args: -use_custom_norm {{0 1}} -sign_normalization 0 -eps_power_update -init_eps_power_snes_type nrichardson -init_eps_max_it 2 -eps_power_snes_mf_operator 1
+         filter: sed -e "s/ with monolithic update//"
 TEST*/

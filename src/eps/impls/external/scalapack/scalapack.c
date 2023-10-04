@@ -18,7 +18,7 @@ typedef struct {
   Mat As,Bs;        /* converted matrices */
 } EPS_ScaLAPACK;
 
-PetscErrorCode EPSSetUp_ScaLAPACK(EPS eps)
+static PetscErrorCode EPSSetUp_ScaLAPACK(EPS eps)
 {
   EPS_ScaLAPACK  *ctx = (EPS_ScaLAPACK*)eps->data;
   Mat            A,B;
@@ -57,7 +57,7 @@ PetscErrorCode EPSSetUp_ScaLAPACK(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
+static PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
 {
   EPS_ScaLAPACK  *ctx = (EPS_ScaLAPACK*)eps->data;
   Mat            A = ctx->As,B = ctx->Bs,Q,V;
@@ -150,14 +150,14 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSDestroy_ScaLAPACK(EPS eps)
+static PetscErrorCode EPSDestroy_ScaLAPACK(EPS eps)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(eps->data));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSReset_ScaLAPACK(EPS eps)
+static PetscErrorCode EPSReset_ScaLAPACK(EPS eps)
 {
   EPS_ScaLAPACK  *ctx = (EPS_ScaLAPACK*)eps->data;
 

@@ -149,7 +149,7 @@ static PetscErrorCode PEPCISSSolve(PEP pep,Mat dT,BV V,PetscInt L_start,PetscInt
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetUp_CISS(PEP pep)
+static PetscErrorCode PEPSetUp_CISS(PEP pep)
 {
   PEP_CISS         *ctx = (PEP_CISS*)pep->data;
   SlepcContourData contour;
@@ -249,7 +249,7 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSolve_CISS(PEP pep)
+static PetscErrorCode PEPSolve_CISS(PEP pep)
 {
   PEP_CISS         *ctx = (PEP_CISS*)pep->data;
   SlepcContourData contour = ctx->contour;
@@ -848,7 +848,7 @@ PetscErrorCode PEPCISSGetExtraction(PEP pep,PEPCISSExtraction *extraction)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(extraction,2);
+  PetscAssertPointer(extraction,2);
   PetscUseMethod(pep,"PEPCISSGetExtraction_C",(PEP,PEPCISSExtraction*),(pep,extraction));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -925,7 +925,7 @@ PetscErrorCode PEPCISSGetKSPs(PEP pep,PetscInt *nsolve,KSP **ksp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPReset_CISS(PEP pep)
+static PetscErrorCode PEPReset_CISS(PEP pep)
 {
   PEP_CISS       *ctx = (PEP_CISS*)pep->data;
 
@@ -940,7 +940,7 @@ PetscErrorCode PEPReset_CISS(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetFromOptions_CISS(PEP pep,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode PEPSetFromOptions_CISS(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PEP_CISS          *ctx = (PEP_CISS*)pep->data;
   PetscReal         r1,r2;
@@ -984,7 +984,7 @@ PetscErrorCode PEPSetFromOptions_CISS(PEP pep,PetscOptionItems *PetscOptionsObje
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPDestroy_CISS(PEP pep)
+static PetscErrorCode PEPDestroy_CISS(PEP pep)
 {
   PEP_CISS       *ctx = (PEP_CISS*)pep->data;
 
@@ -1004,7 +1004,7 @@ PetscErrorCode PEPDestroy_CISS(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPView_CISS(PEP pep,PetscViewer viewer)
+static PetscErrorCode PEPView_CISS(PEP pep,PetscViewer viewer)
 {
   PEP_CISS       *ctx = (PEP_CISS*)pep->data;
   PetscBool      isascii;
@@ -1035,7 +1035,7 @@ PetscErrorCode PEPView_CISS(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode PEPSetDSType_CISS(PEP pep)
+static PetscErrorCode PEPSetDSType_CISS(PEP pep)
 {
   PEP_CISS       *ctx = (PEP_CISS*)pep->data;
 

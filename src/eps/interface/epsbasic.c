@@ -50,7 +50,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   EPS            eps;
 
   PetscFunctionBegin;
-  PetscValidPointer(outeps,2);
+  PetscAssertPointer(outeps,2);
   *outeps = NULL;
   PetscCall(EPSInitializePackage());
   PetscCall(SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView));
@@ -163,7 +163,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidCharPointer(type,2);
+  PetscAssertPointer(type,2);
 
   PetscCall(PetscObjectTypeCompare((PetscObject)eps,type,&match));
   if (match) PetscFunctionReturn(PETSC_SUCCESS);
@@ -199,7 +199,7 @@ PetscErrorCode EPSGetType(EPS eps,EPSType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = ((PetscObject)eps)->type_name;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -409,7 +409,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidScalarPointer(target,2);
+  PetscAssertPointer(target,2);
   *target = eps->target;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -534,7 +534,7 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(st,2);
+  PetscAssertPointer(st,2);
   if (!eps->st) {
     PetscCall(STCreate(PetscObjectComm((PetscObject)eps),&eps->st));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->st,(PetscObject)eps,0));
@@ -588,7 +588,7 @@ PetscErrorCode EPSGetBV(EPS eps,BV *V)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(V,2);
+  PetscAssertPointer(V,2);
   if (!eps->V) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)eps),&eps->V));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->V,(PetscObject)eps,0));
@@ -648,7 +648,7 @@ PetscErrorCode EPSGetRG(EPS eps,RG *rg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(rg,2);
+  PetscAssertPointer(rg,2);
   if (!eps->rg) {
     PetscCall(RGCreate(PetscObjectComm((PetscObject)eps),&eps->rg));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->rg,(PetscObject)eps,0));
@@ -706,7 +706,7 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(ds,2);
+  PetscAssertPointer(ds,2);
   if (!eps->ds) {
     PetscCall(DSCreate(PetscObjectComm((PetscObject)eps),&eps->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->ds,(PetscObject)eps,0));
@@ -736,7 +736,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(is,2);
+  PetscAssertPointer(is,2);
   *is = eps->isgeneralized;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -761,7 +761,7 @@ PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(is,2);
+  PetscAssertPointer(is,2);
   *is = eps->ishermitian;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -786,7 +786,7 @@ PetscErrorCode EPSIsPositive(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidBoolPointer(is,2);
+  PetscAssertPointer(is,2);
   *is = eps->ispositive;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

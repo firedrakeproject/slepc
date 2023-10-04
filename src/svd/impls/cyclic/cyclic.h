@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPC_CYCLIC_H)
-#define SLEPC_CYCLIC_H
+#pragma once
 
 typedef struct {
   PetscBool explicitmatrix;
@@ -27,5 +26,3 @@ typedef struct {
 
 SLEPC_INTERN PetscErrorCode MatMult_Cyclic_CUDA(Mat,Vec,Vec);
 SLEPC_INTERN PetscErrorCode MatMult_ECross_CUDA(Mat,Vec,Vec);
-
-#endif

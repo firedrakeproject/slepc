@@ -10,8 +10,8 @@
 /*
    Private header for Deflation in NEP
 */
-#if !defined(SLEPC_NEPDEFL_H)
-#define SLEPC_NEPDEFL_H
+
+#pragma once
 
 # define MAX_MINIDX 1
 
@@ -97,7 +97,6 @@ typedef struct {
   BV          X;
   PetscInt    n;
 } NEP_DEF_PCSHELL;
-#endif
 #endif
 
 SLEPC_INTERN PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP,Vec,PetscScalar*,Vec,PetscBool);

@@ -11,14 +11,14 @@
    User interface for SLEPc's polynomial eigenvalue solvers
 */
 
-#if !defined(SLEPCPEP_H)
-#define SLEPCPEP_H
+#pragma once
 
 #include <slepceps.h>
 
 /* SUBMANSEC = PEP */
 
 SLEPC_EXTERN PetscErrorCode PEPInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode PEPFinalizePackage(void);
 
 /*S
      PEP - Abstract SLEPc object that manages all the polynomial eigenvalue
@@ -219,12 +219,12 @@ SLEPC_EXTERN PetscErrorCode PEPSolve(PEP);
 SLEPC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode PEPViewFromOptions(PEP,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode PEPErrorView(PEP,PEPErrorType,PetscViewer);
-PETSC_DEPRECATED_FUNCTION("Use PEPErrorView()") static inline PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "PEPErrorView()", ) static inline PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
 SLEPC_EXTERN PetscErrorCode PEPErrorViewFromOptions(PEP);
 SLEPC_EXTERN PetscErrorCode PEPConvergedReasonView(PEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode PEPConvergedReasonViewFromOptions(PEP);
-PETSC_DEPRECATED_FUNCTION("Use PEPConvergedReasonView() (since version 3.14)") static inline PetscErrorCode PEPReasonView(PEP pep,PetscViewer v) {return PEPConvergedReasonView(pep,v);}
-PETSC_DEPRECATED_FUNCTION("Use PEPConvergedReasonViewFromOptions() (since version 3.14)") static inline PetscErrorCode PEPReasonViewFromOptions(PEP pep) {return PEPConvergedReasonViewFromOptions(pep);}
+PETSC_DEPRECATED_FUNCTION(3, 14, 0, "PEPConvergedReasonView()", ) static inline PetscErrorCode PEPReasonView(PEP pep,PetscViewer v) {return PEPConvergedReasonView(pep,v);}
+PETSC_DEPRECATED_FUNCTION(3, 14, 0, "PEPConvergedReasonViewFromOptions()", ) static inline PetscErrorCode PEPReasonViewFromOptions(PEP pep) {return PEPConvergedReasonViewFromOptions(pep);}
 SLEPC_EXTERN PetscErrorCode PEPValuesView(PEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode PEPValuesViewFromOptions(PEP);
 SLEPC_EXTERN PetscErrorCode PEPVectorsView(PEP,PetscViewer);
@@ -267,8 +267,8 @@ SLEPC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 SLEPC_EXTERN PetscErrorCode PEPGetConverged(PEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode PEPGetEigenpair(PEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode PEPComputeError(PEP,PetscInt,PEPErrorType,PetscReal*);
-PETSC_DEPRECATED_FUNCTION("Use PEPComputeError()") static inline PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_BACKWARD,r);}
-PETSC_DEPRECATED_FUNCTION("Use PEPComputeError() with PEP_ERROR_ABSOLUTE") static inline PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_ABSOLUTE,r);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "PEPComputeError()", ) static inline PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_BACKWARD,r);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "PEPComputeError() with PEP_ERROR_ABSOLUTE", ) static inline PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_ABSOLUTE,r);}
 SLEPC_EXTERN PetscErrorCode PEPGetErrorEstimate(PEP,PetscInt,PetscReal*);
 SLEPC_EXTERN PetscErrorCode PEPGetIterationNumber(PEP,PetscInt*);
 
@@ -321,8 +321,8 @@ SLEPC_EXTERN PetscErrorCode PEPLinearSetExplicitMatrix(PEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
 SLEPC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
 SLEPC_EXTERN PetscErrorCode PEPLinearGetEPS(PEP,EPS*);
-PETSC_DEPRECATED_FUNCTION("Use PEPLinearSetLinearization()") static inline PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform) {return (cform==1)?PEPLinearSetLinearization(pep,1.0,0.0):PEPLinearSetLinearization(pep,0.0,1.0);}
-PETSC_DEPRECATED_FUNCTION("Use PEPLinearGetLinearization()") static inline PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform) {(void)pep; if (cform) *cform=1; return PETSC_SUCCESS;}
+PETSC_DEPRECATED_FUNCTION(3, 10, 0, "PEPLinearSetLinearization()", ) static inline PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform) {return (cform==1)?PEPLinearSetLinearization(pep,1.0,0.0):PEPLinearSetLinearization(pep,0.0,1.0);}
+PETSC_DEPRECATED_FUNCTION(3, 10, 0, "PEPLinearGetLinearization()", ) static inline PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform) {(void)pep; if (cform) *cform=1; return PETSC_SUCCESS;}
 
 SLEPC_EXTERN PetscErrorCode PEPQArnoldiSetRestart(PEP,PetscReal);
 SLEPC_EXTERN PetscErrorCode PEPQArnoldiGetRestart(PEP,PetscReal*);
@@ -406,5 +406,4 @@ static inline PetscErrorCode PEPCISSSetRefinement(PEP pep,PETSC_UNUSED PetscInt 
 static inline PetscErrorCode PEPCISSGetRefinement(PEP pep,PETSC_UNUSED PetscInt *inner,PETSC_UNUSED PetscInt *blsize) {SlepcPEPCISSUnavailable(pep);}
 static inline PetscErrorCode PEPCISSGetKSPs(PEP pep,PETSC_UNUSED PetscInt *nsolve,PETSC_UNUSED KSP **ksp) {SlepcPEPCISSUnavailable(pep);}
 #undef SlepcPEPCISSUnavailable
-#endif
 #endif

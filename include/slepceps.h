@@ -11,8 +11,7 @@
    User interface for the SLEPc linear eigenvalue solvers
 */
 
-#if !defined(SLEPCEPS_H)
-#define SLEPCEPS_H
+#pragma once
 
 #include <slepcst.h>
 #include <slepcbv.h>
@@ -24,6 +23,7 @@
 /* SUBMANSEC = EPS */
 
 SLEPC_EXTERN PetscErrorCode EPSInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode EPSFinalizePackage(void);
 
 /*S
     EPS - Abstract SLEPc object that manages all the eigenvalue
@@ -202,12 +202,12 @@ SLEPC_EXTERN PetscErrorCode EPSSolve(EPS);
 SLEPC_EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
 SLEPC_EXTERN PetscErrorCode EPSViewFromOptions(EPS,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode EPSErrorView(EPS,EPSErrorType,PetscViewer);
-PETSC_DEPRECATED_FUNCTION("Use EPSErrorView()") static inline PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer v) {return EPSErrorView(eps,EPS_ERROR_RELATIVE,v);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "EPSErrorView()", ) static inline PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer v) {return EPSErrorView(eps,EPS_ERROR_RELATIVE,v);}
 SLEPC_EXTERN PetscErrorCode EPSErrorViewFromOptions(EPS);
 SLEPC_EXTERN PetscErrorCode EPSConvergedReasonView(EPS,PetscViewer);
 SLEPC_EXTERN PetscErrorCode EPSConvergedReasonViewFromOptions(EPS);
-PETSC_DEPRECATED_FUNCTION("Use EPSConvergedReasonView() (since version 3.14)") static inline PetscErrorCode EPSReasonView(EPS eps,PetscViewer v) {return EPSConvergedReasonView(eps,v);}
-PETSC_DEPRECATED_FUNCTION("Use EPSConvergedReasonViewFromOptions() (since version 3.14)") static inline PetscErrorCode EPSReasonViewFromOptions(EPS eps) {return EPSConvergedReasonViewFromOptions(eps);}
+PETSC_DEPRECATED_FUNCTION(3, 14, 0, "EPSConvergedReasonView()", ) static inline PetscErrorCode EPSReasonView(EPS eps,PetscViewer v) {return EPSConvergedReasonView(eps,v);}
+PETSC_DEPRECATED_FUNCTION(3, 14, 0, "EPSConvergedReasonViewFromOptions()", ) static inline PetscErrorCode EPSReasonViewFromOptions(EPS eps) {return EPSConvergedReasonViewFromOptions(eps);}
 SLEPC_EXTERN PetscErrorCode EPSValuesView(EPS,PetscViewer);
 SLEPC_EXTERN PetscErrorCode EPSValuesViewFromOptions(EPS);
 SLEPC_EXTERN PetscErrorCode EPSVectorsView(EPS,PetscViewer);
@@ -249,8 +249,8 @@ SLEPC_EXTERN PetscErrorCode EPSGetEigenvector(EPS,PetscInt,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode EPSGetLeftEigenvector(EPS,PetscInt,Vec,Vec);
 
 SLEPC_EXTERN PetscErrorCode EPSComputeError(EPS,PetscInt,EPSErrorType,PetscReal*);
-PETSC_DEPRECATED_FUNCTION("Use EPSComputeError()") static inline PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_RELATIVE,r);}
-PETSC_DEPRECATED_FUNCTION("Use EPSComputeError() with EPS_ERROR_ABSOLUTE") static inline PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_ABSOLUTE,r);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "EPSComputeError()", ) static inline PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "EPSComputeError() with EPS_ERROR_ABSOLUTE", ) static inline PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_ABSOLUTE,r);}
 SLEPC_EXTERN PetscErrorCode EPSGetInvariantSubspace(EPS,Vec[]);
 SLEPC_EXTERN PetscErrorCode EPSGetErrorEstimate(EPS,PetscInt,PetscReal*);
 SLEPC_EXTERN PetscErrorCode EPSGetIterationNumber(EPS,PetscInt*);
@@ -329,6 +329,8 @@ SLEPC_EXTERN PetscErrorCode EPSPowerSetNonlinear(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSPowerGetNonlinear(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSPowerSetUpdate(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSPowerGetUpdate(EPS,PetscBool*);
+SLEPC_EXTERN PetscErrorCode EPSPowerSetSignNormalization(EPS,PetscBool);
+SLEPC_EXTERN PetscErrorCode EPSPowerGetSignNormalization(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSPowerSetSNES(EPS,SNES);
 SLEPC_EXTERN PetscErrorCode EPSPowerGetSNES(EPS,SNES*);
 
@@ -520,6 +522,3 @@ SLEPC_EXTERN PetscErrorCode EPSEVSLGetDamping(EPS,EPSEVSLDamping*);
 
 SLEPC_EXTERN PetscErrorCode EPSFEASTSetNumPoints(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSFEASTGetNumPoints(EPS,PetscInt*);
-
-#endif
-

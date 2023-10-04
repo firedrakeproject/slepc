@@ -88,7 +88,7 @@ static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
   PetscCall(SlepcGetVersion(version,256));
   PetscCall((*PetscHelpPrintf)(comm,"%s\n",version));
   PetscCall((*PetscHelpPrintf)(comm,SLEPC_AUTHOR_INFO));
-  PetscCall((*PetscHelpPrintf)(comm,"See docs/manual.html for help.\n"));
+  PetscCall((*PetscHelpPrintf)(comm,"See https://slepc.upv.es/documentation/ for help.\n"));
   PetscCall((*PetscHelpPrintf)(comm,"SLEPc libraries linked from %s\n",SLEPC_LIB_DIR));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -218,7 +218,7 @@ PetscErrorCode SlepcCitationsInitialize(void)
     "   volume = \"31\",\n"
     "   number = \"3\",\n"
     "   pages = \"351--362\",\n"
-    "   year = \"2005,\"\n"
+    "   year = \"2005\",\n"
     "   doi = \"https://doi.org/10.1145/1089014.1089019\"\n"
     "}\n",NULL));
   PetscCall(PetscCitationsRegister("@TechReport{slepc-manual,\n"
@@ -250,7 +250,7 @@ PetscErrorCode SlepcCitationsInitialize(void)
 
    Level: beginner
 
-.seealso: SlepcFinalize(), PetscInitialize()
+.seealso: SlepcFinalize(), PetscInitialize(), SlepcInitializeFortran()
 @*/
 PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const char help[])
 {

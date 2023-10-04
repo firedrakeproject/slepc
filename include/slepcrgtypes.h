@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCRGTYPES_H)
-#define SLEPCRGTYPES_H
+#pragma once
 
 /* SUBMANSEC = RG */
 
@@ -21,5 +20,3 @@
 .seealso: RGCreate()
 S*/
 typedef struct _p_RG* RG;
-
-#endif

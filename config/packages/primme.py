@@ -86,9 +86,11 @@ class Primme(package.Package):
           f = []
         (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
         if result:
+          self.libflags = ' '.join(l)
+          self.includeflags = ' '.join(f)
           slepcconf.write('#define SLEPC_HAVE_PRIMME 1\n')
-          slepcvars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
-          slepcvars.write('PRIMME_INCLUDE = ' + ' '.join(f) + '\n')
+          slepcvars.write('PRIMME_LIB = ' + self.libflags + '\n')
+          slepcvars.write('PRIMME_INCLUDE = ' + self.includeflags + '\n')
           self.havepackage = True
           self.packageflags = ' '.join(l+f)
           self.location = includes[0] if self.packageincludes else i
@@ -151,9 +153,11 @@ class Primme(package.Package):
       self.log.Exit('Unable to link with downloaded PRIMME')
 
     # Write configuration files
+    self.libflags = l
+    self.includeflags = f
     slepcconf.write('#define SLEPC_HAVE_PRIMME 1\n')
-    slepcvars.write('PRIMME_LIB = ' + l + '\n')
-    slepcvars.write('PRIMME_INCLUDE = ' + f + '\n')
+    slepcvars.write('PRIMME_LIB = ' + self.libflags + '\n')
+    slepcvars.write('PRIMME_INCLUDE = ' + self.includeflags + '\n')
 
     self.location = incdir
     self.havepackage = True

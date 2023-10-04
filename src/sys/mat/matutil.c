@@ -305,7 +305,7 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   PetscValidLogicalCollectiveScalar(A,b,3);
   PetscValidLogicalCollectiveScalar(A,c,5);
   PetscValidLogicalCollectiveScalar(A,d,7);
-  PetscValidPointer(G,9);
+  PetscAssertPointer(G,9);
 
   /* check row 1 */
   PetscCall(MatGetSize(A,&M1,NULL));
@@ -467,7 +467,7 @@ PetscErrorCode MatNormEstimate(Mat A,Vec vrn,Vec w,PetscReal *nrm)
   PetscValidType(A,1);
   if (vrn) PetscValidHeaderSpecific(vrn,VEC_CLASSID,2);
   if (w) PetscValidHeaderSpecific(w,VEC_CLASSID,3);
-  PetscValidRealPointer(nrm,4);
+  PetscAssertPointer(nrm,4);
 
   if (!vrn) {
     PetscCall(MatCreateVecs(A,&vv,NULL));

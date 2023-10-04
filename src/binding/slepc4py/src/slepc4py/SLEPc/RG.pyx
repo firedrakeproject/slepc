@@ -68,7 +68,7 @@ cdef class RG(Object):
         cdef MPI_Comm ccomm = def_Comm(comm, SLEPC_COMM_DEFAULT())
         cdef SlepcRG newrg = NULL
         CHKERR( RGCreate(ccomm, &newrg) )
-        SlepcCLEAR(self.obj); self.rg = newrg
+        CHKERR( SlepcCLEAR(self.obj) ); self.rg = newrg
         return self
 
     def setType(self, rg_type):
@@ -114,7 +114,7 @@ cdef class RG(Object):
         prefix name.  The first character of all runtime options is
         AUTOMATICALLY the hyphen.
         """
-        cdef const_char *cval = NULL
+        cdef const char *cval = NULL
         prefix = str2bytes(prefix, &cval)
         CHKERR( RGSetOptionsPrefix(self.rg, cval) )
 
@@ -128,7 +128,7 @@ cdef class RG(Object):
         prefix: string
                 The prefix string set for this RG object.
         """
-        cdef const_char *prefix = NULL
+        cdef const char *prefix = NULL
         CHKERR( RGGetOptionsPrefix(self.rg, &prefix) )
         return bytes2str(prefix)
 

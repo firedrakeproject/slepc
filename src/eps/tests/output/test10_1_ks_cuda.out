@@ -1,0 +1,7 @@
+
+Fiedler vector of a 2-D regular mesh, N=120 (10x12 grid)
+
+ Number of requested eigenvalues: 4
+ All requested eigenvalues computed up to the required tolerance:
+     7.83396, 7.63416, 7.54989, 7.35008
+

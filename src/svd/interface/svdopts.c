@@ -73,7 +73,7 @@ PetscErrorCode SVDGetImplicitTranspose(SVD svd,PetscBool *impl)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(impl,2);
+  PetscAssertPointer(impl,2);
   *impl = svd->impltrans;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -310,7 +310,7 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(which,2);
+  PetscAssertPointer(which,2);
   *which = svd->which;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -434,7 +434,7 @@ PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(conv,2);
+  PetscAssertPointer(conv,2);
   *conv = svd->conv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -548,7 +548,7 @@ PetscErrorCode SVDGetStoppingTest(SVD svd,SVDStop *stop)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(stop,2);
+  PetscAssertPointer(stop,2);
   *stop = svd->stop;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -691,13 +691,13 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     PetscCall(SVDMonitorSetFromOptions(svd,"-svd_monitor_conditioning","conditioning",NULL,PETSC_FALSE));
 
     /* -----------------------------------------------------------------------*/
-    PetscCall(PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",NULL));
-    PetscCall(PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",NULL));
-    PetscCall(PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",NULL));
-    PetscCall(PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDConvergedReasonView",NULL));
-    PetscCall(PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",NULL));
-    PetscCall(PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL));
-    PetscCall(PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",NULL));
+    PetscCall(PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",&set));
+    PetscCall(PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",&set));
+    PetscCall(PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",&set));
+    PetscCall(PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDConvergedReasonView",&set));
+    PetscCall(PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",&set));
+    PetscCall(PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",&set));
+    PetscCall(PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",&set));
 
     PetscTryTypeMethod(svd,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)svd,PetscOptionsObject));
@@ -781,7 +781,7 @@ PetscErrorCode SVDGetProblemType(SVD svd,SVDProblemType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = svd->problem_type;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -806,7 +806,7 @@ PetscErrorCode SVDIsGeneralized(SVD svd,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(is,2);
+  PetscAssertPointer(is,2);
   *is = svd->isgeneralized;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -831,7 +831,7 @@ PetscErrorCode SVDIsHyperbolic(SVD svd,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(is,2);
+  PetscAssertPointer(is,2);
   *is = svd->ishyperbolic;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -887,7 +887,7 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(trackall,2);
+  PetscAssertPointer(trackall,2);
   *trackall = svd->trackall;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -986,7 +986,7 @@ PetscErrorCode SVDGetOptionsPrefix(SVD svd,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)svd,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

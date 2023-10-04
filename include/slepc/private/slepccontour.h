@@ -8,8 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPCCONTOUR_H)
-#define SLEPCCONTOUR_H
+#pragma once
 
 #include <slepc/private/slepcimpl.h>
 #include <petscksp.h>
@@ -29,8 +28,8 @@ static inline PetscErrorCode CISS_BlockHankel(PetscScalar *Mu,PetscInt s,PetscIn
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-SLEPC_EXTERN PetscErrorCode SlepcCISS_isGhost(Mat,PetscInt,PetscReal*,PetscReal,PetscBool*);
-SLEPC_EXTERN PetscErrorCode SlepcCISS_BH_SVD(PetscScalar*,PetscInt,PetscReal,PetscReal*,PetscInt*);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcCISS_isGhost(Mat,PetscInt,PetscReal*,PetscReal,PetscBool*);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcCISS_BH_SVD(PetscScalar*,PetscInt,PetscReal,PetscReal*,PetscInt*);
 
 /* Data structures and functions for contour integral methods (used in several classes) */
 struct _n_SlepcContourData {
@@ -47,11 +46,9 @@ struct _n_SlepcContourData {
 };
 typedef struct _n_SlepcContourData* SlepcContourData;
 
-SLEPC_EXTERN PetscErrorCode SlepcContourDataCreate(PetscInt,PetscInt,PetscObject,SlepcContourData*);
-SLEPC_EXTERN PetscErrorCode SlepcContourDataReset(SlepcContourData);
-SLEPC_EXTERN PetscErrorCode SlepcContourDataDestroy(SlepcContourData*);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcContourDataCreate(PetscInt,PetscInt,PetscObject,SlepcContourData*);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcContourDataReset(SlepcContourData);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcContourDataDestroy(SlepcContourData*);
 
-SLEPC_EXTERN PetscErrorCode SlepcContourRedundantMat(SlepcContourData,PetscInt,Mat*,Mat*);
-SLEPC_EXTERN PetscErrorCode SlepcContourScatterCreate(SlepcContourData,Vec);
-
-#endif
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcContourRedundantMat(SlepcContourData,PetscInt,Mat*,Mat*);
+SLEPC_SINGLE_LIBRARY_INTERN PetscErrorCode SlepcContourScatterCreate(SlepcContourData,Vec);

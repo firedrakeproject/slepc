@@ -33,7 +33,7 @@
 #include <slepc/private/lmeimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode LMESetUp_Krylov(LME lme)
+static PetscErrorCode LMESetUp_Krylov(LME lme)
 {
   PetscInt       N;
 
@@ -45,7 +45,7 @@ PetscErrorCode LMESetUp_Krylov(LME lme)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,BV C1,BV *X1,PetscInt *col,PetscBool *fail,PetscInt *totalits)
+static PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,BV C1,BV *X1,PetscInt *col,PetscBool *fail,PetscInt *totalits)
 {
   PetscInt       n=0,m,ldh,ldg=0,i,j,rank=0,lrank,pass,nouter=0,its;
   PetscReal      bnorm,beta,errest;
@@ -157,7 +157,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
+static PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
 {
   PetscBool      fail,fixed = lme->X? PETSC_TRUE: PETSC_FALSE;
   PetscInt       i,k,rank=0,col=0;

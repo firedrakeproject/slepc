@@ -11,8 +11,7 @@
    User interface for the mathematical function object in SLEPc
 */
 
-#if !defined(SLEPCFN_H)
-#define SLEPCFN_H
+#pragma once
 
 #include <slepcsys.h>
 
@@ -21,6 +20,8 @@
 #define FN_MAX_SOLVE 16
 
 SLEPC_EXTERN PetscErrorCode FNInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode FNFinalizePackage(void);
+
 /*S
    FN - Abstraction of a mathematical function.
 
@@ -111,5 +112,3 @@ SLEPC_EXTERN PetscErrorCode FNCombineGetChildren(FN,FNCombineType*,FN*,FN*);
 
 SLEPC_EXTERN PetscErrorCode FNPhiSetIndex(FN,PetscInt);
 SLEPC_EXTERN PetscErrorCode FNPhiGetIndex(FN,PetscInt*);
-
-#endif

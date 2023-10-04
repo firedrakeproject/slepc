@@ -18,7 +18,7 @@ typedef struct {
   Mat Ae;        /* converted matrix */
 } SVD_Elemental;
 
-PetscErrorCode SVDSetUp_Elemental(SVD svd)
+static PetscErrorCode SVDSetUp_Elemental(SVD svd)
 {
   SVD_Elemental  *ctx = (SVD_Elemental*)svd->data;
   PetscInt       M,N;
@@ -41,7 +41,7 @@ PetscErrorCode SVDSetUp_Elemental(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDSolve_Elemental(SVD svd)
+static PetscErrorCode SVDSolve_Elemental(SVD svd)
 {
   SVD_Elemental  *ctx = (SVD_Elemental*)svd->data;
   Mat            A = ctx->Ae,Z,Q,U,V;
@@ -77,14 +77,14 @@ PetscErrorCode SVDSolve_Elemental(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDDestroy_Elemental(SVD svd)
+static PetscErrorCode SVDDestroy_Elemental(SVD svd)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(svd->data));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode SVDReset_Elemental(SVD svd)
+static PetscErrorCode SVDReset_Elemental(SVD svd)
 {
   SVD_Elemental  *ctx = (SVD_Elemental*)svd->data;
 

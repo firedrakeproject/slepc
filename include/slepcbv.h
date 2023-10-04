@@ -11,14 +11,14 @@
    User interface for the basis vectors object in SLEPc
 */
 
-#if !defined(SLEPCBV_H)
-#define SLEPCBV_H
+#pragma once
 
 #include <slepcsys.h>
 
 /* SUBMANSEC = BV */
 
 SLEPC_EXTERN PetscErrorCode BVInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode BVFinalizePackage(void);
 
 /*S
     BV - Basis vectors, SLEPc object representing a collection of vectors
@@ -158,7 +158,7 @@ SLEPC_EXTERN PetscErrorCode BVMultVec(BV,PetscScalar,PetscScalar,Vec,PetscScalar
 SLEPC_EXTERN PetscErrorCode BVMultColumn(BV,PetscScalar,PetscScalar,PetscInt,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode BVMultInPlace(BV,Mat,PetscInt,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVMultInPlaceHermitianTranspose(BV,Mat,PetscInt,PetscInt);
-PETSC_DEPRECATED_FUNCTION("Use BVMultInPlaceHermitianTranspose()") static inline PetscErrorCode BVMultInPlaceTranspose(BV bv,Mat A,PetscInt s,PetscInt e) {return BVMultInPlaceHermitianTranspose(bv,A,s,e);}
+PETSC_DEPRECATED_FUNCTION(3, 16, 0, "BVMultInPlaceHermitianTranspose()", ) static inline PetscErrorCode BVMultInPlaceTranspose(BV bv,Mat A,PetscInt s,PetscInt e) {return BVMultInPlaceHermitianTranspose(bv,A,s,e);}
 SLEPC_EXTERN PetscErrorCode BVMatMult(BV,Mat,BV);
 SLEPC_EXTERN PetscErrorCode BVMatMultTranspose(BV,Mat,BV);
 SLEPC_EXTERN PetscErrorCode BVMatMultHermitianTranspose(BV,Mat,BV);
@@ -250,6 +250,3 @@ SLEPC_EXTERN PetscErrorCode BVGetOptionsPrefix(BV,const char*[]);
 
 SLEPC_EXTERN PetscFunctionList BVList;
 SLEPC_EXTERN PetscErrorCode BVRegister(const char[],PetscErrorCode(*)(BV));
-
-#endif
-

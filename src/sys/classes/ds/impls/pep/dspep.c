@@ -16,7 +16,7 @@ typedef struct {
   PetscReal *pbc;           /* polynomial basis coefficients */
 } DS_PEP;
 
-PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
+static PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
 {
   DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       i;
@@ -31,7 +31,7 @@ PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
+static PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
 {
   DS_PEP            *ctx = (DS_PEP*)ds->data;
   PetscViewerFormat format;
@@ -49,7 +49,7 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+static PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   PetscCheck(!rnorm,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
@@ -64,7 +64,7 @@ PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *kout)
+static PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *kout)
 {
   DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       n,i,*perm,told;
@@ -90,7 +90,7 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_PEP            *ctx = (DS_PEP*)ds->data;
   PetscInt          i,j,k,off;
@@ -240,7 +240,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_PEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+static PetscErrorCode DSSynchronize_PEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       ld=ds->ld,k=0;
@@ -350,7 +350,7 @@ PetscErrorCode DSPEPGetDegree(DS ds,PetscInt *d)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(d,2);
+  PetscAssertPointer(d,2);
   PetscUseMethod(ds,"DSPEPGetDegree_C",(DS,PetscInt*),(ds,d));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -445,12 +445,12 @@ PetscErrorCode DSPEPGetCoefficients(DS ds,PetscReal **pbc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(pbc,2);
+  PetscAssertPointer(pbc,2);
   PetscUseMethod(ds,"DSPEPGetCoefficients_C",(DS,PetscReal**),(ds,pbc));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSDestroy_PEP(DS ds)
+static PetscErrorCode DSDestroy_PEP(DS ds)
 {
   DS_PEP         *ctx = (DS_PEP*)ds->data;
 
@@ -464,7 +464,7 @@ PetscErrorCode DSDestroy_PEP(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode DSMatGetSize_PEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+static PetscErrorCode DSMatGetSize_PEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
   DS_PEP *ctx = (DS_PEP*)ds->data;
 

@@ -17,6 +17,7 @@ class Sowing(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'sowing'
     self.downloadable = True
+    self.inplace      = False
     #self.gitcommit    = '7e1bbd0d8427274768a13849372ce0ee911f4ac5'
     self.version      = '1.1.26-p7'
     obj = self.version if hasattr(self,'version') else self.gitcommit
@@ -24,10 +25,17 @@ class Sowing(package.Package):
     self.archive      = 'sowing-'+obj+'.tar.gz'
     self.ProcessArgs(argdb)
 
+  def ProcessArgs(self,argdb):
+    value,found = argdb.PopBool('with-fortran-bindings-inplace')
+    if found:
+      self.inplace = value
+    package.Package.ProcessArgs(self,argdb)
+
   def ShowHelp(self):
     wd = package.Package.wd
     print('  --download-sowing[=<fname>]'.ljust(wd)+': Download and install SOWING')
-    print('  The latter is needed (for Fortran) only if using a git version of SLEPc and a non-git version of PETSc')
+    print('  The latter is needed (for Fortran) only if using a Git version of SLEPc and a non-Git version of PETSc')
+    print('  --with-fortran-bindings-inplace=<bool>: Generate Fortran bindings in SLEPc source tree')
 
   def DownloadAndInstall(self,slepc,petsc,archdir):
     name = self.packagename.upper()
@@ -61,10 +69,10 @@ class Sowing(package.Package):
         self.log.write('Using BFORT='+bfort)
         sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))
         import generatefortranstubs
-        generatefortranstubs.main(slepc.dir,bfort,os.getcwd(),0)
-        generatefortranstubs.processf90interfaces(slepc.dir,0)
+        generatefortranstubs.main(slepc.dir,'' if self.inplace else petsc.archname,bfort,os.path.join(slepc.dir,'src'),0)
+        generatefortranstubs.processf90interfaces(slepc.dir,'' if self.inplace else petsc.archname,0)
       except:
-        self.log.Exit('Try configuring with --download-sowing or use a git version of PETSc')
+        self.log.Exit('Try configuring with --download-sowing or use a Git version of PETSc')
     if bfort != petsc.bfort:
       slepcvars.write('BFORT = '+bfort+'\n')
 

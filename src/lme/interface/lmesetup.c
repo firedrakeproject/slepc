@@ -269,7 +269,7 @@ PetscErrorCode LMEGetRHS(LME lme,Mat *C)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(C,2);
+  PetscAssertPointer(C,2);
   *C = lme->C;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -340,7 +340,7 @@ PetscErrorCode LMEGetSolution(LME lme,Mat *X)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(X,2);
+  PetscAssertPointer(X,2);
   *X = lme->X;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

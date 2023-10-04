@@ -11,8 +11,7 @@
    User interface for SLEPc's nonlinear eigenvalue solvers
 */
 
-#if !defined(SLEPCNEP_H)
-#define SLEPCNEP_H
+#pragma once
 
 #include <slepceps.h>
 #include <slepcpep.h>
@@ -21,6 +20,7 @@
 /* SUBMANSEC = NEP */
 
 SLEPC_EXTERN PetscErrorCode NEPInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode NEPFinalizePackage(void);
 
 /*S
      NEP - Abstract SLEPc object that manages all solvers for
@@ -177,8 +177,8 @@ SLEPC_EXTERN PetscErrorCode NEPErrorView(NEP,NEPErrorType,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPErrorViewFromOptions(NEP);
 SLEPC_EXTERN PetscErrorCode NEPConvergedReasonView(NEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPConvergedReasonViewFromOptions(NEP);
-PETSC_DEPRECATED_FUNCTION("Use NEPConvergedReasonView() (since version 3.14)") static inline PetscErrorCode NEPReasonView(NEP nep,PetscViewer v) {return NEPConvergedReasonView(nep,v);}
-PETSC_DEPRECATED_FUNCTION("Use NEPConvergedReasonViewFromOptions() (since version 3.14)") static inline PetscErrorCode NEPReasonViewFromOptions(NEP nep) {return NEPConvergedReasonViewFromOptions(nep);}
+PETSC_DEPRECATED_FUNCTION(3, 14, 0, "NEPConvergedReasonView()", ) static inline PetscErrorCode NEPReasonView(NEP nep,PetscViewer v) {return NEPConvergedReasonView(nep,v);}
+PETSC_DEPRECATED_FUNCTION(3, 14, 0, "NEPConvergedReasonViewFromOptions()", ) static inline PetscErrorCode NEPReasonViewFromOptions(NEP nep) {return NEPConvergedReasonViewFromOptions(nep);}
 SLEPC_EXTERN PetscErrorCode NEPValuesView(NEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPValuesViewFromOptions(NEP);
 SLEPC_EXTERN PetscErrorCode NEPVectorsView(NEP,PetscViewer);
@@ -188,8 +188,8 @@ SLEPC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,Pe
 SLEPC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,Mat,void*),void**);
 SLEPC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,void*),void*);
 SLEPC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,void*),void**);
-PETSC_DEPRECATED_FUNCTION("Use NEPSetFunction() and NEPSetJacobian") static inline PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*fun)(NEP,PetscScalar,PetscInt,Mat,void*),void *ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
-PETSC_DEPRECATED_FUNCTION("Use NEPGetFunction() and NEPGetJacobian") static inline PetscErrorCode NEPGetDerivatives(NEP nep,Mat *A,PetscErrorCode (**fun)(NEP,PetscScalar,PetscInt,Mat,void*),void **ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
+PETSC_DEPRECATED_FUNCTION(3, 12, 0, "NEPSetFunction() and NEPSetJacobian()", ) static inline PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*fun)(NEP,PetscScalar,PetscInt,Mat,void*),void *ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
+PETSC_DEPRECATED_FUNCTION(3, 12, 0, "NEPGetFunction() and NEPGetJacobian()", ) static inline PetscErrorCode NEPGetDerivatives(NEP nep,Mat *A,PetscErrorCode (**fun)(NEP,PetscScalar,PetscInt,Mat,void*),void **ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
 SLEPC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat[],FN[],MatStructure);
 SLEPC_EXTERN PetscErrorCode NEPGetSplitOperatorTerm(NEP,PetscInt,Mat*,FN*);
 SLEPC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*);
@@ -226,8 +226,8 @@ SLEPC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScala
 SLEPC_EXTERN PetscErrorCode NEPGetLeftEigenvector(NEP,PetscInt,Vec,Vec);
 
 SLEPC_EXTERN PetscErrorCode NEPComputeError(NEP,PetscInt,NEPErrorType,PetscReal*);
-PETSC_DEPRECATED_FUNCTION("Use NEPComputeError()") static inline PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_RELATIVE,r);}
-PETSC_DEPRECATED_FUNCTION("Use NEPComputeError() with NEP_ERROR_ABSOLUTE") static inline PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_ABSOLUTE,r);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "NEPComputeError()", ) static inline PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED_FUNCTION(3, 6, 0, "NEPComputeError() with NEP_ERROR_ABSOLUTE", ) static inline PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_ABSOLUTE,r);}
 SLEPC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 
 SLEPC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,Mat,Mat);
@@ -374,6 +374,3 @@ SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetFullBasis(NEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetFullBasis(NEP,PetscBool*);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetEPS(NEP,EPS);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetEPS(NEP,EPS*);
-
-#endif
-

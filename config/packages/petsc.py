@@ -99,17 +99,17 @@ class PETSc(package.Package):
         suggest = os.path.basename(self.arch)
         if not suggest: suggest = os.path.basename(self.arch[0:-1])
         self.log.Exit('Variable PETSC_ARCH must not be a full path\nYou set PETSC_ARCH=%s, maybe you meant PETSC_ARCH=%s'% (self.arch,suggest))
-      petscvariables = os.path.join(self.dir,self.arch,'lib','petsc','conf','petscvariables')
+      self.petscvariables = os.path.join(self.dir,self.arch,'lib','petsc','conf','petscvariables')
       petscconf_h = os.path.join(self.dir,self.arch,'include','petscconf.h')
     else:
       self.isinstall = True
-      petscvariables = os.path.join(self.dir,'lib','petsc','conf','petscvariables')
+      self.petscvariables = os.path.join(self.dir,'lib','petsc','conf','petscvariables')
       petscconf_h = os.path.join(self.dir,'include','petscconf.h')
 
     self.buildsharedlib = False
     self.bfort = 'nobfortinpetsc'
     try:
-      with open(petscvariables) as f:
+      with open(self.petscvariables) as f:
         for l in f.readlines():
           r = l.split('=',1)
           if len(r)!=2: continue
@@ -125,10 +125,10 @@ class PETSc(package.Package):
           elif k == 'BUILDSHAREDLIB' and v=='yes':
             self.buildsharedlib = True
           else:
-            if k in ['AR','AR_FLAGS','AR_LIB_SUFFIX','BFORT','BLASLAPACK_LIB','CC','CC_FLAGS','CC_LINKER_SLFLAG','CMAKE','CONFIGURE_OPTIONS','CPP','CXX','CXX_FLAGS','FC_FLAGS','MAKE','MAKE_NP','PREFIXDIR','RANLIB','SCALAPACK_LIB','SEDINPLACE','SL_LINKER_SUFFIX']:
+            if k in ['AR','AR_FLAGS','AR_LIB_SUFFIX','BFORT','BLASLAPACK_LIB','CC','CC_FLAGS','CC_LINKER_SLFLAG','CMAKE','CONFIGURE_OPTIONS','CPP','CXX','CXX_FLAGS','FC_FLAGS','FC_VERSION','MAKE','MAKE_NP','PREFIXDIR','RANLIB','SCALAPACK_LIB','SEDINPLACE','SL_LINKER_SUFFIX']:
               setattr(self,k.lower(),v)
     except:
-      self.log.Exit('Cannot process file ' + petscvariables)
+      self.log.Exit('Cannot process file ' + self.petscvariables)
 
     self.ind64 = False
     self.mpiuni = False
@@ -139,7 +139,7 @@ class PETSc(package.Package):
     self.blaslapackint64 = False
     self.fortran = False
     self.language = 'c'
-    self.cxxdialectcxx11 = False
+    self.maxcxxdialect = ''
     self.packages = []
     try:
       with open(petscconf_h) as f:
@@ -161,18 +161,20 @@ class PETSc(package.Package):
             self.blaslapackmangling = 'caps'
           elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_64BIT_BLAS_INDICES' and l[2]=='1':
             self.blaslapackint64 = True
-          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_FORTRAN' and l[2]=='1':
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_FORTRAN_BINDINGS' and l[2]=='1':
             self.fortran = True
           elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_CLANGUAGE_CXX' and l[2]=='1':
             self.language = 'c++'
-          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX11' and l[2]=='1':
-            self.cxxdialectcxx11 = True
           elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
             self.arch = l[2].strip('"')
           else:
             for p in ['elemental','hpddm','mkl_libs','mkl_includes','mkl_pardiso','scalapack','slepc']:
               if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_'+p.upper() and l[2]=='1':
                 self.packages.append(p)
+            for p in ['20','17','14','11']:
+              if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX'+p and l[2]=='1' and (self.maxcxxdialect=='' or p>self.maxcxxdialect):
+                self.maxcxxdialect = p
+                break
       if 'mkl_libs' in self.packages and 'mkl_includes' in self.packages:
         self.packages.remove('mkl_libs')
         self.packages.remove('mkl_includes')

@@ -97,7 +97,7 @@ PetscErrorCode LMEGetIterationNumber(LME lme,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidIntPointer(its,2);
+  PetscAssertPointer(its,2);
   *its = lme->its;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -131,7 +131,7 @@ PetscErrorCode LMEGetConvergedReason(LME lme,LMEConvergedReason *reason)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidIntPointer(reason,2);
+  PetscAssertPointer(reason,2);
   *reason = lme->reason;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -160,7 +160,7 @@ PetscErrorCode LMEGetErrorEstimate(LME lme,PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidRealPointer(errest,2);
+  PetscAssertPointer(errest,2);
   *errest = lme->errest;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -169,7 +169,7 @@ PetscErrorCode LMEGetErrorEstimate(LME lme,PetscReal *errest)
    LMEComputeResidualNorm_Lyapunov - Computes the Frobenius norm of the residual matrix
    associated with the Lyapunov equation.
 */
-PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
+static PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
 {
   PetscInt          j,n,N,k,l;
   PetscBLASInt      n_,N_,k_,l_;
@@ -300,7 +300,7 @@ PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidRealPointer(error,2);
+  PetscAssertPointer(error,2);
 
   PetscCall(PetscLogEventBegin(LME_ComputeError,lme,0,0,0));
   /* compute residual norm */

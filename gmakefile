@@ -61,7 +61,7 @@ $(generated) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegen.py
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegen.py --petsc-arch=$(PETSC_ARCH_DIR) --pkg-dir=$(SLEPC_DIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH)
 
 # Skip including generated files (which triggers rebuilding them) when we're just going to clean anyway.
-ifneq ($(filter-out clean check info,$(MAKECMDGOALS:clean%=clean)),)
+ifneq ($(filter-out alletags deletefortranstubs allfortranstubs allfortranstubsinplace help clean check info gmakeinfo,$(MAKECMDGOALS:clean%=clean)),)
 include $(generated)
 endif
 
@@ -86,7 +86,7 @@ ifneq ($(KOKKOS_LIB),)
 langs += kokkos.cxx
 endif
 
-concatlang = $(foreach lang, $(langs), $(srcs-$(1).$(lang):src/%.$(lang)=$(OBJDIR)/%.o))
+concatlang = $(foreach lang, $(langs), $(srcs-$(1).$(lang):%.$(lang)=$(OBJDIR)/%.o))
 srcs.o := $(foreach pkg, $(pkgs), $(call concatlang,$(pkg)))
 concatlangsrc = $(foreach lang, $(langs), $(srcs-$(1).$(lang)))
 csrc := $(foreach pkg, $(pkgs),  $(srcs-$(pkg).c))
@@ -185,27 +185,27 @@ $(call soname_function,%) : $(call libname_function,%)
 
 .PRECIOUS: $(call soname_function,%)
 
-$(OBJDIR)/%.o : src/%.sycl.cxx | $$(@D)/.DIR
+$(OBJDIR)/%.o : %.sycl.cxx | $$(@D)/.DIR
 	$(PETSC_COMPILE.sycl.cxx) $(abspath $<) -o $@
 
-$(OBJDIR)/%.o : src/%.c | $$(@D)/.DIR
+$(OBJDIR)/%.o : %.c | $$(@D)/.DIR
 	$(PETSC_COMPILE.c) $(abspath $<) -o $@
 
-$(OBJDIR)/%.o : src/%.kokkos.cxx | $$(@D)/.DIR
+$(OBJDIR)/%.o : %.kokkos.cxx | $$(@D)/.DIR
 	$(PETSC_COMPILE.kokkos.cxx) $(abspath $<) -o $@
 
-$(OBJDIR)/%.o : src/%.cxx | $$(@D)/.DIR
+$(OBJDIR)/%.o : %.cxx | $$(@D)/.DIR
 	$(PETSC_COMPILE.cxx) $(abspath $<) -o $@
 
-$(OBJDIR)/%.o : src/%.hip.cpp | $$(@D)/.DIR
+$(OBJDIR)/%.o : %.hip.cpp | $$(@D)/.DIR
 	$(PETSC_COMPILE.hip.cpp) $(abspath $<) -o $@
 
-$(OBJDIR)/%.o : src/%.cu | $$(@D)/.DIR
+$(OBJDIR)/%.o : %.cu | $$(@D)/.DIR
 	$(PETSC_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
 	@$(PETSC_GENDEPS.cu) $(abspath $<) -o $(@:%.o=%.d) # Generate the dependencies for later
 
 FCMOD = cd
-$(OBJDIR)/%.o : src/%.F | $$(@D)/.DIR
+$(OBJDIR)/%.o : %.F | $$(@D)/.DIR
 ifeq ($(FC_MODULE_OUTPUT_FLAG),)
 	$(call quiet,FCMOD) $(MODDIR) && $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS) $(abspath $<) -o $(abspath $@)
 else
@@ -213,7 +213,7 @@ else
 endif
 	-@$(GFORTRAN_DEP_CLEANUP)
 
-$(OBJDIR)/%.o : src/%.F90 | $$(@D)/.DIR
+$(OBJDIR)/%.o : %.F90 | $$(@D)/.DIR
 ifeq ($(FC_MODULE_OUTPUT_FLAG),)
 	$(call quiet,FCMOD) $(MODDIR) && $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS) $(abspath $<) -o $(abspath $@)
 else
@@ -222,17 +222,17 @@ endif
 	-@$(GFORTRAN_DEP_CLEANUP)
 
 # Hack: manual dependencies on object files
-$(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o : $(OBJDIR)/sys/f90-mod/slepcsysmod.o
-$(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o : $(OBJDIR)/sys/f90-mod/slepcsysmod.o
-$(OBJDIR)/sys/classes/rg/f90-mod/slepcrgmod.o : $(OBJDIR)/sys/f90-mod/slepcsysmod.o
-$(OBJDIR)/sys/classes/ds/f90-mod/slepcdsmod.o : $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/sys/classes/rg/f90-mod/slepcrgmod.o
-$(OBJDIR)/sys/classes/st/f90-mod/slepcstmod.o : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o
-$(OBJDIR)/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o
-$(OBJDIR)/lme/f90-mod/slepclmemod.o   : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o
-$(OBJDIR)/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/sys/classes/ds/f90-mod/slepcdsmod.o $(OBJDIR)/sys/classes/rg/f90-mod/slepcrgmod.o $(OBJDIR)/sys/classes/st/f90-mod/slepcstmod.o $(OBJDIR)/lme/f90-mod/slepclmemod.o
-$(OBJDIR)/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/eps/f90-mod/slepcepsmod.o
-$(OBJDIR)/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/pep/f90-mod/slepcpepmod.o
-$(OBJDIR)/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/eps/f90-mod/slepcepsmod.o
+$(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
+$(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
+$(OBJDIR)/src/sys/classes/rg/f90-mod/slepcrgmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
+$(OBJDIR)/src/sys/classes/ds/f90-mod/slepcdsmod.o : $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/src/sys/classes/rg/f90-mod/slepcrgmod.o
+$(OBJDIR)/src/sys/classes/st/f90-mod/slepcstmod.o : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o
+$(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o
+$(OBJDIR)/src/lme/f90-mod/slepclmemod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o
+$(OBJDIR)/src/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/src/sys/classes/ds/f90-mod/slepcdsmod.o $(OBJDIR)/src/sys/classes/rg/f90-mod/slepcrgmod.o $(OBJDIR)/src/sys/classes/st/f90-mod/slepcstmod.o $(OBJDIR)/src/lme/f90-mod/slepclmemod.o
+$(OBJDIR)/src/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
+$(OBJDIR)/src/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o
+$(OBJDIR)/src/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
 
 # all sources should get recompiled when slepcvariables changes (i.e when configure is rerun or when slepcvariables is manually edited.)
 $(srcs.o) : $(slepcvariables)
@@ -253,5 +253,60 @@ allobj.d := $(srcs.o:%.o=%.d)
 # below has quadratic complexity, taking more than one second for a
 # do-nothing build of PETSc (much worse for larger projects)
 $(allobj.d) : ;
+
+gmakegetlinklibs_slepc:
+	-@echo ${SLEPC_LIB}
+
+gmakegetincludedirs_slepc:
+	-@echo ${SLEPC_CC_INCLUDES}
+
+gmakeinfo:
+	-@echo "=========================================="
+	-@echo Starting make run on `hostname` at `date +'%a, %d %b %Y %H:%M:%S %z'`
+	-@echo Machine characteristics: `uname -a`
+	-@echo "-----------------------------------------"
+	-@echo "Using SLEPc directory: ${SLEPC_DIR}"
+	-@echo "Using PETSc directory: ${PETSC_DIR}"
+	-@echo "Using PETSc arch: ${PETSC_ARCH}"
+	-@echo "-----------------------------------------"
+	-@grep "define SLEPC_VERSION" ${SLEPC_DIR}/include/slepcversion.h | ${SED} "s/........//" | head -n 7
+	-@echo "-----------------------------------------"
+	-@echo "Using SLEPc configure options: ${SLEPC_CONFIGURE_OPTIONS}"
+	-@echo "Using SLEPc configuration flags:"
+	-@grep "\#define " ${SLEPCCONF_H} | tail -n +2
+	-@echo "-----------------------------------------"
+	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//" | head -n 7
+	-@echo "-----------------------------------------"
+	-@echo "Using PETSc configure options: ${CONFIGURE_OPTIONS}"
+	-@echo "Using PETSc configuration flags:"
+	-@grep "\#define " ${PETSCCONF_H} | tail -n +2
+	-@echo "-----------------------------------------"
+	-@echo "Using C/C++ include paths: ${SLEPC_CC_INCLUDES}"
+	-@echo "Using C compile: ${PETSC_CCOMPILE_SINGLE}"
+	-@if [ "${CXX}" != "" ]; then \
+           echo "Using C++ compile: ${PETSC_CXXCOMPILE_SINGLE}";\
+         fi
+	-@if [ "${FC}" != "" ]; then \
+	   echo "Using Fortran include/module paths: ${SLEPC_FC_INCLUDES}";\
+	   echo "Using Fortran compile: ${PETSC_FCOMPILE_SINGLE}";\
+         fi
+	-@if [ "${CUDAC}" != "" ]; then \
+	   echo "Using CUDA compile: ${PETSC_CUCOMPILE_SINGLE}";\
+         fi
+	-@echo "-----------------------------------------"
+	-@echo "Using C/C++ linker: ${PCC_LINKER}"
+	-@echo "Using C/C++ flags: ${PCC_LINKER_FLAGS}"
+	-@if [ "${FC}" != "" ]; then \
+	   echo "Using Fortran linker: ${FC_LINKER}";\
+	   echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
+         fi
+	-@echo "-----------------------------------------"
+	-@echo "Using libraries: ${SLEPC_LIB}"
+	-@echo "------------------------------------------"
+	-@echo "Using mpiexec: ${MPIEXEC}"
+	-@echo "------------------------------------------"
+	-@echo "Using MAKE: ${MAKE}"
+	-@echo "Default MAKEFLAGS: MAKE_NP:${MAKE_NP} MAKE_LOAD:${MAKE_LOAD} MAKEFLAGS:${MAKEFLAGS}"
+	-@echo "=========================================="
 
 -include $(allobj.d)

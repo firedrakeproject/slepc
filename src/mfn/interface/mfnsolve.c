@@ -154,7 +154,7 @@ PetscErrorCode MFNGetIterationNumber(MFN mfn,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidIntPointer(its,2);
+  PetscAssertPointer(its,2);
   *its = mfn->its;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -195,7 +195,7 @@ PetscErrorCode MFNGetConvergedReason(MFN mfn,MFNConvergedReason *reason)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidIntPointer(reason,2);
+  PetscAssertPointer(reason,2);
   *reason = mfn->reason;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -11,8 +11,7 @@
    User interface for the region object in SLEPc
 */
 
-#if !defined(SLEPCRG_H)
-#define SLEPCRG_H
+#pragma once
 
 #include <slepcsys.h>
 #include <slepcrgtypes.h>
@@ -20,6 +19,7 @@
 /* SUBMANSEC = RG */
 
 SLEPC_EXTERN PetscErrorCode RGInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode RGFinalizePackage(void);
 
 /*J
    RGType - String with the name of the region.
@@ -88,5 +88,3 @@ SLEPC_EXTERN PetscErrorCode RGPolygonGetVertices(RG,PetscInt*,PetscScalar**,Pets
 
 SLEPC_EXTERN PetscErrorCode RGRingSetParameters(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal);
 SLEPC_EXTERN PetscErrorCode RGRingGetParameters(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
-
-#endif

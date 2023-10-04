@@ -20,7 +20,7 @@ typedef struct {
   PetscInt    nq;         /* length of array qcoeff, q(x) has degree nq-1 */
 } FN_RATIONAL;
 
-PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
+static PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
 {
   FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
   PetscInt    i;
@@ -66,7 +66,7 @@ static PetscErrorCode EvaluatePoly(Mat A,Mat P,Mat W,PetscInt d,PetscScalar *coe
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
+static PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
 {
   FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
   Mat         P,Q,W,F;
@@ -98,7 +98,7 @@ PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
+static PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
 {
   FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
   Mat         P,Q,W,F;
@@ -130,7 +130,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp)
+static PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp)
 {
   FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
   PetscInt    i;
@@ -162,7 +162,7 @@ PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
+static PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
 {
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
   PetscBool      isascii;
@@ -272,7 +272,7 @@ PetscErrorCode FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,np,2);
-  if (np) PetscValidScalarPointer(pcoeff,3);
+  if (np) PetscAssertPointer(pcoeff,3);
   PetscTryMethod(fn,"FNRationalSetNumerator_C",(FN,PetscInt,PetscScalar*),(fn,np,pcoeff));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -369,7 +369,7 @@ PetscErrorCode FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,nq,2);
-  if (nq) PetscValidScalarPointer(qcoeff,3);
+  if (nq) PetscAssertPointer(qcoeff,3);
   PetscTryMethod(fn,"FNRationalSetDenominator_C",(FN,PetscInt,PetscScalar*),(fn,nq,qcoeff));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -421,7 +421,7 @@ PetscErrorCode FNRationalGetDenominator(FN fn,PetscInt *nq,PetscScalar *qcoeff[]
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNSetFromOptions_Rational(FN fn,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode FNSetFromOptions_Rational(FN fn,PetscOptionItems *PetscOptionsObject)
 {
 #define PARMAX 10
   PetscScalar    array[PARMAX];
@@ -445,7 +445,7 @@ PetscErrorCode FNSetFromOptions_Rational(FN fn,PetscOptionItems *PetscOptionsObj
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
+static PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
 {
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data,*ctx2 = (FN_RATIONAL*)(*newfn)->data;
   PetscInt       i;
@@ -464,7 +464,7 @@ PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode FNDestroy_Rational(FN fn)
+static PetscErrorCode FNDestroy_Rational(FN fn)
 {
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
 

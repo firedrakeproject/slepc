@@ -47,6 +47,7 @@ variables:
     - nproc
     - lscpu
     - ccache --zero-stats
+    - if [ ! -z ${LOAD_MODULES+x} ]; then module load ${LOAD_MODULES}; module list; fi
     - printf "PYTHON:${PYTHON}\n"
   script:
     - printf "PETSC_CONFIG_OPTS:${PETSC_CONFIG_OPTS}\n"
@@ -122,8 +123,9 @@ variables:
 gnu-c-single-nofort:
   extends: .stage-1
   tags:
-    - linux-ubuntu, name:hapy
+    - name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fc=0 --with-precision=single
     TEST_SEARCH: eps_tests-test10_1
 
@@ -212,15 +214,15 @@ gnu-lint:
     - bash -c "${PYTHON} ./configure ${SLEPC_CONFIG_OPTS}"
     - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
     - if [ ! -z ${INSTALL+x} ]; then make install; SLEPC_DIR=$INSTALL_DIR; fi
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" check
+    - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" check; fi
     - if [ ! -z ${PKG_CONFIG+x} ]; then make check_usermakefile PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PETSC_DIR/$PETSC_ARCH/lib/pkgconfig; fi
-    - if [ ! -z ${BUILD_DOCS+x} ]; then make alldoc LOC=$SLEPC_DIR; tar czf ${CI_JOB_NAME}-docs.tar.gz --exclude "*.out" --exclude "makefile*" --exclude "ftn-*" --exclude slepc4py docs include src; fi
+    - if [ ! -z ${BUILD_DOCS+x} ]; then make alldoc LOC=$SLEPC_DIR; tar czf ${CI_JOB_NAME}-docs.tar.gz --exclude "*.out" --exclude "makefile*" --exclude "ftn-auto*" --exclude slepc4py docs include src; fi
     - if [ ! -z ${BUILD_DOCS+x} ] && [ ! -z ${SLEPC4PY+x} ]; then make -C src/binding/slepc4py rst2html sphinx-html sphinx-pdf PYTHON=${PYTHON}; tar czf ${CI_JOB_NAME}-docs-py.tar.gz -C src/binding/slepc4py docs; fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - if [ ! -z ${SLEPC4PY+x} ]; then make slepc4pytest; make -C src/binding/slepc4py/demo PYTHON=${PYTHON}; fi
     - if [ -z ${DISABLE_TESTS+x} ]; then make cleantest; make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" allgtests-tap TIMEOUT=${TIMEOUT} ${TEST_OPTS}; fi
-    - if [ ! -z ${COVERAGE+x} ]; then lcov --capture --exclude "/usr/*" --directory $SLEPC_DIR --output-file coverage.info; genhtml coverage.info --legend --title SLEPc --output-directory coverage; tar czf ${CI_JOB_NAME}-cov.tar.gz coverage; fi
+    - if [ ! -z ${COVERAGE+x} -a -z ${DISABLE_TESTS+x} ]; then lcov --capture --exclude "/usr/*" --directory $SLEPC_DIR --output-file coverage.info; genhtml coverage.info --legend --title SLEPc --output-directory coverage; tar czf ${CI_JOB_NAME}-cov.tar.gz coverage; fi
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   artifacts:
     reports:
@@ -364,8 +366,9 @@ gnu-c-cuda:
     - .stage-2
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia, name:hapy
+    - gpu:nvidia, name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse --with-magma-dir=/usr/local/opt/magma-2.7.1
 
 clang-c:
@@ -385,8 +388,8 @@ gnu-c-complex-multilib:
   tags:
     - linux-ubuntu, name:maat
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --download-elemental --download-metis --download-parmetis --download-scalapack
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --download-metis --download-parmetis --download-scalapack --with-cxx-dialect=17
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa --with-fortran-bindings-inplace
 
 intel-c-complex-mkl:
   extends:
@@ -407,7 +410,7 @@ gnu-c-libs:
     - linux-suse, name:igai
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --download-scalapack
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-evsl --download-primme --download-blopex --download-trlan --with-packages-download-dir=/var/local/downloads
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-evsl --download-primme --download-blopex --download-trlan --download-slicot --with-packages-download-dir=/var/local/downloads
 
 gnu-cxx-int64:
   extends:
@@ -443,7 +446,7 @@ pip-install:
       if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' include/slepcversion.h) == 1 ]; then
         pip install --user .;
         pip install --user src/binding/slepc4py;
-        make -C src/binding/slepc4py/demo run_ex1;  # run only one test until pip-petsc4py is patched
+        make -C src/binding/slepc4py/demo;
       else
         slepc=$PWD;
         cd ..;
@@ -458,7 +461,7 @@ pip-install:
         python -m venv /tmp/env;
         source /tmp/env/bin/activate;
         set -x;
-        pip install -U pip;
+        python -m pip install -U pip==23.0.1    # pin version due to issue with pip 23.1
         pip install numpy;
         pip install $petsc;
         pip install $petsc/src/binding/petsc4py;
@@ -470,6 +473,72 @@ pip-install:
     - date
 
 #
+# Special job in stage-3 to check DESTDIR install (only in scheduled pipelines).
+#
+
+destdir-install:
+  extends:
+    - .stage-3-sched
+    - .linux_test
+  tags:
+    - name:hapy
+  before_script:
+    - date
+    - hostname
+    - grep PRETTY_NAME /etc/os-release
+    - nproc
+    - lscpu
+  script:
+    - printf "PETSC_CONFIG_OPTS:${PETSC_CONFIG_OPTS}\n"
+    - export SLEPC_DIR=$PWD
+    - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
+    - cd ..
+    - export DESTDIR=${PWD}/destdir
+    - export PREFIX=${PWD}/prefix
+    - rm -rf ${DESTDIR} ${PREFIX}
+    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
+    - cd petsc
+    - git clean ${GIT_CLEAN_FLAGS}
+    - git fetch
+    - |
+      if [ -z ${PETSC_BRANCH+x} ]; then
+        if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
+          then git checkout origin/release;
+          else git checkout origin/main;
+        fi
+      else
+        echo "Using PETSC_BRANCH=" $PETSC_BRANCH
+        git checkout origin/$PETSC_BRANCH
+      fi
+    - export PETSC_DIR=$PWD
+    - export PETSC_ARCH=arch-$CI_JOB_NAME
+    - bash -c "${PYTHON} ./configure --with-debugging=0 --with-mpi=0 --prefix=${PREFIX} COPTFLAGS=-O CXXOPTFLAGS=-O FOPTFLAGS=-O CUDAOPTFLAGS=-O1 ${PETSC_CONFIG_OPTS}"
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
+    - make install-lib DESTDIR=${DESTDIR}; cp -r ${DESTDIR}${PREFIX} ..; PETSC_DIR=${PREFIX}; unset PETSC_ARCH
+    - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
+    - echo -e "section_start:`date +%s`:build_slepc\r\e[0KSLEPc configure and make"
+    - cd $SLEPC_DIR
+    - ${PYTHON} ./configure --prefix=${PREFIX}
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
+    - make install-lib DESTDIR=${DESTDIR}; cp -r ${DESTDIR}${PREFIX} ..; SLEPC_DIR=${PREFIX}
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" check
+    - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
+  variables:
+    PYTHON: python3
+    MAKE_CFLAGS: -Werror
+    MAKE_CXXFLAGS: -Werror -Wzero-as-null-pointer-constant
+    MAKE_FFLAGS: -Werror
+  after_script:
+    - date
+  artifacts:
+    name: "$CI_JOB_NAME"
+    when: always
+    paths:
+    - arch-*/lib/slepc/conf/*.log
+    - arch-*/lib/slepc/conf/slepc*
+    expire_in: 4 days
+
+#
 # The following tests run as part of stage-3.
 #
 
@@ -478,8 +547,9 @@ gnu-c-cuda-complex:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia, name:hapy
+    - gpu:nvidia, name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
     TEST_OPTS: -j1 -l6 query=requires queryval=cuda
 
@@ -488,8 +558,9 @@ gnu-c-cuda-single:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia, name:hapy
+    - gpu:nvidia, name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-cuda
     TEST_OPTS: -j1 -l6 query=requires queryval=cuda
 
@@ -626,10 +697,11 @@ gnu-c-complex-coverage:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, name:hapy
+    - name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-scalar-type=complex --with-debugging=1 --with-coverage=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.9.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
     COVERAGE: 1
 
 intel-c-complex-int64-mkl:
@@ -648,7 +720,7 @@ nvidia-c-nompi:
     - .stage-3
     - .linux_test_noflags
   tags:
-    - linux-ubuntu, compiler:nvidia, name:hapy
+    - compiler:nvidia, name:hapy
   variables:
     LOAD_MODULES: nvhpc-nompi
     PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
@@ -681,10 +753,10 @@ nvidia-c-complex-nompi:
     - .stage-3
     - .linux_test_noflags
   tags:
-    - linux-ubuntu, compiler:nvidia, name:hapy
+    - compiler:nvidia, name:hapy
   variables:
     LOAD_MODULES: nvhpc-nompi
-    PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-scalar-type=complex --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
+    PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-scalar-type=complex --with-mpi=0 --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1-nvidia
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme --download-arpack
     TEST_OPTS: -j4 -l12
 
@@ -693,10 +765,10 @@ nvidia-cxx-mpi:
     - .stage-3
     - .linux_test_noflags
   tags:
-    - linux-ubuntu, compiler:nvidia, name:hapy
+    - compiler:nvidia, name:hapy
   variables:
     LOAD_MODULES: nvhpc
-    PETSC_CONFIG_OPTS: --with-cc=mpicc --with-fc=mpifort --with-cxx=mpicxx --with-clanguage=c++ --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1
+    PETSC_CONFIG_OPTS: --with-cc=mpicc --with-fc=mpifort --with-cxx=mpicxx --with-clanguage=c++ --with-cuda --with-magma-dir=/usr/local/opt/magma-2.7.1-nvidia
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme --download-arpack
     TEST_OPTS: -j4 -l12
 
@@ -737,8 +809,9 @@ gnu-c-cuda-int64:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia, name:hapy
+    - gpu:nvidia, name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-cuda --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.7.1
     TEST_OPTS: -j2 -l6 query=requires queryval=cuda
     MAKE_CUDAFLAGS: --compiler-options -Wall,-Wunused-parameter,-Wno-deprecated-declarations,-Werror
@@ -758,8 +831,9 @@ gnu-c-complex128:
     - .stage-3
     - .linux_test
   tags:
-    - linux-debian, name:sejmet
+    - name:hapy
   variables:
+    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
@@ -768,9 +842,9 @@ intel-c-int64-nompi-mkl:
     - .stage-3
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:igai
+    - compiler:intel, name:jepri
   variables:
-    LOAD_MODULES: icc mpi mkl
-    PETSC_CONFIG_OPTS: --with-cc=icc --with-fc=ifort --with-cxx=icpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-64-bit-indices --with-64-bit-blas-indices --with-mpi=0
+    LOAD_MODULES: compiler mpi mkl
+    PETSC_CONFIG_OPTS: --with-cc=icx --with-fc=ifx --with-cxx=icpx --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-64-bit-indices --with-64-bit-blas-indices --with-mpi=0 --COPTFLAGS='-O -g -fp-model=precise' --CXXOPTFLAGS='-O -g -fp-model=precise' --FOPTFLAGS='-O -g -fp-model=precise'
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
 

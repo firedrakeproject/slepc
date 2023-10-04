@@ -185,12 +185,12 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     PetscCall(NEPMonitorSetFromOptions(nep,"-nep_monitor_conv","convergence_history",NULL,PETSC_FALSE));
 
     /* -----------------------------------------------------------------------*/
-    PetscCall(PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",NULL));
-    PetscCall(PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",NULL));
-    PetscCall(PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",NULL));
-    PetscCall(PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPConvergedReasonView",NULL));
-    PetscCall(PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",NULL));
-    PetscCall(PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",NULL));
+    PetscCall(PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",&set));
+    PetscCall(PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",&set));
+    PetscCall(PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",&set));
+    PetscCall(PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPConvergedReasonView",&set));
+    PetscCall(PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",&set));
+    PetscCall(PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",&set));
 
     PetscTryTypeMethod(nep,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)nep,PetscOptionsObject));
@@ -483,7 +483,7 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(which,2);
+  PetscAssertPointer(which,2);
   *which = nep->which;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -585,7 +585,7 @@ PetscErrorCode NEPGetProblemType(NEP nep,NEPProblemType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(type,2);
+  PetscAssertPointer(type,2);
   *type = nep->problem_type;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -647,7 +647,7 @@ PetscErrorCode NEPGetTwoSided(NEP nep,PetscBool *twosided)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidBoolPointer(twosided,2);
+  PetscAssertPointer(twosided,2);
   *twosided = nep->twosided;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -765,7 +765,7 @@ PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(conv,2);
+  PetscAssertPointer(conv,2);
   *conv = nep->conv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -879,7 +879,7 @@ PetscErrorCode NEPGetStoppingTest(NEP nep,NEPStop *stop)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(stop,2);
+  PetscAssertPointer(stop,2);
   *stop = nep->stop;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -935,7 +935,7 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidBoolPointer(trackall,2);
+  PetscAssertPointer(trackall,2);
   *trackall = nep->trackall;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1161,7 +1161,7 @@ PetscErrorCode NEPGetOptionsPrefix(NEP nep,const char *prefix[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(prefix,2);
+  PetscAssertPointer(prefix,2);
   PetscCall(PetscObjectGetOptionsPrefix((PetscObject)nep,prefix));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

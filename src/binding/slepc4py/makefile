@@ -1,5 +1,6 @@
 .PHONY: default
 default: build
+default: opt=--inplace
 
 package = slepc4py
 MODULE  = SLEPc
@@ -11,17 +12,17 @@ MPIEXEC = mpiexec
 
 .PHONY: config build test
 config:
-	${PYTHON} setup.py config ${CONFIGOPT} ${opt}
+	${PYTHON} setup.py config ${opt}
 build:
-	${PYTHON} setup.py build ${BUILDOPT} ${opt}
+	${PYTHON} setup.py build ${opt}
 test:
-	${VALGRIND} ${PYTHON} ${PWD}/test/runtests.py ${TESTOPT} ${opt}
+	${VALGRIND} ${PYTHON} ${PWD}/test/runtests.py ${opt}
 test-%:
-	${MPIEXEC} -n $* ${VALGRIND} ${PYTHON} ${PWD}/test/runtests.py ${TESTOPT} ${opt}
+	${MPIEXEC} -n $* ${VALGRIND} ${PYTHON} ${PWD}/test/runtests.py ${opt}
 
 .PHONY: srcbuild srcclean
 srcbuild:
-	${PYTHON} setup.py build_src ${SRCOPT} ${opt}
+	${PYTHON} setup.py build_src ${opt}
 srcclean:
 	-${RM} src/${package}/${MODULE}.c
 	-${RM} src/${package}/${MODULE}.h
@@ -42,7 +43,7 @@ fullclean: distclean srcclean docsclean
 
 .PHONY: install uninstall
 install: build
-	${PYTHON} setup.py install --prefix='' --user ${INSTALLOPT}
+	${PYTHON} setup.py install --prefix='' --user ${opt}
 uninstall:
 	-${RM} -r $(shell ${PYTHON} -m site --user-site)/${package}
 	-${RM} -r $(shell ${PYTHON} -m site --user-site)/${package}-*-py*.egg-info
@@ -113,7 +114,7 @@ docsclean:
 # ----
 
 .PHONY: sdist
-sdist: docs
-	${PYTHON} setup.py sdist ${SDISTOPT}
+sdist:
+	${PYTHON} setup.py sdist ${opt}
 
 # ----

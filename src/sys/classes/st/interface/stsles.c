@@ -311,7 +311,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(ksp,2);
+  PetscAssertPointer(ksp,2);
   if (!st->ksp) {
     PetscCall(KSPCreate(PetscObjectComm((PetscObject)st),&st->ksp));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1));

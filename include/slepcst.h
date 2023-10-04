@@ -11,8 +11,7 @@
    Spectral transformation module for eigenvalue problems
 */
 
-#if !defined(SLEPCST_H)
-#define SLEPCST_H
+#pragma once
 
 #include <slepcsys.h>
 #include <slepcbv.h>
@@ -21,6 +20,7 @@
 /* SUBMANSEC = ST */
 
 SLEPC_EXTERN PetscErrorCode STInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode STFinalizePackage(void);
 
 /*S
     ST - Abstract SLEPc object that manages spectral transformations.
@@ -66,10 +66,10 @@ SLEPC_EXTERN PetscErrorCode STSetFromOptions(ST);
 SLEPC_EXTERN PetscErrorCode STView(ST,PetscViewer);
 SLEPC_EXTERN PetscErrorCode STViewFromOptions(ST,PetscObject,const char[]);
 
-PETSC_DEPRECATED_FUNCTION("Use STSetMatrices()") static inline PetscErrorCode STSetOperators(ST st,PetscInt n,Mat *A) {return STSetMatrices(st,n,A);}
-PETSC_DEPRECATED_FUNCTION("Use STGetMatrix()") static inline PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}
-PETSC_DEPRECATED_FUNCTION("Use STGetMatrixTransformed()") static inline PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
-PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()") static inline PetscErrorCode STComputeExplicitOperator(ST st,Mat *A)
+PETSC_DEPRECATED_FUNCTION(3, 15, 0, "STSetMatrices()", ) static inline PetscErrorCode STSetOperators(ST st,PetscInt n,Mat *A) {return STSetMatrices(st,n,A);}
+PETSC_DEPRECATED_FUNCTION(3, 15, 0, "STGetMatrix()", ) static inline PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}
+PETSC_DEPRECATED_FUNCTION(3, 15, 0, "STGetMatrixTransformed()", ) static inline PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
+PETSC_DEPRECATED_FUNCTION(3, 15, 0, "STGetOperator() followed by MatComputeOperator()", ) static inline PetscErrorCode STComputeExplicitOperator(ST st,Mat *A)
 {
   Mat Op;
   PetscFunctionBegin;
@@ -157,8 +157,8 @@ SLEPC_EXTERN PetscErrorCode STShellSetBackTransform(ST,PetscErrorCode (*)(ST,Pet
 SLEPC_EXTERN PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
-PETSC_DEPRECATED_FUNCTION("Use STGetPreconditionerMat()") static inline PetscErrorCode STPrecondGetMatForPC(ST st,Mat *A) {return STGetPreconditionerMat(st,A);}
-PETSC_DEPRECATED_FUNCTION("Use STSetPreconditionerMat()") static inline PetscErrorCode STPrecondSetMatForPC(ST st,Mat A) {return STSetPreconditionerMat(st,A);}
+PETSC_DEPRECATED_FUNCTION(3, 15, 0, "STGetPreconditionerMat()", ) static inline PetscErrorCode STPrecondGetMatForPC(ST st,Mat *A) {return STGetPreconditionerMat(st,A);}
+PETSC_DEPRECATED_FUNCTION(3, 15, 0, "STSetPreconditionerMat()", ) static inline PetscErrorCode STPrecondSetMatForPC(ST st,Mat A) {return STSetPreconditionerMat(st,A);}
 SLEPC_EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST,PetscBool*);
 SLEPC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST,PetscBool);
 
@@ -169,5 +169,3 @@ SLEPC_EXTERN PetscErrorCode STFilterGetRange(ST,PetscReal*,PetscReal*);
 SLEPC_EXTERN PetscErrorCode STFilterSetDegree(ST,PetscInt);
 SLEPC_EXTERN PetscErrorCode STFilterGetDegree(ST,PetscInt*);
 SLEPC_EXTERN PetscErrorCode STFilterGetThreshold(ST,PetscReal*);
-
-#endif

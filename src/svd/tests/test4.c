@@ -162,7 +162,7 @@ int main(int argc,char **argv)
          requires: scalapack
 
    testset:
-      args: -svd_monitor_cancel  -mat_type aijcusparse
+      args: -svd_monitor_cancel -mat_type aijcusparse
       requires: cuda !single
       filter: grep -v "Transpose mode" | sed -e "s/seqaijcusparse/seqaij/"
       output_file: output/test4_1.out
