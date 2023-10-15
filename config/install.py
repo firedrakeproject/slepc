@@ -54,6 +54,22 @@ class Installer:
       sys.exit(1)
     return r[1].strip()
 
+  def readPetscCC(self, src):
+    try:
+      f = open(src)
+      for l in f.readlines():
+        r = l.split('=',1)
+        if len(r)!=2: continue
+        if r[0].strip() == 'CC':
+          break
+      f.close()
+    except:
+      print('********************************************************************')
+      print('Error reading CC from petscvariables')
+      print('********************************************************************')
+      sys.exit(1)
+    return r[1].strip()
+
   def setupDirectories(self):
     self.archDir           = os.path.join(self.rootDir, self.arch)
     self.rootIncludeDir    = os.path.join(self.rootDir, 'include')
@@ -73,6 +89,9 @@ class Installer:
     self.rootShareDir      = os.path.join(self.rootDir, 'share')
     self.destShareDir      = os.path.join(self.destDir, 'share')
     self.rootSrcDir        = os.path.join(self.rootDir, 'src')
+    arch = '' if self.arch.startswith('installed-') else self.arch
+    self.petscConfDir      = os.path.join(self.petscDir, arch, 'lib', 'petsc', 'conf')
+    self.petscCC           = self.readPetscCC(os.path.join(self.petscConfDir,'petscvariables'))
     return
 
   def checkDestdir(self):
@@ -361,7 +380,8 @@ for dir in dirs:
     if not os.path.splitext(src)[1] == '.o':
       shutil.copy2(src, dst)
     if os.path.splitext(dst)[1] == '.'+self.arLibSuffix:
-      (result, output) = subprocess.getstatusoutput(self.ranlib+' '+dst)
+      if not 'win32fe' in self.petscCC:
+        (result, output) = subprocess.getstatusoutput(self.ranlib+' '+dst)
     if os.path.splitext(dst)[1] == '.dylib' and os.path.isfile('/usr/bin/install_name_tool'):
       (result, output) = subprocess.getstatusoutput('otool -D '+src)
       oldname = output[output.find("\n")+1:]
