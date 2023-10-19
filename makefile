@@ -23,7 +23,6 @@
 #
 # This makefile does not require GNUmake
 ALL: all
-DIRS = src include
 
 # Include the rest of makefiles
 include ./${PETSC_ARCH}/lib/slepc/conf/slepcvariables

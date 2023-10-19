@@ -9,7 +9,6 @@
 #
 
 LIBBASE  = libslepcnep
-DIRS     = rii slp narnoldi interpol ciss nleigs
 MANSEC   = NEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

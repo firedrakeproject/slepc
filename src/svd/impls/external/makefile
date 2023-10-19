@@ -9,7 +9,6 @@
 #
 
 LIBBASE  = libslepcsvd
-DIRS     = elemental primme scalapack ksvd
 MANSEC   = SVD
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

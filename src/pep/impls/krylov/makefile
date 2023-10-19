@@ -9,7 +9,6 @@
 #
 
 LIBBASE  = libslepcpep
-DIRS     = qarnoldi toar stoar
 MANSEC   = PEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

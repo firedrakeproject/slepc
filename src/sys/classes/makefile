@@ -10,6 +10,5 @@
 
 LIBBASE  = libslepcsys
 MANSEC   = sys
-DIRS     = fn ds bv st rg
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

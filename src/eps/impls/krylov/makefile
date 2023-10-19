@@ -9,7 +9,6 @@
 #
 
 LIBBASE  = libslepceps
-DIRS     = arnoldi lanczos krylovschur
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
