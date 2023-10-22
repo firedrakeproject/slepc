@@ -54,15 +54,15 @@ all:
            echo "  Error during compile, check ${PETSC_ARCH}/lib/slepc/conf/make.log" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
            echo "  Send all contents of ./${PETSC_ARCH}/lib/slepc/conf to slepc-maint@upv.es" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;\
            printf "************************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
-	 elif [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+         elif [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
            echo "Now to check if the library is working do:";\
            echo "make SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} check";\
            echo "=========================================";\
-	 else \
-	   echo "Now to install the library do:";\
-	   echo "make SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} install";\
-	   echo "=========================================";\
-	 fi
+         else \
+           echo "Now to install the library do:";\
+           echo "make SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} install";\
+           echo "=========================================";\
+         fi
 	@echo "Finishing make run at `date +'%a, %d %b %Y %H:%M:%S %z'`" >> ${PETSC_ARCH}/lib/slepc/conf/make.log
 	@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then exit 1; fi
 
@@ -125,7 +125,7 @@ check:
            echo "*mpiexec not found*. cannot run make check"; \
         else \
           ${RM} -f check_error; \
-	  ${RUN_TEST} PETSC_OPTIONS="${PETSC_OPTIONS} ${PETSC_TEST_OPTIONS}" PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" check_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log; \
+          ${RUN_TEST} PETSC_OPTIONS="${PETSC_OPTIONS} ${PETSC_TEST_OPTIONS}" PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" check_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log; \
           if [ -f check_error ]; then \
             echo "Error while running make check"; \
             ${RM} -f check_error; \
@@ -261,9 +261,9 @@ alldoc: allcite allpdf alldoc_pre alldoc_post docsetdate
 
 chk_loc:
 	@if [ ${LOC}foo = foo ] ; then \
-	  printf ${PETSC_TEXT_HILIGHT}"*********************** ERROR **********************************************\n" ; \
-	  echo " Please specify LOC variable for eg: make allmanpages LOC=/sandbox/slepc "; \
-	  printf "****************************************************************************"${PETSC_TEXT_NORMAL}"\n" ;  false; fi
+          printf ${PETSC_TEXT_HILIGHT}"*********************** ERROR **********************************************\n" ; \
+          echo " Please specify LOC variable for eg: make allmanpages LOC=/sandbox/slepc "; \
+          printf "****************************************************************************"${PETSC_TEXT_NORMAL}"\n" ;  false; fi
 	@${MKDIR} ${LOC}/manualpages
 
 chk_c2html:
@@ -353,16 +353,16 @@ allcleanhtml:
 
 countfortranfunctions:
 	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto` \
-	`find ${SLEPC_DIR}/src -name ftn-custom`; do cd $$D; \
-	grep -E '^void' *.c | \
-	cut -d'(' -f1 | tr -s  ' ' | cut -d' ' -f3 | uniq | grep -E -v "(^$$|Petsc)" | \
-	sed "s/_$$//"; done | sort > /tmp/countfortranfunctions
+        `find ${SLEPC_DIR}/src -name ftn-custom`; do cd $$D; \
+        grep -E '^void' *.c | \
+        cut -d'(' -f1 | tr -s  ' ' | cut -d' ' -f3 | uniq | grep -E -v "(^$$|Petsc)" | \
+        sed "s/_$$//"; done | sort > /tmp/countfortranfunctions
 
 countcfunctions:
 	-@ ls ${SLEPC_DIR}/include/*.h | grep -v slepcblaslapack.h | \
-	xargs grep extern | grep "(" | tr -s ' ' | \
-	cut -d'(' -f1 | cut -d' ' -f3 | grep -v "\*" | tr -s '\012' |  \
-	tr 'A-Z' 'a-z' |  sort > /tmp/countcfunctions
+        xargs grep extern | grep "(" | tr -s ' ' | \
+        cut -d'(' -f1 | cut -d' ' -f3 | grep -v "\*" | tr -s '\012' |  \
+        tr 'A-Z' 'a-z' |  sort > /tmp/countcfunctions
 
 difffortranfunctions: countfortranfunctions countcfunctions
 	-@echo -------------- Functions missing in the Fortran interface ---------------------
@@ -376,35 +376,35 @@ checkbadfortranstubs:
 	-@echo "Functions with MPI_Comm as an Argument"
 	-@echo "========================================="
 	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto`; do cd $$D; \
-	grep '^void' *.c | grep 'MPI_Comm' | \
-	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; done
+        grep '^void' *.c | grep 'MPI_Comm' | \
+        tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; done
 	-@echo "========================================="
 	-@echo "Functions with a String as an Argument"
 	-@echo "========================================="
 	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto`; do cd $$D; \
-	grep '^void' *.c | grep 'char \*' | \
-	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; done
+        grep '^void' *.c | grep 'char \*' | \
+        tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; done
 	-@echo "========================================="
 	-@echo "Functions with Pointers to PETSc Objects as Argument"
 	-@echo "========================================="
 	-@_p_OBJ=`grep _p_ ${PETSC_DIR}/include/*.h | tr -s ' ' | \
-	cut -d' ' -f 3 | tr -s '\012' | grep -v '{' | cut -d'*' -f1 | \
-	sed "s/_p_//g" | tr -s '\012 ' ' *|' ` ; \
-	_p_OBJS=`grep _p_ ${SLEPC_DIR}/include/*.h | tr -s ' ' | \
-	cut -d' ' -f 3 | tr -s '\012' | grep -v '{' | cut -d'*' -f1 | \
-	sed "s/_p_//g" | tr -s '\012 ' ' *|' ` ; \
-	for D in `find ${SLEPC_DIR}/src -name ftn-auto`; do cd $$D; \
-	for OBJ in $$_p_OBJ $$_p_OBJS; do \
-	grep "$$OBJ \*" *.c | tr -s ' ' | tr -s ':' ' ' | \
-	cut -d'(' -f1 | cut -d' ' -f1,4; \
-	done; done
+        cut -d' ' -f 3 | tr -s '\012' | grep -v '{' | cut -d'*' -f1 | \
+        sed "s/_p_//g" | tr -s '\012 ' ' *|' ` ; \
+        _p_OBJS=`grep _p_ ${SLEPC_DIR}/include/*.h | tr -s ' ' | \
+        cut -d' ' -f 3 | tr -s '\012' | grep -v '{' | cut -d'*' -f1 | \
+        sed "s/_p_//g" | tr -s '\012 ' ' *|' ` ; \
+        for D in `find ${SLEPC_DIR}/src -name ftn-auto`; do cd $$D; \
+        for OBJ in $$_p_OBJ $$_p_OBJS; do \
+        grep "$$OBJ \*" *.c | tr -s ' ' | tr -s ':' ' ' | \
+        cut -d'(' -f1 | cut -d' ' -f1,4; \
+        done; done
 
 # Compare ABI/API of two versions of PETSc library with the old one defined by PETSC_{DIR,ARCH}_ABI_OLD
 abitest:
 	@if [ "x${SLEPC_DIR_ABI_OLD}" = "x" ] || [ "x${PETSC_ARCH_ABI_OLD}" = "x" ] || [ "x${PETSC_DIR_ABI_OLD}" = "x" ]; \
-		then printf "You must set environment variables SLEPC_DIR_ABI_OLD, PETSC_ARCH_ABI_OLD, and PETSC_DIR_ABI_OLD to run abitest\n"; \
-		exit 1; \
-	fi;
+         then printf "You must set environment variables SLEPC_DIR_ABI_OLD, PETSC_ARCH_ABI_OLD, and PETSC_DIR_ABI_OLD to run abitest\n"; \
+           exit 1; \
+        fi;
 	-@echo "Comparing ABI/API of the following two SLEPc versions (you must have already configured and built them using GCC and with -g):"
 	-@echo "========================================================================================="
 	-@echo "    Old: SLEPC_DIR_ABI_OLD  = ${SLEPC_DIR_ABI_OLD}"
@@ -416,7 +416,7 @@ abitest:
 	-@echo "         PETSC_DIR          = ${PETSC_DIR}"
 	-@echo "         Branch             = "`git rev-parse --abbrev-ref HEAD`
 	-@echo "========================================================================================="
-	-@$(PYTHON)	${SLEPC_DIR}/lib/slepc/bin/maint/abicheck.py -old_dir ${SLEPC_DIR_ABI_OLD} -old_arch ${PETSC_ARCH_ABI_OLD} -old_petsc_dir ${PETSC_DIR_ABI_OLD} -new_dir ${SLEPC_DIR} -new_arch ${PETSC_ARCH} -new_petsc_dir ${PETSC_DIR} -report_format html
+	-@$(PYTHON) ${SLEPC_DIR}/lib/slepc/bin/maint/abicheck.py -old_dir ${SLEPC_DIR_ABI_OLD} -old_arch ${PETSC_ARCH_ABI_OLD} -old_petsc_dir ${PETSC_DIR_ABI_OLD} -new_dir ${SLEPC_DIR} -new_arch ${PETSC_ARCH} -new_petsc_dir ${PETSC_DIR} -report_format html
 
 .PHONY: info all deletelibs allclean alletags alldoc allcleanhtml countfortranfunctions install
 

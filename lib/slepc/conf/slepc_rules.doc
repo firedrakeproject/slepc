@@ -24,10 +24,10 @@ slepc_tree_src: ${ACTION}
 	-@for dir in `ls -d */ 2> /dev/null` foo ;  do \
             if [[ $${dir} != "tests/" && $${dir} != "tutorials/" && $${dir} != "doc/" && $${dir} != "output/" ]]; then \
               if [[ -f $${dir}makefile ]]; then \
-	        (cd $$dir ; ${OMAKE} ACTION=${ACTION} PETSC_ARCH=${PETSC_ARCH}  LOC=${LOC} slepc_tree_src) ; \
+                (cd $$dir ; ${OMAKE} ACTION=${ACTION} PETSC_ARCH=${PETSC_ARCH}  LOC=${LOC} slepc_tree_src) ; \
               fi; \
            fi; \
-	 done
+         done
 
 slepc_manualpages:
 	-@slepc_dir=$$(realpath ${SLEPC_DIR}); LOCDIR=$$(pwd | sed s"?$${slepc_dir}/??g")/; \

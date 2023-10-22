@@ -52,7 +52,7 @@ generated      := $(PETSC_ARCH)/lib/slepc/conf/files
 slepc_libs : $(libslepcall)
 .PHONY: slepc_libs
 
-.SECONDEXPANSION:		# to expand $$(@D)/.DIR
+.SECONDEXPANSION:               # to expand $$(@D)/.DIR
 
 # Test framework includes rules and variables relevant to both build and test
 include ./gmakefile.test        # This must be below the slepc_libs target because it includes rules
@@ -291,14 +291,14 @@ gmakeinfo:
 	   echo "Using Fortran compile: ${PETSC_FCOMPILE_SINGLE}";\
          fi
 	-@if [ "${CUDAC}" != "" ]; then \
-	   echo "Using CUDA compile: ${PETSC_CUCOMPILE_SINGLE}";\
+           echo "Using CUDA compile: ${PETSC_CUCOMPILE_SINGLE}";\
          fi
 	-@echo "-----------------------------------------"
 	-@echo "Using C/C++ linker: ${PCC_LINKER}"
 	-@echo "Using C/C++ flags: ${PCC_LINKER_FLAGS}"
 	-@if [ "${FC}" != "" ]; then \
-	   echo "Using Fortran linker: ${FC_LINKER}";\
-	   echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
+           echo "Using Fortran linker: ${FC_LINKER}";\
+           echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
          fi
 	-@echo "-----------------------------------------"
 	-@echo "Using libraries: ${SLEPC_LIB}"
