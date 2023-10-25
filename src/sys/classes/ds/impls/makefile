@@ -9,7 +9,6 @@
 #
 
 LIBBASE  = libslepcsys
-DIRS     = hep nhep ghep ghiep gnhep nhepts svd gsvd hsvd pep nep
 MANSEC   = DS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

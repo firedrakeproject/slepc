@@ -9,7 +9,6 @@
 #
 
 LIBBASE  = libslepcsys
-DIRS     = combine exp log phi rational sqrt invsqrt cuda
 MANSEC   = FN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

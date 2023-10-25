@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = interface impls tests f90-mod
 MANSEC   = RG
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
