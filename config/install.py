@@ -296,7 +296,7 @@ class Installer:
 
   def fixConf(self):
     import shutil
-    for file in ['slepc_rules', 'slepc_rules.doc', 'slepc_rules.utils', 'slepc_variables', 'slepcrules', 'slepcvariables']:
+    for file in ['slepc_rules', 'slepc_rules_doc.mk', 'slepc_rules_util.mk', 'slepc_variables', 'slepcrules', 'slepcvariables']:
       self.fixConfFile(os.path.join(self.destConfDir,file))
     self.fixConfFile(os.path.join(self.destLibDir,'pkgconfig','slepc.pc'))
     self.fixConfFile(os.path.join(self.destIncludeDir,'slepcconf.h'))

@@ -33,4 +33,4 @@ Documentation
 - SLEPc does not yet use the Sphinx-based documentation system implemented by PETSc.
 - The SLEPc website is not included in the repository.
 - The SLEPc users manual in PDF is generated directly from LaTeX source.
-- The `alldoc` rule in the makefile uses the old rules, see file `slepc_rules.doc`. In particular, Sowing is used to generate HTML man pages directly, not Markdown as in PETSc.
+- The `alldoc` rule in the makefile uses the old rules, see file `slepc_rules_doc.mk`. In particular, Sowing is used to generate HTML man pages directly, not Markdown as in PETSc.
