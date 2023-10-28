@@ -28,8 +28,8 @@ ALL: all
 include ./${PETSC_ARCH}/lib/slepc/conf/slepcvariables
 include ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/slepcvariables  # required in prefix builds
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules
-include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules.doc
-include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules.utils
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules_doc.mk
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_rules_util.mk
 
 # This makefile doesn't really do any work. Sub-makes still benefit from parallelism.
 .NOTPARALLEL:
