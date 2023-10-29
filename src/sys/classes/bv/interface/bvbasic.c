@@ -1358,7 +1358,7 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   BVCheckSizes(bv,1);
   PetscAssertPointer(A,2);
 
-  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),bv->vtype,bv->n,PETSC_DECIDE,bv->N,bv->m,bv->ld,NULL,A));
+  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv),bv->vtype,bv->n,PETSC_DECIDE,bv->N,bv->m,bv->ld,NULL,A));
   lsave = bv->l;
   ksave = bv->k;
   bv->l = 0;

@@ -269,7 +269,7 @@ static PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
 
   PetscFunctionBegin;
   PetscCall(VecGetBlockSize(bv->t,&bs));
-  PetscCall(VecCreate(PetscObjectComm((PetscObject)bv->t),&vnew));
+  PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),&vnew));
   PetscCall(VecSetType(vnew,bv->vtype));
   PetscCall(VecSetSizes(vnew,m*bv->ld,PETSC_DECIDE));
   PetscCall(VecSetBlockSize(vnew,bs));
@@ -433,21 +433,21 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
       PetscCall(VecCUDAGetArrayRead(vpar,&array));
       ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
       PetscCall(VecCUDARestoreArrayRead(vpar,&array));
-      if (ctx->mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
-      else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v));
+      if (ctx->mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
+      else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,NULL,&ctx->v));
       PetscCall(VecCUDAPlaceArray(ctx->v,ptr));
 #endif
     } else {
       PetscCall(VecGetArrayRead(vpar,&array));
       ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
       PetscCall(VecRestoreArrayRead(vpar,&array));
-      if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
-      else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v));
+      if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
+      else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,NULL,&ctx->v));
       PetscCall(VecPlaceArray(ctx->v,ptr));
     }
   } else {
     /* regular BV: create Vec to store the BV entries */
-    PetscCall(VecCreate(PetscObjectComm((PetscObject)bv->t),&ctx->v));
+    PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),&ctx->v));
     PetscCall(VecSetType(ctx->v,bv->vtype));
     PetscCall(VecSetSizes(ctx->v,tlocal,PETSC_DECIDE));
     PetscCall(VecSetBlockSize(ctx->v,bs));
