@@ -270,7 +270,7 @@ static PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionBegin;
   PetscCall(VecGetBlockSize(bv->t,&bs));
   PetscCall(VecCreate(PetscObjectComm((PetscObject)bv->t),&vnew));
-  PetscCall(VecSetType(vnew,((PetscObject)bv->t)->type_name));
+  PetscCall(VecSetType(vnew,bv->vtype));
   PetscCall(VecSetSizes(vnew,m*bv->ld,PETSC_DECIDE));
   PetscCall(VecSetBlockSize(vnew,bs));
   if (((PetscObject)bv)->name) {
@@ -410,10 +410,10 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
-  PetscCall(PetscObjectTypeCompareAny((PetscObject)bv->t,&bv->cuda,VECSEQCUDA,VECMPICUDA,""));
-  PetscCall(PetscObjectTypeCompareAny((PetscObject)bv->t,&ctx->mpi,VECMPI,VECMPICUDA,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&bv->cuda,VECSEQCUDA,VECMPICUDA,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&ctx->mpi,VECMPI,VECMPICUDA,""));
 
-  PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq));
+  PetscCall(PetscStrcmp(bv->vtype,VECSEQ,&seq));
   PetscCheck(seq || ctx->mpi || bv->cuda,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVSVEC does not support the type of the provided template vector");
 
   PetscCall(VecGetLocalSize(bv->t,&nloc));
@@ -448,7 +448,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   } else {
     /* regular BV: create Vec to store the BV entries */
     PetscCall(VecCreate(PetscObjectComm((PetscObject)bv->t),&ctx->v));
-    PetscCall(VecSetType(ctx->v,((PetscObject)bv->t)->type_name));
+    PetscCall(VecSetType(ctx->v,bv->vtype));
     PetscCall(VecSetSizes(ctx->v,tlocal,PETSC_DECIDE));
     PetscCall(VecSetBlockSize(ctx->v,bs));
   }

@@ -344,9 +344,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
-  PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi));
+  PetscCall(PetscStrcmp(bv->vtype,VECMPI,&ctx->mpi));
   if (!ctx->mpi) {
-    PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq));
+    PetscCall(PetscStrcmp(bv->vtype,VECSEQ,&seq));
     PetscCheck(seq,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot create a contiguous BV from a non-standard template vector");
   }
 

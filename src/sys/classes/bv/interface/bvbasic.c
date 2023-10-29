@@ -110,6 +110,7 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
 PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 {
   PetscInt       ma;
+  PetscMPIInt    size;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -126,7 +127,9 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   if (!bv->t) {  /* create template vector and get actual dimensions */
     PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),&bv->t));
     PetscCall(VecSetSizes(bv->t,bv->n,bv->N));
-    PetscCall(VecSetFromOptions(bv->t));
+    PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size));
+    bv->vtype = (size==1)? VECSEQ: VECMPI;
+    PetscCall(VecSetType(bv->t,bv->vtype));
     PetscCall(VecGetSize(bv->t,&bv->N));
     PetscCall(VecGetLocalSize(bv->t,&bv->n));
     if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
@@ -170,6 +173,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   PetscValidLogicalCollectiveInt(bv,m,3);
   PetscCheck(m>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
   PetscCheck(!bv->t,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Template vector was already set by a previous call to BVSetSizes/FromVec");
+  PetscCall(VecGetType(t,&bv->vtype));
   PetscCall(VecGetSize(t,&bv->N));
   PetscCall(VecGetLocalSize(t,&bv->n));
   if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
@@ -767,7 +771,7 @@ PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
     ld = bv->m+bv->nc;
     PetscCall(VecCreate(PETSC_COMM_SELF,&bv->buffer));
     PetscCall(VecSetSizes(bv->buffer,PETSC_DECIDE,ld*bv->m));
-    PetscCall(VecSetType(bv->buffer,((PetscObject)bv->t)->type_name));
+    PetscCall(VecSetType(bv->buffer,bv->vtype));
   }
   *buffer = bv->buffer;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -1348,15 +1352,13 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
 {
   PetscInt ksave,lsave;
   Mat      B;
-  VecType  vtype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscAssertPointer(A,2);
 
-  PetscCall(VecGetType(bv->t,&vtype));
-  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),vtype,bv->n,PETSC_DECIDE,bv->N,bv->m,bv->ld,NULL,A));
+  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),bv->vtype,bv->n,PETSC_DECIDE,bv->N,bv->m,bv->ld,NULL,A));
   lsave = bv->l;
   ksave = bv->k;
   bv->l = 0;
@@ -1374,7 +1376,6 @@ PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
   PetscScalar *vv,*aa;
   PetscBool   create=PETSC_FALSE;
   PetscInt    m,cols;
-  VecType     vtype;
 
   PetscFunctionBegin;
   m = bv->k-bv->l;
@@ -1390,8 +1391,7 @@ PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
   }
   PetscCall(BVGetArray(bv,&vv));
   if (create) {
-    PetscCall(VecGetType(bv->t,&vtype));
-    PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv),vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
+    PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv),bv->vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
     PetscCall(MatDenseReplaceArray(bv->Aget,NULL));  /* replace with a null pointer, the value after BVRestoreMat */
   }
   PetscCall(MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->ld));  /* set the actual pointer */
@@ -1482,6 +1482,7 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
 static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
 {
   PetscFunctionBegin;
+  W->vtype        = V->vtype;
   W->ld           = V->ld;
   PetscCall(BVSetType(W,((PetscObject)V)->type_name));
   W->orthog_type  = V->orthog_type;

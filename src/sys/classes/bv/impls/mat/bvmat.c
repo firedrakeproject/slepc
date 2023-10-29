@@ -263,12 +263,10 @@ static PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
 {
   BV_MAT            *ctx = (BV_MAT*)bv->data;
   Mat               A,Msrc,Mdst;
-  VecType           vtype;
   char              str[50];
 
   PetscFunctionBegin;
-  PetscCall(VecGetType(bv->t,&vtype));
-  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,NULL,&A));
+  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),bv->vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,NULL,&A));
   if (((PetscObject)bv)->name) {
     PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
     PetscCall(PetscObjectSetName((PetscObject)A,str));
@@ -385,26 +383,24 @@ static PetscErrorCode BVDestroy_Mat(BV bv)
 SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
 {
   BV_MAT         *ctx;
-  PetscInt       nloc,bs,lsplit;
+  PetscInt       nloc,lsplit;
   PetscBool      seq;
   char           str[50];
   PetscScalar    *array,*ptr=NULL;
   BV             parent;
   Mat            Apar;
-  VecType        vtype;
 
   PetscFunctionBegin;
   PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
-  PetscCall(PetscObjectTypeCompareAny((PetscObject)bv->t,&bv->cuda,VECSEQCUDA,VECMPICUDA,""));
-  PetscCall(PetscObjectTypeCompareAny((PetscObject)bv->t,&ctx->mpi,VECMPI,VECMPICUDA,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&bv->cuda,VECSEQCUDA,VECMPICUDA,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&ctx->mpi,VECMPI,VECMPICUDA,""));
 
-  PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq));
+  PetscCall(PetscStrcmp(bv->vtype,VECSEQ,&seq));
   PetscCheck(seq || ctx->mpi || bv->cuda,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVMAT does not support the type of the provided template vector");
 
   PetscCall(VecGetLocalSize(bv->t,&nloc));
-  PetscCall(VecGetBlockSize(bv->t,&bs));
   PetscCall(BV_SetDefaultLD(bv,nloc));
 
   if (PetscUnlikely(bv->issplit)) {
@@ -425,8 +421,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     }
   }
 
-  PetscCall(VecGetType(bv->t,&vtype));
-  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),vtype,nloc,PETSC_DECIDE,bv->N,bv->m,bv->ld,ptr,&ctx->A));
+  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv->t),bv->vtype,nloc,PETSC_DECIDE,bv->N,bv->m,bv->ld,ptr,&ctx->A));
   if (((PetscObject)bv)->name) {
     PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
     PetscCall(PetscObjectSetName((PetscObject)ctx->A,str));
