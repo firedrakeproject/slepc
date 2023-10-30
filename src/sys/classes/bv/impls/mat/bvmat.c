@@ -400,7 +400,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   PetscCall(PetscStrcmp(bv->vtype,VECSEQ,&seq));
   PetscCheck(seq || ctx->mpi || bv->cuda,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVMAT does not support the type of the provided template vector");
 
-  PetscCall(VecGetLocalSize(bv->t,&nloc));
+  PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
   PetscCall(BV_SetDefaultLD(bv,nloc));
 
   if (PetscUnlikely(bv->issplit)) {

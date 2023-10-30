@@ -111,6 +111,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 {
   PetscInt       ma;
   PetscMPIInt    size;
+  PetscLayout    map;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -120,22 +121,24 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   PetscCheck(m>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
   PetscCheck((bv->n<0 && bv->N<0) || (bv->n==n && bv->N==N),PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change/reset vector sizes to %" PetscInt_FMT " local %" PetscInt_FMT " global after previously setting them to %" PetscInt_FMT " local %" PetscInt_FMT " global",n,N,bv->n,bv->N);
   PetscCheck(bv->m<=0 || bv->m==m,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change the number of columns to %" PetscInt_FMT " after previously setting it to %" PetscInt_FMT "; use BVResize()",m,bv->m);
+  PetscCheck(!bv->map,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Vector layout was already defined by a previous call to BVSetSizes/FromVec");
   bv->n = n;
   bv->N = N;
   bv->m = m;
   bv->k = m;
-  if (!bv->t) {  /* create template vector and get actual dimensions */
-    PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),&bv->t));
-    PetscCall(VecSetSizes(bv->t,bv->n,bv->N));
-    PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size));
-    bv->vtype = (size==1)? VECSEQ: VECMPI;
-    PetscCall(VecSetType(bv->t,bv->vtype));
-    PetscCall(VecGetSize(bv->t,&bv->N));
-    PetscCall(VecGetLocalSize(bv->t,&bv->n));
-    if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
-      PetscCall(MatGetLocalSize(bv->matrix,&ma,NULL));
-      PetscCheck(bv->n==ma,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
-    }
+  /* create template vector and get actual dimensions */
+  PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),&bv->t));
+  PetscCall(VecSetSizes(bv->t,bv->n,bv->N));
+  PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size));
+  bv->vtype = (size==1)? VECSEQ: VECMPI;
+  PetscCall(VecSetType(bv->t,bv->vtype));
+  PetscCall(VecGetSize(bv->t,&bv->N));
+  PetscCall(VecGetLocalSize(bv->t,&bv->n));
+  PetscCall(VecGetLayout(bv->t,&map));
+  PetscCall(PetscLayoutReference(map,&bv->map));
+  if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
+    PetscCall(MatGetLocalSize(bv->matrix,&ma,NULL));
+    PetscCheck(bv->n==ma,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
   }
   if (bv->ops->create) {
     PetscCall(PetscLogEventBegin(BV_Create,bv,0,0,0));
@@ -165,6 +168,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
 {
   PetscInt       ma;
+  PetscLayout    map;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -172,8 +176,10 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   PetscCheckSameComm(bv,1,t,2);
   PetscValidLogicalCollectiveInt(bv,m,3);
   PetscCheck(m>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
-  PetscCheck(!bv->t,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Template vector was already set by a previous call to BVSetSizes/FromVec");
+  PetscCheck(!bv->map,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Vector layout was already defined by a previous call to BVSetSizes/FromVec");
   PetscCall(VecGetType(t,&bv->vtype));
+  PetscCall(VecGetLayout(t,&map));
+  PetscCall(PetscLayoutReference(map,&bv->map));
   PetscCall(VecGetSize(t,&bv->N));
   PetscCall(VecGetLocalSize(t,&bv->n));
   if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */

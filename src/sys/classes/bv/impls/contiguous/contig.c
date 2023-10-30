@@ -224,7 +224,7 @@ static PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
   char           str[50];
 
   PetscFunctionBegin;
-  PetscCall(VecGetBlockSize(bv->t,&bs));
+  PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
   PetscCall(PetscCalloc1(m*bv->ld,&newarray));
   PetscCall(PetscMalloc1(m,&newV));
   for (j=0;j<m;j++) {
@@ -350,8 +350,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
     PetscCheck(seq,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot create a contiguous BV from a non-standard template vector");
   }
 
-  PetscCall(VecGetLocalSize(bv->t,&nloc));
-  PetscCall(VecGetBlockSize(bv->t,&bs));
+  PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
+  PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
   PetscCall(BV_SetDefaultLD(bv,nloc));
 
   if (PetscUnlikely(bv->issplit)) {

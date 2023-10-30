@@ -122,6 +122,7 @@ PetscErrorCode BVDestroy(BV *bv)
   if (--((PetscObject)(*bv))->refct > 0) { *bv = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscTryTypeMethod(*bv,destroy);
   PetscCall(VecDestroy(&(*bv)->t));
+  PetscCall(PetscLayoutDestroy(&(*bv)->map));
   PetscCall(MatDestroy(&(*bv)->matrix));
   PetscCall(VecDestroy(&(*bv)->Bx));
   PetscCall(VecDestroy(&(*bv)->buffer));
@@ -165,6 +166,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   PetscCall(SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView));
 
   bv->t            = NULL;
+  bv->map          = NULL;
+  bv->vtype        = NULL;
   bv->n            = -1;
   bv->N            = -1;
   bv->m            = 0;

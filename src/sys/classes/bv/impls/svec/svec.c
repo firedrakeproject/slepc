@@ -268,7 +268,7 @@ static PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
   char              str[50];
 
   PetscFunctionBegin;
-  PetscCall(VecGetBlockSize(bv->t,&bs));
+  PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
   PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),&vnew));
   PetscCall(VecSetType(vnew,bv->vtype));
   PetscCall(VecSetSizes(vnew,m*bv->ld,PETSC_DECIDE));
@@ -416,9 +416,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   PetscCall(PetscStrcmp(bv->vtype,VECSEQ,&seq));
   PetscCheck(seq || ctx->mpi || bv->cuda,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVSVEC does not support the type of the provided template vector");
 
-  PetscCall(VecGetLocalSize(bv->t,&nloc));
-  PetscCall(VecGetSize(bv->t,&N));
-  PetscCall(VecGetBlockSize(bv->t,&bs));
+  PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
+  PetscCall(PetscLayoutGetSize(bv->map,&N));
+  PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
   PetscCall(BV_SetDefaultLD(bv,nloc));
   tlocal = bv->m*bv->ld;
   PetscCall(PetscIntMultError(bv->m,N,&tglobal));  /* just to check integer overflow */

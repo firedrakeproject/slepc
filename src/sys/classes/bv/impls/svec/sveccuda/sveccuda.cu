@@ -255,7 +255,7 @@ PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
   char              str[50];
 
   PetscFunctionBegin;
-  PetscCall(VecGetBlockSize(bv->t,&bs));
+  PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
   PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),&vnew));
   PetscCall(VecSetType(vnew,bv->vtype));
   PetscCall(VecSetSizes(vnew,m*bv->ld,PETSC_DECIDE));
