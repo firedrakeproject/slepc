@@ -1321,7 +1321,7 @@ PetscErrorCode BVRestoreArrayRead(BV bv,const PetscScalar **a)
 
    Level: beginner
 
-.seealso: BVCreateMat()
+.seealso: BVCreateMat(), BVCreateVecEmpty()
 @*/
 PetscErrorCode BVCreateVec(BV bv,Vec *v)
 {
@@ -1333,6 +1333,56 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
   PetscCall(VecSetLayout(*v,bv->map));
   PetscCall(VecSetType(*v,bv->vtype));
   PetscCall(VecSetUp(*v));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   BVCreateVecEmpty - Creates a new Vec object with the same type and dimensions
+   as the columns of the basis vectors object, but without internal array.
+
+   Collective
+
+   Input Parameter:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  v  - the new vector
+
+   Note:
+   This works as BVCreateVec(), but the new vector does not have the array allocated,
+   so the intended usage is with VecPlaceArray().
+
+   Level: developer
+
+.seealso: BVCreateVec()
+@*/
+PetscErrorCode BVCreateVecEmpty(BV bv,Vec *v)
+{
+  PetscBool  standard,cuda,mpi;
+  PetscInt   N,nloc,bs;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  BVCheckSizes(bv,1);
+  PetscAssertPointer(v,2);
+
+  PetscCall(PetscStrcmpAny(bv->vtype,&standard,VECSEQ,VECMPI,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&cuda,VECSEQCUDA,VECMPICUDA,""));
+  if (standard || cuda) {
+    PetscCall(PetscStrcmpAny(bv->vtype,&mpi,VECMPI,VECMPICUDA,""));
+    PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
+    PetscCall(PetscLayoutGetSize(bv->map,&N));
+    PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
+    if (cuda) {
+#if defined(PETSC_HAVE_CUDA)
+      if (mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));
+      else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv),bs,N,NULL,v));
+#endif
+    } else {
+      if (mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));
+      else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv),bs,N,NULL,v));
+    }
+  } else PetscCall(BVCreateVec(bv,v)); /* standard duplicate, with internal array */
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

@@ -470,8 +470,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     PetscCall(MatDestroy(&bv->Acreate));
   }
 
-  PetscCall(VecDuplicateEmpty(bv->t,&bv->cv[0]));
-  PetscCall(VecDuplicateEmpty(bv->t,&bv->cv[1]));
+  PetscCall(BVCreateVecEmpty(bv,&bv->cv[0]));
+  PetscCall(BVCreateVecEmpty(bv,&bv->cv[1]));
 
   if (bv->cuda) {
 #if defined(PETSC_HAVE_CUDA)
