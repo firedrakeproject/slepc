@@ -114,12 +114,14 @@ static PetscErrorCode BVMultInPlace_Vecs_Alloc(BV V,Mat Q,PetscInt s,PetscInt e)
   BV_VECS           *ctx = (BV_VECS*)V->data;
   const PetscScalar *q;
   PetscInt          i,ldq;
-  Vec               *W;
+  Vec               *W,z;
 
   PetscFunctionBegin;
   PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArrayRead(Q,&q));
-  PetscCall(VecDuplicateVecs(V->t,e-s,&W));
+  PetscCall(BVCreateVec(V,&z));
+  PetscCall(VecDuplicateVecs(z,e-s,&W));
+  PetscCall(VecDestroy(&z));
   for (i=s;i<e;i++) PetscCall(VecMAXPY(W[i-s],V->k-V->l,q+i*ldq+V->l,ctx->V+V->nc+V->l));
   for (i=s;i<e;i++) PetscCall(VecCopy(W[i-s],ctx->V[V->nc+i]));
   PetscCall(VecDestroyVecs(e-s,&W));
@@ -322,12 +324,14 @@ static PetscErrorCode BVCopyColumn_Vecs(BV V,PetscInt j,PetscInt i)
 static PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
 {
   BV_VECS        *ctx = (BV_VECS*)bv->data;
-  Vec            *newV;
+  Vec            *newV,z;
   PetscInt       j;
   char           str[50];
 
   PetscFunctionBegin;
-  PetscCall(VecDuplicateVecs(bv->t,m,&newV));
+  PetscCall(BVCreateVec(bv,&z));
+  PetscCall(VecDuplicateVecs(z,m,&newV));
+  PetscCall(VecDestroy(&z));
   if (((PetscObject)bv)->name) {
     for (j=0;j<m;j++) {
       PetscCall(PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j));
@@ -502,7 +506,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   PetscBool      isgpu;
   char           str[50];
   BV             parent;
-  Vec            *Vpar;
+  Vec            *Vpar,z;
 
   PetscFunctionBegin;
   PetscCall(PetscNew(&ctx));
@@ -516,7 +520,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
     ctx->V = (bv->issplit==1)? Vpar: Vpar+lsplit;
   } else {
     /* regular BV: create array of Vecs to store the BV columns */
-    PetscCall(VecDuplicateVecs(bv->t,bv->m,&ctx->V));
+    PetscCall(BVCreateVec(bv,&z));
+    PetscCall(VecDuplicateVecs(z,bv->m,&ctx->V));
+    PetscCall(VecDestroy(&z));
     if (((PetscObject)bv)->name) {
       for (j=0;j<bv->m;j++) {
         PetscCall(PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j));

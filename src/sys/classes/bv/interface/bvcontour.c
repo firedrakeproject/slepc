@@ -43,7 +43,7 @@
 PetscErrorCode BVScatter(BV Vin,BV Vout,VecScatter scat,Vec xdup)
 {
   PetscInt          i;
-  Vec               v;
+  Vec               v,z;
   const PetscScalar *array;
 
   PetscFunctionBegin;
@@ -51,17 +51,19 @@ PetscErrorCode BVScatter(BV Vin,BV Vout,VecScatter scat,Vec xdup)
   PetscValidHeaderSpecific(Vout,BV_CLASSID,2);
   PetscValidHeaderSpecific(scat,PETSCSF_CLASSID,3);
   PetscValidHeaderSpecific(xdup,VEC_CLASSID,4);
+  PetscCall(BVCreateVec(Vout,&z));
   for (i=Vin->l;i<Vin->k;i++) {
     PetscCall(BVGetColumn(Vin,i,&v));
     PetscCall(VecScatterBegin(scat,v,xdup,INSERT_VALUES,SCATTER_FORWARD));
     PetscCall(VecScatterEnd(scat,v,xdup,INSERT_VALUES,SCATTER_FORWARD));
     PetscCall(BVRestoreColumn(Vin,i,&v));
     PetscCall(VecGetArrayRead(xdup,&array));
-    PetscCall(VecPlaceArray(Vout->t,array));
-    PetscCall(BVInsertVec(Vout,i,Vout->t));
-    PetscCall(VecResetArray(Vout->t));
+    PetscCall(VecPlaceArray(z,array));
+    PetscCall(BVInsertVec(Vout,i,z));
+    PetscCall(VecResetArray(z));
     PetscCall(VecRestoreArrayRead(xdup,&array));
   }
+  PetscCall(VecDestroy(&z));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

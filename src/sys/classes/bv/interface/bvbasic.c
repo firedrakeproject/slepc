@@ -1329,7 +1329,10 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscAssertPointer(v,2);
-  PetscCall(VecDuplicate(bv->t,v));
+  PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),v));
+  PetscCall(VecSetLayout(*v,bv->map));
+  PetscCall(VecSetType(*v,bv->vtype));
+  PetscCall(VecSetUp(*v));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

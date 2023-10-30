@@ -262,7 +262,7 @@ static PetscErrorCode BVTensorUpdateMatrix(BV V,PetscInt ini,PetscInt end)
   /* update inner product matrix */
   if (!ctx->qB) {
     PetscCall(PetscCalloc2(lds*lds,&ctx->qB,lds,&ctx->sw));
-    PetscCall(VecDuplicate(ctx->U->t,&ctx->u));
+    PetscCall(BVCreateVec(ctx->U,&ctx->u));
   }
   ctx->U->l = 0;
   for (r=0;r<ctx->d;r++) {
