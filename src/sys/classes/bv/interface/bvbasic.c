@@ -111,7 +111,6 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 {
   PetscInt       ma;
   PetscMPIInt    size;
-  PetscLayout    map;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -126,16 +125,15 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   bv->N = N;
   bv->m = m;
   bv->k = m;
-  /* create template vector and get actual dimensions */
-  PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),&bv->t));
-  PetscCall(VecSetSizes(bv->t,bv->n,bv->N));
+  /* create layout and get actual dimensions */
+  PetscCall(PetscLayoutCreate(PetscObjectComm((PetscObject)bv),&bv->map));
+  PetscCall(PetscLayoutSetSize(bv->map,bv->N));
+  PetscCall(PetscLayoutSetLocalSize(bv->map,bv->n));
+  PetscCall(PetscLayoutSetUp(bv->map));
+  PetscCall(PetscLayoutGetSize(bv->map,&bv->N));
+  PetscCall(PetscLayoutGetLocalSize(bv->map,&bv->n));
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size));
   bv->vtype = (size==1)? VECSEQ: VECMPI;
-  PetscCall(VecSetType(bv->t,bv->vtype));
-  PetscCall(VecGetSize(bv->t,&bv->N));
-  PetscCall(VecGetLocalSize(bv->t,&bv->n));
-  PetscCall(VecGetLayout(bv->t,&map));
-  PetscCall(PetscLayoutReference(map,&bv->map));
   if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
     PetscCall(MatGetLocalSize(bv->matrix,&ma,NULL));
     PetscCheck(bv->n==ma,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
@@ -188,8 +186,6 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   }
   bv->m = m;
   bv->k = m;
-  bv->t = t;
-  PetscCall(PetscObjectReference((PetscObject)t));
   if (bv->ops->create) {
     PetscUseTypeMethod(bv,create);
     bv->ops->create = NULL;
@@ -1541,6 +1537,7 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
 static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
 {
   PetscFunctionBegin;
+  PetscCall(PetscLayoutReference(V->map,&W->map));
   W->vtype        = V->vtype;
   W->ld           = V->ld;
   PetscCall(BVSetType(W,((PetscObject)V)->type_name));
@@ -1575,9 +1572,8 @@ static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
 .  W - location to put the new BV
 
    Notes:
-   The new BV has the same type and dimensions as V, and it shares the same
-   template vector. Also, the inner product matrix and orthogonalization
-   options are copied.
+   The new BV has the same type and dimensions as V. Also, the inner
+   product matrix and orthogonalization options are copied.
 
    BVDuplicate() DOES NOT COPY the entries, but rather allocates storage
    for the new basis vectors. Use BVCopy() to copy the contents.
@@ -1588,13 +1584,17 @@ static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
 @*/
 PetscErrorCode BVDuplicate(BV V,BV *W)
 {
+  Vec z;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscAssertPointer(W,2);
   PetscCall(BVCreate(PetscObjectComm((PetscObject)V),W));
-  PetscCall(BVSetSizesFromVec(*W,V->t,V->m));
+  PetscCall(BVCreateVec(V,&z));
+  PetscCall(BVSetSizesFromVec(*W,z,V->m));
+  PetscCall(VecDestroy(&z));
   PetscCall(BVDuplicate_Private(V,*W));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1622,6 +1622,8 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
 @*/
 PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
 {
+  Vec z;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidType(V,1);
@@ -1629,7 +1631,9 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
   PetscValidLogicalCollectiveInt(V,m,2);
   PetscAssertPointer(W,3);
   PetscCall(BVCreate(PetscObjectComm((PetscObject)V),W));
-  PetscCall(BVSetSizesFromVec(*W,V->t,m));
+  PetscCall(BVCreateVec(V,&z));
+  PetscCall(BVSetSizesFromVec(*W,z,m));
+  PetscCall(VecDestroy(&z));
   PetscCall(BVDuplicate_Private(V,*W));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1655,13 +1659,17 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
 @*/
 PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
 {
+  Vec z;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscAssertPointer(cached,2);
   BVCheckSizes(bv,1);
   if (!bv->cached) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)bv),&bv->cached));
-    PetscCall(BVSetSizesFromVec(bv->cached,bv->t,bv->m));
+    PetscCall(BVCreateVec(bv,&z));
+    PetscCall(BVSetSizesFromVec(bv->cached,z,bv->m));
+    PetscCall(VecDestroy(&z));
     PetscCall(BVDuplicate_Private(bv,bv->cached));
   }
   *cached = bv->cached;
@@ -1807,7 +1815,8 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
 
 static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
 {
-  PetscInt       ncols;
+  PetscInt  ncols;
+  Vec       z;
 
   PetscFunctionBegin;
   ncols = left? bv->nc+bv->l: bv->m-bv->l;
@@ -1816,7 +1825,9 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
     PetscCall(BVCreate(PetscObjectComm((PetscObject)bv),split));
     (*split)->issplit = left? 1: 2;
     (*split)->splitparent = bv;
-    PetscCall(BVSetSizesFromVec(*split,bv->t,ncols));
+    PetscCall(BVCreateVec(bv,&z));
+    PetscCall(BVSetSizesFromVec(*split,z,ncols));
+    PetscCall(VecDestroy(&z));
     PetscCall(BVDuplicate_Private(bv,*split));
   }
   (*split)->l  = 0;

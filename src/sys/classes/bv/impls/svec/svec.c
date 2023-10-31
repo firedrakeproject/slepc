@@ -414,7 +414,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   PetscCall(PetscStrcmpAny(bv->vtype,&ctx->mpi,VECMPI,VECMPICUDA,""));
 
   PetscCall(PetscStrcmp(bv->vtype,VECSEQ,&seq));
-  PetscCheck(seq || ctx->mpi || bv->cuda,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVSVEC does not support the type of the provided template vector");
+  PetscCheck(seq || ctx->mpi || bv->cuda,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVSVEC does not support the requested vector type: %s",bv->vtype);
 
   PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
   PetscCall(PetscLayoutGetSize(bv->map,&N));

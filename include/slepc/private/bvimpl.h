@@ -62,7 +62,6 @@ struct _BVOps {
 struct _p_BV {
   PETSCHEADER(struct _BVOps);
   /*------------------------- User parameters --------------------------*/
-  Vec                t;            /* template vector */
   PetscLayout        map;          /* layout of columns */
   VecType            vtype;        /* vector type */
   PetscInt           n,N;          /* dimensions of vectors (local, global) */
