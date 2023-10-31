@@ -18,7 +18,7 @@ class Arpack(package.Package):
     self.packagetype    = 'cmake'
     self.installable    = True
     self.downloadable   = True
-    self.version        = '3.9.0'
+    self.version        = '3.9.1'
     #self.gitcommit      = '5131f792f289c4e63b4cb1f56003e59507910132'
     obj = self.version if hasattr(self,'version') else self.gitcommit
     self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+obj+'.tar.gz'
