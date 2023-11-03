@@ -122,6 +122,7 @@ PetscErrorCode BVDestroy(BV *bv)
   if (--((PetscObject)(*bv))->refct > 0) { *bv = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscTryTypeMethod(*bv,destroy);
   PetscCall(PetscLayoutDestroy(&(*bv)->map));
+  PetscCall(PetscFree((*bv)->vtype));
   PetscCall(MatDestroy(&(*bv)->matrix));
   PetscCall(VecDestroy(&(*bv)->Bx));
   PetscCall(VecDestroy(&(*bv)->buffer));

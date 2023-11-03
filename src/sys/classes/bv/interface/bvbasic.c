@@ -133,7 +133,8 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   PetscCall(PetscLayoutGetSize(bv->map,&bv->N));
   PetscCall(PetscLayoutGetLocalSize(bv->map,&bv->n));
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size));
-  bv->vtype = (size==1)? VECSEQ: VECMPI;
+  PetscCall(PetscFree(bv->vtype));
+  PetscCall(PetscStrallocpy((size==1)?VECSEQ:VECMPI,(char**)&bv->vtype));
   if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
     PetscCall(MatGetLocalSize(bv->matrix,&ma,NULL));
     PetscCheck(bv->n==ma,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
@@ -167,6 +168,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
 {
   PetscInt       ma;
   PetscLayout    map;
+  VecType        vtype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -175,7 +177,9 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   PetscValidLogicalCollectiveInt(bv,m,3);
   PetscCheck(m>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
   PetscCheck(!bv->map,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Vector layout was already defined by a previous call to BVSetSizes/FromVec");
-  PetscCall(VecGetType(t,&bv->vtype));
+  PetscCall(VecGetType(t,&vtype));
+  PetscCall(PetscFree(bv->vtype));
+  PetscCall(PetscStrallocpy(vtype,(char**)&bv->vtype));
   PetscCall(VecGetLayout(t,&map));
   PetscCall(PetscLayoutReference(map,&bv->map));
   PetscCall(VecGetSize(t,&bv->N));
@@ -1538,7 +1542,8 @@ static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
 {
   PetscFunctionBegin;
   PetscCall(PetscLayoutReference(V->map,&W->map));
-  W->vtype        = V->vtype;
+  PetscCall(PetscFree(W->vtype));
+  PetscCall(PetscStrallocpy(V->vtype,(char**)&W->vtype));
   W->ld           = V->ld;
   PetscCall(BVSetType(W,((PetscObject)V)->type_name));
   W->orthog_type  = V->orthog_type;
