@@ -175,9 +175,9 @@ class PETSc(package.Package):
               if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX'+p and l[2]=='1' and (self.maxcxxdialect=='' or p>self.maxcxxdialect):
                 self.maxcxxdialect = p
                 break
-      if 'mkl_libs' in self.packages and 'mkl_includes' in self.packages:
-        self.packages.remove('mkl_libs')
-        self.packages.remove('mkl_includes')
+      if 'mkl_libs' in self.packages or 'mkl_includes' in self.packages:
+        if 'mkl_libs' in self.packages: self.packages.remove('mkl_libs')
+        if 'mkl_includes' in self.packages: self.packages.remove('mkl_includes')
         self.packages.append('mkl')
     except:
       if self.isinstall:
