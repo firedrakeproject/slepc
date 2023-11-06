@@ -428,7 +428,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   }
 
   if (PetscUnlikely(bv->Acreate)) {
-    PetscCall(MatConvert(bv->Acreate,MATDENSE,MAT_REUSE_MATRIX,&ctx->A));
+    PetscCall(MatConvert(bv->Acreate,bv->cuda?MATDENSECUDA:MATDENSE,MAT_REUSE_MATRIX,&ctx->A));
     PetscCall(MatDestroy(&bv->Acreate));
   }
 

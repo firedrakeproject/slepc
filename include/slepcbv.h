@@ -132,6 +132,8 @@ SLEPC_EXTERN PetscErrorCode BVGetArrayRead(BV,const PetscScalar**);
 SLEPC_EXTERN PetscErrorCode BVRestoreArrayRead(BV,const PetscScalar**);
 SLEPC_EXTERN PetscErrorCode BVCreateVec(BV,Vec*);
 SLEPC_EXTERN PetscErrorCode BVCreateVecEmpty(BV,Vec*);
+SLEPC_EXTERN PetscErrorCode BVSetVecType(BV,VecType);
+SLEPC_EXTERN PetscErrorCode BVGetVecType(BV,VecType*);
 SLEPC_EXTERN PetscErrorCode BVSetActiveColumns(BV,PetscInt,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVGetActiveColumns(BV,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode BVInsertVec(BV,PetscInt,Vec);

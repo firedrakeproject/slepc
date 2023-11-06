@@ -76,6 +76,8 @@ cdef extern from * nogil:
     PetscErrorCode BVGetDefiniteTolerance(SlepcBV,PetscReal*)
 
     PetscErrorCode BVCreateVec(SlepcBV,PetscVec*)
+    PetscErrorCode BVSetVecType(SlepcBV,PetscVecType)
+    PetscErrorCode BVGetVecType(SlepcBV,PetscVecType*)
     PetscErrorCode BVInsertVec(SlepcBV,PetscInt,PetscVec)
     PetscErrorCode BVInsertVecs(SlepcBV,PetscInt,PetscInt*,PetscVec*,PetscBool)
     PetscErrorCode BVInsertConstraints(SlepcBV,PetscInt*,PetscVec*)

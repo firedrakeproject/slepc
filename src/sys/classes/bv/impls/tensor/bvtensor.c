@@ -776,6 +776,7 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
 {
   PetscBool      match;
   PetscInt       n,N,m;
+  VecType        vtype;
   BV_TENSOR      *ctx;
 
   PetscFunctionBegin;
@@ -788,6 +789,8 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
   PetscCall(BVGetSizes(U,&n,&N,&m));
   PetscCheck(m>=d,PetscObjectComm((PetscObject)U),PETSC_ERR_ARG_SIZ,"U has %" PetscInt_FMT " columns, it should have at least d=%" PetscInt_FMT,m,d);
   PetscCall(BVSetSizes(*V,d*n,d*N,m-d+1));
+  PetscCall(BVGetVecType(U,&vtype));
+  PetscCall(BVSetVecType(*V,vtype));
   PetscCall(PetscObjectChangeTypeName((PetscObject)*V,BVTENSOR));
   PetscCall(PetscLogEventBegin(BV_Create,*V,0,0,0));
   PetscCall(BVCreate_Tensor(*V));

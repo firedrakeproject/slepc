@@ -105,6 +105,7 @@ static PetscErrorCode PEPJDDuplicateBasis(PEP pep,BV *basis)
   BVOrthogRefineType oref;
   PetscReal          oeta;
   BVOrthogBlockType  oblock;
+  VecType            vtype;
 
   PetscFunctionBegin;
   if (pjd->ld>1) {
@@ -114,6 +115,8 @@ static PetscErrorCode PEPJDDuplicateBasis(PEP pep,BV *basis)
     PetscCall(BVSetSizes(*basis,nloc,PETSC_DECIDE,m));
     PetscCall(BVGetType(pep->V,&type));
     PetscCall(BVSetType(*basis,type));
+    PetscCall(BVGetVecType(pep->V,&vtype));
+    PetscCall(BVSetVecType(*basis,vtype));
     PetscCall(BVGetOrthogonalization(pep->V,&otype,&oref,&oeta,&oblock));
     PetscCall(BVSetOrthogonalization(*basis,otype,oref,oeta,oblock));
     PetscCall(PetscObjectStateIncrease((PetscObject)*basis));

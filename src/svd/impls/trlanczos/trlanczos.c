@@ -1527,6 +1527,7 @@ static PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscBool      convchg=PETSC_FALSE;
   BV             U1,U2,UU;
   BVType         type;
+  VecType        vtype;
   Mat            U,V;
   SlepcSC        sc;
 
@@ -1551,11 +1552,14 @@ static PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscCall(BVSetType(U1,type));
   PetscCall(BVGetSizes(svd->U,NULL,NULL,&k));
   PetscCall(BVSetSizes(U1,m,PETSC_DECIDE,k));
+  PetscCall(BVGetVecType(svd->U,&vtype));
+  PetscCall(BVSetVecType(U1,vtype));
 
   /* Create BV for U2 */
   PetscCall(BVCreate(PetscObjectComm((PetscObject)svd),&U2));
   PetscCall(BVSetType(U2,type));
   PetscCall(BVSetSizes(U2,p,PETSC_DECIDE,k));
+  PetscCall(BVSetVecType(U2,vtype));
 
   /* Copy initial vectors from svd->U to U1 and U2 */
   if (svd->ninil) {

@@ -246,15 +246,18 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 @*/
 PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
 {
-  PetscInt       n,N,k;
+  PetscInt  n,N,k;
+  VecType   vtype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(A,MAT_CLASSID,1);
 
   PetscCall(MatGetSize(A,&N,&k));
   PetscCall(MatGetLocalSize(A,&n,NULL));
+  PetscCall(MatGetVecType(A,&vtype));
   PetscCall(BVCreate(PetscObjectComm((PetscObject)A),bv));
   PetscCall(BVSetSizes(*bv,n,N,k));
+  PetscCall(BVSetVecType(*bv,vtype));
 
   (*bv)->Acreate = A;
   PetscCall(PetscObjectReference((PetscObject)A));
