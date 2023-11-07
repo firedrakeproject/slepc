@@ -311,7 +311,6 @@ PetscErrorCode BVGetMat_Mat_CUDA(BV bv,Mat *A)
   PetscScalar    *vv,*aa;
   PetscBool      create=PETSC_FALSE;
   PetscInt       m,cols;
-  VecType        vtype;
 
   PetscFunctionBegin;
   m = bv->k-bv->l;
@@ -327,8 +326,7 @@ PetscErrorCode BVGetMat_Mat_CUDA(BV bv,Mat *A)
   }
   PetscCall(MatDenseCUDAGetArray(ctx->A,&vv));
   if (create) {
-    PetscCall(VecGetType(bv->t,&vtype));
-    PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv),vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
+    PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv),bv->vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
     PetscCall(MatDenseCUDAReplaceArray(bv->Aget,NULL));  /* replace with a null pointer, the value after BVRestoreMat */
   }
   PetscCall(MatDenseCUDAPlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->ld));  /* set the actual pointer */

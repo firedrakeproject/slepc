@@ -666,6 +666,27 @@ cdef class BV(Object):
         CHKERR( BVCreateVec(self.bv, &v.vec) )
         return v
 
+    def setVecType(self, vec_type):
+        """
+        Set the vector type.
+
+        Parameters
+        ----------
+        vec_type
+            Vector type used when creating vectors with `createVec`.
+        """
+        cdef PetscVecType cval = NULL
+        vec_type = str2bytes(vec_type, &cval)
+        CHKERR( BVSetVecType(self.bv, cval) )
+
+    def getVecType(self):
+        """
+        Return the vector type used by the basis vectors object.
+        """
+        cdef PetscVecType cval = NULL
+        CHKERR( BVGetVecType(self.bv, &cval) )
+        return bytes2str(cval)
+
     def copyVec(self, j, Vec v):
         """
         Copies one of the columns of a basis vectors object into a Vec.

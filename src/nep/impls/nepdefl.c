@@ -141,6 +141,7 @@ PetscErrorCode NEPDeflationCreateBV(NEP_EXT_OP extop,PetscInt sz,BV *V)
   PetscReal          oeta;
   BVOrthogBlockType  oblock;
   NEP                nep=extop->nep;
+  VecType            vtype;
 
   PetscFunctionBegin;
   if (extop->szd) {
@@ -149,6 +150,8 @@ PetscErrorCode NEPDeflationCreateBV(NEP_EXT_OP extop,PetscInt sz,BV *V)
     PetscCall(BVSetSizes(*V,nloc+extop->szd,PETSC_DECIDE,sz));
     PetscCall(BVGetType(nep->V,&type));
     PetscCall(BVSetType(*V,type));
+    PetscCall(BVGetVecType(nep->V,&vtype));
+    PetscCall(BVSetVecType(*V,vtype));
     PetscCall(BVGetOrthogonalization(nep->V,&otype,&oref,&oeta,&oblock));
     PetscCall(BVSetOrthogonalization(*V,otype,oref,oeta,oblock));
     PetscCall(PetscObjectStateIncrease((PetscObject)*V));

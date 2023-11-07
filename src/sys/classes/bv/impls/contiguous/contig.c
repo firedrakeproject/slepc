@@ -224,12 +224,12 @@ static PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
   char           str[50];
 
   PetscFunctionBegin;
-  PetscCall(VecGetBlockSize(bv->t,&bs));
+  PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
   PetscCall(PetscCalloc1(m*bv->ld,&newarray));
   PetscCall(PetscMalloc1(m,&newV));
   for (j=0;j<m;j++) {
-    if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,PETSC_DECIDE,newarray+j*bv->ld,newV+j));
-    else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,newarray+j*bv->ld,newV+j));
+    if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv),bs,bv->n,PETSC_DECIDE,newarray+j*bv->ld,newV+j));
+    else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv),bs,bv->n,newarray+j*bv->ld,newV+j));
   }
   if (((PetscObject)bv)->name) {
     for (j=0;j<m;j++) {
@@ -344,14 +344,14 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
-  PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi));
+  PetscCall(PetscStrcmp(bv->vtype,VECMPI,&ctx->mpi));
   if (!ctx->mpi) {
-    PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq));
-    PetscCheck(seq,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot create a contiguous BV from a non-standard template vector");
+    PetscCall(PetscStrcmp(bv->vtype,VECSEQ,&seq));
+    PetscCheck(seq,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot create a contiguous BV from a non-standard vector type: %s",bv->vtype);
   }
 
-  PetscCall(VecGetLocalSize(bv->t,&nloc));
-  PetscCall(VecGetBlockSize(bv->t,&bs));
+  PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
+  PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
   PetscCall(BV_SetDefaultLD(bv,nloc));
 
   if (PetscUnlikely(bv->issplit)) {
@@ -367,8 +367,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
     PetscCall(PetscCalloc1(bv->m*bv->ld,&ctx->array));
     PetscCall(PetscMalloc1(bv->m,&ctx->V));
     for (j=0;j<bv->m;j++) {
-      if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*bv->ld,ctx->V+j));
-      else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*bv->ld,ctx->V+j));
+      if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,PETSC_DECIDE,ctx->array+j*bv->ld,ctx->V+j));
+      else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,ctx->array+j*bv->ld,ctx->V+j));
     }
   }
   if (((PetscObject)bv)->name) {
