@@ -277,7 +277,7 @@ allcite: chk_loc deletemanualpages petsc_manualpages_buildcite
 	-${OMAKE_SELF} ACTION=slepc_manualpages_buildcite tree_src LOC=${LOC}
 	-@cat ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${LOC}/docs/manualpages/petscmanualpages.cit >> ${LOC}/docs/manualpages/htmlmap
-	-@cat ${PETSC_DIR}/doc/classic/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
+	-@cat ${PETSC_DIR}/doc/manualpages/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
 
 # Build just PDF manual + prerequisites
 allpdf:
