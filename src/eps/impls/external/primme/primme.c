@@ -310,7 +310,7 @@ static PetscErrorCode EPSSolve_PRIMME(EPS eps)
 {
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
   PetscScalar    *a;
-  PetscInt       i,ierrprimme;
+  PetscInt       i,ld,ierrprimme;
   PetscReal      *evals,*rnorms;
 
   PetscFunctionBegin;
@@ -326,6 +326,8 @@ static PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ops->primme.iseed[1] = -1;
   ops->primme.iseed[2] = -1;
   ops->primme.iseed[3] = -1;
+  PetscCall(BVGetLeadingDimension(eps->V,&ld));
+  ops->primme.ldevecs  = ld;
 
   /* Call PRIMME solver */
   PetscCall(BVGetArray(eps->V,&a));

@@ -67,4 +67,3 @@ SLEPC_EXTERN void stshellsetbacktransform_(ST *st,void (*backtransform)(void*,Pe
   *ierr = PetscObjectSetFortranCallback((PetscObject)*st,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.backtransform,(PetscVoidFunction)backtransform,NULL); if (*ierr) return;
   *ierr = STShellSetBackTransform(*st,ourshellbacktransform);
 }
-

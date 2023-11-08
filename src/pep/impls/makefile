@@ -9,7 +9,6 @@
 #
 
 LIBBASE  = libslepcpep
-DIRS     = linear krylov jd ciss
 MANSEC   = PEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

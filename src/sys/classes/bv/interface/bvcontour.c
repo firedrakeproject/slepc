@@ -43,7 +43,7 @@
 PetscErrorCode BVScatter(BV Vin,BV Vout,VecScatter scat,Vec xdup)
 {
   PetscInt          i;
-  Vec               v;
+  Vec               v,z;
   const PetscScalar *array;
 
   PetscFunctionBegin;
@@ -51,17 +51,19 @@ PetscErrorCode BVScatter(BV Vin,BV Vout,VecScatter scat,Vec xdup)
   PetscValidHeaderSpecific(Vout,BV_CLASSID,2);
   PetscValidHeaderSpecific(scat,PETSCSF_CLASSID,3);
   PetscValidHeaderSpecific(xdup,VEC_CLASSID,4);
+  PetscCall(BVCreateVec(Vout,&z));
   for (i=Vin->l;i<Vin->k;i++) {
     PetscCall(BVGetColumn(Vin,i,&v));
     PetscCall(VecScatterBegin(scat,v,xdup,INSERT_VALUES,SCATTER_FORWARD));
     PetscCall(VecScatterEnd(scat,v,xdup,INSERT_VALUES,SCATTER_FORWARD));
     PetscCall(BVRestoreColumn(Vin,i,&v));
     PetscCall(VecGetArrayRead(xdup,&array));
-    PetscCall(VecPlaceArray(Vout->t,array));
-    PetscCall(BVInsertVec(Vout,i,Vout->t));
-    PetscCall(VecResetArray(Vout->t));
+    PetscCall(VecPlaceArray(z,array));
+    PetscCall(BVInsertVec(Vout,i,z));
+    PetscCall(VecResetArray(z));
     PetscCall(VecRestoreArrayRead(xdup,&array));
   }
+  PetscCall(VecDestroy(&z));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -310,12 +312,13 @@ static PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *pA,P
   PetscInt       i,j,k,ml=S->k;
   PetscMPIInt    len;
   PetscScalar    *work,*B,*tempB,*sarray,*Q1,*Q2,*temp2,alpha=1.0,beta=0.0;
-  PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
+  PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc,lds;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
 
   PetscFunctionBegin;
+  PetscCall(PetscBLASIntCast(S->ld,&lds));
   PetscCall(BVGetArray(S,&sarray));
   PetscCall(PetscMalloc6(ml*ml,&temp2,S->n*ml,&Q1,S->n*ml,&Q2,ml*ml,&B,ml*ml,&tempB,5*ml,&work));
 #if defined(PETSC_USE_COMPLEX)
@@ -330,7 +333,7 @@ static PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *pA,P
     PetscCall(PetscBLASIntCast(S->n,&m));
     PetscCall(PetscBLASIntCast(ml,&l));
     n = l; lda = m; ldb = m; ldc = l;
-    if (!k) PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,sarray,&lda,sarray,&ldb,&beta,pA,&ldc));
+    if (!k) PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,sarray,&lds,sarray,&lds,&beta,pA,&ldc));
     else PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,Q1,&lda,Q1,&ldb,&beta,pA,&ldc));
     PetscCall(PetscArrayzero(temp2,ml*ml));
     PetscCall(PetscMPIIntCast(ml*ml,&len));
@@ -348,7 +351,7 @@ static PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *pA,P
     PetscCall(PetscBLASIntCast(S->n,&l));
     PetscCall(PetscBLASIntCast(ml,&n));
     m = n; lda = l; ldb = m; ldc = l;
-    if (!k) PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,sarray,&lda,temp2,&ldb,&beta,Q1,&ldc));
+    if (!k) PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,sarray,&lds,temp2,&ldb,&beta,Q1,&ldc));
     else PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,Q1,&lda,temp2,&ldb,&beta,Q2,&ldc));
 
     PetscCall(PetscBLASIntCast(ml,&l));
@@ -375,9 +378,9 @@ static PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *pA,P
 
   PetscCall(PetscBLASIntCast(S->n,&l));
   PetscCall(PetscBLASIntCast(ml,&n));
-  m = n; lda = l; ldb = m; ldc = l;
-  if (k%2) PetscCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q1,&lda,B,&ldb,&beta,sarray,&ldc));
-  else PetscCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q2,&lda,B,&ldb,&beta,sarray,&ldc));
+  m = n; lda = l; ldb = m;
+  if (k%2) PetscCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q1,&lda,B,&ldb,&beta,sarray,&lds));
+  else PetscCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q2,&lda,B,&ldb,&beta,sarray,&lds));
 
   PetscCall(PetscFPTrapPop());
   PetscCall(BVRestoreArray(S,&sarray));
@@ -407,7 +410,7 @@ static PetscErrorCode BVSVDAndRank_QR(BV S,PetscReal delta,PetscScalar *pA,Petsc
   PetscFunctionBegin;
   /* Compute QR factorizaton of S */
   PetscCall(BVGetSizes(S,NULL,&n,NULL));
-  n    = PetscMin(n,ml);
+  n = PetscMin(n,ml);
   PetscCall(BVSetActiveColumns(S,0,n));
   PetscCall(PetscArrayzero(pA,ml*n));
   PetscCall(MatCreateDense(PETSC_COMM_SELF,n,n,PETSC_DECIDE,PETSC_DECIDE,pA,&A));

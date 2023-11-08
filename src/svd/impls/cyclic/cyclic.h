@@ -22,6 +22,8 @@ typedef struct {
   Vec       x1,x2,y1,y2;
   Vec       diag,w;         /* used only in extended cross matrix */
   PetscBool swapped;
+  PetscBool misaligned;     /* bottom block is misaligned, checked in CUDA only */
+  Vec       wx2,wy2;        /* workspace vectors used if misaligned=true */
 } SVD_CYCLIC_SHELL;
 
 SLEPC_INTERN PetscErrorCode MatMult_Cyclic_CUDA(Mat,Vec,Vec);

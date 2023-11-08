@@ -8,7 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-include ${PETSC_DIR}/lib/petsc/conf/rules.utils
+include ${PETSC_DIR}/lib/petsc/conf/rules_util.mk
 
 vermin_slepc:
 	@vermin --violations -t=3.4- ${VERMIN_OPTIONS} ${SLEPC_DIR}/config

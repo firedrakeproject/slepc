@@ -45,6 +45,8 @@ cdef extern from * nogil:
     PetscErrorCode BVSetSizesFromVec(SlepcBV,PetscVec,PetscInt)
     PetscErrorCode BVGetSizes(SlepcBV,PetscInt*,PetscInt*,PetscInt*)
     PetscErrorCode BVResize(SlepcBV,PetscInt,PetscBool)
+    PetscErrorCode BVSetLeadingDimension(SlepcBV,PetscInt)
+    PetscErrorCode BVGetLeadingDimension(SlepcBV,PetscInt*)
 
     PetscErrorCode BVSetOptionsPrefix(SlepcBV,char[])
     PetscErrorCode BVGetOptionsPrefix(SlepcBV,char*[])
@@ -74,6 +76,8 @@ cdef extern from * nogil:
     PetscErrorCode BVGetDefiniteTolerance(SlepcBV,PetscReal*)
 
     PetscErrorCode BVCreateVec(SlepcBV,PetscVec*)
+    PetscErrorCode BVSetVecType(SlepcBV,PetscVecType)
+    PetscErrorCode BVGetVecType(SlepcBV,PetscVecType*)
     PetscErrorCode BVInsertVec(SlepcBV,PetscInt,PetscVec)
     PetscErrorCode BVInsertVecs(SlepcBV,PetscInt,PetscInt*,PetscVec*,PetscBool)
     PetscErrorCode BVInsertConstraints(SlepcBV,PetscInt*,PetscVec*)

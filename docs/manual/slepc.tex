@@ -34,7 +34,7 @@
   pdfkeywords={SLEPc, PETSc, eigenvalue problems}
 }
 
-\newcommand{\slepcversion}{3.19}
+\newcommand{\slepcversion}{3.20}
 \newcommand{\slepchome}{https://slepc.upv.es}
 \newcommand{\pack}[1]{{\sc #1}\index{\textsc{#1}}\xspace}
 \newcommand{\packnoi}[1]{{\sc #1}\xspace}
@@ -86,28 +86,28 @@
 \begin{document}
 
 \title{
- 	\vspace*{-1cm}
-	\framebox[12cm][l]{
-	\includegraphics[height=1.4cm]{figures/upv}
-	\hfill
-	\parbox[b]{4cm}{\begin{flushright}\vspace*{-7mm}\normalsize\sl\sffamily
-	Departamento de\\[-0.8mm] Sistemas Inform\'aticos\\[-0.8mm]
-	y Computaci\'on\\[0.8mm]
-	\vspace{-2.5mm}\end{flushright}}
-	\raisebox{3mm}{\includegraphics[height=9mm,width=1.4cm]{figures/dsic}}
-	}
-	\\[2cm]
-	\normalsize Technical Report DSIC-II/24/02
-	\\[2cm]
-	\vspace*{6mm}
-	{\Large\bf\sffamily
-	SLEPc Users Manual\\[2mm]}
-	{\large\bf\sffamily
-	Scalable Library for Eigenvalue Problem Computations}\\[2mm]
-	\vspace*{6mm}
-	\vspace*{6mm}
-	\url{\slepchome}
-	\\[6mm]
+   \vspace*{-1cm}
+   \framebox[12cm][l]{
+   \includegraphics[height=1.4cm]{figures/upv}
+   \hfill
+   \parbox[b]{4cm}{\begin{flushright}\vspace*{-7mm}\normalsize\sl\sffamily
+   Departamento de\\[-0.8mm] Sistemas Inform\'aticos\\[-0.8mm]
+   y Computaci\'on\\[0.8mm]
+   \vspace{-2.5mm}\end{flushright}}
+   \raisebox{3mm}{\includegraphics[height=9mm,width=1.4cm]{figures/dsic}}
+   }
+   \\[2cm]
+   \normalsize Technical Report DSIC-II/24/02
+   \\[2cm]
+   \vspace*{6mm}
+   {\Large\bf\sffamily
+   SLEPc Users Manual\\[2mm]}
+   {\large\bf\sffamily
+   Scalable Library for Eigenvalue Problem Computations}\\[2mm]
+   \vspace*{6mm}
+   \vspace*{6mm}
+   \url{\slepchome}
+   \\[6mm]
 }
 
 \author{
@@ -119,8 +119,8 @@
 }
 
 \date{
-	To be used with \slepc \slepcversion\\
-	March, 2023
+   To be used with \slepc \slepcversion\\
+   September, 2023
 }
 
 \hypersetup{pageanchor=false}
@@ -144,32 +144,32 @@
 %---------------------------------------------------
 \subsection*{Abstract}
 
-	This document describes \slepc, the {\em Scalable Library for Eigenvalue Problem Computations}, a software package for the solution of large sparse eigenproblems on parallel computers. It can be used for the solution of various types of eigenvalue problems, including linear and nonlinear, as well as other related problems such as the singular value decomposition (see a summary of supported problem classes on page \pageref{tab:modules}). \slepc is a general library in the sense that it covers both Hermitian and non-Hermitian problems, with either real or complex arithmetic.
+This document describes \slepc, the {\em Scalable Library for Eigenvalue Problem Computations}, a software package for the solution of large sparse eigenproblems on parallel computers. It can be used for the solution of various types of eigenvalue problems, including linear and nonlinear, as well as other related problems such as the singular value decomposition (see a summary of supported problem classes on page \pageref{tab:modules}). \slepc is a general library in the sense that it covers both Hermitian and non-Hermitian problems, with either real or complex arithmetic.
 
-	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from the solvers, \slepc also provides built-in support for some operations commonly used in the context of eigenvalue computations, such as preconditioning or the shift-and-invert spectral transformation.
+The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from the solvers, \slepc also provides built-in support for some operations commonly used in the context of eigenvalue computations, such as preconditioning or the shift-and-invert spectral transformation.
 
-	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
+\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
 
 
 \subsubsection*{How to Get \slepc}
 
-	All the information related to \slepc can be found at the following web site:
-	\begin{quote}
-	\begin{center}
-	\url{\slepchome}.
-	\end{center}
-	\end{quote}
-	The distribution file is available for download at this site. Other information is provided there, such as installation instructions and contact information. Instructions for installing the software can also be found in \S\ref{sec:inst}.
+All the information related to \slepc can be found at the following web site:
+\begin{quote}
+\begin{center}
+\url{\slepchome}.
+\end{center}
+\end{quote}
+The distribution file is available for download at this site. Other information is provided there, such as installation instructions and contact information. Instructions for installing the software can also be found in \S\ref{sec:inst}.
 
-	\packnoi{pets\rm c} can be downloaded from \url{https://petsc.org}.  \packnoi{pets\rm c} is supported, and information on contacting support can be found at that site.
+\packnoi{pets\rm c} can be downloaded from \url{https://petsc.org}.  \packnoi{pets\rm c} is supported, and information on contacting support can be found at that site.
 
 \subsubsection*{Additional Documentation}
 
-	This manual provides a general description of \slepc. In addition, manual pages for individual routines are included in the distribution file in hypertext format, and are also available on-line at \url{\slepchome/documentation}. These manual pages provide hyperlinked access to the source code and enable easy movement among related topics. Finally, there are also several hands-on exercises available, which are intended for learning the basic concepts easily.
+This manual provides a general description of \slepc. In addition, manual pages for individual routines are included in the distribution file in hypertext format, and are also available on-line at \url{\slepchome/documentation}. These manual pages provide hyperlinked access to the source code and enable easy movement among related topics. Finally, there are also several hands-on exercises available, which are intended for learning the basic concepts easily.
 
 \subsubsection*{How to Read this Manual}
 
-	Users that are already familiar with \packnoi{pets\rm c} can read chapter \ref{cap:int} very fast. Section \ref{sec:eig} provides a brief overview of eigenproblems and the general concepts used by eigensolvers, so it can be skipped by experienced users. Chapters \ref{cap:eps}--\ref{cap:mfn} describe the main \slepc functionality. Some of them include an advanced usage section that can be skipped at a first reading. Finally, chapter \ref{cap:add} contains less important, additional information.
+Users that are already familiar with \packnoi{pets\rm c} can read chapter \ref{cap:int} very fast. Section \ref{sec:eig} provides a brief overview of eigenproblems and the general concepts used by eigensolvers, so it can be skipped by experienced users. Chapters \ref{cap:eps}--\ref{cap:mfn} describe the main \slepc functionality. Some of them include an advanced usage section that can be skipped at a first reading. Finally, chapter \ref{cap:add} contains less important, additional information.
 
 %\subsubsection*{What's New}
 %
@@ -181,15 +181,15 @@
 
 \subsubsection*{\slepc Technical Reports}
 
-	The information contained in this manual is complemented by a set of Technical Reports, which provide technical details that normal users typically do not need to know but may be useful for experts in order to identify the particular method implemented in \slepc. These reports are not included in the \slepc distribution file but can be accessed via the \slepc web site. A \hyperlink{str}{list of available reports} is included at the end of the Bibliography.
+The information contained in this manual is complemented by a set of Technical Reports, which provide technical details that normal users typically do not need to know but may be useful for experts in order to identify the particular method implemented in \slepc. These reports are not included in the \slepc distribution file but can be accessed via the \slepc web site. A \hyperlink{str}{list of available reports} is included at the end of the Bibliography.
 
 
 \subsubsection*{Acknowledgments}
 
-%	We thank all the \packnoi{pets\rm c} team for their help and support. Without their continued effort invested in \packnoi{pets\rm c}, \slepc would not have been possible.
+%We thank all the \packnoi{pets\rm c} team for their help and support. Without their continued effort invested in \packnoi{pets\rm c}, \slepc would not have been possible.
 % We also thank Osni Marques and Tony Drummond for helping us raise awareness of \slepc in the context of the ACTS project.
 
-	The current version contains code contributed by:
+The current version contains code contributed by:
 A.\ Lamas Davi\~{n}a (CUDA code),
 F.\ Alvarruiz (restarted Lanczos for the GSVD),
 Y.\ Maeda, T.\ Sakurai (CISS solvers),
@@ -197,7 +197,7 @@ M.\ Moldaschl, W.\ Gansterer (BDC subroutines),
 F.\ Kong (nonlinear inverse iteration),
 H.\ Fang, Y. Saad (\textsc{filtlan} polynomial filter).
 
-	Development of \slepc has been partially funded by the following grants:
+Development of \slepc has been partially funded by the following grants:
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
 \item Agencia Estatal de Investigaci\'on (Spain), grant no.\ PID2022-139568NB-I00, PI: Jos\'e E. Rom\'an.

@@ -110,6 +110,7 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
 PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 {
   PetscInt       ma;
+  PetscMPIInt    size;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -119,20 +120,23 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   PetscCheck(m>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
   PetscCheck((bv->n<0 && bv->N<0) || (bv->n==n && bv->N==N),PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change/reset vector sizes to %" PetscInt_FMT " local %" PetscInt_FMT " global after previously setting them to %" PetscInt_FMT " local %" PetscInt_FMT " global",n,N,bv->n,bv->N);
   PetscCheck(bv->m<=0 || bv->m==m,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change the number of columns to %" PetscInt_FMT " after previously setting it to %" PetscInt_FMT "; use BVResize()",m,bv->m);
+  PetscCheck(!bv->map,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Vector layout was already defined by a previous call to BVSetSizes/FromVec");
   bv->n = n;
   bv->N = N;
   bv->m = m;
   bv->k = m;
-  if (!bv->t) {  /* create template vector and get actual dimensions */
-    PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),&bv->t));
-    PetscCall(VecSetSizes(bv->t,bv->n,bv->N));
-    PetscCall(VecSetFromOptions(bv->t));
-    PetscCall(VecGetSize(bv->t,&bv->N));
-    PetscCall(VecGetLocalSize(bv->t,&bv->n));
-    if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
-      PetscCall(MatGetLocalSize(bv->matrix,&ma,NULL));
-      PetscCheck(bv->n==ma,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
-    }
+  /* create layout and get actual dimensions */
+  PetscCall(PetscLayoutCreate(PetscObjectComm((PetscObject)bv),&bv->map));
+  PetscCall(PetscLayoutSetSize(bv->map,bv->N));
+  PetscCall(PetscLayoutSetLocalSize(bv->map,bv->n));
+  PetscCall(PetscLayoutSetUp(bv->map));
+  PetscCall(PetscLayoutGetSize(bv->map,&bv->N));
+  PetscCall(PetscLayoutGetLocalSize(bv->map,&bv->n));
+  PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size));
+  PetscCall(BVSetVecType(bv,(size==1)?VECSEQ:VECMPI));
+  if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
+    PetscCall(MatGetLocalSize(bv->matrix,&ma,NULL));
+    PetscCheck(bv->n==ma,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
   }
   if (bv->ops->create) {
     PetscCall(PetscLogEventBegin(BV_Create,bv,0,0,0));
@@ -162,6 +166,8 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
 {
   PetscInt       ma;
+  PetscLayout    map;
+  VecType        vtype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -169,7 +175,11 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   PetscCheckSameComm(bv,1,t,2);
   PetscValidLogicalCollectiveInt(bv,m,3);
   PetscCheck(m>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
-  PetscCheck(!bv->t,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Template vector was already set by a previous call to BVSetSizes/FromVec");
+  PetscCheck(!bv->map,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Vector layout was already defined by a previous call to BVSetSizes/FromVec");
+  PetscCall(VecGetType(t,&vtype));
+  PetscCall(BVSetVecType(bv,vtype));
+  PetscCall(VecGetLayout(t,&map));
+  PetscCall(PetscLayoutReference(map,&bv->map));
   PetscCall(VecGetSize(t,&bv->N));
   PetscCall(VecGetLocalSize(t,&bv->n));
   if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
@@ -178,8 +188,6 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   }
   bv->m = m;
   bv->k = m;
-  bv->t = t;
-  PetscCall(PetscObjectReference((PetscObject)t));
   if (bv->ops->create) {
     PetscUseTypeMethod(bv,create);
     bv->ops->create = NULL;
@@ -767,7 +775,7 @@ PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
     ld = bv->m+bv->nc;
     PetscCall(VecCreate(PETSC_COMM_SELF,&bv->buffer));
     PetscCall(VecSetSizes(bv->buffer,PETSC_DECIDE,ld*bv->m));
-    PetscCall(VecSetType(bv->buffer,((PetscObject)bv->t)->type_name));
+    PetscCall(VecSetType(bv->buffer,bv->vtype));
   }
   *buffer = bv->buffer;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -857,9 +865,9 @@ PetscErrorCode BVSetFromOptions(BV bv)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscCall(BVRegisterAll());
   PetscObjectOptionsBegin((PetscObject)bv);
-    PetscCall(PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,sizeof(type),&flg1));
+    PetscCall(PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVMAT),type,sizeof(type),&flg1));
     if (flg1) PetscCall(BVSetType(bv,type));
-    else if (!((PetscObject)bv)->type_name) PetscCall(BVSetType(bv,BVSVEC));
+    else if (!((PetscObject)bv)->type_name) PetscCall(BVSetType(bv,BVMAT));
 
     otype = bv->orthog_type;
     PetscCall(PetscOptionsEnum("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",BVOrthogTypes,(PetscEnum)otype,(PetscEnum*)&otype,&flg1));
@@ -1184,9 +1192,15 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
    The pointer will normally point to the first entry of the first column,
    but if the BV has constraints then these go before the regular columns.
 
+   Note that for manipulating the pointer to the BV array, one must take into
+   account the leading dimension, which might be different from the local
+   number of rows, see BVGetLeadingDimension().
+
+   Use BVGetArrayRead() for read-only access.
+
    Level: advanced
 
-.seealso: BVRestoreArray(), BVInsertConstraints()
+.seealso: BVRestoreArray(), BVInsertConstraints(), BVGetLeadingDimension(), BVGetArrayRead()
 @*/
 PetscErrorCode BVGetArray(BV bv,PetscScalar **a)
 {
@@ -1250,7 +1264,7 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
 
    Level: advanced
 
-.seealso: BVRestoreArray(), BVInsertConstraints()
+.seealso: BVRestoreArray(), BVInsertConstraints(), BVGetLeadingDimension(), BVGetArray()
 @*/
 PetscErrorCode BVGetArrayRead(BV bv,const PetscScalar **a)
 {
@@ -1305,7 +1319,7 @@ PetscErrorCode BVRestoreArrayRead(BV bv,const PetscScalar **a)
 
    Level: beginner
 
-.seealso: BVCreateMat()
+.seealso: BVCreateMat(), BVCreateVecEmpty()
 @*/
 PetscErrorCode BVCreateVec(BV bv,Vec *v)
 {
@@ -1313,7 +1327,117 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscAssertPointer(v,2);
-  PetscCall(VecDuplicate(bv->t,v));
+  PetscCall(VecCreate(PetscObjectComm((PetscObject)bv),v));
+  PetscCall(VecSetLayout(*v,bv->map));
+  PetscCall(VecSetType(*v,bv->vtype));
+  PetscCall(VecSetUp(*v));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   BVCreateVecEmpty - Creates a new Vec object with the same type and dimensions
+   as the columns of the basis vectors object, but without internal array.
+
+   Collective
+
+   Input Parameter:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  v  - the new vector
+
+   Note:
+   This works as BVCreateVec(), but the new vector does not have the array allocated,
+   so the intended usage is with VecPlaceArray().
+
+   Level: developer
+
+.seealso: BVCreateVec()
+@*/
+PetscErrorCode BVCreateVecEmpty(BV bv,Vec *v)
+{
+  PetscBool  standard,cuda,mpi;
+  PetscInt   N,nloc,bs;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  BVCheckSizes(bv,1);
+  PetscAssertPointer(v,2);
+
+  PetscCall(PetscStrcmpAny(bv->vtype,&standard,VECSEQ,VECMPI,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&cuda,VECSEQCUDA,VECMPICUDA,""));
+  if (standard || cuda) {
+    PetscCall(PetscStrcmpAny(bv->vtype,&mpi,VECMPI,VECMPICUDA,""));
+    PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
+    PetscCall(PetscLayoutGetSize(bv->map,&N));
+    PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
+    if (cuda) {
+#if defined(PETSC_HAVE_CUDA)
+      if (mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));
+      else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv),bs,N,NULL,v));
+#endif
+    } else {
+      if (mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));
+      else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv),bs,N,NULL,v));
+    }
+  } else PetscCall(BVCreateVec(bv,v)); /* standard duplicate, with internal array */
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@C
+   BVSetVecType - Set the vector type to be used when creating vectors via BVCreateVec().
+
+   Collective
+
+   Input Parameters:
++  bv - the basis vectors context
+-  vtype - the vector type
+
+   Level: advanced
+
+   Note:
+   This is not needed if the BV object is set up with BVSetSizesFromVec(), but may be
+   required in the case of BVSetSizes() if one wants to work with non-standard vectors.
+
+.seealso: BVGetVecType(), BVSetSizesFromVec(), BVSetSizes()
+@*/
+PetscErrorCode BVSetVecType(BV bv,VecType vtype)
+{
+  PetscBool   std;
+  PetscMPIInt size;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscCall(PetscFree(bv->vtype));
+  PetscCall(PetscStrcmp(vtype,VECSTANDARD,&std));
+  if (std) {
+    PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size));
+    PetscCall(PetscStrallocpy((size==1)?VECSEQ:VECMPI,(char**)&bv->vtype));
+  } else PetscCall(PetscStrallocpy(vtype,(char**)&bv->vtype));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@C
+   BVGetVecType - Get the vector type to be used when creating vectors via BVCreateVec().
+
+   Not Collective
+
+   Input Parameter:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  vtype - the vector type
+
+   Level: advanced
+
+.seealso: BVSetVecType()
+@*/
+PetscErrorCode BVGetVecType(BV bv,VecType *vtype)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscAssertPointer(vtype,2);
+  *vtype = bv->vtype;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -1340,20 +1464,24 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
 @*/
 PetscErrorCode BVCreateMat(BV bv,Mat *A)
 {
-  PetscScalar       *aa;
-  const PetscScalar *vv;
+  PetscInt ksave,lsave;
+  Mat      B;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscAssertPointer(A,2);
 
-  PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,bv->N,bv->m,NULL,A));
-  PetscCall(MatDenseGetArrayWrite(*A,&aa));
-  PetscCall(BVGetArrayRead(bv,&vv));
-  PetscCall(PetscArraycpy(aa,vv,bv->m*bv->n));
-  PetscCall(BVRestoreArrayRead(bv,&vv));
-  PetscCall(MatDenseRestoreArrayWrite(*A,&aa));
+  PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv),bv->vtype,bv->n,PETSC_DECIDE,bv->N,bv->m,bv->ld,NULL,A));
+  lsave = bv->l;
+  ksave = bv->k;
+  bv->l = 0;
+  bv->k = bv->m;
+  PetscCall(BVGetMat(bv,&B));
+  PetscCall(MatCopy(B,*A,SAME_NONZERO_PATTERN));
+  PetscCall(BVRestoreMat(bv,&B));
+  bv->l = lsave;
+  bv->k = ksave;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -1377,10 +1505,10 @@ PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
   }
   PetscCall(BVGetArray(bv,&vv));
   if (create) {
-    PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
+    PetscCall(MatCreateDenseFromVecType(PetscObjectComm((PetscObject)bv),bv->vtype,bv->n,PETSC_DECIDE,bv->N,m,bv->ld,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
     PetscCall(MatDenseReplaceArray(bv->Aget,NULL));  /* replace with a null pointer, the value after BVRestoreMat */
   }
-  PetscCall(MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n));  /* set the actual pointer */
+  PetscCall(MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->ld));  /* set the actual pointer */
   *A = bv->Aget;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1425,7 +1553,7 @@ PetscErrorCode BVRestoreMat_Default(BV bv,Mat *A)
 
   PetscFunctionBegin;
   PetscCall(MatDenseGetArray(bv->Aget,&aa));
-  vv = aa-(bv->nc+bv->l)*bv->n;
+  vv = aa-(bv->nc+bv->l)*bv->ld;
   PetscCall(MatDenseResetArray(bv->Aget));
   PetscCall(BVRestoreArray(bv,&vv));
   *A = NULL;
@@ -1468,6 +1596,9 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
 static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
 {
   PetscFunctionBegin;
+  PetscCall(PetscLayoutReference(V->map,&W->map));
+  PetscCall(BVSetVecType(W,V->vtype));
+  W->ld           = V->ld;
   PetscCall(BVSetType(W,((PetscObject)V)->type_name));
   W->orthog_type  = V->orthog_type;
   W->orthog_ref   = V->orthog_ref;
@@ -1500,9 +1631,8 @@ static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
 .  W - location to put the new BV
 
    Notes:
-   The new BV has the same type and dimensions as V, and it shares the same
-   template vector. Also, the inner product matrix and orthogonalization
-   options are copied.
+   The new BV has the same type and dimensions as V. Also, the inner
+   product matrix and orthogonalization options are copied.
 
    BVDuplicate() DOES NOT COPY the entries, but rather allocates storage
    for the new basis vectors. Use BVCopy() to copy the contents.
@@ -1519,7 +1649,10 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
   BVCheckSizes(V,1);
   PetscAssertPointer(W,2);
   PetscCall(BVCreate(PetscObjectComm((PetscObject)V),W));
-  PetscCall(BVSetSizesFromVec(*W,V->t,V->m));
+  (*W)->N = V->N;
+  (*W)->n = V->n;
+  (*W)->m = V->m;
+  (*W)->k = V->m;
   PetscCall(BVDuplicate_Private(V,*W));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1554,7 +1687,10 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
   PetscValidLogicalCollectiveInt(V,m,2);
   PetscAssertPointer(W,3);
   PetscCall(BVCreate(PetscObjectComm((PetscObject)V),W));
-  PetscCall(BVSetSizesFromVec(*W,V->t,m));
+  (*W)->N = V->N;
+  (*W)->n = V->n;
+  (*W)->m = m;
+  (*W)->k = m;
   PetscCall(BVDuplicate_Private(V,*W));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1586,7 +1722,10 @@ PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
   BVCheckSizes(bv,1);
   if (!bv->cached) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)bv),&bv->cached));
-    PetscCall(BVSetSizesFromVec(bv->cached,bv->t,bv->m));
+    bv->cached->N = bv->N;
+    bv->cached->n = bv->n;
+    bv->cached->m = bv->m;
+    bv->cached->k = bv->m;
     PetscCall(BVDuplicate_Private(bv,bv->cached));
   }
   *cached = bv->cached;
@@ -1732,7 +1871,7 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
 
 static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
 {
-  PetscInt       ncols;
+  PetscInt  ncols;
 
   PetscFunctionBegin;
   ncols = left? bv->nc+bv->l: bv->m-bv->l;
@@ -1741,7 +1880,10 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
     PetscCall(BVCreate(PetscObjectComm((PetscObject)bv),split));
     (*split)->issplit = left? 1: 2;
     (*split)->splitparent = bv;
-    PetscCall(BVSetSizesFromVec(*split,bv->t,ncols));
+    (*split)->N = bv->N;
+    (*split)->n = bv->n;
+    (*split)->m = bv->m;
+    (*split)->k = bv->m;
     PetscCall(BVDuplicate_Private(bv,*split));
   }
   (*split)->l  = 0;
@@ -1892,7 +2034,7 @@ PetscErrorCode BVSetDefiniteTolerance(BV bv,PetscReal deftol)
    Input Parameter:
 .  bv - the basis vectors
 
-   Output Parameters:
+   Output Parameter:
 .  deftol - the tolerance
 
    Level: advanced
@@ -1905,5 +2047,76 @@ PetscErrorCode BVGetDefiniteTolerance(BV bv,PetscReal *deftol)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscAssertPointer(deftol,2);
   *deftol = bv->deftol;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   BVSetLeadingDimension - Set the leading dimension to be used for storing the BV data.
+
+   Not Collective
+
+   Input Parameters:
++  bv - basis vectors
+-  ld - the leading dimension
+
+   Notes:
+   This parameter is relevant for BVMAT, though it might be employed in other types
+   as well.
+
+   When the internal data of the BV is stored as a dense matrix, the leading dimension
+   has the same meaning as in MatDenseSetLDA(), i.e., the distance in number of
+   elements from one entry of the matrix to the one in the next column at the same
+   row. The leading dimension refers to the local array, and hence can be different
+   in different processes.
+
+   The user does not need to change this parameter. The default value is equal to the
+   number of local rows, but this value may be increased a little to guarantee alignment
+   (especially in the case of GPU storage).
+
+   Level: advanced
+
+.seealso: BVGetLeadingDimension()
+@*/
+PetscErrorCode BVSetLeadingDimension(BV bv,PetscInt ld)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,ld,2);
+  PetscCheck((bv->n<0 && bv->N<0) || !bv->ops->create,PetscObjectComm((PetscObject)bv),PETSC_ERR_ORDER,"Must call BVSetLeadingDimension() before setting the BV type and sizes");
+  if (ld == PETSC_DEFAULT) bv->ld = 0;
+  else {
+    PetscCheck(ld>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ld. Must be > 0");
+    bv->ld = ld;
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   BVGetLeadingDimension - Returns the leading dimension of the BV.
+
+   Not Collective
+
+   Input Parameter:
+.  bv - the basis vectors
+
+   Output Parameter:
+.  ld - the leading dimension
+
+   Level: advanced
+
+   Notes:
+   The returned value may be different in different processes.
+
+   The leading dimension must be used when accessing the internal array via
+   BVGetArray() or BVGetArrayRead().
+
+.seealso: BVSetLeadingDimension(), BVGetArray(), BVGetArrayRead()
+@*/
+PetscErrorCode BVGetLeadingDimension(BV bv,PetscInt *ld)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscAssertPointer(ld,2);
+  *ld = bv->ld;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

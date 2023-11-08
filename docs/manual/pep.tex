@@ -202,15 +202,15 @@ Hermite              & \texttt{PEP\_BASIS\_HERMITE}    & \texttt{hermite}\\\hlin
 \end{table}
 
 As explained in \S\ref{sec:pep1}, the matrix polynomial $P(\lambda)$ can be expressed in term of the monomials $1$, $\lambda$, $\lambda^2,\ldots$, or in a non-monomial basis as in \eqref{eq:pepnonmon}. Hence, when defining the problem we must indicate which is the polynomial basis to be used as well as the coefficient matrices $A_i$ in that basis representation. By default, a monomial basis is used. Other possible bases are listed in Table \ref{tab:pepbasis}, and can be set with
-	\findex{PEPSetBasis}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetBasis(PEP pep,PEPBasis basis);
-	\end{Verbatim}
+        \findex{PEPSetBasis}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetBasis(PEP pep,PEPBasis basis);
+        \end{Verbatim}
 or with the command-line key \Verb!-pep_basis <name>!. The matrices are passed with
-	\findex{PEPSetOperators}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetOperators(PEP pep,PetscInt nmat,Mat A[]);
-	\end{Verbatim}
+        \findex{PEPSetOperators}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetOperators(PEP pep,PetscInt nmat,Mat A[]);
+        \end{Verbatim}
 
 \begin{table}[b]
 \centering
@@ -227,39 +227,39 @@ Gyroscopic    & \texttt{PEP\_GYROSCOPIC}  & \texttt{-pep\_gyroscopic}\\\hline
 As mentioned in \S\ref{sec:qep}, it is possible to distinguish among different problem types. The problem types currently supported for \ident{PEP} are listed in Table \ref{tab:ptypeq}. The goal when choosing an appropriate problem type is to let the solver exploit the underlying structure, in order to possibly compute the solution more accurately with less floating-point operations. When in doubt, use the default problem type (\texttt{PEP\_GENERAL}).
 
 The problem type can be specified at run time with the corresponding command line key or, more usually, within the program with the function
-	\findex{PEPSetProblemType}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetProblemType(PEP pep,PEPProblemType type);
-	\end{Verbatim}
+        \findex{PEPSetProblemType}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetProblemType(PEP pep,PEPProblemType type);
+        \end{Verbatim}
 Currently, the problem type is ignored in most solvers and it is taken into account only in some cases for the quadratic eigenproblem only.
 
 Apart from the polynomial basis and the problem type, the definition of the problem is completed with the number and location of the eigenvalues to compute. This is done very much like in \ident{EPS}, but with minor differences.
 
 The number of eigenvalues (and eigenvectors) to compute, \texttt{nev}, is specified with the function%
-	\findex{PEPSetDimensions}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd);
-	\end{Verbatim}
+        \findex{PEPSetDimensions}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd);
+        \end{Verbatim}
 The default is to compute only one. This function also allows control over the dimension of the subspaces used internally. The second argument, \texttt{ncv}, is the number of column vectors to be used by the solution algorithm, that is, the largest dimension of the working subspace. The third argument, \texttt{mpd}, is the maximum projected dimension. These parameters can also be set from the command line with \Verb!-pep_nev!, \Verb!-pep_ncv! and \Verb!-pep_mpd!.
 
 For the selection of the portion of the spectrum of interest, there are several alternatives listed in Table~\ref{tab:portionq}, to be selected with the function
-	\findex{PEPSetWhichEigenpairs}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetWhichEigenpairs(PEP pep,PEPWhich which);
-	\end{Verbatim}
+        \findex{PEPSetWhichEigenpairs}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetWhichEigenpairs(PEP pep,PEPWhich which);
+        \end{Verbatim}
 The default is to compute the largest magnitude eigenvalues.
 For the sorting criteria relative to a target value, the scalar $\tau$ must be specified with:
-	\findex{PEPSetTarget}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetTarget(PEP pep,PetscScalar target);
-	\end{Verbatim}
+        \findex{PEPSetTarget}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetTarget(PEP pep,PetscScalar target);
+        \end{Verbatim}
 or in the command-line with \Verb!-pep_target!. As in \ident{EPS}, complex values of $\tau$ are allowed only in complex scalar \slepc builds. The criteria relative to a target must be used in combination with a spectral transformation as explained in \S\ref{sec:qst}.
 
 There is also support for spectrum slicing, that is, computing all eigenvalues in a given interval, see \S\ref{sec:qslice}. For this, the user has to specify the computational interval with
-	\findex{PEPSetInterval}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetInterval(PEP pep,PetscScalar a,PetscScalar b);
-	\end{Verbatim}
+        \findex{PEPSetInterval}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetInterval(PEP pep,PetscScalar a,PetscScalar b);
+        \end{Verbatim}
 or equivalently with \Verb!-pep_interval a,b!.
 
 Finally, we mention that the use of regions for filtering is also available in \ident{PEP}, see \S\ref{sec:region}.
@@ -289,10 +289,10 @@ Finally, we mention that the use of regions for filtering is also available in \
 \section{Selecting the Solver}
 
 The solution method can be specified procedurally with
-	\findex{PEPSetType}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetType(PEP pep,PEPType method);
-	\end{Verbatim}
+        \findex{PEPSetType}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetType(PEP pep,PEPType method);
+        \end{Verbatim}
 or via the options database command \Verb!-pep_type! followed by the name of the method. The methods currently available in \ident{PEP} are listed in Table~\ref{tab:solversp}. The solvers in the first group are based on the linearization explained above, whereas solvers in the second group perform a projection on the polynomial problem (without linearizing).
 
 The default solver is \ident{PEPTOAR}. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0,L_1$, and represents the Krylov basis in a compact way. STOAR is a variant of TOAR that exploits symmetry (requires \texttt{PEP\_HERMITIAN} or \texttt{PEP\_HYPERBOLIC} problem types). Q-Arnoldi is related to TOAR and follows a similar approach.
@@ -315,24 +315,24 @@ Jacobi-Davidson                     & \texttt{PEPJD}       & \texttt{jd}       &
 \footnotetext[2]{Except if the explicit matrix option is set.}
 
 The \ident{PEPLINEAR} method carries out an explicit linearization of the polynomial eigenproblem, as described in \S\ref{sec:pep}, resulting in a generalized eigenvalue problem that is handled by an \ident{EPS} object created internally. If required, this \ident{EPS} object can be extracted with the operation
-	\findex{PEPLinearGetEPS}
-	\begin{Verbatim}[fontsize=\small]
-	PEPLinearGetEPS(PEP pep,EPS *eps);
-	\end{Verbatim}
+        \findex{PEPLinearGetEPS}
+        \begin{Verbatim}[fontsize=\small]
+        PEPLinearGetEPS(PEP pep,EPS *eps);
+        \end{Verbatim}
 This allows the application programmer to set any of the \ident{EPS} options directly within the code. Also, it is possible to change the \ident{EPS} options through the command-line, simply by prefixing the \ident{EPS} options with \texttt{-pep\_linear\_}.
 
 In \ident{PEPLINEAR}, if the eigenproblem is quadratic, the expression used in the linearization is dictated by the problem type set with \ident{PEPProblemType}, which chooses from non-symmetric \eqref{eq:lingen}, symmetric \eqref{eq:linsym}, and Hamiltonian \eqref{eq:linham} linearizations. The parameters $(\alpha,\beta)$ of these linearizations can be set with
-	\findex{PEPLinearSetLinearization}
-	\begin{Verbatim}[fontsize=\small]
+        \findex{PEPLinearSetLinearization}
+        \begin{Verbatim}[fontsize=\small]
         PEPLinearSetLinearization(PEP pep,PetscReal alpha,PetscReal beta);
-	\end{Verbatim}
+        \end{Verbatim}
 For polynomial eigenproblems with degree $d>2$ the linearization is the one described in \S\ref{sec:pep1}.
 
 Another option of the \ident{PEPLINEAR} solver is whether the matrices of the linearized problem are created explicitly or not. This is set with the function
-	\findex{PEPLinearSetExplicitMatrix}
-	\begin{Verbatim}[fontsize=\small]
-	PEPLinearSetExplicitMatrix(PEP pep,PetscBool exp);
-	\end{Verbatim}
+        \findex{PEPLinearSetExplicitMatrix}
+        \begin{Verbatim}[fontsize=\small]
+        PEPLinearSetExplicitMatrix(PEP pep,PetscBool exp);
+        \end{Verbatim}
 The explicit matrix option is available only for quadratic eigenproblems (higher degree polynomials are always handled implicitly). In the case of explicit creation, matrices $L_0$ and $L_1$ are created as true \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$ (or $A_i$ in the general case). The explicit case requires more memory but gives more flexibility, e.g., for choosing a preconditioner. Some examples of usage via the command line are shown at the end of next section.
 
 %---------------------------------------------------
@@ -386,35 +386,35 @@ with $\tilde{A}_{d-2}=A_{d-2}+\sigma I$ and $\tilde{A}_{d-1}=A_{d-1}+\sigma A_d$
 From the block LU factorization, it is possible to derive a simple recurrence to compute $z^i$, with one of the steps involving a linear solve with $P(\sigma)$.
 
 Implementing the latter approach is more difficult (especially if different polynomial bases must be supported), and requires an intimate relation with the \ident{PEP} solver. That is why it is only available currently in the default solver (TOAR) and in \texttt{PEPLINEAR} without explicit matrix. In order to choose between the two approaches, the user can set a flag with
-	\findex{STSetTransform}
-	\begin{Verbatim}[fontsize=\small]
-	STSetTransform(ST st,PetscBool flg);
-	\end{Verbatim}
+        \findex{STSetTransform}
+        \begin{Verbatim}[fontsize=\small]
+        STSetTransform(ST st,PetscBool flg);
+        \end{Verbatim}
 (or in the command line \Verb!-st_transform!) to activate the first one (\ident{ST} performs the transformation). Note that this flag belongs to \ident{ST}, not \ident{PEP} (use \ident{PEPGetST} to extract it).
 
 In terms of overall computational cost, both approaches are roughly equivalent, but the advantage of the second one is not having to store the $T_k$ matrices explicitly. It may also be slightly more accurate. Hence, the \ident{STSetTransform} flag is turned off by default. Please note that using shift-and-invert with solvers other than TOAR may require turning it on explicitly.
 
 A command line example would be:
-	\begin{Verbatim}[fontsize=\small]
-	$ ./ex16 -pep_nev 12 -pep_type toar -pep_target 0 -st_type sinvert
-	\end{Verbatim}
+        \begin{Verbatim}[fontsize=\small]
+        $ ./ex16 -pep_nev 12 -pep_type toar -pep_target 0 -st_type sinvert
+        \end{Verbatim}
 The example computes 12 eigenpairs closest to the origin with TOAR and shift-and-invert. The \Verb!-st_transform! could be added optionally to switch to \ident{ST} being in charge of the transformation. The same example with Q-Arnoldi would be
-	\begin{Verbatim}[fontsize=\small]
-	$ ./ex16 -pep_nev 12 -pep_type qarnoldi -pep_target 0 -st_type sinvert
+        \begin{Verbatim}[fontsize=\small]
+        $ ./ex16 -pep_nev 12 -pep_type qarnoldi -pep_target 0 -st_type sinvert
                  -st_transform
-	\end{Verbatim}
+        \end{Verbatim}
 where in this case \Verb!-st_transform! would be set as default if not specified.
 
 As a complete example of how to solve a quadratic eigenproblem via explicit linearization with explicit construction of the $L_0$ and $L_1$ matrices, consider the following command line:
 \begin{Verbatim}[fontsize=\small]
-	$ ./sleeper -pep_type linear -pep_target -10 -pep_linear_st_type sinvert
+        $ ./sleeper -pep_type linear -pep_target -10 -pep_linear_st_type sinvert
                     -pep_linear_st_ksp_type preonly -pep_linear_st_pc_type lu
                     -pep_linear_st_pc_factor_mat_solver_type mumps
                     -pep_linear_st_mat_mumps_icntl_14 100 -pep_linear_explicitmatrix
 \end{Verbatim}
 This example uses MUMPS for solving the associated linear systems, see \S\ref{sec:lin} for details. The following command line example illustrates how to solve the same problem without explicitly forming the matrices. Note that in this case the \ident{ST} options are not prefixed with \texttt{-pep\_linear\_} since now they do not refer to the \ident{ST} within the \ident{PEPLINEAR} solver but the general \ident{ST} associated to \ident{PEP}.
 \begin{Verbatim}[fontsize=\small]
-	$ ./sleeper -pep_type linear -pep_target -10 -st_type sinvert
+        $ ./sleeper -pep_type linear -pep_target -10 -st_type sinvert
                     -st_ksp_type preonly -st_pc_type lu
                     -st_pc_factor_mat_solver_type mumps -st_mat_mumps_icntl_14 100
 \end{Verbatim}
@@ -429,7 +429,7 @@ The spectrum slicing mechanism implemented in \ident{PEP} is very similar to the
 
 A command line example is the following:
 \begin{Verbatim}[fontsize=\small]
-	$ ./spring -n 300 -pep_hermitian -pep_interval -10.1,-9.5
+        $ ./spring -n 300 -pep_hermitian -pep_interval -10.1,-9.5
                    -pep_type stoar -st_type sinvert
                    -st_ksp_type preonly -st_pc_type cholesky
 \end{Verbatim}
@@ -458,10 +458,10 @@ Backward error & \texttt{PEP\_ERROR\_BACKWARD} & \texttt{-pep\_error\_backward} 
 \end{table}
 
 As in the case of linear problems, the function
-	\findex{PEPComputeError}
-	\begin{Verbatim}[fontsize=\small]
-	PEPComputeError(PEP pep,PetscInt j,PEPErrorType type,PetscReal *error);
-	\end{Verbatim}
+        \findex{PEPComputeError}
+        \begin{Verbatim}[fontsize=\small]
+        PEPComputeError(PEP pep,PetscInt j,PEPErrorType type,PetscReal *error);
+        \end{Verbatim}
 is available to assess the accuracy of the computed solutions. This error is based on the computation of the 2-norm of the residual vector, defined as
 \begin{equation}
 r=P(\tilde{\lambda})\tilde{x},\label{eq:respol}
@@ -474,10 +474,10 @@ From the residual norm, the error bound can be computed in different ways, see T
 where $d$ is the degree of the polynomial. Note that the eigenvector is always assumed to have unit norm.
 
 Similar expressions can be used in the convergence criterion used to accept converged eigenpairs internally by the solver. The convergence test can be set via the corresponding command-line switch (see Table \ref{tab:pepconv}) or with
-	\findex{PEPSetConvergenceTest}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetConvergenceTest(PEP pep,PEPConv conv);
-	\end{Verbatim}
+        \findex{PEPSetConvergenceTest}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetConvergenceTest(PEP pep,PEPConv conv);
+        \end{Verbatim}
 
 \begin{table}
 \centering
@@ -503,20 +503,20 @@ When the norm of $M$, $C$ and $K$ vary widely, \cite{Tisseur:2000:BEC} recommend
 with $\mu=\lambda/\alpha$, $M_\alpha=\alpha^2M$ and $C_\alpha=\alpha C$, where $\alpha$ is a scaling factor. Ideally, $\alpha$ should be chosen in such a way that the norms of $M_\alpha$, $C_\alpha$ and $K$ have similar magnitude. A tentative value would be $\alpha=\sqrt{\frac{\|K\|_\infty}{\|M\|_\infty}}$.
 
 In the general case of polynomials of arbitrary degree, a similar scheme is also possible, but it is not clear how to choose $\alpha$ to achieve the same goal. \cite{Betcke:2008:OSG} proposes such a scaling scheme as well as more general diagonal scalings $D_\ell P(\lambda)D_r$. In \slepc, we provide these types of scalings, whose settings can be tuned with
-	\findex{PEPSetScale}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
+        \findex{PEPSetScale}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
                     PetscInt its,PetscReal w);
-	\end{Verbatim}
+        \end{Verbatim}
 See the manual page for details and the description in \citep{Campos:2016:PKS}.
 
 \paragraph{Extraction.}
 
 Some of the eigensolvers provided in the \texttt{PEP} package are based on solving the linearized eigenproblem of \eqref{eq:firstcompfull}. From the eigenvector $y$ of the linearization, it is possible to extract the eigenvector $x$ of the polynomial eigenproblem. The most straightforward way is to take the first block of $y$, but there are other, more elaborate extraction strategies. For instance, one may compute the norm of the residual (\ref{eq:respol}) for every block of $y$, and take the one that gives the smallest residual. The different extraction techniques may be selected with
-	\findex{PEPSetExtract}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetExtract(PEP pep,PEPExtract extract);
-	\end{Verbatim}
+        \findex{PEPSetExtract}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetExtract(PEP pep,PEPExtract extract);
+        \end{Verbatim}
 For additional information, see \citep{Campos:2016:PKS}.
 
 \paragraph{Controlling and Monitoring Convergence.}
@@ -535,11 +535,11 @@ If good accuracy is required, one possibility is to perform a few steps of itera
 
 Iterative refinement can be very costly (sometimes a single refinement step is more expensive than the whole iteration to compute the initial guess with TOAR), that is why in \slepc it is disabled by default. When the user activates it, the computation of Newton iterations will take place within \ident{PEPSolve} as a final stage (identified as \texttt{PEPRefine} in the \Verb!-log_view! report).
 
-	\findex{PEPSetRefine}
-	\begin{Verbatim}[fontsize=\small]
-	PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,
+        \findex{PEPSetRefine}
+        \begin{Verbatim}[fontsize=\small]
+        PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,
                      PetscReal tol,PetscInt its,PEPRefineScheme scheme);
-	\end{Verbatim}
+        \end{Verbatim}
 
 There are two types of refinement, identified as \emph{simple} and \emph{multiple}. The first one performs refinement on each eigenpair individually, while the second one considers the computed invariant pair as a whole. This latter approach is more costly but it is expected to be more robust in the presence of multiple eigenvalues.
 
@@ -550,14 +550,14 @@ Additional details can be found in \citep{Campos:2016:PIR}.
 %\section{\label{sec:qeppep}Upgrading from \texttt{QEP} to \texttt{PEP}}
 %
 %Users of \slepc versions 3.3 and 3.4 that were employing a \texttt{QEP} solver in their application code will have to adapt it to the new \ident{PEP} object. The process is very simple and basically amounts to replacing \texttt{QEP} by \ident{PEP}. The most important change is when setting the matrices, where the call
-%	\begin{Verbatim}[fontsize=\small]
+%        \begin{Verbatim}[fontsize=\small]
 %        QEPSetOperators( qep, M, C, K );
-%	\end{Verbatim}
+%        \end{Verbatim}
 %must be replaced with something like this:
-%	\begin{Verbatim}[fontsize=\small]
+%        \begin{Verbatim}[fontsize=\small]
 %        A[0] = K; A[1] = C; A[2] = M;
 %        PEPSetOperators( pep, 3, A );
-%	\end{Verbatim}
+%        \end{Verbatim}
 %
 %Other changes in the user interface may have to be taken into account, e.g., \texttt{QEPSetScaleFactor} is now included in \ident{PEPSetScale}.
 %

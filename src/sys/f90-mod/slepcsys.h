@@ -27,4 +27,3 @@
 #elif defined(PETSC_USE_REAL___FP16)
       PetscReal, parameter :: SLEPC_DEFAULT_TOL =  1e-2
 #endif
-

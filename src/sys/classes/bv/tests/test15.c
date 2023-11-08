@@ -18,7 +18,7 @@ static char help[] = "Test BVGetSplit().\n\n";
 PetscErrorCode PrintFirstRow(BV X)
 {
   PetscMPIInt       rank;
-  PetscInt          i,nloc,k,nc;
+  PetscInt          i,ld,k,nc;
   const PetscScalar *pX;
   const char        *name;
 
@@ -26,12 +26,12 @@ PetscErrorCode PrintFirstRow(BV X)
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)X),&rank));
   if (!rank) {
     PetscCall(BVGetActiveColumns(X,NULL,&k));
-    PetscCall(BVGetSizes(X,&nloc,NULL,NULL));
+    PetscCall(BVGetLeadingDimension(X,&ld));
     PetscCall(BVGetNumConstraints(X,&nc));
     PetscCall(PetscObjectGetName((PetscObject)X,&name));
     PetscCall(PetscPrintf(PetscObjectComm((PetscObject)X),"First row of %s =\n",name));
     PetscCall(BVGetArrayRead(X,&pX));
-    for (i=0;i<nc+k;i++) PetscCall(PetscPrintf(PetscObjectComm((PetscObject)X),"%g ",(double)PetscRealPart(pX[i*nloc])));
+    for (i=0;i<nc+k;i++) PetscCall(PetscPrintf(PetscObjectComm((PetscObject)X),"%g ",(double)PetscRealPart(pX[i*ld])));
     PetscCall(PetscPrintf(PetscObjectComm((PetscObject)X),"\n"));
     PetscCall(BVRestoreArrayRead(X,&pX));
   }
@@ -42,7 +42,7 @@ int main(int argc,char **argv)
 {
   Vec            t,v,*C;
   BV             X,L,R;
-  PetscInt       i,j,n=10,k=5,l=3,nc=0,nloc;
+  PetscInt       i,j,n=10,k=5,l=3,nc=0;
   PetscReal      norm;
   PetscScalar    alpha;
   PetscViewer    view;
@@ -61,7 +61,6 @@ int main(int argc,char **argv)
   PetscCall(VecCreate(PETSC_COMM_WORLD,&t));
   PetscCall(VecSetSizes(t,PETSC_DECIDE,n));
   PetscCall(VecSetFromOptions(t));
-  PetscCall(VecGetLocalSize(t,&nloc));
 
   /* Create BV object X */
   PetscCall(BVCreate(PETSC_COMM_WORLD,&X));
@@ -157,7 +156,7 @@ int main(int argc,char **argv)
 
       test:
          suffix: 1_cuda
-         args: -bv_type svec -vec_type cuda
+         args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
 
    testset:
@@ -168,7 +167,7 @@ int main(int argc,char **argv)
          args: -nc 2 -bv_type {{vecs contiguous svec mat}shared output}
       test:
          suffix: 2_cuda
-         args: -nc 2 -bv_type svec -vec_type cuda
+         args: -nc 2 -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
 
 TEST*/

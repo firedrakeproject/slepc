@@ -9,7 +9,6 @@
 #
 
 LIBBASE  = libslepceps
-DIRS     = power subspace krylov davidson cg ciss lyapii lapack external
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

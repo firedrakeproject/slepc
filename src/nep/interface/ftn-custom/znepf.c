@@ -571,4 +571,3 @@ SLEPC_EXTERN void nepsetinitialspace1_(NEP *nep,PetscInt *n,Vec *is,PetscErrorCo
   CHKFORTRANNULLOBJECT(is);
   *ierr = NEPSetInitialSpace(*nep,*n,is);
 }
-

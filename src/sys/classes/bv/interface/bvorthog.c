@@ -417,7 +417,7 @@ PetscErrorCode BVOrthonormalizeColumn(BV bv,PetscInt j,PetscBool replace,PetscRe
   if (nrm!=1.0 && nrm!=0.0) {
     alpha = 1.0/nrm;
     PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-    if (bv->n) PetscUseTypeMethod(bv,scale,j,alpha);
+    PetscUseTypeMethod(bv,scale,j,alpha);
     PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   }
   if (norm) *norm = nrm;
@@ -625,7 +625,7 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
   PetscCall(MatDenseGetLDA(R,&ldr));
   PetscCall(MatDenseGetArray(R,&r));
   PetscCall(BVGetArray(V,&pv));
-  PetscCall(BVOrthogonalize_LAPACK_TSQR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr));
+  PetscCall(BVOrthogonalize_LAPACK_TSQR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->ld,V->ld,r+V->l*ldr+V->l,ldr));
   PetscCall(BVRestoreArray(V,&pv));
   PetscCall(MatDenseRestoreArray(R,&r));
   if (Rin) PetscCall(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
@@ -650,7 +650,7 @@ static PetscErrorCode BVOrthogonalize_TSQRCHOL(BV V,Mat Rin)
   PetscCall(MatDenseGetLDA(R,&ldr));
   PetscCall(MatDenseGetArray(R,&r));
   PetscCall(BVGetArray(V,&pv));
-  PetscCall(BVOrthogonalize_LAPACK_TSQR_OnlyR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr));
+  PetscCall(BVOrthogonalize_LAPACK_TSQR_OnlyR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->ld,V->ld,r+V->l*ldr+V->l,ldr));
   PetscCall(BVRestoreArray(V,&pv));
   PetscCall(MatDenseRestoreArray(R,&r));
   PetscCall(BVMatTriInv_LAPACK_Private(V,R,S));

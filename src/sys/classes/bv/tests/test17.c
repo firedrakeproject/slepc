@@ -124,14 +124,14 @@ int main(int argc,char **argv)
          requires: double
       test:
          suffix: 1_cuda
-         args: -bv_type svec -vec_type cuda -bv_orthog_type cgs
+         args: -bv_type {{svec mat}} -vec_type cuda -bv_orthog_type cgs
          requires: cuda
       test:
          suffix: 2
          args: -bv_type {{vecs contiguous svec mat}} -bv_orthog_type mgs
       test:
          suffix: 2_cuda
-         args: -bv_type svec -vec_type cuda -bv_orthog_type mgs
+         args: -bv_type {{svec mat}} -vec_type cuda -bv_orthog_type mgs
          requires: cuda
 
 TEST*/

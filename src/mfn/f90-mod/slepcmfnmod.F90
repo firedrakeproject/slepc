@@ -54,4 +54,3 @@
 #include <../src/mfn/f90-mod/ftn-auto-interfaces/slepcmfn.h90>
         end interface
         end module
-

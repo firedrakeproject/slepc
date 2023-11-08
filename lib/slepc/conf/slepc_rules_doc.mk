@@ -13,15 +13,21 @@ EXAMPLESALL = `(ls *.c *.cxx *.F *.F90 *.cu *.cpp | sort -V) 2> /dev/null`
 
 # Performs the specified action on all directories
 slepc_tree: ${ACTION}
-	-@for dir in `ls -d ${DIRS} | grep -v "\."` ; do (cd $$dir ; ${OMAKE} ACTION=${ACTION} PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} slepc_tree); done
+	-@for dir in `ls -d */ 2> /dev/null` foo ; do \
+            if [[ -f $${dir}makefile ]]; then \
+              (cd $$dir ; ${OMAKE} ACTION=${ACTION} PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} slepc_tree); \
+            fi; \
+          done
 
 # Performs the specified action on all source/include directories except tutorial and test
 slepc_tree_src: ${ACTION}
-	-@for dir in `ls -d ${DIRS} | grep -v "\."` ;  do \
-          if [[ $$dir != "tests" && $$dir != "tutorials" ]]; then \
-            (cd $$dir ; ${OMAKE} ACTION=${ACTION} PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} slepc_tree_src) ; \
-          fi; \
-        done
+	-@for dir in `ls -d */ 2> /dev/null` foo ;  do \
+            if [[ $${dir} != "tests/" && $${dir} != "tutorials/" && $${dir} != "doc/" && $${dir} != "output/" ]]; then \
+              if [[ -f $${dir}makefile ]]; then \
+                (cd $$dir ; ${OMAKE} ACTION=${ACTION} PETSC_ARCH=${PETSC_ARCH}  LOC=${LOC} slepc_tree_src) ; \
+              fi; \
+           fi; \
+         done
 
 slepc_manualpages:
 	-@slepc_dir=$$(realpath ${SLEPC_DIR}); LOCDIR=$$(pwd | sed s"?$${slepc_dir}/??g")/; \
@@ -186,7 +192,7 @@ slepc_html:
               fi; \
             done ;\
           else \
-            for file in ${DIRS} foo; do \
+            for file in `ls -d */ 2> /dev/null` foo; do \
               if [ -d $$file ]; then \
                 echo "<a href=\"$${file}/\">$${file}/</a><br>" >> $${loc}/index.html; \
               fi; \

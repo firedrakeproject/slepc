@@ -29,8 +29,15 @@ PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)
   PetscCall(VecCUDAPlaceArray(ctx->x2,d_px+m));
   PetscCall(VecCUDAPlaceArray(ctx->y1,d_py));
   PetscCall(VecCUDAPlaceArray(ctx->y2,d_py+m));
-  PetscCall(MatMult(ctx->A,ctx->x2,ctx->y1));
-  PetscCall(MatMult(ctx->AT,ctx->x1,ctx->y2));
+  if (!ctx->misaligned) {
+    PetscCall(MatMult(ctx->A,ctx->x2,ctx->y1));
+    PetscCall(MatMult(ctx->AT,ctx->x1,ctx->y2));
+  } else { /* prevent CUDA errors when bottom part is misaligned */
+    PetscCall(VecCopy(ctx->x2,ctx->wx2));
+    PetscCall(MatMult(ctx->A,ctx->wx2,ctx->y1));
+    PetscCall(MatMult(ctx->AT,ctx->x1,ctx->wy2));
+    PetscCall(VecCopy(ctx->wy2,ctx->y2));
+  }
   PetscCall(VecCUDAResetArray(ctx->x1));
   PetscCall(VecCUDAResetArray(ctx->x2));
   PetscCall(VecCUDAResetArray(ctx->y1));
@@ -59,8 +66,15 @@ PetscErrorCode MatMult_ECross_CUDA(Mat B,Vec x,Vec y)
   PetscCall(VecCUDAPlaceArray(ctx->y1,d_py));
   PetscCall(VecCUDAPlaceArray(ctx->y2,d_py+m));
   PetscCall(VecCopy(ctx->x1,ctx->y1));
-  PetscCall(MatMult(ctx->A,ctx->x2,ctx->w));
-  PetscCall(MatMult(ctx->AT,ctx->w,ctx->y2));
+  if (!ctx->misaligned) {
+    PetscCall(MatMult(ctx->A,ctx->x2,ctx->w));
+    PetscCall(MatMult(ctx->AT,ctx->w,ctx->y2));
+  } else { /* prevent CUDA errors when bottom part is misaligned */
+    PetscCall(VecCopy(ctx->x2,ctx->wx2));
+    PetscCall(MatMult(ctx->A,ctx->wx2,ctx->w));
+    PetscCall(MatMult(ctx->AT,ctx->w,ctx->wy2));
+    PetscCall(VecCopy(ctx->wy2,ctx->y2));
+  }
   PetscCall(VecCUDAResetArray(ctx->x1));
   PetscCall(VecCUDAResetArray(ctx->x2));
   PetscCall(VecCUDAResetArray(ctx->y1));

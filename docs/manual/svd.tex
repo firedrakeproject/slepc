@@ -7,7 +7,7 @@
 \noindent The Singular Value Decomposition (\ident{SVD}) solver object can be used for computing a partial SVD of a rectangular matrix, and other related problems. It provides uniform and efficient access to several specific SVD solvers included in \slepc, and also gives the possibility to compute the decomposition via the eigensolvers provided in the \ident{EPS} package.
 
 In many aspects, the user interface of \ident{SVD} resembles that of \ident{EPS}. For this reason, this chapter and chapter \ref{cap:eps} have a very similar structure.
-	
+
 \section{\label{sec:svdback}Mathematical Background}
 
 This section provides some basic concepts about the singular value decomposition and other related problems. The objective is to set up the notation and also to justify some of the solution approaches, particularly those based on the \ident{EPS} object. As in the case of eigensolvers, some of the implemented methods are described in detail in the \slepc \hyperlink{str}{technical reports}.
@@ -258,23 +258,23 @@ If one compares this example code with the \ident{EPS} example in Figure \ref{fi
 Defining the problem consists in specifying the problem matrix $A$ (and also a second matrix $B$ in case of the GSVD), the problem type, and the portion of the spectrum to be computed.
 
 The problem matrices are provided with the following function
-	\findex{SVDSetOperators}
-	\begin{Verbatim}[fontsize=\small]
-	SVDSetOperators(SVD svd,Mat A,Mat B);
-	\end{Verbatim}
+        \findex{SVDSetOperators}
+        \begin{Verbatim}[fontsize=\small]
+        SVDSetOperators(SVD svd,Mat A,Mat B);
+        \end{Verbatim}
 where \texttt{A} can be any matrix, not necessarily square, stored in any allowed \petsc format including the matrix-free mechanism (see \S\ref{sec:supported} for a detailed discussion), and \texttt{B} is generally set to \texttt{NULL} except in the case of computing the GSVD.
 If the problem is hyperbolic (\S\ref{sec:hsvd}) then in addition a signature matrix $\Omega$ must be provided with
-	\findex{SVDSetSignature}
-	\begin{Verbatim}[fontsize=\small]
-	SVDSetSignature(SVD svd,Vec omega);
-	\end{Verbatim}
+        \findex{SVDSetSignature}
+        \begin{Verbatim}[fontsize=\small]
+        SVDSetSignature(SVD svd,Vec omega);
+        \end{Verbatim}
 Note that $\Omega$ is represented as a vector containing values equal to 1 or $-1$.
 
 The problem type can be specified with the function
-	\findex{SVDSetProblemType}
-	\begin{Verbatim}[fontsize=\small]
-	SVDSetProblemType(SVD svd,SVDProblemType type);
-	\end{Verbatim}
+        \findex{SVDSetProblemType}
+        \begin{Verbatim}[fontsize=\small]
+        SVDSetProblemType(SVD svd,SVDProblemType type);
+        \end{Verbatim}
 Note that in \ident{SVD} calling it is currently not strictly required, since the problem type can be deduced from the information passed by the user: if only one matrix is passed to \ident{SVDSetOperators} the problem type will default to a standard SVD (or hyperbolic SVD if a signature has been provided), while if two matrices are passed then it defaults to GSVD. Still, it is recommended to always call \ident{SVDSetProblemType}. Table~\ref{tab:ptypesvd} lists the supported problem types.
 
 \begin{table}[t]
@@ -289,21 +289,21 @@ Hyperbolic SVD (HSVD)     & \texttt{SVD\_HYPERBOLIC}  & \texttt{-svd\_hyperbolic
 \end{table}
 
 It is important to note that all SVD solvers in \slepc make use of both $A$ and $A^*$, as suggested by the description in \S\ref{sec:svd}. $A^*$ is not explicitly passed as an argument to \ident{SVDSetOperators}, therefore it will have to stem from $A$. There are two possibilities for this: either $A$ is transposed explicitly and $A^*$ is created as a distinct matrix, or $A^*$ is handled implicitly via \ident{MatMultTranspose} (or \ident{MatMultHermitianTranspose} in the complex case) operations whenever a matrix-vector product is required in the algorithm. The default is to build $A^*$ explicitly, but this behavior can be changed with
-	\findex{SVDSetImplicitTranspose}
-	\begin{Verbatim}[fontsize=\small]
-	SVDSetImplicitTranspose(SVD svd,PetscBool impl);
-	\end{Verbatim}
+        \findex{SVDSetImplicitTranspose}
+        \begin{Verbatim}[fontsize=\small]
+        SVDSetImplicitTranspose(SVD svd,PetscBool impl);
+        \end{Verbatim}
 
 In \S\ref{sec:svd}, it was mentioned that in \slepc the cross product approach chooses the smallest of the two possible cases $A^*A$ or $AA^*$, that is, $A^*A$ is used if $A$ is a tall, thin matrix ($m\geq n$), and $AA^*$ is used if $A$ is a fat, short matrix ($m<n$). In fact, what \slepc does internally is that if $m<n$ the roles of $A$ and $A^*$ are reversed. This is equivalent to transposing all the SVD factorization, so left singular vectors become right singular vectors and vice versa. This is actually done in all singular value solvers, not only the cross product approach. The objective is to simplify the number of cases to be treated internally by \slepc, as well as to reduce the computational cost in some situations. Note that this is done transparently and the user need not worry about transposing the matrix, only to indicate how the transpose has to be handled, as explained above.
 
 The user can specify how many singular values and vectors to compute. The default is to compute only one singular triplet. The function
-	\findex{SVDSetDimensions}
-	\begin{Verbatim}[fontsize=\small]
-	SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd);
-	\end{Verbatim}
+        \findex{SVDSetDimensions}
+        \begin{Verbatim}[fontsize=\small]
+        SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd);
+        \end{Verbatim}
 allows the specification of the number of singular values to compute, \texttt{nsv}. The next argument can be set to prescribe the number of column vectors to be used by the solution algorithm, \texttt{ncv}, that is, the largest dimension of the working subspace. These two parameters can also be set at run time with the options \Verb!-svd_nsv! and \Verb!-svd_ncv!. For example, the command line
 \begin{Verbatim}[fontsize=\small]
-	$ ./program -svd_nsv 10 -svd_ncv 24
+        $ ./program -svd_nsv 10 -svd_ncv 24
 \end{Verbatim}
 requests 10 singular values and instructs to use 24 column vectors. Note that \texttt{ncv} must be at least equal to \texttt{nsv}, although in general it is recommended (depending on the method) to work with a larger subspace, for instance $\mathtt{ncv}\geq2\cdot\mathtt{nsv}$ or even more.
 As in the case of the \ident{EPS} object, the last argument, \texttt{mpd}, can be used to limit the maximum dimension of the projected problem, as discussed in \S\ref{sec:large-nev}. Using this parameter is especially important in the case that a large number of singular values are requested.
@@ -318,11 +318,11 @@ As in the case of the \ident{EPS} object, the last argument, \texttt{mpd}, can b
 \caption{\label{tab:whichsvd}Available possibilities for selection of the singular values of interest.}
 \end{table}
 
-	For the selection of the portion of the spectrum of interest, there are only two possibilities in the case of SVD: largest and smallest singular values, see Table \ref{tab:whichsvd}. The default is to compute the largest ones, but this can be changed with
-	\findex{SVDSetWhichSingularTriplets}
-	\begin{Verbatim}[fontsize=\small]
-	SVDSetWhichSingularTriplets(SVD svd,SVDWhich which);
-	\end{Verbatim}
+For the selection of the portion of the spectrum of interest, there are only two possibilities in the case of SVD: largest and smallest singular values, see Table \ref{tab:whichsvd}. The default is to compute the largest ones, but this can be changed with
+        \findex{SVDSetWhichSingularTriplets}
+        \begin{Verbatim}[fontsize=\small]
+        SVDSetWhichSingularTriplets(SVD svd,SVDWhich which);
+        \end{Verbatim}
 which can also be specified at the command line. This criterion is used both for configuring how the algorithm seeks singular values and also for sorting the computed values. In contrast to the case of \ident{EPS}, computing singular values located in the interior part of the spectrum is difficult, the only possibility is to use an \ident{EPS} object combined with a spectral transformation (this possibility is explained in detail in the next section). Note that in this case, the value of \Verb!which! applies to the transformed spectrum.
 
 %---------------------------------------------------
@@ -357,10 +357,10 @@ Wrapper to \primme         & \texttt{SVDPRIMME}     & \texttt{primme}       & & 
 \end{table}
 
 The solution method can be specified procedurally or via the command line. The application programmer can set it by means of the command
-	\findex{SVDSetType}
-	\begin{Verbatim}[fontsize=\small]
-	SVDSetType(SVD svd,SVDType method);
-	\end{Verbatim}
+        \findex{SVDSetType}
+        \begin{Verbatim}[fontsize=\small]
+        SVDSetType(SVD svd,SVDType method);
+        \end{Verbatim}
 while the user writes the options database command \Verb!-svd_type! followed by the name of the method (see Table \ref{tab:svdsolvers}).
 
 Note that not all solvers in the \ident{SVD} module support non-standard problems (\S\ref{sec:gsvd}-\S\ref{sec:hsvd}). Table \ref{tab:svdsolvers} indicates which solvers can be used for these.
@@ -368,40 +368,39 @@ Note that not all solvers in the \ident{SVD} module support non-standard problem
 The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP} (or \ident{EPS\_GHEP} in the case of the GSVD, or \ident{EPS\_GHIEP} in the case of the HSVD). These solvers implement the cross product matrix and the cyclic matrix approaches as described in~\S\ref{sec:svdback}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver (with variations in the case of non-standard problems).
 
 In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explicitly by default, since the resulting matrix may be much less sparse than the original matrix. By default, a shell matrix is created internally in the \ident{SVD} object and passed to the \ident{EPS} object. Still, the user may choose to force the computation of $A^*A$ explicitly, by means of \petsc's sparse matrix-matrix product subroutines. This is set with
-	\findex{SVDCrossSetExplicitMatrix}
-	\begin{Verbatim}[fontsize=\small]
-	SVDCrossSetExplicitMatrix(SVD svd,PetscBool explicit);
-	\end{Verbatim}
+        \findex{SVDCrossSetExplicitMatrix}
+        \begin{Verbatim}[fontsize=\small]
+        SVDCrossSetExplicitMatrix(SVD svd,PetscBool explicit);
+        \end{Verbatim}
 In the \texttt{cyclic} solver the user can also choose between handling $H(A)$ implicitly as a shell matrix (the default), or forming it explicitly, that is, storing its elements in a distinct matrix. The function for setting this option is
-	\findex{SVDCyclicSetExplicitMatrix}
-	\begin{Verbatim}[fontsize=\small]
-	SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicit);
-	\end{Verbatim}
+        \findex{SVDCyclicSetExplicitMatrix}
+        \begin{Verbatim}[fontsize=\small]
+        SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicit);
+        \end{Verbatim}
 
 The \ident{EPS} object associated with the \texttt{cross} and \texttt{cyclic} SVD solvers is created with a set of reasonable default parameters. However, it may sometimes be necessary to change some of the \ident{EPS} options such as the eigensolver. To allow application programmers to set any of the \ident{EPS} options directly within the code, the following routines are provided to extract the \ident{EPS} context from the \ident{SVD} object,
-	\findex{SVDCrossGetEPS}
-	\findex{SVDCyclicGetEPS}
-	\begin{Verbatim}[fontsize=\small]
-	SVDCrossGetEPS(SVD svd,EPS *eps);
-	SVDCyclicGetEPS(SVD svd,EPS *eps);
-	\end{Verbatim}
+        \findex{SVDCrossGetEPS}\findex{SVDCyclicGetEPS}
+        \begin{Verbatim}[fontsize=\small]
+        SVDCrossGetEPS(SVD svd,EPS *eps);
+        SVDCyclicGetEPS(SVD svd,EPS *eps);
+        \end{Verbatim}
 A more convenient way of changing \ident{EPS} options is through the command-line. This is achieved simply by prefixing the \ident{EPS} options with \texttt{-svd\_cross\_} or \texttt{-svd\_cyclic\_} as in the following example:
 \begin{Verbatim}[fontsize=\small]
-	$ ./program -svd_type cross -svd_cross_eps_type gd
+        $ ./program -svd_type cross -svd_cross_eps_type gd
 \end{Verbatim}
 
 At this point, one may consider changing also the options of the \ident{ST} object associated with the \ident{EPS} object in \texttt{cross} and \texttt{cyclic} SVD solvers, for example to compute singular values located at the interior of the spectrum via a shift-and-invert transformation. This is indeed possible, but some considerations have to be taken into account. When $A^*A$ or $H(A)$ are managed as shell matrices, then the potential of the spectral transformation is limited seriously, because some of the required operations will not be defined if working with implicit matrices (this is discussed briefly in \S\ref{sec:supported} and \S\ref{sec:explicit}). The following example illustrates the computation of interior singular values with the \texttt{cyclic} solver with explicit $H(A)$ matrix:
 \begin{Verbatim}[fontsize=\small]
-	$ ./program -svd_type cyclic -svd_cyclic_explicitmatrix
+        $ ./program -svd_type cyclic -svd_cyclic_explicitmatrix
                     -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0
                     -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu
 \end{Verbatim}
 
 Similarly, in the case of GSVD the thick-restart Lanczos solver uses a \ident{KSP} solver internally, that can be configured by accessing it with
-	\findex{SVDTRLanczosGetKSP}
-	\begin{Verbatim}[fontsize=\small]
-	SVDTRLanczosGetKSP(SVD svd,KSP *ksp);
-	\end{Verbatim}
+        \findex{SVDTRLanczosGetKSP}
+        \begin{Verbatim}[fontsize=\small]
+        SVDTRLanczosGetKSP(SVD svd,KSP *ksp);
+        \end{Verbatim}
 or with the corresponding command-line options prefixed with \texttt{-svd\_trlanczos\_}. This \ident{KSP} object is used to solve a linear least squares problem at each Lanczos step with coefficient matrix $Z$
 ~\eqref{eq:qr}, which by default is a shell matrix but the user can choose to create it explicitly with the function \ident{SVDTRLanczosSetExplicitMatrix}.
 
@@ -411,17 +410,17 @@ or with the corresponding command-line options prefixed with \texttt{-svd\_trlan
 Once the call to \ident{SVDSolve} is complete, all the data associated with the computed partial SVD is kept internally in the \ident{SVD} object. This information can be obtained by the calling program by means of a set of functions described below.
 
 As in the case of eigenproblems, the number of computed singular triplets depends on the convergence and, therefore, it may be different from the number of solutions requested by the user. So the first task is to find out how many solutions are available, with
-	\findex{SVDGetConverged}
-	\begin{Verbatim}[fontsize=\small]
-	SVDGetConverged(SVD svd,PetscInt *nconv);
-	\end{Verbatim}
+        \findex{SVDGetConverged}
+        \begin{Verbatim}[fontsize=\small]
+        SVDGetConverged(SVD svd,PetscInt *nconv);
+        \end{Verbatim}
 Usually, the number of converged solutions, \texttt{nconv}, will be equal to \texttt{nsv}, but in general it can be a number ranging from 0 to \texttt{ncv} (here, \texttt{nsv} and \texttt{ncv} are the arguments of function \ident{SVDSetDimensions}).
 
 Normally, the user is interested in the singular values only, or the complete singular triplets. The function
-	\findex{SVDGetSingularTriplet}
-	\begin{Verbatim}[fontsize=\small]
-	SVDGetSingularTriplet(SVD svd,PetscInt j,PetscReal *sigma,Vec u,Vec v);
-	\end{Verbatim}
+        \findex{SVDGetSingularTriplet}
+        \begin{Verbatim}[fontsize=\small]
+        SVDGetSingularTriplet(SVD svd,PetscInt j,PetscReal *sigma,Vec u,Vec v);
+        \end{Verbatim}
 returns the $j$-th computed singular triplet, $(\sigma_j,u_j,v_j)$, where both $u_j$ and $v_j$ are normalized to have unit norm\footnote{The exception is in the HSVD, where $u_j$ is normalized so that $U^*\Omega U=\tilde\Omega$.}. Typically, this function is called inside a loop for each value of \texttt{j} from 0 to \texttt{nconv}--1. Note that singular values are ordered according to the same criterion specified with function \ident{SVDSetWhichSingularTriplets} for selecting the portion of the spectrum of interest.
 
 In some applications, it may be enough to compute only the right singular vectors. This is especially important in cases in which memory requirements are critical (remember that both $U_k$ and $V_k$ are dense matrices, and $U_k$ may require much more storage than $V_k$, see Figure \ref{fig:svd}). In \slepc, there is no general option for specifying this, but the default behavior of some solvers is to compute only right vectors and allocate/compute left vectors only in the case that the user requests them. This is done in the \texttt{cross} solver and in some special variants of other solvers such as one-sided Lanczos (consult the \hyperlink{str}{[STR-8]} technical report for specific solver options).
@@ -441,10 +440,10 @@ Given the above definition, the following relation holds
 |\sigma-\tilde{\sigma}|\leq \|r_\mathrm{SVD}\|_2,
 \end{equation}
 where $\sigma$ is an exact singular value. The associated error can be obtained in terms of $\|r_\mathrm{SVD}\|_2$ with the following function:
-	\findex{SVDComputeError}
-	\begin{Verbatim}[fontsize=\small]
-	SVDComputeError(SVD svd,PetscInt j,SVDErrorType type,PetscReal *error);
-	\end{Verbatim}
+        \findex{SVDComputeError}
+        \begin{Verbatim}[fontsize=\small]
+        SVDComputeError(SVD svd,PetscInt j,SVDErrorType type,PetscReal *error);
+        \end{Verbatim}
 
 In the case of the GSVD, the function \ident{SVDComputeError} will compute a residual norm based on the two relations~\eqref{eq:gsvd},
 \begin{equation}

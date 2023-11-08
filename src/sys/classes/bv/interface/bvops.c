@@ -236,7 +236,6 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCall(MatGetSize(Q,&m,&n));
   PetscCheck(m>=V->k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,V->k);
   PetscCheck(e<=n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %" PetscInt_FMT " columns, the requested value of e is larger: %" PetscInt_FMT,n,e);
-  if (s>=e) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
   PetscUseTypeMethod(V,multinplace,Q,s,e);
@@ -285,7 +284,6 @@ PetscErrorCode BVMultInPlaceHermitianTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCall(MatGetSize(Q,&m,&n));
   PetscCheck(n>=V->k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,V->k);
   PetscCheck(e<=m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %" PetscInt_FMT " rows, the requested value of e is larger: %" PetscInt_FMT,m,e);
-  if (s>=e || !V->n) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
   PetscUseTypeMethod(V,multinplacetrans,Q,s,e);
@@ -320,7 +318,7 @@ PetscErrorCode BVScale(BV bv,PetscScalar alpha)
   if (alpha == (PetscScalar)1.0) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-  if (bv->n) PetscUseTypeMethod(bv,scale,-1,alpha);
+  PetscUseTypeMethod(bv,scale,-1,alpha);
   PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -353,7 +351,7 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   if (alpha == (PetscScalar)1.0) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-  if (bv->n) PetscUseTypeMethod(bv,scale,j,alpha);
+  PetscUseTypeMethod(bv,scale,j,alpha);
   PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(PETSC_SUCCESS);

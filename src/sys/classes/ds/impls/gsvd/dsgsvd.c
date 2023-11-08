@@ -408,7 +408,6 @@ static PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (ds->compact) PetscCall(DSSwitchFormat_GSVD(ds));
 
 #if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
-  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   /* workspace query and memory allocation */
   lwork = -1;
 #if !defined (PETSC_USE_COMPLEX)
@@ -430,13 +429,11 @@ static PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   beta  = ds->rwork+3*ds->ld;
   PetscCallBLAS("LAPACKggsvd3",LAPACKggsvd3_("U","V","Q",&m1,&n1,&p1,&k,&l,A+off,&ld,B+off,&ld,alpha,beta,U+off,&ld,V+off,&ld,X+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
 #endif
-  PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("ggsvd3",info);
 
 #else  /* defined(SLEPC_MISSING_LAPACK_GGSVD3) */
 
   lwork = PetscMax(PetscMax(3*n,m),p)+n;
-  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined (PETSC_USE_COMPLEX)
   PetscCall(DSAllocateWork_Private(ds,lwork,2*ds->ld,ds->ld));
   alpha = ds->rwork;
@@ -448,7 +445,6 @@ static PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   beta  = ds->rwork+3*ds->ld;
   PetscCallBLAS("LAPACKggsvd",LAPACKggsvd_("U","V","Q",&m1,&n1,&p1,&k,&l,A+off,&ld,B+off,&ld,alpha,beta,U+off,&ld,V+off,&ld,X+off,&ld,ds->work,ds->rwork,ds->iwork,&info));
 #endif
-  PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("ggsvd",info);
 
 #endif
@@ -536,7 +532,6 @@ static PetscErrorCode DSCond_GSVD(DS ds,PetscReal *cond)
 #endif
   if (ds->compact) PetscCall(DSSwitchFormat_GSVD(ds));
 
-  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_A],&M));
   PetscCall(PetscArraycpy(A,M,ld*n));
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_A],&M));
@@ -558,7 +553,6 @@ static PetscErrorCode DSCond_GSVD(DS ds,PetscReal *cond)
 #endif
   SlepcCheckLapackInfo("gesvd",info);
   condb = sigma[0]/sigma[PetscMin(p,n)-1];
-  PetscCall(PetscFPTrapPop());
 
   *cond = PetscMax(conda,condb);
   PetscFunctionReturn(PETSC_SUCCESS);

@@ -52,4 +52,3 @@
 #include <../src/svd/f90-mod/ftn-auto-interfaces/slepcsvd.h90>
         end interface
         end module
-

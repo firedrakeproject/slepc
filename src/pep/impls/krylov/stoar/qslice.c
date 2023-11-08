@@ -106,7 +106,7 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
   PetscCall(BVDestroy(&sr->V));
   PetscCall(BVCreate(PetscObjectComm((PetscObject)pep),&sr->V));
   if (!pep->V) PetscCall(PEPGetBV(pep,&pep->V));
-  if (!((PetscObject)(pep->V))->type_name) PetscCall(BVSetType(sr->V,BVSVEC));
+  if (!((PetscObject)(pep->V))->type_name) PetscCall(BVSetType(sr->V,BVMAT));
   else {
     PetscCall(BVGetType(pep->V,&type));
     PetscCall(BVSetType(sr->V,type));

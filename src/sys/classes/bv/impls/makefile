@@ -9,7 +9,6 @@
 #
 
 LIBBASE  = libslepcsys
-DIRS     = vecs contiguous svec mat tensor
 MANSEC   = BV
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

@@ -52,4 +52,3 @@
 #include <../src/sys/classes/fn/f90-mod/ftn-auto-interfaces/slepcfn.h90>
         end interface
         end module
-

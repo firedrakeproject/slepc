@@ -44,4 +44,3 @@ SLEPC_EXTERN void rgpolygongetvertices1_(RG *rg,PetscInt *n,PetscScalar *vr,Pets
 {
   rgpolygongetvertices_(rg,n,vr,vi,ierr);
 }
-

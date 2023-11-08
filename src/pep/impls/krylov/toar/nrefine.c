@@ -126,9 +126,9 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
 {
   PetscScalar       *DHii,*T12,*Tr,*Ts,*array,s,ss,sone=1.0,zero=0.0,*M4=ctx->M4,t,*v,*T;
   const PetscScalar *m3,*m2;
-  PetscInt          i,d,j,nmat=pep->nmat,lda=nmat*k,deg=nmat-1,nloc;
+  PetscInt          i,d,j,nmat=pep->nmat,lda=nmat*k,deg=nmat-1,nloc,ld2,ld3;
   PetscReal         *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
-  PetscBLASInt      k_,lda_,lds_,nloc_,one=1,info;
+  PetscBLASInt      k_,lda_,lds_,nloc_,ld2_,one=1,info;
   Mat               *A=ctx->A,Mk,M1=ctx->M1,P;
   BV                V=ctx->V,M2=ctx->M2,M3=ctx->M3,W=ctx->W;
   MatStructure      str;
@@ -205,14 +205,17 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
   PetscCall(KSPGetOperators(pep->refineksp,NULL,&P));
   if (!ctx->compM1) PetscCall(MatCopy(ctx->M1,P,SAME_NONZERO_PATTERN));
   PetscCall(BVGetArrayRead(ctx->M2,&m2));
+  PetscCall(BVGetLeadingDimension(ctx->M2,&ld2));
+  PetscCall(PetscBLASIntCast(ld2,&ld2_));
   PetscCall(BVGetArrayRead(ctx->M3,&m3));
+  PetscCall(BVGetLeadingDimension(ctx->M3,&ld3));
   PetscCall(VecGetArray(ctx->t,&v));
-  for (i=0;i<nloc;i++) for (j=0;j<k;j++) T[j+i*k] = m3[i+j*nloc];
+  for (i=0;i<nloc;i++) for (j=0;j<k;j++) T[j+i*k] = m3[i+j*ld3];
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&k_,&nloc_,ctx->M4,&k_,ctx->pM4,T,&k_,&info));
   PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("gesv",info);
-  for (i=0;i<nloc;i++) v[i] = BLASdot_(&k_,m2+i,&nloc_,T+i*k,&one);
+  for (i=0;i<nloc;i++) v[i] = BLASdot_(&k_,m2+i,&ld2_,T+i*k,&one);
   PetscCall(VecRestoreArray(ctx->t,&v));
   PetscCall(BVRestoreArrayRead(ctx->M2,&m2));
   PetscCall(BVRestoreArrayRead(ctx->M3,&m3));

@@ -1,5 +1,16 @@
 # Changelog of SLEPc versions
 
+## [3.20] - 2023-09-29
+
+### Changed
+
+- `BV`: now most `BV` implementations use the concept of leading dimension for internal
+  storage. The implication of this is that codes relying on `BVGetArray()` must be
+  adapted to use the value of the leading dimension, which may be different from the
+  local number of rows. Use `BVGetLeadingDimension()` for this purpose.
+- `BV`: now the default `BV` type is `BVMAT` instead of `BVSVEC`. This change should not
+  affect application code.
+
 ## [3.19] - 2023-03-31
 
 ### Added
@@ -436,7 +447,8 @@
 - Classical and modified Gram-Schmidt orthogonalization use iterative refinement, with user options
   for parameter adjustment.
 
-[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.19...main
+[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.20...main
+[3.20]: https://gitlab.com/slepc/slepc/compare/v3.19...v3.20
 [3.19]: https://gitlab.com/slepc/slepc/compare/v3.18...v3.19
 [3.18]: https://gitlab.com/slepc/slepc/compare/v3.17...v3.18
 [3.17]: https://gitlab.com/slepc/slepc/compare/v3.16...v3.17

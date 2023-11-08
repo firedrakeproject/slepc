@@ -8,6 +8,8 @@ cdef extern from * nogil:
         PETSC_TRUE,  PETSC_YES,
         PETSC_FALSE, PETSC_NO,
 
+    ctypedef const char* PetscVecType "VecType"
+
     ctypedef enum  PetscNormType "NormType":
         PETSC_NORM_1          "NORM_1"
         PETSC_NORM_2          "NORM_2"

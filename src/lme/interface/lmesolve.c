@@ -171,8 +171,8 @@ PetscErrorCode LMEGetErrorEstimate(LME lme,PetscReal *errest)
 */
 static PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
 {
-  PetscInt          j,n,N,k,l;
-  PetscBLASInt      n_,N_,k_,l_;
+  PetscInt          j,n,N,k,l,lda,ldb;
+  PetscBLASInt      n_,N_,k_,l_,lda_,ldb_;
   PetscScalar       *Rarray,alpha=1.0,beta=0.0;
   const PetscScalar *A,*B;
   BV                W,AX,X1,C1;
@@ -221,8 +221,12 @@ static PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   }
   if (n) {
     PetscCall(BVGetArrayRead(C1,&A));
+    PetscCall(BVGetLeadingDimension(C1,&lda));
+    PetscCall(PetscBLASIntCast(lda,&lda_));
     PetscCall(BVGetArrayRead(W,&B));
-    PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&l_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
+    PetscCall(BVGetLeadingDimension(W,&ldb));
+    PetscCall(PetscBLASIntCast(ldb,&ldb_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&l_,&alpha,(PetscScalar*)A,&lda_,(PetscScalar*)B,&ldb_,&beta,Rarray,&n_));
     PetscCall(BVRestoreArrayRead(C1,&A));
     PetscCall(BVRestoreArrayRead(W,&B));
   }
@@ -239,8 +243,10 @@ static PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   }
   if (n) {
     PetscCall(BVGetArrayRead(AX,&A));
+    PetscCall(BVGetLeadingDimension(AX,&lda));
+    PetscCall(PetscBLASIntCast(lda,&lda_));
     PetscCall(BVGetArrayRead(W,&B));
-    PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&lda_,(PetscScalar*)B,&ldb_,&beta,Rarray,&n_));
     PetscCall(BVRestoreArrayRead(AX,&A));
     PetscCall(BVRestoreArrayRead(W,&B));
   }
@@ -256,8 +262,10 @@ static PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   }
   if (n) {
     PetscCall(BVGetArrayRead(X1,&A));
+    PetscCall(BVGetLeadingDimension(AX,&lda));
+    PetscCall(PetscBLASIntCast(lda,&lda_));
     PetscCall(BVGetArrayRead(W,&B));
-    PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&lda_,(PetscScalar*)B,&ldb_,&beta,Rarray,&n_));
     PetscCall(BVRestoreArrayRead(X1,&A));
     PetscCall(BVRestoreArrayRead(W,&B));
   }

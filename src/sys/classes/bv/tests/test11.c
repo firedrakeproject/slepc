@@ -229,7 +229,7 @@ int main(int argc,char **argv)
          args: -bv_type {{vecs contiguous svec mat}shared output}
       test:
          suffix: 1_cuda
-         args: -bv_type svec -vec_type cuda
+         args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
 
    testset:
@@ -241,7 +241,7 @@ int main(int argc,char **argv)
          args: -bv_type {{vecs contiguous svec mat}shared output}
       test:
          suffix: 4_cuda
-         args: -bv_type svec -vec_type cuda -mat_type aijcusparse
+         args: -bv_type {{svec mat}} -vec_type cuda -mat_type aijcusparse
          requires: cuda
 
    testset:
@@ -253,7 +253,7 @@ int main(int argc,char **argv)
          args: -bv_type {{vecs contiguous svec mat}shared output}
       test:
          suffix: 6_cuda
-         args: -bv_type svec -vec_type cuda
+         args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
 
    testset:
@@ -265,7 +265,7 @@ int main(int argc,char **argv)
          args: -bv_type {{vecs contiguous svec mat}shared output}
       test:
          suffix: 9_cuda
-         args: -bv_type svec -vec_type cuda -mat_type aijcusparse
+         args: -bv_type {{svec mat}} -vec_type cuda -mat_type aijcusparse
          requires: cuda
 
    testset:
@@ -279,7 +279,7 @@ int main(int argc,char **argv)
       test:
          suffix: 11_cuda
          TODO: too many processes accessing the GPU
-         args: -bv_type svec -vec_type cuda
+         args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda !defined(PETSCTEST_VALGRIND)
 
    testset:
@@ -293,7 +293,7 @@ int main(int argc,char **argv)
       test:
          suffix: 12_cuda
          TODO: too many processes accessing the GPU
-         args: -bv_type svec -vec_type cuda
+         args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda !single !defined(PETSCTEST_VALGRIND)
 
 TEST*/

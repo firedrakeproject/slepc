@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test BV created from a dense Mat.\n\n";
+static char help[] = "Test BV created from a Mat.\n\n";
 
 #include <slepcbv.h>
 
@@ -18,7 +18,7 @@ int main(int argc,char **argv)
   Mat            A,B,M;
   PetscInt       i,j,n=20,k=8,Istart,Iend;
   PetscViewer    view;
-  PetscBool      verbose;
+  PetscBool      sparse=PETSC_FALSE,verbose;
   PetscReal      norm;
   PetscScalar    alpha;
 
@@ -26,13 +26,14 @@ int main(int argc,char **argv)
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-sparse",&sparse));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BV created from a dense Mat (length %" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",n,k));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BV created from a %s Mat (length %" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",sparse?"sparse":"dense",n,k));
 
-  /* Create dense matrix */
+  /* Create matrix */
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
   PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,k));
-  PetscCall(MatSetType(A,MATDENSE));
+  if (!sparse) PetscCall(MatSetType(A,MATDENSE));
   PetscCall(MatSetUp(A));
   PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (j=0;j<k;j++) {
@@ -92,6 +93,9 @@ int main(int argc,char **argv)
       suffix: 1
       nsize: 2
       args: -bv_type {{vecs contiguous svec mat}shared output}
-      output_file: output/test14_1.out
+
+   test:
+      suffix: 2
+      args: -sparse
 
 TEST*/

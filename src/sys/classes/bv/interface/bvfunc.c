@@ -121,7 +121,8 @@ PetscErrorCode BVDestroy(BV *bv)
   PetscCheck(!(*bv)->lsplit,PetscObjectComm((PetscObject)(*bv)),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
   if (--((PetscObject)(*bv))->refct > 0) { *bv = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscTryTypeMethod(*bv,destroy);
-  PetscCall(VecDestroy(&(*bv)->t));
+  PetscCall(PetscLayoutDestroy(&(*bv)->map));
+  PetscCall(PetscFree((*bv)->vtype));
   PetscCall(MatDestroy(&(*bv)->matrix));
   PetscCall(VecDestroy(&(*bv)->Bx));
   PetscCall(VecDestroy(&(*bv)->buffer));
@@ -164,13 +165,15 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   PetscCall(BVInitializePackage());
   PetscCall(SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView));
 
-  bv->t            = NULL;
+  bv->map          = NULL;
+  bv->vtype        = NULL;
   bv->n            = -1;
   bv->N            = -1;
   bv->m            = 0;
   bv->l            = 0;
   bv->k            = 0;
   bv->nc           = 0;
+  bv->ld           = 0;
   bv->orthog_type  = BV_ORTHOG_CGS;
   bv->orthog_ref   = BV_ORTHOG_REFINE_IFNEEDED;
   bv->orthog_eta   = 0.7071;
@@ -243,16 +246,18 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 @*/
 PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
 {
-  PetscInt       n,N,k;
+  PetscInt  n,N,k;
+  VecType   vtype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(A,MAT_CLASSID,1);
-  PetscCheckTypeNames(A,MATSEQDENSE,MATMPIDENSE);
 
   PetscCall(MatGetSize(A,&N,&k));
   PetscCall(MatGetLocalSize(A,&n,NULL));
+  PetscCall(MatGetVecType(A,&vtype));
   PetscCall(BVCreate(PetscObjectComm((PetscObject)A),bv));
   PetscCall(BVSetSizes(*bv,n,N,k));
+  PetscCall(BVSetVecType(*bv,vtype));
 
   (*bv)->Acreate = A;
   PetscCall(PetscObjectReference((PetscObject)A));
@@ -673,7 +678,7 @@ PETSC_UNUSED PetscErrorCode SlepcDebugBVView(BV bv,PetscInt ini,PetscInt end,con
   PetscFunctionBegin;
   PetscCall(BVGetArray(bv,&array));
   PetscCall(BVGetSizes(bv,NULL,&N,&m));
-  PetscCall(SlepcDebugViewMatrix(N,end-ini+1,array+ini*N,NULL,N,s,filename));
+  PetscCall(SlepcDebugViewMatrix(N,end-ini+1,array+ini*N,NULL,bv->ld,s,filename));
   PetscCall(BVRestoreArray(bv,&array));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

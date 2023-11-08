@@ -45,7 +45,7 @@ NEP Object: 1 MPI process
   maximum number of iterations: 5000
   convergence test: relative to the eigenvalue
 BV Object: 1 MPI process
-  type: svec
+  type: mat
   37 columns of global length 100
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)

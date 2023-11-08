@@ -162,4 +162,3 @@ PetscErrorCode GraphLoadUnweighted(Graph graph,char *filename)
   PetscCall(MatAssemblyEnd(graph->adjacency,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
-

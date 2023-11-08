@@ -52,4 +52,3 @@
 #include <../src/sys/classes/bv/f90-mod/ftn-auto-interfaces/slepcbv.h90>
         end interface
         end module
-

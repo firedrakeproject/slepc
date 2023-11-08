@@ -138,4 +138,19 @@ int main(int argc,char **argv)
          nsize: 2
          args: -svd_type trlanczos -ds_parallel {{redundant synchronized}}
 
+   testset:
+      args: -svd_nsv 3 -mat_type aijcusparse
+      requires: cuda !single
+      output_file: output/test16_1.out
+      test:
+         suffix: 2_cross
+         args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
+      test:
+         suffix: 2_cyclic
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
+      test:
+         suffix: 2_trlanczos
+         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single lower}} -svd_trlanczos_ksp_rtol 1e-10
+         requires: double
+
 TEST*/
