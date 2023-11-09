@@ -35,7 +35,7 @@ slepc_manualpages:
           for f in ${SOURCED}; do \
             LMANSEC=`grep SUBMANSEC $${f} | sed s'?[ ]*/\*[ ]*SUBMANSEC[ ]*=[ ]*\([a-zA-Z]*\)[ ]*\*/?\1?'g`; \
             if [ "$${LMANSEC}" = "" ] ; then LMANSEC="MissingSUBMANSEC"; fi; \
-            DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
+            DOCTEXT_PATH=${PETSC_DIR}/doc/manualpages/doctext; export DOCTEXT_PATH; \
             ${DOCTEXT} -html \
                    -mpath ${LOC}/docs/manualpages/$${LMANSEC} -heading SLEPc \
                    -defn ${SLEPC_DIR}/src/docs/doctext/html.def \
@@ -44,7 +44,7 @@ slepc_manualpages:
           done; \
         else \
           if [ "${SUBMANSEC}" = "" ] ; then LMANSEC=${MANSEC}; else LMANSEC=${SUBMANSEC}; fi; \
-          DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
+          DOCTEXT_PATH=${PETSC_DIR}/doc/manualpages/doctext; export DOCTEXT_PATH; \
           ${DOCTEXT} -html \
                  -mpath ${LOC}/docs/manualpages/$${LMANSEC} -heading SLEPc \
                  -defn ${SLEPC_DIR}/src/docs/doctext/html.def \
@@ -84,10 +84,10 @@ petsc_manualpages_buildcite:
           echo Generating index of PETSc man pages; \
           petscrelease=`grep '^#define PETSC_VERSION_RELEASE ' ${PETSC_DIR}/include/petscversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
           if [ $${petscrelease} = 1 ]; then petscbranch="release"; else petscbranch="main"; fi; \
-          DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
-          TEXTFILTER_PATH=${PETSC_DIR}/doc/classic/doctext; export TEXTFILTER_PATH; \
+          DOCTEXT_PATH=${PETSC_DIR}/doc/manualpages/doctext; export DOCTEXT_PATH; \
+          TEXTFILTER_PATH=${PETSC_DIR}/doc/manualpages/doctext; export TEXTFILTER_PATH; \
           cp ${PETSC_DIR}/include/*.h $$petscidx_tmp; \
-          doctext_common_def=${PETSC_DIR}/doc/classic/doctext/doctextcommon.txt; \
+          doctext_common_def=${PETSC_DIR}/doc/manualpages/doctext/doctextcommon.txt; \
           for f in `ls $${petscidx_tmp}`; do \
             LMANSEC=`grep SUBMANSEC $${petscidx_tmp}/$${f} | sed s'?[ ]*/\*[ ]*SUBMANSEC[ ]*=[ ]*\([a-zA-Z]*\)[ ]*\*/?\1?'g`; \
             if [ "$${LMANSEC}" = "" ]; then LMANSEC="MissingSUBMANSEC"; fi; \
@@ -116,8 +116,8 @@ petsc_manualpages_buildcite:
           ${RM} -r $${petscidx_tmp}
 
 slepc_manualpages_buildcite:
-	@-DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
-          TEXTFILTER_PATH=${PETSC_DIR}/doc/classic/doctext; export TEXTFILTER_PATH; \
+	@-DOCTEXT_PATH=${PETSC_DIR}/doc/manualpages/doctext; export DOCTEXT_PATH; \
+          TEXTFILTER_PATH=${PETSC_DIR}/doc/manualpages/doctext; export TEXTFILTER_PATH; \
           if [ "${MANSEC}" = "" ] ; then \
             for f in ${SOURCED}; do \
               LMANSEC=`grep SUBMANSEC $${f} | sed s'?[ ]*/\*[ ]*SUBMANSEC[ ]*=[ ]*\([a-zA-Z]*\)[ ]*\*/?\1?'g`; \
@@ -150,7 +150,7 @@ slepc_html:
           slepc_dir=$$(realpath ${SLEPC_DIR}); LOCDIR=$$(pwd | sed s"?$${slepc_dir}/??g")/; \
           sed -e s?man+../?man+ROOT/docs/manualpages/? ${LOC}/docs/manualpages/manualpages.cit > $$htmlmap_tmp ;\
           cat ${LOC}/docs/manualpages/petscmanualpages.cit >> $$htmlmap_tmp ;\
-          cat ${PETSC_DIR}/doc/classic/mpi.www.index >> $$htmlmap_tmp ;\
+          cat ${PETSC_DIR}/doc/manualpages/mpi.www.index >> $$htmlmap_tmp ;\
           ROOT=`echo $${LOCDIR} | sed -e s?/[a-z0-9-]*?/..?g -e s?src/??g -e s?include/??g` ;\
           loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
           ${MKDIR} -p $${loc} ;\
@@ -176,7 +176,11 @@ slepc_html:
             fi; \
           done ;\
           loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`; ${RM} $${loc}/index.html; \
-          cat ${SLEPC_DIR}/src/docs/manualpages-sec/header_${MANSEC} | sed -e "s?<A HREF=\"SLEPC_DIR[a-z/]*\">Examples</A>?<A HREF=\"$${ROOT}/docs/manualpages/${MANSEC}\">Manual pages</A>?g" -e "s?SLEPC_DIR?$${ROOT}/?g"> $${loc}/index.html; \
+          if [ -f ${SLEPC_DIR}/src/docs/manualpages-sec/${MANSEC} ] ; then \
+            cat ${SLEPC_DIR}/src/docs/manualpages-sec/${MANSEC} | sed -e "s?<A HREF=\"SLEPC_DIR[a-z/]*\">Examples</A>?<A HREF=\"$${ROOT}/docs/manualpages/${MANSEC}\">Manual pages</A>?g" -e "s?SLEPC_DIR?$${ROOT}/?g"> $${loc}/index.html; \
+          else \
+            touch $${loc}/index.html; \
+          fi; \
           echo "<p>" >> $${loc}/index.html ;\
           loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;\
           base=`basename $${LOCDIR}`; \

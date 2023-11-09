@@ -264,7 +264,7 @@ def main():
 
       PETSC_DIR = sys.argv[1]
       LOC       = sys.argv[2]
-      HEADERDIR = (sys.argv[3] if arg_len > 3 else 'doc/classic/manualpages-sec')
+      HEADERDIR = (sys.argv[3] if arg_len > 3 else 'doc/manualpages/MANSECHeaders')
       #fd        = os.popen('/bin/ls -d '+ PETSC_DIR + '/manualpages/*')
       #buf       = fd.read()
       #dirs      = split(strip(buf),'\n')
@@ -283,7 +283,7 @@ def main():
       for dirname in mandirs:
             outfilename  = dirname + '/index.html'
             dname,secname  = posixpath.split(dirname)
-            headfilename = PETSC_DIR + '/' + HEADERDIR + '/header_' + secname
+            headfilename = PETSC_DIR + '/' + HEADERDIR + '/' + secname
             table        = createtable(dirname,levels,secname)
             if not table: continue
             singlelist   = addtolist(dirname,singlelist)
