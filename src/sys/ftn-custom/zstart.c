@@ -19,11 +19,13 @@
 #define petscfinalize_                PETSCFINALIZE
 #define slepcinitializef_             SLEPCINITIALIZEF
 #define slepcfinalize_                SLEPCFINALIZE
+#define slepcinitializefortran_       SLEPCINITIALIZEFORTRAN
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define petscinitializef_             petscinitializef
 #define petscfinalize_                petscfinalize
 #define slepcinitializef_             slepcinitializef
 #define slepcfinalize_                slepcfinalize
+#define slepcinitializefortran_       slepcinitializefortran
 #endif
 
 SLEPC_EXTERN void petscinitializef_(char *filename,char* help,PetscBool *readarguments,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len,PETSC_FORTRAN_CHARLEN_T helplen);
@@ -78,4 +80,9 @@ SLEPC_EXTERN void slepcfinalize_(PetscErrorCode *ierr)
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
+}
+
+SLEPC_EXTERN void slepcinitializefortran_(PetscErrorCode *info)
+{
+  *info = SlepcInitializeFortran();
 }

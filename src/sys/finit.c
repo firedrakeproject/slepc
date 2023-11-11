@@ -8,14 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petsc/private/fortranimpl.h>
-#include <slepcsys.h>
-
-#if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define slepcinitializefortran_     SLEPCINITIALIZEFORTRAN
-#elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define slepcinitializefortran_     slepcinitializefortran
-#endif
+#include <slepc/private/slepcimpl.h>           /*I "slepcsys.h" I*/
 
 /*@C
    SlepcInitializeFortran - Routine that should be called from C after
@@ -33,16 +26,13 @@
    program is written in Fortran; in this case, just calling
    SlepcInitialize() in the main (Fortran) program is sufficient.
 
-.seealso:  SlepcInitialize()
+.seealso: SlepcInitialize()
 @*/
-
 PetscErrorCode SlepcInitializeFortran(void)
 {
+#if defined(PETSC_USE_FORTRAN_BINDINGS)
   PetscCall(PetscInitializeFortran());
+#endif
   return PETSC_SUCCESS;
 }
 
-SLEPC_EXTERN void slepcinitializefortran_(PetscErrorCode *info)
-{
-  *info = SlepcInitializeFortran();
-}
