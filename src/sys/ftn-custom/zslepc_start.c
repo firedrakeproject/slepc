@@ -63,7 +63,6 @@ SLEPC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarg
 
 SLEPC_EXTERN void slepcfinalize_(PetscErrorCode *ierr)
 {
-  if (*ierr) { (void)(*PetscErrorPrintf)("SlepcInitialize:PetscFinalized failed");return; }
   if (PetscUnlikely(!SlepcInitializeCalled)) {
     (void)(*PetscErrorPrintf)("SlepcInitialize() must be called before SlepcFinalize()");
     return;
