@@ -274,7 +274,7 @@ chk_c2html:
 
 # Build just citations
 allcite: chk_loc deletemanualpages petsc_manualpages_buildcite
-	-${OMAKE_SELF} ACTION=slepc_manualpages_buildcite tree_src LOC=${LOC}
+	-${OMAKE_SELF} ACTION=slepc_manualpages_buildcite slepc_tree_src LOC=${LOC}
 	-@cat ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${LOC}/docs/manualpages/petscmanualpages.cit >> ${LOC}/docs/manualpages/htmlmap
 	-@cat ${PETSC_DIR}/doc/manualpages/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
@@ -286,7 +286,7 @@ allpdf:
 # Build just manual pages + prerequisites
 allmanpages: chk_loc allcite
 	-${RM} ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err
-	-${OMAKE_SELF} ACTION=slepc_manualpages tree_src LOC=${LOC}
+	-${OMAKE_SELF} ACTION=slepc_manualpages slepc_tree_src LOC=${LOC}
 	cat ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err
 	@a=`cat ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err | wc -l`; test ! $$a -gt 0
 
