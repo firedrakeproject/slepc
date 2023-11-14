@@ -1375,7 +1375,6 @@ static PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
         if (!ctx->contour->subcomm->color) PetscCall(KSPView(ctx->contour->ksp[0],sviewer));
         PetscCall(PetscViewerFlush(sviewer));
         PetscCall(PetscViewerRestoreSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
-        PetscCall(PetscViewerFlush(viewer));
         /* extra call needed because of the two calls to PetscViewerASCIIPushSynchronized() in PetscViewerGetSubViewer() */
         PetscCall(PetscViewerASCIIPopSynchronized(viewer));
       } else PetscCall(KSPView(ctx->contour->ksp[0],viewer));

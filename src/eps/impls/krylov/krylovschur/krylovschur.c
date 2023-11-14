@@ -1421,7 +1421,6 @@ static PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
           if (!ctx->subc->color) PetscCall(KSPView(ksp,sviewer));
           PetscCall(PetscViewerFlush(sviewer));
           PetscCall(PetscViewerRestoreSubViewer(viewer,ctx->subc->child,&sviewer));
-          PetscCall(PetscViewerFlush(viewer));
           /* extra call needed because of the two calls to PetscViewerASCIIPushSynchronized() in PetscViewerGetSubViewer() */
           PetscCall(PetscViewerASCIIPopSynchronized(viewer));
         } else PetscCall(KSPView(ksp,viewer));
