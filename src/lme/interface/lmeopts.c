@@ -57,7 +57,7 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char opt[],const char name
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
   PetscCall((*cfunc)(viewer,format,ctx,&vf));
-  PetscCall(PetscObjectDereference((PetscObject)viewer));
+  PetscCall(PetscOptionsRestoreViewer(&viewer));
   PetscCall(LMEMonitorSet(lme,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
