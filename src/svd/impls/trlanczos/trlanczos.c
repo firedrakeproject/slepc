@@ -45,8 +45,10 @@ static const char citationg[] =
   "@Article{slepc-gsvd,\n"
   "   author = \"F. Alvarruiz and C. Campos and J. E. Roman\",\n"
   "   title = \"Thick-restarted {Lanczos} bidiagonalization methods for the {GSVD}\",\n"
-  "   note = \"arXiv:2206.03768\",\n"
-  "   year = \"2022\"\n"
+  "   journal = \"J. Comput. Appl. Math.\",\n"
+  "   volume = \"440\",\n"
+  "   pages = \"115506\",\n"
+  "   year = \"2024\"\n"
   "}\n";
 
 typedef struct {
