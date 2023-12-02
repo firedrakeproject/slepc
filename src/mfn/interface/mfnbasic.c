@@ -172,7 +172,7 @@ PetscErrorCode MFNConvergedReasonViewFromOptions(MFN mfn)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(MFNConvergedReasonView(mfn,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);

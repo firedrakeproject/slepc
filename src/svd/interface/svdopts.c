@@ -596,7 +596,7 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
   PetscCall((*cfunc)(viewer,format,ctx,&vf));
-  PetscCall(PetscObjectDereference((PetscObject)viewer));
+  PetscCall(PetscOptionsRestoreViewer(&viewer));
   PetscCall(SVDMonitorSet(svd,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   if (trackall) PetscCall(SVDSetTrackAll(svd,PETSC_TRUE));
   PetscFunctionReturn(PETSC_SUCCESS);

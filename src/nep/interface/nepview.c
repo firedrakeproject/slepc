@@ -269,7 +269,7 @@ PetscErrorCode NEPConvergedReasonViewFromOptions(NEP nep)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(NEPConvergedReasonView(nep,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -452,21 +452,21 @@ PetscErrorCode NEPErrorViewFromOptions(NEP nep)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(NEPErrorView(nep,NEP_ERROR_ABSOLUTE,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_error_relative",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_error_backward",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(NEPErrorView(nep,NEP_ERROR_BACKWARD,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -699,7 +699,7 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(NEPValuesView(nep,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -792,7 +792,7 @@ PetscErrorCode NEPVectorsViewFromOptions(NEP nep)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(NEPVectorsView(nep,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);

@@ -58,7 +58,7 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char opt[],const char name
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
   PetscCall((*cfunc)(viewer,format,ctx,&vf));
-  PetscCall(PetscObjectDereference((PetscObject)viewer));
+  PetscCall(PetscOptionsRestoreViewer(&viewer));
   PetscCall(PEPMonitorSet(pep,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   if (trackall) PetscCall(PEPSetTrackAll(pep,PETSC_TRUE));
   PetscFunctionReturn(PETSC_SUCCESS);
