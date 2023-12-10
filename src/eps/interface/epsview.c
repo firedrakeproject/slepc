@@ -278,7 +278,7 @@ PetscErrorCode EPSConvergedReasonViewFromOptions(EPS eps)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSConvergedReasonView(eps,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -461,21 +461,21 @@ PetscErrorCode EPSErrorViewFromOptions(EPS eps)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSErrorView(eps,EPS_ERROR_ABSOLUTE,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_relative",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_backward",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSErrorView(eps,EPS_ERROR_BACKWARD,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -708,7 +708,7 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSValuesView(eps,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -801,7 +801,7 @@ PetscErrorCode EPSVectorsViewFromOptions(EPS eps)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSVectorsView(eps,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);

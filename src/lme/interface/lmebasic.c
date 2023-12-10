@@ -179,7 +179,7 @@ PetscErrorCode LMEConvergedReasonViewFromOptions(LME lme)
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(LMEConvergedReasonView(lme,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(PetscOptionsRestoreViewer(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);

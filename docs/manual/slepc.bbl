@@ -1,10 +1,10 @@
 \begin{thebibliography}{40}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
-\bibitem[{Alvarruiz {\em et~al.\/}(2022)}]{Alvarruiz:2022:TRL}
-Alvarruiz, F., C. Campos, and J.~E. Roman (2022).
+\bibitem[{Alvarruiz {\em et~al.\/}(2024)}]{Alvarruiz:2024:TRL}
+Alvarruiz, F., C. Campos, and J.~E. Roman (2024).
 \newblock Thick-restarted joint Lanczos bidiagonalization for the GSVD.
-\newblock arXiv:2206.03768.
+\newblock {\em J. Comput. Appl. Math.\/}, 440:115506.
 
 \bibitem[{Anderson {\em et~al.\/}(1999)Anderson, Bai, Bischof, Blackford, Demmel,
   Dongarra, Croz, Greenbaum, Hammarling, McKenney, and
