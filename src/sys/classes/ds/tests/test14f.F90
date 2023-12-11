@@ -44,14 +44,14 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       zero = 0
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
       if (ierr .ne. 0) then
         print*,'SlepcInitialize failed'
         stop
       endif
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       n = 10
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr))
       if (n .gt. 100) then; SETERRA(PETSC_COMM_SELF,1,'Program currently limited to n=100'); endif
 
       if (rank .eq. 0) then
@@ -63,30 +63,30 @@
 !     Create DS object
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call DSCreate(PETSC_COMM_WORLD,ds,ierr);CHKERRA(ierr)
-      call DSSetType(ds,DSNHEP,ierr);CHKERRA(ierr)
-      call DSSetFromOptions(ds,ierr);CHKERRA(ierr)
+      PetscCallA(DSCreate(PETSC_COMM_WORLD,ds,ierr))
+      PetscCallA(DSSetType(ds,DSNHEP,ierr))
+      PetscCallA(DSSetFromOptions(ds,ierr))
       ld = n
-      call DSAllocate(ds,ld,ierr);CHKERRA(ierr)
-      call DSSetDimensions(ds,n,zero,zero,ierr);CHKERRA(ierr)
+      PetscCallA(DSAllocate(ds,ld,ierr))
+      PetscCallA(DSSetDimensions(ds,n,zero,zero,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Fill with Grcar matrix
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call DSGetMat(ds,DS_MAT_A,A,ierr);CHKERRA(ierr)
-      call MatDenseGetArrayF90(A,aa,ierr);CHKERRA(ierr)
+      PetscCallA(DSGetMat(ds,DS_MAT_A,A,ierr))
+      PetscCallA(MatDenseGetArrayF90(A,aa,ierr))
       call FillUpMatrix(n,aa)
-      call MatDenseRestoreArrayF90(A,aa,ierr);CHKERRA(ierr)
-      call DSRestoreMat(ds,DS_MAT_A,A,ierr);CHKERRA(ierr)
-      call DSSetState(ds,DS_STATE_INTERMEDIATE,ierr);CHKERRA(ierr)
+      PetscCallA(MatDenseRestoreArrayF90(A,aa,ierr))
+      PetscCallA(DSRestoreMat(ds,DS_MAT_A,A,ierr))
+      PetscCallA(DSSetState(ds,DS_STATE_INTERMEDIATE,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the problem and show eigenvalues
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call DSSolve(ds,wr,wi,ierr);CHKERRA(ierr)
-!     call DSSort(ds,wr,wi,PETSC_NULL_SCALAR,PETSC_NULL_SCALAR,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(DSSolve(ds,wr,wi,ierr))
+!     PetscCallA(DSSort(ds,wr,wi,PETSC_NULL_SCALAR,PETSC_NULL_SCALAR,PETSC_NULL_INTEGER,ierr))
 
       if (rank .eq. 0) then
         write(*,*) 'Computed eigenvalues ='
@@ -109,8 +109,8 @@
  130  format ('  ',F8.5,SP,F8.5,'i')
 
 !     *** Clean up
-      call DSDestroy(ds,ierr);CHKERRA(ierr)
-      call SlepcFinalize(ierr)
+      PetscCallA(DSDestroy(ds,ierr))
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 ! -----------------------------------------------------------------

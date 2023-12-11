@@ -45,30 +45,30 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
       if (ierr .ne. 0) then
         print*,'SlepcInitialize failed'
         stop
       endif
-      call MPI_Comm_size(PETSC_COMM_WORLD,nprc,ierr);CHKERRA(ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
+      PetscCallMPIA(MPI_Comm_size(PETSC_COMM_WORLD,nprc,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       n = 35
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr))
       m = n*n
       if (rank .eq. 0) then
         write(*,100) n
       endif
  100  format (/'Spectrum-slicing test, n =',I3,' (Fortran)'/)
 
-      call MatCreate(PETSC_COMM_WORLD,A,ierr);CHKERRA(ierr)
-      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,m,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(A,ierr);CHKERRA(ierr)
-      call MatSetUp(A,ierr);CHKERRA(ierr)
-      call MatCreate(PETSC_COMM_WORLD,B,ierr);CHKERRA(ierr)
-      call MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,m,m,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(B,ierr);CHKERRA(ierr)
-      call MatSetUp(B,ierr);CHKERRA(ierr)
-      call MatGetOwnershipRange(A,Istart,Iend,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
+      PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,m,ierr))
+      PetscCallA(MatSetFromOptions(A,ierr))
+      PetscCallA(MatSetUp(A,ierr))
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,B,ierr))
+      PetscCallA(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,m,m,ierr))
+      PetscCallA(MatSetFromOptions(B,ierr))
+      PetscCallA(MatSetUp(B,ierr))
+      PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       do II=Istart,Iend-1
         i = II/n
         j = II-i*n
@@ -76,103 +76,103 @@
         row = II
         if (i>0) then
           col = II-n
-          call MatSetValue(A,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(A,row,col,value,INSERT_VALUES,ierr))
         endif
         if (i<n-1) then
           col = II+n
-          call MatSetValue(A,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(A,row,col,value,INSERT_VALUES,ierr))
         endif
         if (j>0) then
           col = II-1
-          call MatSetValue(A,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(A,row,col,value,INSERT_VALUES,ierr))
         endif
         if (j<n-1) then
           col = II+1
-          call MatSetValue(A,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(A,row,col,value,INSERT_VALUES,ierr))
         endif
         col = II
         value = 4.0
-        call MatSetValue(A,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(A,row,col,value,INSERT_VALUES,ierr))
         value = 2.0
-        call MatSetValue(B,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(B,row,col,value,INSERT_VALUES,ierr))
       enddo
       if (Istart .eq. 0) then
         row = 0
         col = 0
         value = 6.0
-        call MatSetValue(B,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(B,row,col,value,INSERT_VALUES,ierr))
         row = 0
         col = 1
         value = -1.0
-        call MatSetValue(B,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(B,row,col,value,INSERT_VALUES,ierr))
         row = 1
         col = 0
         value = -1.0
-        call MatSetValue(B,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(B,row,col,value,INSERT_VALUES,ierr))
         row = 1
         col = 1
         value = 1.0
-        call MatSetValue(B,row,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(B,row,col,value,INSERT_VALUES,ierr))
       endif
-      call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
+      PetscCallA(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create eigensolver and set various options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSCreate(PETSC_COMM_WORLD,eps,ierr);CHKERRA(ierr)
-      call EPSSetOperators(eps,A,B,ierr);CHKERRA(ierr)
-      call EPSSetProblemType(eps,EPS_GHEP,ierr);CHKERRA(ierr)
-      call EPSSetType(eps,EPSKRYLOVSCHUR,ierr);CHKERRA(ierr)
+      PetscCallA(EPSCreate(PETSC_COMM_WORLD,eps,ierr))
+      PetscCallA(EPSSetOperators(eps,A,B,ierr))
+      PetscCallA(EPSSetProblemType(eps,EPS_GHEP,ierr))
+      PetscCallA(EPSSetType(eps,EPSKRYLOVSCHUR,ierr))
 
 !     Set interval and other settings for spectrum slicing
 
-      call EPSSetWhichEigenpairs(eps,EPS_ALL,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSetWhichEigenpairs(eps,EPS_ALL,ierr))
       int0 = 1.1
       int1 = 1.3
-      call EPSSetInterval(eps,int0,int1,ierr);CHKERRA(ierr)
-      call EPSGetST(eps,st,ierr);CHKERRA(ierr)
-      call STSetType(st,STSINVERT,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSetInterval(eps,int0,int1,ierr))
+      PetscCallA(EPSGetST(eps,st,ierr))
+      PetscCallA(STSetType(st,STSINVERT,ierr))
       if (nprc>0) then
         npart = nprc
-        call EPSKrylovSchurSetPartitions(eps,npart,ierr);CHKERRA(ierr)
+        PetscCallA(EPSKrylovSchurSetPartitions(eps,npart,ierr))
       endif
-      call EPSKrylovSchurGetKSP(eps,ksp,ierr);CHKERRA(ierr)
-      call KSPGetPC(ksp,pc,ierr);CHKERRA(ierr)
-      call KSPSetType(ksp,KSPPREONLY,ierr);CHKERRA(ierr)
-      call PCSetType(pc,PCCHOLESKY,ierr);CHKERRA(ierr)
+      PetscCallA(EPSKrylovSchurGetKSP(eps,ksp,ierr))
+      PetscCallA(KSPGetPC(ksp,pc,ierr))
+      PetscCallA(KSPSetType(ksp,KSPPREONLY,ierr))
+      PetscCallA(PCSetType(pc,PCCHOLESKY,ierr))
 
 !     Test interface functions of Krylov-Schur solver
 
-      call EPSKrylovSchurGetRestart(eps,keep,ierr);CHKERRA(ierr)
+      PetscCallA(EPSKrylovSchurGetRestart(eps,keep,ierr))
       if (rank .eq. 0) then
         write(*,110) keep
       endif
  110  format (' Restart parameter before changing = ',f7.4)
       keep = 0.4
-      call EPSKrylovSchurSetRestart(eps,keep,ierr);CHKERRA(ierr)
-      call EPSKrylovSchurGetRestart(eps,keep,ierr);CHKERRA(ierr)
+      PetscCallA(EPSKrylovSchurSetRestart(eps,keep,ierr))
+      PetscCallA(EPSKrylovSchurGetRestart(eps,keep,ierr))
       if (rank .eq. 0) then
         write(*,120) keep
       endif
  120  format (' ... changed to ',f7.4)
 
-      call EPSKrylovSchurGetLocking(eps,lock,ierr);CHKERRA(ierr)
+      PetscCallA(EPSKrylovSchurGetLocking(eps,lock,ierr))
       if (rank .eq. 0) then
         write(*,130) lock
       endif
  130  format (' Locking flag before changing = ',L4)
-      call EPSKrylovSchurSetLocking(eps,PETSC_FALSE,ierr);CHKERRA(ierr)
-      call EPSKrylovSchurGetLocking(eps,lock,ierr);CHKERRA(ierr)
+      PetscCallA(EPSKrylovSchurSetLocking(eps,PETSC_FALSE,ierr))
+      PetscCallA(EPSKrylovSchurGetLocking(eps,lock,ierr))
       if (rank .eq. 0) then
         write(*,140) lock
       endif
  140  format (' ... changed to ',L4)
 
-      call EPSKrylovSchurGetDimensions(eps,nev,ncv,mpd,ierr);CHKERRA(ierr)
+      PetscCallA(EPSKrylovSchurGetDimensions(eps,nev,ncv,mpd,ierr))
       if (rank .eq. 0) then
         write(*,150) nev,ncv,mpd
       endif
@@ -180,15 +180,15 @@
       nev = 30
       ncv = 60
       mpd = 60
-      call EPSKrylovSchurSetDimensions(eps,nev,ncv,mpd,ierr);CHKERRA(ierr)
-      call EPSKrylovSchurGetDimensions(eps,nev,ncv,mpd,ierr);CHKERRA(ierr)
+      PetscCallA(EPSKrylovSchurSetDimensions(eps,nev,ncv,mpd,ierr))
+      PetscCallA(EPSKrylovSchurGetDimensions(eps,nev,ncv,mpd,ierr))
       if (rank .eq. 0) then
         write(*,160) nev,ncv,mpd
       endif
  160  format (' ... changed to: nev=',I2,', ncv=',I2,', mpd=',I2)
 
       if (nprc>0) then
-        call EPSKrylovSchurGetPartitions(eps,npart,ierr);CHKERRA(ierr)
+        PetscCallA(EPSKrylovSchurGetPartitions(eps,npart,ierr))
         if (rank .eq. 0) then
           write(*,170) npart
         endif
@@ -200,8 +200,8 @@
         do i=2,npart
           subint(i) = int0+(i-1)*(int1-int0)/npart
         enddo
-        call EPSKrylovSchurSetSubintervals(eps,subint,ierr);CHKERRA(ierr)
-        call EPSKrylovSchurGetSubintervals(eps,subint,ierr);CHKERRA(ierr)
+        PetscCallA(EPSKrylovSchurSetSubintervals(eps,subint,ierr))
+        PetscCallA(EPSKrylovSchurGetSubintervals(eps,subint,ierr))
         if (rank .eq. 0) then
           write(*,*) 'Using sub-interval separations ='
           do i=2,npart
@@ -211,16 +211,16 @@
  180    format (f7.4)
       endif
 
-      call EPSSetFromOptions(eps,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSetFromOptions(eps,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Compute all eigenvalues in interval and display info
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSSetUp(eps,ierr);CHKERRA(ierr)
-      call EPSKrylovSchurGetInertias(eps,k,PETSC_NULL_REAL,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSetUp(eps,ierr))
+      PetscCallA(EPSKrylovSchurGetInertias(eps,k,PETSC_NULL_REAL,PETSC_NULL_INTEGER,ierr))
       if (k>MAXSHI) then; SETERRA(PETSC_COMM_SELF,1,'Too many shifts'); endif
-      call EPSKrylovSchurGetInertias(eps,k,shifts,inertias,ierr);CHKERRA(ierr)
+      PetscCallA(EPSKrylovSchurGetInertias(eps,k,shifts,inertias,ierr))
       if (rank .eq. 0) then
         write(*,*) 'Inertias after EPSSetUp:'
         do i=1,k
@@ -229,61 +229,60 @@
       endif
  185  format (' .. ',f4.1,' (',I3,')')
 
-      call EPSSolve(eps,ierr);CHKERRA(ierr)
-      call EPSGetDimensions(eps,nev,ncv,mpd,ierr);CHKERRA(ierr)
-      call EPSGetInterval(eps,int0,int1,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSolve(eps,ierr))
+      PetscCallA(EPSGetDimensions(eps,nev,ncv,mpd,ierr))
+      PetscCallA(EPSGetInterval(eps,int0,int1,ierr))
       if (rank .eq. 0) then
         write(*,190) nev,int0,int1
       endif
  190  format (' Found ',I2,' eigenvalues in interval [',f7.4,',',f7.4,']')
 
       if (nprc>0) then
-        call EPSKrylovSchurGetSubcommInfo(eps,k,nval,v,ierr);CHKERRA(ierr)
+        PetscCallA(EPSKrylovSchurGetSubcommInfo(eps,k,nval,v,ierr))
         if (rank .eq. 0) then
           write(*,200) rank,k,nval
           do i=0,nval-1
-            call EPSKrylovSchurGetSubcommPairs(eps,i,eval,v,ierr);CHKERRA(ierr)
+            PetscCallA(EPSKrylovSchurGetSubcommPairs(eps,i,eval,v,ierr))
             write(*,210) PetscRealPart(eval)
           enddo
         endif
  200    format (' Process ',I2,' has worked in sub-interval ',I2,', containing ',I2,' eigenvalues')
  210    format (f7.4)
-        call VecDestroy(v,ierr);CHKERRA(ierr)
+        PetscCallA(VecDestroy(v,ierr))
 
-        call EPSKrylovSchurGetSubcommMats(eps,As,Bs,ierr);CHKERRA(ierr)
-        call MatGetLocalSize(A,nloc,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-        call MatGetLocalSize(As,nlocs,mlocs,ierr);CHKERRA(ierr)
+        PetscCallA(EPSKrylovSchurGetSubcommMats(eps,As,Bs,ierr))
+        PetscCallA(MatGetLocalSize(A,nloc,PETSC_NULL_INTEGER,ierr))
+        PetscCallA(MatGetLocalSize(As,nlocs,mlocs,ierr))
         if (rank .eq. 0) then
           write(*,220) rank,nloc,nlocs
         endif
  220    format (' Process ',I2,' owns ',I5,', rows of the global',' matrices, and ',I5,' rows in the subcommunicator')
 
 !       modify A on subcommunicators
-        call PetscObjectGetComm(As,comm,ierr);CHKERRA(ierr)
-        call MatCreate(comm,Au,ierr);CHKERRA(ierr)
-        call MatSetSizes(Au,nlocs,mlocs,m,m,ierr);CHKERRA(ierr)
-        call MatSetFromOptions(Au,ierr);CHKERRA(ierr)
-        call MatSetUp(Au,ierr);CHKERRA(ierr)
-        call MatGetOwnershipRange(Au,Istart,Iend,ierr);CHKERRA(ierr)
+        PetscCallA(PetscObjectGetComm(As,comm,ierr))
+        PetscCallA(MatCreate(comm,Au,ierr))
+        PetscCallA(MatSetSizes(Au,nlocs,mlocs,m,m,ierr))
+        PetscCallA(MatSetFromOptions(Au,ierr))
+        PetscCallA(MatSetUp(Au,ierr))
+        PetscCallA(MatGetOwnershipRange(Au,Istart,Iend,ierr))
         do II=Istart,Iend-1
           value = 0.5
-          call MatSetValue(Au,II,II,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(Au,II,II,value,INSERT_VALUES,ierr))
         end do
-        call MatAssemblyBegin(Au,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-        call MatAssemblyEnd(Au,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
+        PetscCallA(MatAssemblyBegin(Au,MAT_FINAL_ASSEMBLY,ierr))
+        PetscCallA(MatAssemblyEnd(Au,MAT_FINAL_ASSEMBLY,ierr))
         one = 1.0
         mone = -1.0
         zero = 0.0
-        call EPSKrylovSchurUpdateSubcommMats(eps,one,mone,Au,zero,zero, &
-     & PETSC_NULL_MAT,DIFFERENT_NONZERO_PATTERN,PETSC_TRUE,ierr);CHKERRA(ierr)
-        call MatDestroy(Au,ierr);CHKERRA(ierr)
+        PetscCallA(EPSKrylovSchurUpdateSubcommMats(eps,one,mone,Au,zero,zero,PETSC_NULL_MAT,DIFFERENT_NONZERO_PATTERN,PETSC_TRUE,ierr))
+        PetscCallA(MatDestroy(Au,ierr))
       endif
 
-      call EPSDestroy(eps,ierr);CHKERRA(ierr)
-      call MatDestroy(A,ierr);CHKERRA(ierr)
-      call MatDestroy(B,ierr);CHKERRA(ierr)
+      PetscCallA(EPSDestroy(eps,ierr))
+      PetscCallA(MatDestroy(A,ierr))
+      PetscCallA(MatDestroy(B,ierr))
 
-      call SlepcFinalize(ierr)
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 !/*TEST

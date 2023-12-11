@@ -21,7 +21,6 @@
       program main
 #include <slepc/finclude/slepceps.h>
       use slepceps
-      use,intrinsic :: iso_c_binding
       implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

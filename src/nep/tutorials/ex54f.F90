@@ -291,7 +291,7 @@
 !
 !   testset:
 !      args: -terse
-!      output_file: output/ex54f90_1.out
+!      output_file: output/ex54f_1.out
 !      filter: grep -v approximate | sed -e "s/[+-]0\.0*i//g"
 !      test:
 !         suffix: 1_slp
