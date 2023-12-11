@@ -187,13 +187,13 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscCall(EPSValuesViewFromOptions(eps));
   PetscCall(EPSVectorsViewFromOptions(eps));
 
-  PetscCall(PetscOptionsHasName(NULL,NULL,"-eps_view_mat0",&hasname));
+  PetscCall(PetscOptionsHasName(NULL,((PetscObject)eps)->prefix,"-eps_view_mat0",&hasname));
   if (hasname) {
     PetscCall(EPSGetOperators(eps,&A,NULL));
     PetscCall(MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0"));
   }
   if (eps->isgeneralized) {
-    PetscCall(PetscOptionsHasName(NULL,NULL,"-eps_view_mat1",&hasname));
+    PetscCall(PetscOptionsHasName(NULL,((PetscObject)eps)->prefix,"-eps_view_mat1",&hasname));
     if (hasname) {
       PetscCall(EPSGetOperators(eps,NULL,&B));
       PetscCall(MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1"));
