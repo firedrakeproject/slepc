@@ -33,9 +33,9 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
-      call FNCreate(PETSC_COMM_WORLD,fn,ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
+      PetscCallA(FNCreate(PETSC_COMM_WORLD,fn,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Polynomial p(x)
@@ -46,12 +46,12 @@
       p(3) = 1.0
       p(4) = -2.0
       p(5) = 3.5
-      call FNSetType(fn,FNRATIONAL,ierr)
-      call FNRationalSetNumerator(fn,na,p,ierr)
-      call FNView(fn,PETSC_NULL_VIEWER,ierr)
+      PetscCallA(FNSetType(fn,FNRATIONAL,ierr))
+      PetscCallA(FNRationalSetNumerator(fn,na,p,ierr))
+      PetscCallA(FNView(fn,PETSC_NULL_VIEWER,ierr))
       x = 2.2
-      call FNEvaluateFunction(fn,x,y,ierr)
-      call FNEvaluateDerivative(fn,x,yp,ierr)
+      PetscCallA(FNEvaluateFunction(fn,x,y,ierr))
+      PetscCallA(FNEvaluateDerivative(fn,x,yp,ierr))
       call PrintInfo(x,y,yp)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -62,13 +62,13 @@
       q(1) = -3.1
       q(2) = 1.1
       q(3) = 1.0
-      call FNSetType(fn,FNRATIONAL,ierr)
-      call FNRationalSetNumerator(fn,na,PETSC_NULL_SCALAR,ierr)
-      call FNRationalSetDenominator(fn,nb,q,ierr)
-      call FNView(fn,PETSC_NULL_VIEWER,ierr)
+      PetscCallA(FNSetType(fn,FNRATIONAL,ierr))
+      PetscCallA(FNRationalSetNumerator(fn,na,PETSC_NULL_SCALAR,ierr))
+      PetscCallA(FNRationalSetDenominator(fn,nb,q,ierr))
+      PetscCallA(FNView(fn,PETSC_NULL_VIEWER,ierr))
       x = 2.2
-      call FNEvaluateFunction(fn,x,y,ierr)
-      call FNEvaluateDerivative(fn,x,yp,ierr)
+      PetscCallA(FNEvaluateFunction(fn,x,y,ierr))
+      PetscCallA(FNEvaluateDerivative(fn,x,yp,ierr))
       call PrintInfo(x,y,yp)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -81,23 +81,23 @@
       q(1) = 1.0
       q(2) = -2.0
       q(3) = 3.5
-      call FNSetType(fn,FNRATIONAL,ierr)
-      call FNRationalSetNumerator(fn,na,p,ierr)
-      call FNRationalSetDenominator(fn,nb,q,ierr)
+      PetscCallA(FNSetType(fn,FNRATIONAL,ierr))
+      PetscCallA(FNRationalSetNumerator(fn,na,p,ierr))
+      PetscCallA(FNRationalSetDenominator(fn,nb,q,ierr))
       tau = 1.2
       eta = 0.5
-      call FNSetScale(fn,tau,eta,ierr)
-      call FNView(fn,PETSC_NULL_VIEWER,ierr)
+      PetscCallA(FNSetScale(fn,tau,eta,ierr))
+      PetscCallA(FNView(fn,PETSC_NULL_VIEWER,ierr))
       x = 2.2
-      call FNEvaluateFunction(fn,x,y,ierr)
-      call FNEvaluateDerivative(fn,x,yp,ierr)
+      PetscCallA(FNEvaluateFunction(fn,x,y,ierr))
+      PetscCallA(FNEvaluateDerivative(fn,x,yp,ierr))
       call PrintInfo(x,y,yp)
 
-      call FNRationalGetNumerator(fn,n,pp,ierr)
+      PetscCallA(FNRationalGetNumerator(fn,n,pp,ierr))
       if (rank .eq. 0) then
         write(*,100) 'Numerator',(PetscRealPart(pp(i)),i=1,n)
       end if
-      call FNRationalGetDenominator(fn,n,qq,ierr)
+      PetscCallA(FNRationalGetDenominator(fn,n,qq,ierr))
       if (rank .eq. 0) then
         write(*,100) 'Denominator',(PetscRealPart(qq(i)),i=1,n)
       end if
@@ -109,18 +109,18 @@
       na = 1
       nb = 0
       five = 5.0
-      call FNSetType(fn,FNRATIONAL,ierr)
-      call FNRationalSetNumerator(fn,na,five,ierr)
-      call FNRationalSetDenominator(fn,nb,PETSC_NULL_SCALAR,ierr)
-      call FNView(fn,PETSC_NULL_VIEWER,ierr)
+      PetscCallA(FNSetType(fn,FNRATIONAL,ierr))
+      PetscCallA(FNRationalSetNumerator(fn,na,five,ierr))
+      PetscCallA(FNRationalSetDenominator(fn,nb,PETSC_NULL_SCALAR,ierr))
+      PetscCallA(FNView(fn,PETSC_NULL_VIEWER,ierr))
       x = 2.2
-      call FNEvaluateFunction(fn,x,y,ierr)
-      call FNEvaluateDerivative(fn,x,yp,ierr)
+      PetscCallA(FNEvaluateFunction(fn,x,y,ierr))
+      PetscCallA(FNEvaluateDerivative(fn,x,yp,ierr))
       call PrintInfo(x,y,yp)
 
 !     *** Clean up
-      call FNDestroy(fn,ierr)
-      call SlepcFinalize(ierr)
+      PetscCallA(FNDestroy(fn,ierr))
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 ! -----------------------------------------------------------------
@@ -134,7 +134,7 @@
       PetscMPIInt    rank
       PetscErrorCode ierr
 
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
+      PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       if (rank .eq. 0) then
         re = PetscRealPart(y)
         im = PetscImaginaryPart(y)

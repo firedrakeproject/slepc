@@ -51,11 +51,10 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       n = 30
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
-     &                        '-n',n,flg,ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr))
 
       if (rank .eq. 0) then
         write(*,100) n
@@ -66,22 +65,22 @@
 !     Compute the operator matrix that defines the eigensystem, Ax=kx
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MatCreate(PETSC_COMM_WORLD,A,ierr)
-      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
-      call MatSetFromOptions(A,ierr)
-      call MatSetUp(A,ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
+      PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+      PetscCallA(MatSetFromOptions(A,ierr))
+      PetscCallA(MatSetUp(A,ierr))
 
       i1 = 1
       i2 = 2
       i3 = 3
-      call MatGetOwnershipRange(A,Istart,Iend,ierr)
+      PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       if (Istart .eq. 0) then
         i = 0
         col(1) = 0
         col(2) = 1
         value(1) =  2.0
         value(2) = -1.0
-        call MatSetValues(A,i1,i,i2,col,value,INSERT_VALUES,ierr)
+        PetscCallA(MatSetValues(A,i1,i,i2,col,value,INSERT_VALUES,ierr))
         Istart = Istart+1
       endif
       if (Iend .eq. n) then
@@ -90,7 +89,7 @@
         col(2) = n-1
         value(1) = -1.0
         value(2) =  2.0
-        call MatSetValues(A,i1,i,i2,col,value,INSERT_VALUES,ierr)
+        PetscCallA(MatSetValues(A,i1,i,i2,col,value,INSERT_VALUES,ierr))
         Iend = Iend-1
       endif
       value(1) = -1.0
@@ -100,47 +99,45 @@
         col(1) = i-1
         col(2) = i
         col(3) = i+1
-        call MatSetValues(A,i1,i,i3,col,value,INSERT_VALUES,ierr)
+        PetscCallA(MatSetValues(A,i1,i,i3,col,value,INSERT_VALUES,ierr))
       enddo
 
-      call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
-      call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
+      PetscCallA(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and display info
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create eigensolver context
-      call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
+      PetscCallA(EPSCreate(PETSC_COMM_WORLD,eps,ierr))
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr)
-      call EPSSetProblemType(eps,EPS_HEP,ierr)
+      PetscCallA(EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr))
+      PetscCallA(EPSSetProblemType(eps,EPS_HEP,ierr))
 
 !     ** Set user-defined monitor
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
-     &                        '-my_eps_monitor',flg,ierr)
+      PetscCallA(PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-my_eps_monitor',flg,ierr))
       if (flg) then
-        call EPSMonitorSet(eps,MyEPSMonitor,0,PETSC_NULL_FUNCTION,ierr)
+        PetscCallA(EPSMonitorSet(eps,MyEPSMonitor,0,PETSC_NULL_FUNCTION,ierr))
       endif
 
 !     ** Set solver parameters at runtime
-      call EPSSetFromOptions(eps,ierr)
+      PetscCallA(EPSSetFromOptions(eps,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSSolve(eps,ierr)
+      PetscCallA(EPSSolve(eps,ierr))
 
 !     ** Optional: Get some information from the solver and display it
-      call EPSGetType(eps,tname,ierr)
+      PetscCallA(EPSGetType(eps,tname,ierr))
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,                 &
-     &                      PETSC_NULL_INTEGER,ierr)
+      PetscCallA(EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr))
       if (rank .eq. 0) then
         write(*,130) nev
       endif
@@ -150,11 +147,11 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
-      call EPSDestroy(eps,ierr)
-      call MatDestroy(A,ierr)
+      PetscCallA(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr))
+      PetscCallA(EPSDestroy(eps,ierr))
+      PetscCallA(MatDestroy(A,ierr))
 
-      call SlepcFinalize(ierr)
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 ! --------------------------------------------------------------
@@ -172,8 +169,7 @@
 !    nest  - number of error estimates
 !    dummy - optional user-defined monitor context (unused here)
 !
-      subroutine MyEPSMonitor(eps,its,nconv,eigr,eigi,errest,nest,dummy,&
-     &                        ierr)
+      subroutine MyEPSMonitor(eps,its,nconv,eigr,eigi,errest,nest,dummy,ierr)
 #include <slepc/finclude/slepceps.h>
       use slepceps
       implicit none
@@ -185,14 +181,13 @@
       PetscReal      re,errest(*)
       PetscMPIInt    rank
 
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
+      PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       if (its .gt. 0 .and. rank .eq. 0) then
         re = PetscRealPart(eigr(nconv+1))
         write(6,140) its,nconv,re,errest(nconv+1)
       endif
 
- 140  format(i3,' EPS nconv=',i2,' first unconverged value (error) ',   &
-     &       f7.4,' (',g10.3,')')
+ 140  format(i3,' EPS nconv=',i2,' first unconverged value (error) ',f7.4,' (',g10.3,')')
       ierr = 0
       end
 

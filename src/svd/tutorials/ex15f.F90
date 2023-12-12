@@ -45,14 +45,12 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       n = 100
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
-     &                        '-n',n,flg,ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr))
       mu = PETSC_SQRT_MACHINE_EPSILON
-      call PetscOptionsGetReal(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
-     &                        '-mu',mu,flg,ierr)
+      PetscCallA(PetscOptionsGetReal(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-mu',mu,flg,ierr))
 
       if (rank .eq. 0) then
         write(*,100) n, mu
@@ -63,68 +61,67 @@
 !     Build the Lauchli matrix
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MatCreate(PETSC_COMM_WORLD,A,ierr)
-      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n+1,n,ierr)
-      call MatSetFromOptions(A,ierr)
-      call MatSetUp(A,ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
+      PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n+1,n,ierr))
+      PetscCallA(MatSetFromOptions(A,ierr))
+      PetscCallA(MatSetUp(A,ierr))
 
-      call MatGetOwnershipRange(A,Istart,Iend,ierr)
+      PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       one = 1.0
       do i=Istart,Iend-1
         if (i .eq. 0) then
           do j=0,n-1
-            call MatSetValue(A,i,j,one,INSERT_VALUES,ierr)
+            PetscCallA(MatSetValue(A,i,j,one,INSERT_VALUES,ierr))
           end do
         else
           alpha = mu
-          call MatSetValue(A,i,i-1,alpha,INSERT_VALUES,ierr)
+          PetscCallA(MatSetValue(A,i,i-1,alpha,INSERT_VALUES,ierr))
         end if
       enddo
 
-      call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
-      call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
+      PetscCallA(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the singular value solver and display info
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create singular value solver context
-      call SVDCreate(PETSC_COMM_WORLD,svd,ierr)
+      PetscCallA(SVDCreate(PETSC_COMM_WORLD,svd,ierr))
 
 !     ** Set operators and problem type
-      call SVDSetOperators(svd,A,PETSC_NULL_MAT,ierr)
-      call SVDSetProblemType(svd,SVD_STANDARD,ierr)
+      PetscCallA(SVDSetOperators(svd,A,PETSC_NULL_MAT,ierr))
+      PetscCallA(SVDSetProblemType(svd,SVD_STANDARD,ierr))
 
 !     ** Use thick-restart Lanczos as default solver
-      call SVDSetType(svd,SVDTRLANCZOS,ierr)
+      PetscCallA(SVDSetType(svd,SVDTRLANCZOS,ierr))
 
 !     ** Set solver parameters at runtime
-      call SVDSetFromOptions(svd,ierr)
+      PetscCallA(SVDSetFromOptions(svd,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the singular value system
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SVDSolve(svd,ierr)
-      call SVDGetIterationNumber(svd,its,ierr)
+      PetscCallA(SVDSolve(svd,ierr))
+      PetscCallA(SVDGetIterationNumber(svd,its,ierr))
       if (rank .eq. 0) then
         write(*,110) its
       endif
  110  format (/' Number of iterations of the method:',I4)
 
 !     ** Optional: Get some information from the solver and display it
-      call SVDGetType(svd,tname,ierr)
+      PetscCallA(SVDGetType(svd,tname,ierr))
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call SVDGetDimensions(svd,nsv,PETSC_NULL_INTEGER,                 &
-     &                      PETSC_NULL_INTEGER,ierr)
+      PetscCallA(SVDGetDimensions(svd,nsv,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr))
       if (rank .eq. 0) then
         write(*,130) nsv
       endif
  130  format (' Number of requested singular values:',I2)
-      call SVDGetTolerances(svd,tol,maxit,ierr)
+      PetscCallA(SVDGetTolerances(svd,tol,maxit,ierr))
       if (rank .eq. 0) then
         write(*,140) tol, maxit
       endif
@@ -135,7 +132,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Get number of converged singular triplets
-      call SVDGetConverged(svd,nconv,ierr)
+      PetscCallA(SVDGetConverged(svd,nconv,ierr))
       if (rank .eq. 0) then
         write(*,150) nconv
       endif
@@ -149,11 +146,10 @@
         endif
         do i=0,nconv-1
 !         ** Get i-th singular value
-          call SVDGetSingularTriplet(svd,i,sigma,PETSC_NULL_VEC,        &
-     &         PETSC_NULL_VEC,ierr)
+          PetscCallA(SVDGetSingularTriplet(svd,i,sigma,PETSC_NULL_VEC,PETSC_NULL_VEC,ierr))
 
 !         ** Compute the relative error for each singular triplet
-          call SVDComputeError(svd,i,SVD_ERROR_RELATIVE,error,ierr)
+          PetscCallA(SVDComputeError(svd,i,SVD_ERROR_RELATIVE,error,ierr))
           if (rank .eq. 0) then
             write(*,160) sigma, error
           endif
@@ -166,10 +162,10 @@
       endif
 
 !     ** Free work space
-      call SVDDestroy(svd,ierr)
-      call MatDestroy(A,ierr)
+      PetscCallA(SVDDestroy(svd,ierr))
+      PetscCallA(MatDestroy(A,ierr))
 
-      call SlepcFinalize(ierr)
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 !/*TEST

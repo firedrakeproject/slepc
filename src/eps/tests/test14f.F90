@@ -45,73 +45,73 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       n = 20
       if (rank .eq. 0) then
         write(*,100) n
       endif
  100  format (/'Diagonal Eigenproblem, n =',I3,' (Fortran)')
 
-      call MatCreate(PETSC_COMM_WORLD,A,ierr)
-      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
-      call MatSetFromOptions(A,ierr)
-      call MatSetUp(A,ierr)
-      call MatGetOwnershipRange(A,Istart,Iend,ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
+      PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+      PetscCallA(MatSetFromOptions(A,ierr))
+      PetscCallA(MatSetUp(A,ierr))
+      PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       do i=Istart,Iend-1
         value = i+1
-        call MatSetValue(A,i,i,value,INSERT_VALUES,ierr)
+        PetscCallA(MatSetValue(A,i,i,value,INSERT_VALUES,ierr))
       enddo
-      call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
-      call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
+      PetscCallA(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create eigensolver and test interface functions
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
-      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr)
-      call EPSGetOperators(eps,B,PETSC_NULL_MAT,ierr)
-      call MatView(B,PETSC_NULL_VIEWER,ierr)
+      PetscCallA(EPSCreate(PETSC_COMM_WORLD,eps,ierr))
+      PetscCallA(EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr))
+      PetscCallA(EPSGetOperators(eps,B,PETSC_NULL_MAT,ierr))
+      PetscCallA(MatView(B,PETSC_NULL_VIEWER,ierr))
 
-      call EPSSetType(eps,EPSKRYLOVSCHUR,ierr)
-      call EPSGetType(eps,tname,ierr)
+      PetscCallA(EPSSetType(eps,EPSKRYLOVSCHUR,ierr))
+      PetscCallA(EPSGetType(eps,tname,ierr))
       if (rank .eq. 0) then
         write(*,110) tname
       endif
  110  format (' Type set to ',A)
 
-      call EPSGetProblemType(eps,ptype,ierr)
+      PetscCallA(EPSGetProblemType(eps,ptype,ierr))
       if (rank .eq. 0) then
         write(*,120) ptype
       endif
  120  format (' Problem type before changing = ',I2)
-      call EPSSetProblemType(eps,EPS_HEP,ierr)
-      call EPSGetProblemType(eps,ptype,ierr)
+      PetscCallA(EPSSetProblemType(eps,EPS_HEP,ierr))
+      PetscCallA(EPSGetProblemType(eps,ptype,ierr))
       if (rank .eq. 0) then
         write(*,130) ptype
       endif
  130  format (' ... changed to ',I2)
-      call EPSIsGeneralized(eps,flg,ierr)
+      PetscCallA(EPSIsGeneralized(eps,flg,ierr))
       if (flg .and. rank .eq. 0) then
         write(*,*) 'generalized'
       endif
-      call EPSIsHermitian(eps,flg,ierr)
+      PetscCallA(EPSIsHermitian(eps,flg,ierr))
       if (flg .and. rank .eq. 0) then
         write(*,*) 'hermitian'
       endif
-      call EPSIsPositive(eps,flg,ierr)
+      PetscCallA(EPSIsPositive(eps,flg,ierr))
       if (flg .and. rank .eq. 0) then
         write(*,*) 'positive'
       endif
 
-      call EPSGetExtraction(eps,extr,ierr)
+      PetscCallA(EPSGetExtraction(eps,extr,ierr))
       if (rank .eq. 0) then
         write(*,140) extr
       endif
  140  format (' Extraction before changing = ',I2)
-      call EPSSetExtraction(eps,EPS_HARMONIC,ierr)
-      call EPSGetExtraction(eps,extr,ierr)
+      PetscCallA(EPSSetExtraction(eps,EPS_HARMONIC,ierr))
+      PetscCallA(EPSGetExtraction(eps,extr,ierr))
       if (rank .eq. 0) then
         write(*,150) extr
       endif
@@ -120,27 +120,26 @@
       its = 8
       cut = 2.0e-6
       bal = EPS_BALANCE_ONESIDE
-      call EPSSetBalance(eps,bal,its,cut,ierr)
-      call EPSGetBalance(eps,bal,its,cut,ierr)
+      PetscCallA(EPSSetBalance(eps,bal,its,cut,ierr))
+      PetscCallA(EPSGetBalance(eps,bal,its,cut,ierr))
       if (rank .eq. 0) then
         write(*,160) bal,its,cut
       endif
  160  format (' Balance: ',I2,', its=',I2,', cutoff=',F9.6)
 
       tget = 4.8
-      call EPSSetTarget(eps,tget,ierr)
-      call EPSGetTarget(eps,tget,ierr)
-      call EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE,ierr)
-      call EPSGetWhichEigenpairs(eps,which,ierr)
+      PetscCallA(EPSSetTarget(eps,tget,ierr))
+      PetscCallA(EPSGetTarget(eps,tget,ierr))
+      PetscCallA(EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE,ierr))
+      PetscCallA(EPSGetWhichEigenpairs(eps,which,ierr))
       if (rank .eq. 0) then
         write(*,170) which,PetscRealPart(tget)
       endif
  170  format (' Which = ',I2,', target = ',F4.1)
 
       nev = 4
-      call EPSSetDimensions(eps,nev,PETSC_DEFAULT_INTEGER,              &
-     &                      PETSC_DEFAULT_INTEGER,ierr)
-      call EPSGetDimensions(eps,nev,ncv,mpd,ierr)
+      PetscCallA(EPSSetDimensions(eps,nev,PETSC_DEFAULT_INTEGER,PETSC_DEFAULT_INTEGER,ierr))
+      PetscCallA(EPSGetDimensions(eps,nev,ncv,mpd,ierr))
       if (rank .eq. 0) then
         write(*,180) nev,ncv,mpd
       endif
@@ -148,46 +147,41 @@
 
       tol = 2.2e-4
       its = 200
-      call EPSSetTolerances(eps,tol,its,ierr)
-      call EPSGetTolerances(eps,tol,its,ierr)
+      PetscCallA(EPSSetTolerances(eps,tol,its,ierr))
+      PetscCallA(EPSGetTolerances(eps,tol,its,ierr))
       if (rank .eq. 0) then
         write(*,190) tol,its
       endif
  190  format (' Tolerance =',F8.5,', max_its =',I4)
 
-      call EPSSetConvergenceTest(eps,EPS_CONV_ABS,ierr)
-      call EPSGetConvergenceTest(eps,conv,ierr)
-      call EPSSetStoppingTest(eps,EPS_STOP_BASIC,ierr)
-      call EPSGetStoppingTest(eps,stp,ierr)
+      PetscCallA(EPSSetConvergenceTest(eps,EPS_CONV_ABS,ierr))
+      PetscCallA(EPSGetConvergenceTest(eps,conv,ierr))
+      PetscCallA(EPSSetStoppingTest(eps,EPS_STOP_BASIC,ierr))
+      PetscCallA(EPSGetStoppingTest(eps,stp,ierr))
       if (rank .eq. 0) then
         write(*,200) conv,stp
       endif
  200  format (' Convergence test =',I2,', stopping test =',I2)
 
-      call PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,        &
-     &                   PETSC_VIEWER_DEFAULT,vf,ierr)
-      call EPSMonitorSet(eps,EPSMONITORFIRST,vf,                        &
-     &                   PetscViewerAndFormatDestroy,ierr)
-      call EPSMonitorConvergedCreate(PETSC_VIEWER_STDOUT_WORLD,         &
-     &                   PETSC_VIEWER_DEFAULT,PETSC_NULL_VEC,vf,ierr)
-      call EPSMonitorSet(eps,EPSMONITORCONVERGED,vf,                    &
-     &                   EPSMonitorConvergedDestroy,ierr)
-      call EPSMonitorCancel(eps,ierr)
+      PetscCallA(PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,vf,ierr))
+      PetscCallA(EPSMonitorSet(eps,EPSMONITORFIRST,vf,PetscViewerAndFormatDestroy,ierr))
+      PetscCallA(EPSMonitorConvergedCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,PETSC_NULL_VEC,vf,ierr))
+      PetscCallA(EPSMonitorSet(eps,EPSMONITORCONVERGED,vf,EPSMonitorConvergedDestroy,ierr))
+      PetscCallA(EPSMonitorCancel(eps,ierr))
 
-      call EPSGetST(eps,st,ierr)
-      call STGetKSP(st,ksp,ierr)
+      PetscCallA(EPSGetST(eps,st,ierr))
+      PetscCallA(STGetKSP(st,ksp,ierr))
       tol = 1.e-8
       tolabs = 1.e-35
-      call KSPSetTolerances(ksp,tol,tolabs,PETSC_DEFAULT_REAL,          &
-     &                      PETSC_DEFAULT_INTEGER,ierr)
-      call STView(st,PETSC_NULL_VIEWER,ierr)
-      call EPSGetDS(eps,ds,ierr)
-      call DSView(ds,PETSC_NULL_VIEWER,ierr)
+      PetscCallA(KSPSetTolerances(ksp,tol,tolabs,PETSC_DEFAULT_REAL,PETSC_DEFAULT_INTEGER,ierr))
+      PetscCallA(STView(st,PETSC_NULL_VIEWER,ierr))
+      PetscCallA(EPSGetDS(eps,ds,ierr))
+      PetscCallA(DSView(ds,PETSC_NULL_VIEWER,ierr))
 
-      call EPSSetFromOptions(eps,ierr)
-      call EPSSolve(eps,ierr)
-      call EPSGetConvergedReason(eps,reason,ierr)
-      call EPSGetIterationNumber(eps,its,ierr)
+      PetscCallA(EPSSetFromOptions(eps,ierr))
+      PetscCallA(EPSSolve(eps,ierr))
+      PetscCallA(EPSGetConvergedReason(eps,reason,ierr))
+      PetscCallA(EPSGetIterationNumber(eps,its,ierr))
       if (rank .eq. 0) then
         write(*,210) reason,its
       endif
@@ -196,11 +190,11 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
-      call EPSDestroy(eps,ierr)
-      call MatDestroy(A,ierr)
+      PetscCallA(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr))
+      PetscCallA(EPSDestroy(eps,ierr))
+      PetscCallA(MatDestroy(A,ierr))
 
-      call SlepcFinalize(ierr)
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 !/*TEST
