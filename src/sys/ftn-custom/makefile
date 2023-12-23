@@ -9,7 +9,6 @@
 #
 #requiresdefine   'PETSC_USE_FORTRAN_BINDINGS'
 
-LIBBASE  = libslepcsys
 MANSEC   = sys
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

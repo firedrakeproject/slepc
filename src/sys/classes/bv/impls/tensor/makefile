@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-LIBBASE  = libslepcsys
 MANSEC   = BV
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

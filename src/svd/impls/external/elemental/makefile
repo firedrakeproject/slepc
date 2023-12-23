@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_ELEMENTAL'
 
-LIBBASE   = libslepcsvd
 MANSEC    = SVD
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

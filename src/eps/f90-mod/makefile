@@ -9,7 +9,6 @@
 #
 #requiresdefine   'PETSC_USE_FORTRAN_BINDINGS'
 
-LIBBASE    = libslepceps
 MANSEC     = EPS
 CLEANFILES = *.mod
 
