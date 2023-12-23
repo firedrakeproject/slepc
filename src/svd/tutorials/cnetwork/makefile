@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-MANSEC     = SVD
 TESTS      = embedgsvd
 
 embedgsvd: embedgsvd.o network.o

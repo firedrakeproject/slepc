@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-MANSEC     = RG
 TESTS      = test1 test1f test2 test3
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
