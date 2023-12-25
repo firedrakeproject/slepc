@@ -244,7 +244,7 @@ check_usermakefile:
            grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
          fi; \
          if test -s .ftn.log; then \
-          cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10f90; \
+          cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10f; \
          fi; ${RM} .ftn.log;
 	@cd src/eps/tutorials; ${RUN_TEST} clean-legacy
 	-@echo "Completed compile with user makefile"

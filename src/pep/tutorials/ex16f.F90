@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./ex16f90 [-help] [-n <n>] [-m <m>] [SLEPc opts]
+!  Program usage: mpiexec -n <np> ./ex16f [-help] [-n <n>] [-m <m>] [SLEPc opts]
 !
 !  Description: Simple example that solves a quadratic eigensystem with PEP.
 !  This is the Fortran90 equivalent to ex16.c

@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./ex27f90 [-help] [-n <n>] [all SLEPc options]
+!  Program usage: mpiexec -n <np> ./ex27f [-help] [-n <n>] [all SLEPc options]
 !
 !  Description: Simple NLEIGS example. Fortran90 equivalent of ex27.c
 !
