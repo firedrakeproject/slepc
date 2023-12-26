@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./ex23f90 [-help] [-t <t>] [-m <m>] [SLEPc opts]
+!  Program usage: mpiexec -n <np> ./ex23f [-help] [-t <t>] [-m <m>] [SLEPc opts]
 !
 !  Description: Computes exp(t*A)*v for a matrix from a Markov model.
 !  This is the Fortran90 equivalent to ex23.c

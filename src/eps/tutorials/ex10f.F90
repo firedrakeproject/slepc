@@ -22,7 +22,7 @@
 !
 !     Module contains data needed by shell ST
 !
-      module mymoduleex10f90
+      module mymoduleex10f
 #include <slepc/finclude/slepceps.h>
       use slepceps
       implicit none
@@ -35,7 +35,7 @@
       program main
 #include <slepc/finclude/slepceps.h>
       use slepceps
-      use mymoduleex10f90
+      use mymoduleex10f
       implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -220,7 +220,7 @@
       subroutine STApply_User(st,x,y,ierr)
 #include <slepc/finclude/slepceps.h>
       use slepceps
-      use mymoduleex10f90
+      use mymoduleex10f
       implicit none
 
       ST             st
@@ -246,7 +246,7 @@
       subroutine STApplyTranspose_User(st,x,y,ierr)
 #include <slepc/finclude/slepceps.h>
       use slepceps
-      use mymoduleex10f90
+      use mymoduleex10f
       implicit none
 
       ST             st
@@ -274,7 +274,7 @@
       subroutine STBackTransform_User(st,n,eigr,eigi,ierr)
 #include <slepc/finclude/slepceps.h>
       use slepceps
-      use mymoduleex10f90
+      use mymoduleex10f
       implicit none
 
       ST             st

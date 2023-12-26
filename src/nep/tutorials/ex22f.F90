@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./ex22f90 [-n <n>] [-tau <tau>] [SLEPc opts]
+!  Program usage: mpiexec -n <np> ./ex22f [-n <n>] [-tau <tau>] [SLEPc opts]
 !
 !  Description: Delay differential equation. Fortran90 equivalent of ex22.c
 !

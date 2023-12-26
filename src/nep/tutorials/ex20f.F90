@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./ex20f90 [-n <n>] [SLEPc opts]
+!  Program usage: mpiexec -n <np> ./ex20f [-n <n>] [SLEPc opts]
 !
 !  Description: Simple 1-D nonlinear eigenproblem. Fortran90 equivalent of ex20.c
 !

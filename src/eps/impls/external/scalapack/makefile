@@ -9,7 +9,6 @@
 #
 #requiresdefine  'SLEPC_HAVE_SCALAPACK'
 
-LIBBASE   = libslepceps
 MANSEC    = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
