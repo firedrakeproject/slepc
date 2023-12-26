@@ -143,11 +143,7 @@ static PetscErrorCode EPSSolve_FEAST(EPS eps)
 #endif
         PetscCall(VecRestoreArray(z,&pz));
         if (ijob == 11) PetscCall(STMatSolve(eps->st,z,w));
-        else {
-          PetscCall(VecConjugate(z));
-          PetscCall(STMatSolveTranspose(eps->st,z,w));
-          PetscCall(VecConjugate(w));
-        }
+        else PetscCall(STMatSolveHermitianTranspose(eps->st,z,w));
         PetscCall(VecGetArray(w,&pz));
 #if defined(PETSC_USE_COMPLEX)
         for (i=0;i<eps->nloc;i++) {

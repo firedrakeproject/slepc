@@ -18,12 +18,14 @@ int main(int argc,char **argv)
   ST             st;
   Vec            v,w;
   STType         type;
-  PetscScalar    sigma,tau;
+  PetscScalar    sigma,tau,val;
   PetscInt       n=10,i,Istart,Iend;
+  PetscBool      test_compl=PETSC_FALSE;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-complex",&test_compl,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,15 +38,25 @@ int main(int argc,char **argv)
   PetscCall(MatSetUp(A));
 
   PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
+#if defined(PETSC_USE_COMPLEX)
+  val = test_compl? PetscCMPLX(-1.0,0.4): -1.0;
+#else
+  val = -1.0;
+#endif
   for (i=Istart;i<Iend;i++) {
-    if (i>0) PetscCall(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
-    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A,i,i-1,val,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,PetscConj(val),INSERT_VALUES));
     PetscCall(MatSetValue(A,i,i,2.0,INSERT_VALUES));
   }
   PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatCreateVecs(A,&v,&w));
-  PetscCall(VecSet(v,1.0));
+#if defined(PETSC_USE_COMPLEX)
+  val = test_compl? PetscCMPLX(1.0,-0.01): 1.0;
+#else
+  val = 1.0;
+#endif
+  PetscCall(VecSet(v,val));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the spectral transformation object
@@ -76,6 +88,10 @@ int main(int argc,char **argv)
   PetscCall(VecView(w,NULL));
   PetscCall(STApplyTranspose(st,v,w));
   PetscCall(VecView(w,NULL));
+  if (test_compl) {
+    PetscCall(STApplyHermitianTranspose(st,v,w));
+    PetscCall(VecView(w,NULL));
+  }
 
   /* sinvert, sigma=0.1 */
   PetscCall(STPostSolve(st));   /* undo changes if inplace */
@@ -94,6 +110,10 @@ int main(int argc,char **argv)
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
   PetscCall(STApply(st,v,w));
   PetscCall(VecView(w,NULL));
+  if (test_compl) {
+    PetscCall(STApplyHermitianTranspose(st,v,w));
+    PetscCall(VecView(w,NULL));
+  }
 
   /* cayley, sigma=-0.5, tau=-0.5 (equal to sigma by default) */
   PetscCall(STPostSolve(st));   /* undo changes if inplace */
@@ -156,7 +176,11 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -st_matmode {{copy inplace shell}}
-      output_file: output/test2_1.out
       requires: !single
+
+   test:
+      suffix: 2
+      args: -complex -st_matmode {{copy inplace shell}}
+      requires: complex !single
 
 TEST*/

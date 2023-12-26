@@ -12,9 +12,10 @@ static char help[] = "Test ST with shell matrices.\n\n";
 
 #include <slepcst.h>
 
-static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag);
-static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y);
 static PetscErrorCode MatMult_Shell(Mat S,Vec x,Vec y);
+static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y);
+static PetscErrorCode MatMultHermitianTranspose_Shell(Mat S,Vec x,Vec y);
+static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag);
 static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M);
 
 static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
@@ -28,6 +29,7 @@ static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
   PetscCall(MatCreateShell(comm,PETSC_DECIDE,PETSC_DECIDE,n,n,A,M));
   PetscCall(MatShellSetOperation(*M,MATOP_MULT,(void(*)(void))MatMult_Shell));
   PetscCall(MatShellSetOperation(*M,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell));
+  PetscCall(MatShellSetOperation(*M,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultHermitianTranspose_Shell));
   PetscCall(MatShellSetOperation(*M,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Shell));
   PetscCall(MatShellSetOperation(*M,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Shell));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -94,7 +96,7 @@ int main(int argc,char **argv)
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
   PetscCall(STApply(st,v,w));
   PetscCall(VecView(w,NULL));
-  PetscCall(STApplyTranspose(st,v,w));
+  PetscCall(STApplyHermitianTranspose(st,v,w));
   PetscCall(VecView(w,NULL));
 
   /* shift, sigma=0.1 */
@@ -156,6 +158,16 @@ static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+static PetscErrorCode MatMultHermitianTranspose_Shell(Mat S,Vec x,Vec y)
+{
+  Mat               *A;
+
+  PetscFunctionBeginUser;
+  PetscCall(MatShellGetContext(S,&A));
+  PetscCall(MatMultHermitianTranspose(*A,x,y));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag)
 {
   Mat               *A;
@@ -181,7 +193,6 @@ static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M)
    test:
       suffix: 1
       args: -st_matmode {{inplace shell}}
-      output_file: output/test1_1.out
       requires: !single
 
 TEST*/

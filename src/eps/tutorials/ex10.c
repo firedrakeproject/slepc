@@ -26,6 +26,9 @@ PetscErrorCode STCreate_User(SampleShellST**);
 PetscErrorCode STSetUp_User(SampleShellST*,ST);
 PetscErrorCode STApply_User(ST,Vec,Vec);
 PetscErrorCode STApplyTranspose_User(ST,Vec,Vec);
+#if defined(PETSC_USE_COMPLEX)
+PetscErrorCode STApplyHermitianTranspose_User(ST,Vec,Vec);
+#endif
 PetscErrorCode STBackTransform_User(ST,PetscInt,PetscScalar*,PetscScalar*);
 PetscErrorCode STDestroy_User(SampleShellST*);
 
@@ -103,6 +106,11 @@ int main (int argc,char **argv)
 
     /* (Optional) Set the user-defined routine for applying the transposed operator */
     PetscCall(STShellSetApplyTranspose(st,STApplyTranspose_User));
+
+    /* (Optional) Set the user-defined routine for applying the conjugate-transposed operator */
+#if defined(PETSC_USE_COMPLEX)
+    PetscCall(STShellSetApplyHermitianTranspose(st,STApplyHermitianTranspose_User));
+#endif
 
     /* (Optional) Set the user-defined routine for back-transformation */
     PetscCall(STShellSetBackTransform(st,STBackTransform_User));
@@ -245,6 +253,35 @@ PetscErrorCode STApplyTranspose_User(ST st,Vec x,Vec y)
   PetscCall(KSPSolveTranspose(shell->ksp,x,y));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
+#if defined(PETSC_USE_COMPLEX)
+/* ------------------------------------------------------------------- */
+/*
+   STApplyHermitianTranspose_User - This is not required unless using a two-sided
+   eigensolver in complex scalars.
+
+   Input Parameters:
++  st - spectral transformation context
+-  x - input vector
+
+   Output Parameter:
+.  y - output vector
+*/
+PetscErrorCode STApplyHermitianTranspose_User(ST st,Vec x,Vec y)
+{
+  SampleShellST  *shell;
+  Vec            w;
+
+  PetscFunctionBeginUser;
+  PetscCall(STShellGetContext(st,&shell));
+  PetscCall(VecDuplicate(x,&w));
+  PetscCall(VecCopy(x,w));
+  PetscCall(VecConjugate(w));
+  PetscCall(KSPSolveTranspose(shell->ksp,w,y));
+  PetscCall(VecConjugate(y));
+  PetscCall(VecDestroy(&w));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+#endif
 /* ------------------------------------------------------------------- */
 /*
    STBackTransform_User - This routine demonstrates the use of a
