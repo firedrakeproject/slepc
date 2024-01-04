@@ -104,7 +104,11 @@
 
       call MatCreateVecs(A,v(1),PETSC_NULL_VEC,ierr)
       one = 1.0
-      call VecSet(v(1),one,ierr)
+      if (Istart .eq. 0) then
+        call VecSetValue(v(1),0,one,INSERT_VALUES,ierr)
+      endif
+      call VecAssemblyBegin(v(1),ierr)
+      call VecAssemblyEnd(v(1),ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and display info
