@@ -29,7 +29,7 @@ testtest5_blopex: test5.PETSc
 
 testtest7f: test7f.PETSc
 	@test=test7f_1; check=test7f_1; \
-        GFORTRAN_UNBUFFERED_ALL=1 ${MPIEXEC} -n 1 ./test7f -eps_nev 4 -eps_ncv 22 | ${SED} -e 's/83791/83792/'> $${test}.tmp 2>&1; \
+	GFORTRAN_UNBUFFERED_ALL=1 ${MPIEXEC} -n 1 ./test7f -eps_nev 4 | ${SED} -e 's/83791/83792/'> $${test}.tmp 2>&1; \
         if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
           echo "Fortran example src/eps/tests/test7f run successfully with 1 MPI process"; \
         else \

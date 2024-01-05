@@ -103,7 +103,11 @@
 
       PetscCallA(MatCreateVecs(A,v(1),PETSC_NULL_VEC,ierr))
       one = 1.0
-      PetscCallA(VecSet(v(1),one,ierr))
+      if (Istart .eq. 0) then
+        PetscCallA(VecSetValue(v(1),0,one,INSERT_VALUES,ierr))
+      endif
+      PetscCallA(VecAssemblyBegin(v(1),ierr))
+      PetscCallA(VecAssemblyEnd(v(1),ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and display info
