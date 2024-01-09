@@ -86,6 +86,32 @@ static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+#if defined(PETSC_USE_COMPLEX)
+static PetscErrorCode MatMultHermitianTranspose_Shell(Mat A,Vec x,Vec y)
+{
+  ST_MATSHELL    *ctx;
+  ST             st;
+  PetscInt       i;
+  PetscScalar    t=1.0,c;
+
+  PetscFunctionBegin;
+  PetscCall(MatShellGetContext(A,&ctx));
+  st = ctx->st;
+  PetscCall(MatMultHermitianTranspose(st->A[ctx->matIdx[0]],x,y));
+  if (ctx->coeffs && ctx->coeffs[0]!=1.0) PetscCall(VecScale(y,PetscConj(ctx->coeffs[0])));
+  if (ctx->alpha!=0.0) {
+    for (i=1;i<ctx->nmat;i++) {
+      PetscCall(MatMultHermitianTranspose(st->A[ctx->matIdx[i]],x,ctx->z));
+      t *= ctx->alpha;
+      c = (ctx->coeffs)?t*ctx->coeffs[i]:t;
+      PetscCall(VecAXPY(y,PetscConj(c),ctx->z));
+    }
+    if (ctx->nmat==1) PetscCall(VecAXPY(y,PetscConj(ctx->alpha),x)); /* y = (A + alpha*I) x */
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+#endif
+
 static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
 {
   ST_MATSHELL    *ctx;
@@ -156,6 +182,11 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   PetscCall(MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,(void*)ctx,mat));
   PetscCall(MatShellSetOperation(*mat,MATOP_MULT,(void(*)(void))MatMult_Shell));
   PetscCall(MatShellSetOperation(*mat,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell));
+#if defined(PETSC_USE_COMPLEX)
+  PetscCall(MatShellSetOperation(*mat,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultHermitianTranspose_Shell));
+#else
+  PetscCall(MatShellSetOperation(*mat,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell));
+#endif
   PetscCall(MatShellSetOperation(*mat,MATOP_DESTROY,(void(*)(void))MatDestroy_Shell));
 
   PetscCall(MatHasOperation(st->A[ctx->matIdx[0]],MATOP_GET_DIAGONAL,&hasA));

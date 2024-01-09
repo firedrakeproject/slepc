@@ -58,7 +58,7 @@
       PetscErrorCode ierr
 
 !     Note: Any user-defined Fortran routines MUST be declared as external.
-      external STApply_User, STApplyTranspose_User, STBackTransform_User
+      external STApply_User, STApplyTranspose_User, STApplyHermitianTranspose_User, STBackTransform_User
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -155,6 +155,11 @@
 
 !       ** (Optional) Set the user-defined routine for applying the transposed operator
         call STShellSetApplyTranspose(st,STApplyTranspose_User,ierr);CHKERRA(ierr)
+
+#if defined(PETSC_USE_COMPLEX)
+!       ** (Optional) Set the user-defined routine for applying the conjugate-transposed operator
+        call STShellSetApplyHermitianTranspose(st,STApplyHermitianTranspose_User,ierr);CHKERRA(ierr)
+#endif
 
 !       ** (Optional) Set the user-defined routine for back-transformation
         call STShellSetBackTransform(st,STBackTransform_User,ierr);CHKERRA(ierr)
@@ -257,6 +262,40 @@
 
       return
       end
+
+#if defined(PETSC_USE_COMPLEX)
+! -------------------------------------------------------------------
+!
+!   STApplyHermitianTranspose_User - This is not required unless using a two-sided eigensolver
+!   in complex scalars
+!
+!   Input Parameters:
+!   st - spectral transformation context
+!   x - input vector
+!
+!   Output Parameter:
+!   y - output vector
+!
+      subroutine STApplyHermitianTranspose_User(st,x,y,ierr)
+#include <slepc/finclude/slepceps.h>
+      use slepceps
+      use mymoduleex10f
+      implicit none
+
+      ST             st
+      Vec            x,y,w
+      PetscErrorCode ierr
+
+      call VecDuplicate(x,w,ierr);CHKERRQ(ierr)
+      call VecCopy(x,w,ierr);CHKERRQ(ierr)
+      call VecConjugate(w,ierr);CHKERRQ(ierr)
+      call KSPSolveTranspose(myksp,w,y,ierr);CHKERRQ(ierr)
+      call VecConjugate(y,ierr);CHKERRQ(ierr)
+      call VecDestroy(w,ierr);CHKERRQ(ierr)
+
+      return
+      end
+#endif
 
 ! -------------------------------------------------------------------
 !

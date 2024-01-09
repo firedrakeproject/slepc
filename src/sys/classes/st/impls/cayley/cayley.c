@@ -328,6 +328,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
 
   st->ops->apply           = STApply_Generic;
   st->ops->applytrans      = STApplyTranspose_Generic;
+  st->ops->applyhermtrans  = STApplyHermitianTranspose_Generic;
   st->ops->backtransform   = STBackTransform_Cayley;
   st->ops->setshift        = STSetShift_Cayley;
   st->ops->getbilinearform = STGetBilinearForm_Cayley;

@@ -150,6 +150,17 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+PetscErrorCode STApplyHermitianTranspose_Generic(ST st,Vec x,Vec y)
+{
+  PetscFunctionBegin;
+  if (st->M && st->P) {
+    PetscCall(STMatSolveHermitianTranspose(st,x,st->work[0]));
+    PetscCall(MatMultHermitianTranspose(st->M,st->work[0],y));
+  } else if (st->M) PetscCall(MatMultHermitianTranspose(st->M,x,y));
+  else PetscCall(STMatSolveHermitianTranspose(st,x,y));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 /*@
    STApplyHermitianTranspose - Applies the hermitian-transpose of the operator
    to a vector, for instance B^H(A - sB)^-H in the case of the shift-and-invert
@@ -272,17 +283,27 @@ static PetscErrorCode MatMultHermitianTranspose_STOperator(Mat Op,Vec x,Vec y)
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(Op,&st));
   PetscCall(STSetUp(st));
-  PetscCall(PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0));
-  if (!st->wht) PetscCall(MatCreateVecs(st->A[0],&st->wht,NULL));
-  PetscCall(VecCopy(x,st->wht));
-  PetscCall(VecConjugate(st->wht));
-  if (st->D) { /* with balancing */
-    PetscCall(VecPointwiseMult(st->wb,st->wht,st->D));
-    PetscUseTypeMethod(st,applytrans,st->wb,y);
-    PetscCall(VecPointwiseDivide(y,y,st->D));
-  } else PetscUseTypeMethod(st,applytrans,st->wht,y);
-  PetscCall(VecConjugate(y));
-  PetscCall(PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0));
+  PetscCall(PetscLogEventBegin(ST_ApplyHermitianTranspose,st,x,y,0));
+  if (st->ops->applyhermtrans) {
+    if (st->D) { /* with balancing */
+      PetscCall(VecConjugate(st->D));
+      PetscCall(VecPointwiseMult(st->wb,x,st->D));
+      PetscUseTypeMethod(st,applyhermtrans,st->wb,y);
+      PetscCall(VecPointwiseDivide(y,y,st->D));
+      PetscCall(VecConjugate(st->D));
+    } else PetscUseTypeMethod(st,applyhermtrans,x,y);
+  } else {
+    if (!st->wht) PetscCall(MatCreateVecs(st->A[0],&st->wht,NULL));
+    PetscCall(VecCopy(x,st->wht));
+    PetscCall(VecConjugate(st->wht));
+    if (st->D) { /* with balancing */
+      PetscCall(VecPointwiseMult(st->wb,st->wht,st->D));
+      PetscUseTypeMethod(st,applytrans,st->wb,y);
+      PetscCall(VecPointwiseDivide(y,y,st->D));
+    } else PetscUseTypeMethod(st,applytrans,st->wht,y);
+    PetscCall(VecConjugate(y));
+  }
+  PetscCall(PetscLogEventEnd(ST_ApplyHermitianTranspose,st,x,y,0));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 #endif

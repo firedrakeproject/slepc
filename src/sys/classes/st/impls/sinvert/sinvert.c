@@ -155,6 +155,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Sinvert(ST st)
 
   st->ops->apply           = STApply_Generic;
   st->ops->applytrans      = STApplyTranspose_Generic;
+  st->ops->applyhermtrans  = STApplyHermitianTranspose_Generic;
   st->ops->backtransform   = STBackTransform_Sinvert;
   st->ops->setshift        = STSetShift_Sinvert;
   st->ops->getbilinearform = STGetBilinearForm_Default;

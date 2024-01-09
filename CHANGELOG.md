@@ -1,5 +1,12 @@
 # Changelog of SLEPc versions
 
+## [unreleased]
+
+### Added
+
+- `ST`: new function `STShellSetApplyHermitianTranspose` and other improvements for handling
+  the conjugate transpose of the operator.
+
 ## [3.20] - 2023-09-29
 
 ### Changed
