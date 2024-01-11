@@ -278,6 +278,61 @@ PetscErrorCode BVScale_BLAS_CUDA(BV,PetscInt n_,PetscScalar *d_A,PetscScalar alp
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+/*
+    Compute 2-norm of vector consisting of n scalars
+*/
+PetscErrorCode BVNorm_BLAS_CUDA(BV,PetscInt n_,const PetscScalar *d_A,PetscReal *nrm)
+{
+  PetscCuBLASInt n=0,one=1;
+  cublasHandle_t cublasv2handle;
+
+  PetscFunctionBegin;
+  PetscCall(PetscCuBLASIntCast(n_,&n));
+  PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
+  PetscCall(PetscLogGpuTimeBegin());
+  PetscCallCUBLAS(cublasXnrm2(cublasv2handle,n,d_A,one,nrm));
+  PetscCall(PetscLogGpuTimeEnd());
+  PetscCall(PetscLogGpuFlops(2.0*n));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*
+    Normalize the columns of A
+*/
+PetscErrorCode BVNormalize_BLAS_CUDA(BV,PetscInt m_,PetscInt n_,PetscScalar *d_A,PetscInt lda_,PetscScalar *eigi)
+{
+  PetscInt       j,k;
+  PetscReal      nrm,nrm1;
+  PetscScalar    alpha;
+  PetscCuBLASInt m=0,one=1;
+  cublasHandle_t cublasv2handle;
+
+  PetscFunctionBegin;
+  PetscCall(PetscCuBLASIntCast(m_,&m));
+  PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
+  PetscCall(PetscLogGpuTimeBegin());
+  for (j=0;j<n_;j++) {
+    k = 1;
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi && eigi[j] != 0.0) k = 2;
+#endif
+    PetscCallCUBLAS(cublasXnrm2(cublasv2handle,m,d_A+j*lda_,one,&nrm));
+    if (k==2) {
+      PetscCallCUBLAS(cublasXnrm2(cublasv2handle,m,d_A+(j+1)*lda_,one,&nrm1));
+      nrm = SlepcAbs(nrm,nrm1);
+    }
+    alpha = 1.0/nrm;
+    PetscCallCUBLAS(cublasXscal(cublasv2handle,m,&alpha,d_A+j*lda_,one));
+    if (k==2) {
+      PetscCallCUBLAS(cublasXscal(cublasv2handle,m,&alpha,d_A+(j+1)*lda_,one));
+      j++;
+    }
+  }
+  PetscCall(PetscLogGpuTimeEnd());
+  PetscCall(PetscLogGpuFlops(3.0*m*n_));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 #if defined(PETSC_USE_COMPLEX)
 #include <thrust/device_ptr.h>
 
