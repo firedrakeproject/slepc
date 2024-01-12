@@ -162,11 +162,16 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       nsize: 2
-      args: -bv_type {{vecs contiguous svec mat}shared output}
       output_file: output/test16_1.out
       filter: grep -v "doing matmult"
+      test:
+         suffix: 1
+         args: -bv_type {{vecs contiguous svec mat}}
+      test:
+         suffix: 1_cuda
+         args: -bv_type {{vecs svec mat}} -vec_type cuda
+         requires: cuda
 
 TEST*/
