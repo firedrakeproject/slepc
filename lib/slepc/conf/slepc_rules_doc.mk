@@ -8,9 +8,27 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-# Override PETSc variable to have examples listed in order
+# The following additional variables are used by PETSc documentation targets
+#
+# SOURCEALL  - sources and includes
+# SOURCED    - sources/includes [but not Fortran - for doc parsing]
+#
+# Note that EXAMPLESALL is only used in the tutorial directories and SOURCED only in the non-tutorials and tests directories
+#
+SOURCEALL   = `ls *.c *.cxx *.F *.F90 *.cu *.cpp *.h *.hpp 2> /dev/null`
+SOURCED     = `ls *.c *.cxx           *.cu *.cpp *.h *.hpp 2> /dev/null`
 EXAMPLESALL = `(ls *.c *.cxx *.F *.F90 *.cu *.cpp | sort -V) 2> /dev/null`
 
+# Performs the specified action on all source/include directories except output; used by c2html and cleanhtml
+tree: ${ACTION}
+	-@for dir in `ls -d */ 2> /dev/null` foo ;  do \
+            if [[ $${dir} != "doc/" && $${dir} != "output/" ]]; then \
+              if [[ -f $${dir}makefile ]]; then \
+	        (cd $$dir ; ${OMAKE} ACTION=${ACTION} PETSC_ARCH=${PETSC_ARCH}  LOC=${LOC} tree) ; \
+              fi; \
+           fi; \
+	 done
+#
 # Performs the specified action on all directories
 slepc_tree: ${ACTION}
 	-@for dir in `ls -d */ 2> /dev/null` foo ; do \
@@ -102,7 +120,7 @@ petsc_manualpages_buildcite:
               makef=$${f%$${base}}makefile; \
               if [ -f $${makef} ]; then \
                 LMANSEC=`grep SUBMANSEC $${makef} | grep -v BFORTSUBMANSEC | cut -d= -f2 | tr -d " \t"`; \
-                if [ "$${LMANSEC}" = "" ]; then LMANSEC=`grep MANSEC $${makef} | cut -d= -f2 | tr -d " \t"`; fi; \
+                if [ "$${LMANSEC}" = "" ]; then LMANSEC=`grep MANSEC $${makef} | cut -d= -f2 | tr -d " \t" | head -n 1`; fi; \
                 if [ "$${LMANSEC}" != "" ]; then \
                   if [ ! -d $${petscidx_tmp}/$${LMANSEC} ]; then ${MKDIR} $${petscidx_tmp}/$${LMANSEC}; fi; \
                   ${DOCTEXT} -html -indexdir "https://petsc.org/$${petscbranch}/manualpages/$${LMANSEC}" \
@@ -170,7 +188,7 @@ slepc_html:
               sed -E "s/PETSC[A-Z]*_DLLEXPORT//g" $$i | \
               ${C2HTML} -n | \
               awk '{ sub(/<pre width="80">/,"<pre width=\"80\">\n"); print }' | \
-              ${PYTHON} ${PETSC_DIR}/lib/petsc/bin/maint/fixinclude.py $$i $${SLEPC_DIR} | \
+              ${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/fixinclude.py $$i $${SLEPC_DIR} | \
               grep -E -v '(PetscValid|#if !defined\(__|#define __|#undef __|EXTERN_C )' | \
               ${MAPNAMES} -map $$htmlmap_tmp -inhtml | sed -e s?ROOT?$${IROOT}?g >> $${loc}/$$i.html ; \
             fi; \
@@ -211,4 +229,5 @@ slepc_html:
           fi ;\
           ${RM} $$htmlmap_tmp
 
-
+cleanhtml:
+	-@${RM} index.html *.{c,cxx,cu,F,F90,h,h90,m}.html *.{c,cxx,cu}.gcov.html
