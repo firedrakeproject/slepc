@@ -8,6 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+MANSEC     = NEP
 TESTS      = loaded_string gun
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
