@@ -8,6 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+MANSEC     = LME
 TESTS      = test1 test2
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
