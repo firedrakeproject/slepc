@@ -333,7 +333,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   PetscFunctionBegin;
   if (!*eps) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*eps,EPS_CLASSID,1);
-  if (--((PetscObject)(*eps))->refct > 0) { *eps = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  if (--((PetscObject)*eps)->refct > 0) { *eps = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(EPSReset(*eps));
   PetscTryTypeMethod(*eps,destroy);
   if ((*eps)->eigr) PetscCall(PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm));

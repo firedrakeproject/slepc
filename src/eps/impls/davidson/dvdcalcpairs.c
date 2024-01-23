@@ -348,7 +348,7 @@ static PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s
     xi = NULL;
     if (d->nX[i] != 1.0) PetscCall(VecScale(xr,1.0/d->nX[i]));
 #endif
-    PetscCall((d->eps->arbitrary)(rr[i-r_s],ri[i-r_s],xr,xi,&rr[i-r_s],&ri[i-r_s],d->eps->arbitraryctx));
+    PetscCall(d->eps->arbitrary(rr[i-r_s],ri[i-r_s],xr,xi,&rr[i-r_s],&ri[i-r_s],d->eps->arbitraryctx));
 #if !defined(PETSC_USE_COMPLEX)
     if (i != k) {
       rr[i+1-r_s] = rr[i-r_s];
@@ -496,7 +496,7 @@ static PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscI
     PetscCall(BVSetActiveColumns(cX,0,l));
     for (i=0;i<r_e-r_s;i++) PetscCall(BVOrthogonalizeVec(cX,R[i],NULL,&d->nR[r_s+i],&lindep));
     PetscCall(BVSetActiveColumns(cX,l,k));
-    if (lindep || (PetscAbs(d->nR[r_s+i]) < PETSC_MACHINE_EPSILON)) PetscCall(PetscInfo(d->eps,"The computed eigenvector residual %" PetscInt_FMT " is too low, %g!\n",r_s+i,(double)(d->nR[r_s+i])));
+    if (lindep || (PetscAbs(d->nR[r_s+i]) < PETSC_MACHINE_EPSILON)) PetscCall(PetscInfo(d->eps,"The computed eigenvector residual %" PetscInt_FMT " is too low, %g!\n",r_s+i,(double)d->nR[r_s+i]));
   } else {
     for (i=0;i<r_e-r_s;i++) PetscCall(VecNormBegin(R[i],NORM_2,&d->nR[r_s+i]));
     for (i=0;i<r_e-r_s;i++) PetscCall(VecNormEnd(R[i],NORM_2,&d->nR[r_s+i]));

@@ -444,7 +444,7 @@ PetscErrorCode LMEDestroy(LME *lme)
   PetscFunctionBegin;
   if (!*lme) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*lme,LME_CLASSID,1);
-  if (--((PetscObject)(*lme))->refct > 0) { *lme = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  if (--((PetscObject)*lme)->refct > 0) { *lme = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(LMEReset(*lme));
   PetscTryTypeMethod(*lme,destroy);
   PetscCall(LMEMonitorCancel(*lme));

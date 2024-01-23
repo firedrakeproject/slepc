@@ -502,7 +502,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
   /* allocate V */
   if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,NULL));
   if (!oldsize) {
-    if (!((PetscObject)(svd->V))->type_name) PetscCall(BVSetType(svd->V,BVMAT));
+    if (!((PetscObject)svd->V)->type_name) PetscCall(BVSetType(svd->V,BVMAT));
     PetscCall(MatCreateVecsEmpty(svd->A,&tr,NULL));
     PetscCall(BVSetSizesFromVec(svd->V,tr,requested));
     PetscCall(VecDestroy(&tr));
@@ -511,7 +511,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
   if (svd->leftbasis && !svd->isgeneralized) {
     if (!svd->U) PetscCall(SVDGetBV(svd,NULL,&svd->U));
     if (!oldsize) {
-      if (!((PetscObject)(svd->U))->type_name) PetscCall(BVSetType(svd->U,((PetscObject)(svd->V))->type_name));
+      if (!((PetscObject)svd->U)->type_name) PetscCall(BVSetType(svd->U,((PetscObject)svd->V)->type_name));
       PetscCall(MatCreateVecsEmpty(svd->A,NULL,&tl));
       PetscCall(BVSetSizesFromVec(svd->U,tl,requested));
       PetscCall(VecDestroy(&tl));
@@ -519,7 +519,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
   } else if (svd->isgeneralized) {  /* left basis for the GSVD */
     if (!svd->U) PetscCall(SVDGetBV(svd,NULL,&svd->U));
     if (!oldsize) {
-      if (!((PetscObject)(svd->U))->type_name) PetscCall(BVSetType(svd->U,((PetscObject)(svd->V))->type_name));
+      if (!((PetscObject)svd->U)->type_name) PetscCall(BVSetType(svd->U,((PetscObject)svd->V)->type_name));
       PetscCall(SVDCreateLeftTemplate(svd,&tl));
       PetscCall(BVSetSizesFromVec(svd->U,tl,requested));
       PetscCall(VecDestroy(&tl));

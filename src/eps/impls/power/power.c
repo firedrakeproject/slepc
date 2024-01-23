@@ -117,7 +117,7 @@ static PetscErrorCode EPSSetUp_Power(EPS eps)
 
     /* For nonlinear solver (Newton), we should scale the initial vector back.
        The initial vector will be scaled in EPSSetUp. */
-    if (eps->IS) PetscCall(VecNorm((eps->IS)[0],NORM_2,&power->norm0));
+    if (eps->IS) PetscCall(VecNorm(eps->IS[0],NORM_2,&power->norm0));
 
     PetscCall(EPSGetOperators(eps,&A,&B));
 

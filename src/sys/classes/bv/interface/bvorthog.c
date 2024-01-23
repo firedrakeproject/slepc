@@ -131,7 +131,7 @@ static PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define BVOrthogonalizeGS1(a,b,c,d,e,f,g,h) ((bv->ops->gramschmidt)?(*bv->ops->gramschmidt):(mgs?BVOrthogonalizeMGS1:BVOrthogonalizeCGS1))(a,b,c,d,e,f,g,h)
+#define BVOrthogonalizeGS1(a,b,c,d,e,f,g,h) (bv->ops->gramschmidt?(*bv->ops->gramschmidt):(mgs?BVOrthogonalizeMGS1:BVOrthogonalizeCGS1))(a,b,c,d,e,f,g,h)
 
 /*
    BVOrthogonalizeGS - Orthogonalize with (classical or modified) Gram-Schmidt
