@@ -394,17 +394,6 @@ gnu-c-complex-multilib:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --download-metis --download-parmetis --download-scalapack --with-cxx-dialect=17
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa --with-fortran-bindings-inplace
 
-intel-c-complex-mkl:
-  extends:
-    - .stage-2
-    - .linux_test_nofflags
-  tags:
-    - compiler:intel, name:anuket
-  variables:
-    LOAD_MODULES: icc mpi mkl
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
-
 gnu-c-libs:
   extends:
     - .stage-2
@@ -545,6 +534,17 @@ destdir-install:
 # The following tests run as part of stage-3.
 #
 
+intel-c-complex-mkl:
+  extends:
+    - .stage-3
+    - .linux_test_nofflags
+  tags:
+    - compiler:intel, name:jepri
+  variables:
+    LOAD_MODULES: icc mpi mkl
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-cmake
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+
 gnu-c-cuda-complex:
   extends:
     - .stage-3
@@ -670,7 +670,7 @@ gnu-cxx-complex-int64:
   tags:
     - linux-ubuntu, name:maat
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --with-petsc4py --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps --download-suitesparse
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --with-petsc4py --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps --download-suitesparse --download-cmake
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-slepc4py --download-primme --download-hpddm
     SLEPC4PY: 1
 
