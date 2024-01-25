@@ -149,19 +149,20 @@ gnu-c-complex-nompi-int64:
 gnu-c-py:
   extends: .stage-1
   tags:
-    - linux-suse, name:igai
+    - name:anuket
   variables:
+    LOAD_MODULES: mpi/mpich-x86_64
     PETSC_CONFIG_OPTS: --with-fc=0
     TEST_SEARCH: eps_tests-test10_1
+    CHECKSOURCE: 1
 
 gnu-c99-mlib-static:
   extends: .stage-1
   tags:
-    - linux-debian, name:sejmet
+    - linux-suse, name:igai
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 --CFLAGS=-std=c99
     TEST_SEARCH: eps_tests-test10_1
-    CHECKSOURCE: 1
 
 gnu-lint:
   extends: .stage-1
@@ -357,10 +358,11 @@ gnu-cxx-complex:
     - .stage-2
     - .linux_test
   tags:
-    - linux-debian, name:sejmet
+    - name:anuket
   variables:
+    LOAD_MODULES: mpi/mpich-x86_64
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.9.0 --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex
 
 gnu-c-cuda:
   extends:
@@ -397,7 +399,7 @@ intel-c-complex-mkl:
     - .stage-2
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:sejmet
+    - compiler:intel, name:anuket
   variables:
     LOAD_MODULES: icc mpi mkl
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1
@@ -710,7 +712,7 @@ intel-c-complex-int64-mkl:
     - .stage-3
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:sejmet
+    - compiler:intel, name:anuket
   variables:
     LOAD_MODULES: icc mpi mkl
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-64-bit-indices --with-64-bit-blas-indices
@@ -733,8 +735,9 @@ gnu-c-complex-valgrind:
     - .stage-3
     - .linux_test
   tags:
-    - linux-debian, name:sejmet
+    - name:anuket
   variables:
+    LOAD_MODULES: mpi/mpich-x86_64
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
@@ -743,7 +746,7 @@ intel-c-mkl-libs:
     - .stage-3
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:sejmet
+    - compiler:intel, name:anuket
   variables:
     LOAD_MODULES: icc mpi mkl
     PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse

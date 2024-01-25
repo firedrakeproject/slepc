@@ -490,10 +490,11 @@ Downloaded package %s from: %s is not a tarball.
       self.log.Exit('Unable to link with '+name+' library in directories '+' '.join(dirs)+' with libraries and link flags '+flags)
 
     slepcconf.write('#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n')
-    slepcvars.write(name + '_LIB = '+flags+'\n')
-    self.libflags = flags
+    if not hasattr(self,'petscdepend'):
+      slepcvars.write(name + '_LIB = '+flags+'\n')
+      self.libflags = flags
+      self.packageflags = flags
     self.havepackage = True
-    self.packageflags = flags
 
   def WriteMakefile(self,fname,builddir,cont):
     self.log.write('Using makefile:\n')
