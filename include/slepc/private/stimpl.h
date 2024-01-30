@@ -17,7 +17,7 @@
 
 SLEPC_EXTERN PetscBool STRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode STRegisterAll(void);
-SLEPC_EXTERN PetscLogEvent ST_SetUp,ST_ComputeOperator,ST_Apply,ST_ApplyTranspose,ST_MatSetUp,ST_MatMult,ST_MatMultTranspose,ST_MatSolve,ST_MatSolveTranspose;
+SLEPC_EXTERN PetscLogEvent ST_SetUp,ST_ComputeOperator,ST_Apply,ST_ApplyTranspose,ST_ApplyHermitianTranspose,ST_MatSetUp,ST_MatMult,ST_MatMultTranspose,ST_MatSolve,ST_MatSolveTranspose;
 
 typedef struct _STOps *STOps;
 
@@ -25,6 +25,7 @@ struct _STOps {
   PetscErrorCode (*apply)(ST,Vec,Vec);
   PetscErrorCode (*applymat)(ST,Mat,Mat);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
+  PetscErrorCode (*applyhermtrans)(ST,Vec,Vec);
   PetscErrorCode (*backtransform)(ST,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*setshift)(ST,PetscScalar);
   PetscErrorCode (*getbilinearform)(ST,Mat*);
@@ -121,6 +122,7 @@ SLEPC_INTERN PetscErrorCode STGetOperator_Private(ST,Mat*);
 SLEPC_INTERN PetscErrorCode STApply_Generic(ST,Vec,Vec);
 SLEPC_INTERN PetscErrorCode STApplyMat_Generic(ST,Mat,Mat);
 SLEPC_INTERN PetscErrorCode STApplyTranspose_Generic(ST,Vec,Vec);
+SLEPC_INTERN PetscErrorCode STApplyHermitianTranspose_Generic(ST,Vec,Vec);
 
 /*
   ST_KSPSetOperators - Sets the KSP matrices

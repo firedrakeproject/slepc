@@ -54,7 +54,7 @@ all:
            echo "  Error during compile, check ${PETSC_ARCH}/lib/slepc/conf/make.log" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
            echo "  Send all contents of ./${PETSC_ARCH}/lib/slepc/conf to slepc-maint@upv.es" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;\
            printf "************************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
-         elif [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+         elif [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR:/=}/${PETSC_ARCH}" ]; then \
            echo "Now to check if the library is working do:";\
            echo "make SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} check";\
            echo "=========================================";\
@@ -138,18 +138,13 @@ check_build:
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10
 	+@if [ ! "${MPI_IS_MPIUNI}" ]; then cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_mpi; fi
-	+@if [ -f ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h ]; then \
-           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h | tee .ftn.log > /dev/null; \
-         elif [ -f ${PETSC_DIR}/include/petscconf.h ]; then \
-           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
-         fi; \
-         if test -s .ftn.log; then \
+	+@if [ "`grep -E '^#define PETSC_USE_FORTRAN_BINDINGS 1' ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h 2>/dev/null`" = "#define PETSC_USE_FORTRAN_BINDINGS 1" ] || [ "`grep -E '^#define PETSC_USE_FORTRAN_BINDINGS 1' ${PETSC_DIR}/include/petscconf.h 2>/dev/null`" = "#define PETSC_USE_FORTRAN_BINDINGS 1" ]; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest7f; \
-         fi ; ${RM} .ftn.log
-	+@if [ "${CUDA_LIB}" != "" ]; then \
+         fi
+	+@if [ "`grep -E '^#define PETSC_HAVE_CUDA 1' ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h 2>/dev/null`" = "#define PETSC_HAVE_CUDA 1" ] || [ "`grep -E '^#define PETSC_HAVE_CUDA 1' ${PETSC_DIR}/include/petscconf.h 2>/dev/null`" = "#define PETSC_HAVE_CUDA 1" ]; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_cuda; \
          fi
-	+@if [ "${BLOPEX_LIB}" != "" ]; then \
+	+@if [ "`grep -E '^#define SLEPC_HAVE_BLOPEX 1' ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h`" = "#define SLEPC_HAVE_BLOPEX 1" ]; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest5_blopex; \
          fi
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
@@ -244,7 +239,7 @@ check_usermakefile:
            grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
          fi; \
          if test -s .ftn.log; then \
-          cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10f90; \
+          cd src/eps/tutorials; ${OMAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} -f ${SLEPC_DIR}/share/slepc/Makefile.user ex10f; \
          fi; ${RM} .ftn.log;
 	@cd src/eps/tutorials; ${RUN_TEST} clean-legacy
 	-@echo "Completed compile with user makefile"

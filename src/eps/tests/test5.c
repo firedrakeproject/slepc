@@ -119,7 +119,7 @@ int main(int argc,char **argv)
          args: -eps_type power -st_type sinvert -eps_target 7
       test:
          suffix: 1_jd_complex
-         args: -eps_type jd -eps_jd_minv 3 -eps_jd_plusk 1
+         args: -eps_type jd -eps_jd_minv 3 -eps_jd_plusk 1 -eps_max_it 2000
       test:
          suffix: 1_gd_complex
          args: -eps_type gd -eps_gd_minv 3 -eps_gd_plusk 1

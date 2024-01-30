@@ -8,7 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-MANSEC     = sys
 TESTS      = test1
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

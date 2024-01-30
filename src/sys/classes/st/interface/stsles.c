@@ -74,7 +74,7 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
 
    Level: developer
 
-.seealso: STMatMultTranspose()
+.seealso: STMatMultTranspose(), STMatMultHermitianTranspose()
 @*/
 PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 {
@@ -99,7 +99,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 }
 
 /*@
-   STMatMultTranspose - Computes the matrix-vector product y = T[k]' x, where T[k] is
+   STMatMultTranspose - Computes the matrix-vector product y = T[k]^T x, where T[k] is
    the k-th matrix of the spectral transformation.
 
    Neighbor-wise Collective
@@ -114,7 +114,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 
    Level: developer
 
-.seealso: STMatMult()
+.seealso: STMatMult(), STMatMultHermitianTranspose()
 @*/
 PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 {
@@ -139,6 +139,46 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 }
 
 /*@
+   STMatMultHermitianTranspose - Computes the matrix-vector product y = T[k]^H x, where T[k] is
+   the k-th matrix of the spectral transformation.
+
+   Neighbor-wise Collective
+
+   Input Parameters:
++  st - the spectral transformation context
+.  k  - index of matrix to use
+-  x  - the vector to be multiplied
+
+   Output Parameter:
+.  y - the result
+
+   Level: developer
+
+.seealso: STMatMult(), STMatMultTranspose()
+@*/
+PetscErrorCode STMatMultHermitianTranspose(ST st,PetscInt k,Vec x,Vec y)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveInt(st,k,2);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,4);
+  STCheckMatrices(st,1);
+  PetscCheck(k>=0 && k<PetscMax(2,st->nmat),PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat);
+  PetscCheck(x!=y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  PetscCall(VecSetErrorIfLocked(y,3));
+
+  if (st->state!=ST_STATE_SETUP) PetscCall(STSetUp(st));
+  PetscCall(VecLockReadPush(x));
+  PetscCall(PetscLogEventBegin(ST_MatMultTranspose,st,x,y,0));
+  if (!st->T[k]) PetscCall(VecCopy(x,y)); /* T[k]=NULL means identity matrix */
+  else PetscCall(MatMultHermitianTranspose(st->T[k],x,y));
+  PetscCall(PetscLogEventEnd(ST_MatMultTranspose,st,x,y,0));
+  PetscCall(VecLockReadPop(x));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
    STMatSolve - Solves P x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
@@ -153,7 +193,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 
    Level: developer
 
-.seealso: STMatSolveTranspose()
+.seealso: STMatSolveTranspose(), STMatSolveHermitianTranspose(), STMatMatSolve()
 @*/
 PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
 {
@@ -209,7 +249,7 @@ PetscErrorCode STMatMatSolve(ST st,Mat B,Mat X)
 }
 
 /*@
-   STMatSolveTranspose - Solves P' x = b, where P is the preconditioner matrix of
+   STMatSolveTranspose - Solves P^T x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
    Collective
@@ -240,6 +280,52 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   PetscCall(PetscLogEventBegin(ST_MatSolveTranspose,st,b,x,0));
   if (!st->P) PetscCall(VecCopy(b,x)); /* P=NULL means identity matrix */
   else PetscCall(KSPSolveTranspose(st->ksp,b,x));
+  PetscCall(PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0));
+  PetscCall(VecLockReadPop(b));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   STMatSolveHermitianTranspose - Solves P^H x = b, where P is the preconditioner matrix of
+   the spectral transformation, using a KSP object stored internally.
+
+   Collective
+
+   Input Parameters:
++  st - the spectral transformation context
+-  b  - right hand side vector
+
+   Output Parameter:
+.  x - computed solution
+
+   Level: developer
+
+.seealso: STMatSolve()
+@*/
+PetscErrorCode STMatSolveHermitianTranspose(ST st,Vec b,Vec x)
+{
+  Vec  w;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(b,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  STCheckMatrices(st,1);
+  PetscCheck(x!=b,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+  PetscCall(VecSetErrorIfLocked(x,3));
+
+  if (st->state!=ST_STATE_SETUP) PetscCall(STSetUp(st));
+  PetscCall(VecLockReadPush(b));
+  PetscCall(PetscLogEventBegin(ST_MatSolveTranspose,st,b,x,0));
+  if (!st->P) PetscCall(VecCopy(b,x)); /* P=NULL means identity matrix */
+  else {
+    PetscCall(VecDuplicate(b,&w));
+    PetscCall(VecCopy(b,w));
+    PetscCall(VecConjugate(w));
+    PetscCall(KSPSolveTranspose(st->ksp,w,x));
+    PetscCall(VecDestroy(&w));
+    PetscCall(VecConjugate(x));
+  }
   PetscCall(PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0));
   PetscCall(VecLockReadPop(b));
   PetscFunctionReturn(PETSC_SUCCESS);

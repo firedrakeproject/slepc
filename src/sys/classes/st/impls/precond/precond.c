@@ -227,6 +227,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   st->ops->apply           = STApply_Generic;
   st->ops->applymat        = STApplyMat_Generic;
   st->ops->applytrans      = STApplyTranspose_Generic;
+  st->ops->applyhermtrans  = STApplyHermitianTranspose_Generic;
   st->ops->setshift        = STSetShift_Precond;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->setup           = STSetUp_Precond;

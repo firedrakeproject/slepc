@@ -163,27 +163,27 @@ static PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
 
 static PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
-  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
-  PetscScalar    *array;
+  BV_SVEC           *ctx = (BV_SVEC*)bv->data;
+  const PetscScalar *array;
 
   PetscFunctionBegin;
-  PetscCall(VecGetArray(ctx->v,&array));
+  PetscCall(VecGetArrayRead(ctx->v,&array));
   if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->ld,bv->ld,type,val,ctx->mpi));
   else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->ld,bv->ld,type,val,ctx->mpi));
-  PetscCall(VecRestoreArray(ctx->v,&array));
+  PetscCall(VecRestoreArrayRead(ctx->v,&array));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
 static PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
-  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
-  PetscScalar    *array;
+  BV_SVEC           *ctx = (BV_SVEC*)bv->data;
+  const PetscScalar *array;
 
   PetscFunctionBegin;
-  PetscCall(VecGetArray(ctx->v,&array));
+  PetscCall(VecGetArrayRead(ctx->v,&array));
   if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->ld,bv->ld,type,val,PETSC_FALSE));
   else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->ld,bv->ld,type,val,PETSC_FALSE));
-  PetscCall(VecRestoreArray(ctx->v,&array));
+  PetscCall(VecRestoreArrayRead(ctx->v,&array));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -483,6 +483,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->dotvec           = BVDotVec_Svec_CUDA;
     bv->ops->dotvec_local     = BVDotVec_Local_Svec_CUDA;
     bv->ops->scale            = BVScale_Svec_CUDA;
+    bv->ops->norm             = BVNorm_Svec_CUDA;
+    bv->ops->norm_local       = BVNorm_Local_Svec_CUDA;
+    bv->ops->normalize        = BVNormalize_Svec_CUDA;
     bv->ops->matmult          = BVMatMult_Svec_CUDA;
     bv->ops->copy             = BVCopy_Svec_CUDA;
     bv->ops->copycolumn       = BVCopyColumn_Svec_CUDA;
@@ -502,6 +505,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->dotvec           = BVDotVec_Svec;
     bv->ops->dotvec_local     = BVDotVec_Local_Svec;
     bv->ops->scale            = BVScale_Svec;
+    bv->ops->norm             = BVNorm_Svec;
+    bv->ops->norm_local       = BVNorm_Local_Svec;
+    bv->ops->normalize        = BVNormalize_Svec;
     bv->ops->matmult          = BVMatMult_Svec;
     bv->ops->copy             = BVCopy_Svec;
     bv->ops->copycolumn       = BVCopyColumn_Svec;
@@ -511,9 +517,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->getmat           = BVGetMat_Default;
     bv->ops->restoremat       = BVRestoreMat_Default;
   }
-  bv->ops->norm             = BVNorm_Svec;
-  bv->ops->norm_local       = BVNorm_Local_Svec;
-  bv->ops->normalize        = BVNormalize_Svec;
   bv->ops->getarray         = BVGetArray_Svec;
   bv->ops->restorearray     = BVRestoreArray_Svec;
   bv->ops->getarrayread     = BVGetArrayRead_Svec;

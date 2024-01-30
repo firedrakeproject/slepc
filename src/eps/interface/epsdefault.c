@@ -87,10 +87,8 @@ PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
   w = eps->work[0];
   for (i=0;i<eps->nconv;i++) {
     PetscCall(BVCopyVec(eps->W,i,w));
-    PetscCall(VecConjugate(w));
     PetscCall(BVGetColumn(eps->W,i,&y));
-    PetscCall(STMatSolveTranspose(eps->st,w,y));
-    PetscCall(VecConjugate(y));
+    PetscCall(STMatSolveHermitianTranspose(eps->st,w,y));
     PetscCall(BVRestoreColumn(eps->W,i,&y));
   }
   PetscFunctionReturn(PETSC_SUCCESS);

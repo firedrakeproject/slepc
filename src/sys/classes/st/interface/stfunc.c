@@ -14,7 +14,7 @@
 #include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
 PetscClassId     ST_CLASSID = 0;
-PetscLogEvent    ST_SetUp = 0,ST_ComputeOperator = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
+PetscLogEvent    ST_SetUp = 0,ST_ComputeOperator = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_ApplyHermitianTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
 const char *STMatModes[] = {"COPY","INPLACE","SHELL","STMatMode","ST_MATMODE_",NULL};
@@ -63,6 +63,7 @@ PetscErrorCode STInitializePackage(void)
   PetscCall(PetscLogEventRegister("STComputeOperatr",ST_CLASSID,&ST_ComputeOperator));
   PetscCall(PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply));
   PetscCall(PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose));
+  PetscCall(PetscLogEventRegister("STApplyHermTrans",ST_CLASSID,&ST_ApplyHermitianTranspose));
   PetscCall(PetscLogEventRegister("STMatSetUp",ST_CLASSID,&ST_MatSetUp));
   PetscCall(PetscLogEventRegister("STMatMult",ST_CLASSID,&ST_MatMult));
   PetscCall(PetscLogEventRegister("STMatMultTranspose",ST_CLASSID,&ST_MatMultTranspose));

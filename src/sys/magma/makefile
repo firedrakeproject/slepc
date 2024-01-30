@@ -9,7 +9,6 @@
 #
 #requirespackage 'PETSC_HAVE_MAGMA'
 
-LIBBASE  = libslepcsys
 MANSEC   = sys
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

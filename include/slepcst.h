@@ -85,8 +85,10 @@ SLEPC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STApplyHermitianTranspose(ST,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatMult(ST,PetscInt,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatMultTranspose(ST,PetscInt,Vec,Vec);
+SLEPC_EXTERN PetscErrorCode STMatMultHermitianTranspose(ST,PetscInt,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatSolve(ST,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatSolveTranspose(ST,Vec,Vec);
+SLEPC_EXTERN PetscErrorCode STMatSolveHermitianTranspose(ST,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatMatSolve(ST,Mat,Mat);
 SLEPC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
 SLEPC_EXTERN PetscErrorCode STMatSetUp(ST,PetscScalar,PetscScalar*);
@@ -152,6 +154,7 @@ SLEPC_EXTERN PetscErrorCode STShellGetContext(ST,void*);
 SLEPC_EXTERN PetscErrorCode STShellSetContext(ST,void*);
 SLEPC_EXTERN PetscErrorCode STShellSetApply(ST,PetscErrorCode (*)(ST,Vec,Vec));
 SLEPC_EXTERN PetscErrorCode STShellSetApplyTranspose(ST,PetscErrorCode (*)(ST,Vec,Vec));
+SLEPC_EXTERN PetscErrorCode STShellSetApplyHermitianTranspose(ST,PetscErrorCode (*)(ST,Vec,Vec));
 SLEPC_EXTERN PetscErrorCode STShellSetBackTransform(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*));
 
 SLEPC_EXTERN PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);

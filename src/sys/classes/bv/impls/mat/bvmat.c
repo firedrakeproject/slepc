@@ -445,6 +445,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     bv->ops->dotvec           = BVDotVec_Mat_CUDA;
     bv->ops->dotvec_local     = BVDotVec_Local_Mat_CUDA;
     bv->ops->scale            = BVScale_Mat_CUDA;
+    bv->ops->norm             = BVNorm_Mat_CUDA;
+    bv->ops->norm_local       = BVNorm_Local_Mat_CUDA;
+    bv->ops->normalize        = BVNormalize_Mat_CUDA;
     bv->ops->matmult          = BVMatMult_Mat_CUDA;
     bv->ops->copy             = BVCopy_Mat_CUDA;
     bv->ops->copycolumn       = BVCopyColumn_Mat_CUDA;
@@ -463,6 +466,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     bv->ops->dotvec           = BVDotVec_Mat;
     bv->ops->dotvec_local     = BVDotVec_Local_Mat;
     bv->ops->scale            = BVScale_Mat;
+    bv->ops->norm             = BVNorm_Mat;
+    bv->ops->norm_local       = BVNorm_Local_Mat;
+    bv->ops->normalize        = BVNormalize_Mat;
     bv->ops->matmult          = BVMatMult_Mat;
     bv->ops->copy             = BVCopy_Mat;
     bv->ops->copycolumn       = BVCopyColumn_Mat;
@@ -471,9 +477,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     bv->ops->getmat           = BVGetMat_Default;
     bv->ops->restoremat       = BVRestoreMat_Default;
   }
-  bv->ops->norm             = BVNorm_Mat;
-  bv->ops->norm_local       = BVNorm_Local_Mat;
-  bv->ops->normalize        = BVNormalize_Mat;
   bv->ops->resize           = BVResize_Mat;
   bv->ops->getarray         = BVGetArray_Mat;
   bv->ops->restorearray     = BVRestoreArray_Mat;

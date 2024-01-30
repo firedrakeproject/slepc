@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./ex1f90 [-help] [-n <n>] [all SLEPc options]
+!  Program usage: mpiexec -n <np> ./ex1f [-help] [-n <n>] [all SLEPc options]
 !
 !  Description: Simple example that solves an eigensystem with the EPS object.
 !  The standard symmetric eigenvalue problem to be solved corresponds to the
@@ -21,7 +21,6 @@
       program main
 #include <slepc/finclude/slepceps.h>
       use slepceps
-      use,intrinsic :: iso_c_binding
       implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -50,7 +49,7 @@
       one = 1
       two = 2
       three = 3
-      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,"ex1f90 test"//c_new_line,ierr))
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,"ex1f test"//c_new_line,ierr))
       if (ierr .ne. 0) then
         print*,'SlepcInitialize failed'
         stop

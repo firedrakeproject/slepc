@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./ex54f90 [-help] [-n <n>] [all SLEPc options]
+!  Program usage: mpiexec -n <np> ./ex54f [-help] [-n <n>] [all SLEPc options]
 !
 !  Description: Illustrates use of shell matrices in callback interface from Fortran.
 !  Similar to ex21.c. This one solves a simple diagonal linear eigenproblem as a NEP.
@@ -291,7 +291,7 @@
 !
 !   testset:
 !      args: -terse
-!      output_file: output/ex54f90_1.out
+!      output_file: output/ex54f_1.out
 !      filter: grep -v approximate | sed -e "s/[+-]0\.0*i//g"
 !      test:
 !         suffix: 1_slp

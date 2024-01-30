@@ -182,6 +182,90 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+PetscErrorCode BVNorm_Svec_CUDA(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  BV_SVEC           *ctx = (BV_SVEC*)bv->data;
+  const PetscScalar *array,*d_array,*d_A;
+  PetscInt          n=0;
+
+  PetscFunctionBegin;
+  if (!ctx->mpi && ((j<0 && type==NORM_FROBENIUS && bv->ld==bv->n) || (j>=0 && type==NORM_2))) {
+    /* compute on GPU with cuBLAS - TODO: include the MPI case here */
+    *val = 0.0;
+    if (!bv->n) PetscFunctionReturn(PETSC_SUCCESS);
+    PetscCall(VecCUDAGetArrayRead(ctx->v,&d_array));
+    if (PetscUnlikely(j<0)) {
+      d_A = d_array+(bv->nc+bv->l)*bv->ld;
+      n = (bv->k-bv->l)*bv->ld;
+    } else {
+      d_A = d_array+(bv->nc+j)*bv->ld;
+      n = bv->n;
+    }
+    PetscCall(BVNorm_BLAS_CUDA(bv,n,d_A,val));
+    PetscCall(VecCUDARestoreArrayRead(ctx->v,&d_array));
+  } else {
+    /* compute on CPU */
+    PetscCall(VecGetArrayRead(ctx->v,&array));
+    if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->ld,bv->ld,type,val,ctx->mpi));
+    else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->ld,bv->ld,type,val,ctx->mpi));
+    PetscCall(VecRestoreArrayRead(ctx->v,&array));
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+PetscErrorCode BVNorm_Local_Svec_CUDA(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  BV_SVEC           *ctx = (BV_SVEC*)bv->data;
+  const PetscScalar *array,*d_array,*d_A;
+  PetscInt          n=0;
+
+  PetscFunctionBegin;
+  if ((j<0 && type==NORM_FROBENIUS && bv->ld==bv->n) || (j>=0 && type==NORM_2)) {
+    /* compute on GPU with cuBLAS */
+    *val = 0.0;
+    if (!bv->n) PetscFunctionReturn(PETSC_SUCCESS);
+    PetscCall(VecCUDAGetArrayRead(ctx->v,&d_array));
+    if (PetscUnlikely(j<0)) {
+      d_A = d_array+(bv->nc+bv->l)*bv->ld;
+      n = (bv->k-bv->l)*bv->ld;
+    } else {
+      d_A = d_array+(bv->nc+j)*bv->ld;
+      n = bv->n;
+    }
+    PetscCall(BVNorm_BLAS_CUDA(bv,n,d_A,val));
+    PetscCall(VecCUDARestoreArrayRead(ctx->v,&d_array));
+  } else {
+    /* compute on CPU */
+    PetscCall(VecGetArrayRead(ctx->v,&array));
+    if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->ld,bv->ld,type,val,PETSC_FALSE));
+    else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->ld,bv->ld,type,val,PETSC_FALSE));
+    PetscCall(VecRestoreArrayRead(ctx->v,&array));
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+PetscErrorCode BVNormalize_Svec_CUDA(BV bv,PetscScalar *eigi)
+{
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+  PetscScalar    *array,*d_array,*wi=NULL;
+
+  PetscFunctionBegin;
+  if (eigi) wi = eigi+bv->l;
+  if (!ctx->mpi) {
+    /* compute on GPU with cuBLAS - TODO: include the MPI case here */
+    if (!bv->n) PetscFunctionReturn(PETSC_SUCCESS);
+    PetscCall(VecCUDAGetArray(ctx->v,&d_array));
+    PetscCall(BVNormalize_BLAS_CUDA(bv,bv->n,bv->k-bv->l,d_array+(bv->nc+bv->l)*bv->ld,bv->ld,wi));
+    PetscCall(VecCUDARestoreArray(ctx->v,&d_array));
+  } else {
+    /* compute on CPU */
+    PetscCall(VecGetArray(ctx->v,&array));
+    PetscCall(BVNormalize_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->ld,bv->ld,wi,ctx->mpi));
+    PetscCall(VecRestoreArray(ctx->v,&array));
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 PetscErrorCode BVMatMult_Svec_CUDA(BV V,Mat A,BV W)
 {
   BV_SVEC           *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;

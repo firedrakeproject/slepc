@@ -36,15 +36,12 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       n = 10
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
-     &                        '-n',n,flg,ierr)
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
-     &                        '-verbose',verbose,ierr)
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
-     &                        '-inplace',inplace,ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr))
+      PetscCallA(PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-verbose',verbose,ierr))
+      PetscCallA(PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-inplace',inplace,ierr))
 
       if (rank .eq. 0) then
         write(*,100) n
@@ -55,30 +52,29 @@
 !     Create FN object and matrix
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call FNCreate(PETSC_COMM_WORLD,fn,ierr)
-      call FNSetType(fn,FNSQRT,ierr)
+      PetscCallA(FNCreate(PETSC_COMM_WORLD,fn,ierr))
+      PetscCallA(FNSetType(fn,FNSQRT,ierr))
       tau = 0.15
       eta = 1.0
-      call FNSetScale(fn,tau,eta,ierr)
-      call FNSetFromOptions(fn,ierr)
-      call FNGetScale(fn,tau,eta,ierr)
-      call FNView(fn,PETSC_NULL_VIEWER,ierr)
+      PetscCallA(FNSetScale(fn,tau,eta,ierr))
+      PetscCallA(FNSetFromOptions(fn,ierr))
+      PetscCallA(FNGetScale(fn,tau,eta,ierr))
+      PetscCallA(FNView(fn,PETSC_NULL_VIEWER,ierr))
 
-      call MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,A,   &
-     &     ierr)
-      call PetscObjectSetName(A,'A',ierr)
-      call MatDenseGetArrayF90(A,aa,ierr)
+      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,A,ierr))
+      PetscCallA(PetscObjectSetName(A,'A',ierr))
+      PetscCallA(MatDenseGetArrayF90(A,aa,ierr))
       call FillUpMatrix(n,aa)
-      call MatDenseRestoreArrayF90(A,aa,ierr)
-      call MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE,ierr)
+      PetscCallA(MatDenseRestoreArrayF90(A,aa,ierr))
+      PetscCallA(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Scalar evaluation
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       x = 2.2
-      call FNEvaluateFunction(fn,x,y,ierr)
-      call FNEvaluateDerivative(fn,x,yp,ierr)
+      PetscCallA(FNEvaluateFunction(fn,x,y,ierr))
+      PetscCallA(FNEvaluateDerivative(fn,x,yp,ierr))
 
       if (rank .eq. 0) then
         re = PetscRealPart(y)
@@ -103,32 +99,31 @@
 !     Compute matrix square root
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,S,   &
-     &     ierr)
-      call PetscObjectSetName(S,'S',ierr)
+      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,S,ierr))
+      PetscCallA(PetscObjectSetName(S,'S',ierr))
       if (inplace) then
-        call MatCopy(A,S,SAME_NONZERO_PATTERN,ierr)
-        call MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE,ierr)
-        call FNEvaluateFunctionMat(fn,S,PETSC_NULL_MAT,ierr)
+        PetscCallA(MatCopy(A,S,SAME_NONZERO_PATTERN,ierr))
+        PetscCallA(MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE,ierr))
+        PetscCallA(FNEvaluateFunctionMat(fn,S,PETSC_NULL_MAT,ierr))
       else
-        call FNEvaluateFunctionMat(fn,A,S,ierr)
+        PetscCallA(FNEvaluateFunctionMat(fn,A,S,ierr))
       endif
       if (verbose) then
         if (rank .eq. 0) write (*,*) 'Matrix A - - - - - - - -'
-        call MatView(A,PETSC_NULL_VIEWER,ierr)
+        PetscCallA(MatView(A,PETSC_NULL_VIEWER,ierr))
         if (rank .eq. 0) write (*,*) 'Computed sqrtm(A) - - - - - - - -'
-        call MatView(S,PETSC_NULL_VIEWER,ierr)
+        PetscCallA(MatView(S,PETSC_NULL_VIEWER,ierr))
       endif
 
 !     *** check error ||S*S-A||_F
-      call MatMatMult(S,S,MAT_INITIAL_MATRIX,PETSC_DEFAULT_REAL,R,ierr)
+      PetscCallA(MatMatMult(S,S,MAT_INITIAL_MATRIX,PETSC_DEFAULT_REAL,R,ierr))
       if (eta .ne. 1.0) then
         alpha = 1.0/(eta*eta)
-        call MatScale(R,alpha,ierr)
+        PetscCallA(MatScale(R,alpha,ierr))
       endif
       alpha = -tau
-      call MatAXPY(R,alpha,A,SAME_NONZERO_PATTERN,ierr)
-      call MatNorm(R,NORM_FROBENIUS,nrm,ierr)
+      PetscCallA(MatAXPY(R,alpha,A,SAME_NONZERO_PATTERN,ierr))
+      PetscCallA(MatNorm(R,NORM_FROBENIUS,nrm,ierr))
       if (nrm<100*PETSC_MACHINE_EPSILON) then
         write (*,*) '||S*S-A||_F < 100*eps'
       else
@@ -137,11 +132,11 @@
  130  format ('||S*S-A||_F = ',F8.5)
 
 !     *** Clean up
-      call MatDestroy(S,ierr)
-      call MatDestroy(R,ierr)
-      call MatDestroy(A,ierr)
-      call FNDestroy(fn,ierr)
-      call SlepcFinalize(ierr)
+      PetscCallA(MatDestroy(S,ierr))
+      PetscCallA(MatDestroy(R,ierr))
+      PetscCallA(MatDestroy(A,ierr))
+      PetscCallA(FNDestroy(fn,ierr))
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 ! -----------------------------------------------------------------

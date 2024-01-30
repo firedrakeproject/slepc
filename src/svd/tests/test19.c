@@ -97,7 +97,7 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
-      args: -bv_orthog_block tsqr    # currently fail with other block orthogonalization methods
+      args: -bv_orthog_block tsqr # currently fail with other block orthogonalization methods
       requires: !single
 
 TEST*/

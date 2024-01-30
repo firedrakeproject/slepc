@@ -9,6 +9,4 @@
 #
 #requiresdefine   'PETSC_USE_FORTRAN_BINDINGS'
 
-LIBBASE  = libslepcsys
-
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
