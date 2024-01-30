@@ -138,18 +138,13 @@ check_build:
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10
 	+@if [ ! "${MPI_IS_MPIUNI}" ]; then cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_mpi; fi
-	+@if [ -f ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h ]; then \
-           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h | tee .ftn.log > /dev/null; \
-         elif [ -f ${PETSC_DIR}/include/petscconf.h ]; then \
-           grep -E "^#define PETSC_USE_FORTRAN_BINDINGS 1" ${PETSC_DIR}/include/petscconf.h | tee .ftn.log > /dev/null; \
-         fi; \
-         if test -s .ftn.log; then \
+	+@if [ "`grep -E '^#define PETSC_USE_FORTRAN_BINDINGS 1' ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h 2>/dev/null`" = "#define PETSC_USE_FORTRAN_BINDINGS 1" ] || [ "`grep -E '^#define PETSC_USE_FORTRAN_BINDINGS 1' ${PETSC_DIR}/include/petscconf.h 2>/dev/null`" = "#define PETSC_USE_FORTRAN_BINDINGS 1" ]; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest7f; \
-         fi ; ${RM} .ftn.log
-	+@if [ "${CUDA_LIB}" != "" ]; then \
+         fi
+	+@if [ "`grep -E '^#define PETSC_HAVE_CUDA 1' ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h 2>/dev/null`" = "#define PETSC_HAVE_CUDA 1" ] || [ "`grep -E '^#define PETSC_HAVE_CUDA 1' ${PETSC_DIR}/include/petscconf.h 2>/dev/null`" = "#define PETSC_HAVE_CUDA 1" ]; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_cuda; \
          fi
-	+@if [ "${BLOPEX_LIB}" != "" ]; then \
+	+@if [ "`grep -E '^#define SLEPC_HAVE_BLOPEX 1' ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h`" = "#define SLEPC_HAVE_BLOPEX 1" ]; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest5_blopex; \
          fi
 	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
