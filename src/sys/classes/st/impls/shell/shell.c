@@ -117,6 +117,7 @@ static PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+#if defined(PETSC_USE_COMPLEX)
 static PetscErrorCode STApplyHermitianTranspose_Shell(ST st,Vec x,Vec y)
 {
   ST_SHELL         *shell = (ST_SHELL*)st->data;
@@ -148,6 +149,7 @@ static PetscErrorCode STApplyHermitianTranspose_Shell(ST st,Vec x,Vec y)
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
+#endif
 
 static PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
@@ -255,6 +257,7 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST st
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+#if defined(PETSC_USE_COMPLEX)
 static PetscErrorCode STShellSetApplyHermitianTranspose_Shell(ST st,PetscErrorCode (*applyhermtrans)(ST,Vec,Vec))
 {
   ST_SHELL *shell = (ST_SHELL*)st->data;
@@ -263,6 +266,7 @@ static PetscErrorCode STShellSetApplyHermitianTranspose_Shell(ST st,PetscErrorCo
   shell->applyhermtrans = applyhermtrans;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
+#endif
 
 /*@C
    STShellSetApplyHermitianTranspose - Sets routine to use as the application of the
@@ -279,6 +283,10 @@ $  PetscErrorCode applyhermtrans(ST st,Vec xin,Vec xout)
 +  st   - the spectral transformation context
 .  xin  - input vector
 -  xout - output vector
+
+   Note:
+   If configured with real scalars, this function has the same effect as STShellSetApplyTranspose(),
+   so no need to call both.
 
    Level: advanced
 
@@ -349,7 +357,7 @@ $             STSetType(st,STSHELL);
 $             STShellSetContext(st,ctx);
 $             STShellSetApply(st,apply);
 $             STShellSetApplyTranspose(st,applytrans);        (optional)
-$             STShellSetApplyHermitianTranspose(st,applyht);  (optional)
+$             STShellSetApplyHermitianTranspose(st,applyht);  (optional, only in complex scalars)
 $             STShellSetBackTransform(st,backtr);             (optional)
 
 M*/
@@ -366,13 +374,21 @@ SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST st)
 
   st->ops->apply           = STApply_Shell;
   st->ops->applytrans      = STApplyTranspose_Shell;
+#if defined(PETSC_USE_COMPLEX)
   st->ops->applyhermtrans  = STApplyHermitianTranspose_Shell;
+#else
+  st->ops->applyhermtrans  = STApplyTranspose_Shell;
+#endif
   st->ops->backtransform   = STBackTransform_Shell;
   st->ops->destroy         = STDestroy_Shell;
 
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",STShellSetApply_Shell));
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",STShellSetApplyTranspose_Shell));
+#if defined(PETSC_USE_COMPLEX)
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyHermitianTranspose_C",STShellSetApplyHermitianTranspose_Shell));
+#else
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyHermitianTranspose_C",STShellSetApplyTranspose_Shell));
+#endif
   PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",STShellSetBackTransform_Shell));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
