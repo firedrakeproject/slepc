@@ -195,6 +195,7 @@ SLEPC_EXTERN PetscErrorCode DSSynchronize(DS,PetscScalar*,PetscScalar*);
 PETSC_DEPRECATED_FUNCTION(3, 18, 0, "DSGetMat()+MatDenseGetSubMatrix()+MatCopy()", ) static inline PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscInt Ar,PetscInt Ac,PetscInt rows,PetscInt cols,PetscBool out)
 {
   Mat M,M0,A0;
+
   PetscFunctionBegin;
   PetscCall(DSGetMat(ds,m,&M));
   PetscCall(MatDenseGetSubMatrix(M,mr,mr+rows,mc,mc+cols,&M0));
