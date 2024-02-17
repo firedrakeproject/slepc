@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Used by the makefile lib/petsc/conf/rules html to replace #includes in the source files with links when possible
 

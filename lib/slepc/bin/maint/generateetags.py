@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#!/bin/env python3
 #
 #    Generates etag and ctag (use -noctags to skip generation of ctags) files for SLEPc
 #    Adds file names to list of tags in a TAGS file
