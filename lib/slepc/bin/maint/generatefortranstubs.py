@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#!/bin/env python3
 #
 #    Generates fortran stubs for PETSc using the Sowing bfort program
 #
