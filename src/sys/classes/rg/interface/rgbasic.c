@@ -677,7 +677,7 @@ PetscErrorCode RGSetComplement(RG rg,PetscBool flg)
 }
 
 /*@
-   RGGetComplement - Gets a flag that that indicates whether the region
+   RGGetComplement - Gets a flag that indicates whether the region
    is complemented or not.
 
    Not Collective

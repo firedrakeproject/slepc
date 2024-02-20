@@ -178,7 +178,7 @@ static PetscErrorCode EPSSolve_ARPACK(EPS eps)
       PetscCall(VecPlaceArray(y,&ar->workd[ipntr[1]-1]));
 
       if (ido == -1) {
-        /* Y = OP * X for for the initialization phase to
+        /* Y = OP * X for the initialization phase to
            force the starting vector into the range of OP */
         PetscCall(STApply(eps->st,x,y));
       } else if (ido == 2) {
