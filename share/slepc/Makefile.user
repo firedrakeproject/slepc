@@ -8,23 +8,23 @@ petsc.pc := $(PETSC_DIR)/$(PETSC_ARCH)/lib/pkgconfig/petsc.pc
 slepc.pc := $(SLEPC_DIR)/$(PETSC_ARCH)/lib/pkgconfig/slepc.pc
 
 # Additional libraries that support pkg-config can be added to the list of PACKAGES below.
-PACKAGES := $(petsc.pc) $(slepc.pc)
+PACKAGES := $(slepc.pc)
 
-CC := $(shell pkg-config --variable=ccompiler $(PACKAGES))
-CXX := $(shell pkg-config --variable=cxxcompiler $(PACKAGES))
-FC := $(shell pkg-config --variable=fcompiler $(PACKAGES))
-CFLAGS_OTHER := $(shell pkg-config --cflags-only-other $(PACKAGES))
-CFLAGS := $(shell pkg-config --variable=cflags_extra $(PACKAGES)) $(CFLAGS_OTHER)
-CXXFLAGS := $(shell pkg-config --variable=cxxflags_extra $(PACKAGES)) $(CFLAGS_OTHER)
-FFLAGS := $(shell pkg-config --variable=fflags_extra $(PACKAGES))
+CC := $(shell pkg-config --variable=ccompiler $(petsc.pc))
+CXX := $(shell pkg-config --variable=cxxcompiler $(petsc.pc))
+FC := $(shell pkg-config --variable=fcompiler $(petsc.pc))
+CFLAGS_OTHER := $(shell pkg-config --cflags-only-other $(petsc.pc))
+CFLAGS := $(shell pkg-config --variable=cflags_extra $(petsc.pc)) $(CFLAGS_OTHER)
+CXXFLAGS := $(shell pkg-config --variable=cxxflags_extra $(petsc.pc)) $(CFLAGS_OTHER)
+FFLAGS := $(shell pkg-config --variable=fflags_extra $(petsc.pc))
 CPPFLAGS := $(shell pkg-config --cflags-only-I $(PACKAGES))
 LDFLAGS := $(shell pkg-config --libs-only-L --libs-only-other $(PACKAGES))
 LDFLAGS += $(patsubst -L%, $(shell pkg-config --variable=ldflag_rpath $(petsc.pc))%,$(shell pkg-config --libs-only-L $(PACKAGES)))
 LDLIBS := $(shell pkg-config --libs-only-l $(PACKAGES)) -lm
-CUDAC := $(shell pkg-config --variable=cudacompiler $(PACKAGES))
-CUDAC_FLAGS := $(shell pkg-config --variable=cudaflags_extra $(PACKAGES))
-CUDA_LIB := $(shell pkg-config --variable=cudalib $(PACKAGES))
-CUDA_INCLUDE := $(shell pkg-config --variable=cudainclude $(PACKAGES))
+CUDAC := $(shell pkg-config --variable=cudacompiler $(petsc.pc))
+CUDAC_FLAGS := $(shell pkg-config --variable=cudaflags_extra $(petsc.pc))
+CUDA_LIB := $(shell pkg-config --variable=cudalib $(petsc.pc))
+CUDA_INCLUDE := $(shell pkg-config --variable=cudainclude $(petsc.pc))
 
 print:
 	@echo CC=$(CC)
