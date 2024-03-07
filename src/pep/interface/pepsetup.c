@@ -483,7 +483,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
   /* allocate V */
   if (!pep->V) PetscCall(PEPGetBV(pep,&pep->V));
   if (!oldsize) {
-    if (!((PetscObject)(pep->V))->type_name) PetscCall(BVSetType(pep->V,BVMAT));
+    if (!((PetscObject)pep->V)->type_name) PetscCall(BVSetType(pep->V,BVMAT));
     PetscCall(STMatCreateVecsEmpty(pep->st,&t,NULL));
     PetscCall(BVSetSizesFromVec(pep->V,t,requestedbv));
     PetscCall(VecDestroy(&t));

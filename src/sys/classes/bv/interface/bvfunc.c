@@ -118,8 +118,8 @@ PetscErrorCode BVDestroy(BV *bv)
   PetscFunctionBegin;
   if (!*bv) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*bv,BV_CLASSID,1);
-  PetscCheck(!(*bv)->lsplit,PetscObjectComm((PetscObject)(*bv)),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
-  if (--((PetscObject)(*bv))->refct > 0) { *bv = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  PetscCheck(!(*bv)->lsplit,PetscObjectComm((PetscObject)*bv),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
+  if (--((PetscObject)*bv)->refct > 0) { *bv = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscTryTypeMethod(*bv,destroy);
   PetscCall(PetscLayoutDestroy(&(*bv)->map));
   PetscCall(PetscFree((*bv)->vtype));

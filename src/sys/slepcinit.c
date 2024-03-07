@@ -165,22 +165,22 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
     PetscBool found;
 #if defined(PETSC_USE_SINGLE_LIBRARY)
     PetscCall(SlepcLoadDynamicLibrary("",&found));
-    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library. You cannot move the dynamic libraries!");
 #else
     PetscCall(SlepcLoadDynamicLibrary("sys",&found));
-    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc sys dynamic library\nYou cannot move the dynamic libraries!");
+    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc sys dynamic library. You cannot move the dynamic libraries!");
     PetscCall(SlepcLoadDynamicLibrary("eps",&found));
-    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc EPS dynamic library\nYou cannot move the dynamic libraries!");
+    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc EPS dynamic library. You cannot move the dynamic libraries!");
     PetscCall(SlepcLoadDynamicLibrary("pep",&found));
-    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc PEP dynamic library\nYou cannot move the dynamic libraries!");
+    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc PEP dynamic library. You cannot move the dynamic libraries!");
     PetscCall(SlepcLoadDynamicLibrary("nep",&found));
-    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc NEP dynamic library\nYou cannot move the dynamic libraries!");
+    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc NEP dynamic library. You cannot move the dynamic libraries!");
     PetscCall(SlepcLoadDynamicLibrary("svd",&found));
-    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc SVD dynamic library\nYou cannot move the dynamic libraries!");
+    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc SVD dynamic library. You cannot move the dynamic libraries!");
     PetscCall(SlepcLoadDynamicLibrary("mfn",&found));
-    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc MFN dynamic library\nYou cannot move the dynamic libraries!");
+    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc MFN dynamic library. You cannot move the dynamic libraries!");
     PetscCall(SlepcLoadDynamicLibrary("lme",&found));
-    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc LME dynamic library\nYou cannot move the dynamic libraries!");
+    PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc LME dynamic library. You cannot move the dynamic libraries!");
 #endif
 #else /* defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES) */
 #if defined(PETSC_USE_SINGLE_LIBRARY)

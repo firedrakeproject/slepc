@@ -704,7 +704,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   /* allocate V */
   if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
   if (!oldsize) {
-    if (!((PetscObject)(eps->V))->type_name) PetscCall(BVSetType(eps->V,BVMAT));
+    if (!((PetscObject)eps->V)->type_name) PetscCall(BVSetType(eps->V,BVMAT));
     PetscCall(STMatCreateVecsEmpty(eps->st,&t,NULL));
     PetscCall(BVSetSizesFromVec(eps->V,t,requested));
     PetscCall(VecDestroy(&t));

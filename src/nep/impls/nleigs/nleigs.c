@@ -372,7 +372,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   }
 #endif
   /* Discretize the singularity region */
-  if (ctx->computesingularities) PetscCall((ctx->computesingularities)(nep,&ndptx,dxi,ctx->singularitiesctx));
+  if (ctx->computesingularities) PetscCall(ctx->computesingularities(nep,&ndptx,dxi,ctx->singularitiesctx));
   else {
     if (nep->problem_type==NEP_RATIONAL) {
       PetscCall(NEPNLEIGSRationalSingularities(nep,&ndptx,dxi,&rational));

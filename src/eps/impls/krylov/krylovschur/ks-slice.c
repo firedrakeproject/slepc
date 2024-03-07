@@ -136,7 +136,7 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   PetscCall(BVDestroy(&sr->V));
   PetscCall(BVCreate(PetscObjectComm((PetscObject)eps),&sr->V));
   if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
-  if (!((PetscObject)(eps->V))->type_name) PetscCall(BVSetType(sr->V,BVMAT));
+  if (!((PetscObject)eps->V)->type_name) PetscCall(BVSetType(sr->V,BVMAT));
   else {
     PetscCall(BVGetType(eps->V,&type));
     PetscCall(BVSetType(sr->V,type));
@@ -199,7 +199,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   PetscCall(EPSGetBV(ctx->eps,&V));
   PetscCall(BVGetRandomContext(V,&rand));  /* make sure the random context is available when duplicating */
   if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
-  if (!((PetscObject)(eps->V))->type_name) PetscCall(BVSetType(V,BVMAT));
+  if (!((PetscObject)eps->V)->type_name) PetscCall(BVSetType(V,BVMAT));
   else {
     PetscCall(BVGetType(eps->V,&type));
     PetscCall(BVSetType(V,type));
@@ -415,17 +415,17 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       PetscCallMPI(MPI_Comm_rank(child,&rank));
       if (!rank) {
         if (sr->inertia0!=-1 && ((sr->dir>0 && ctx->subc->color>0) || (sr->dir<0 && ctx->subc->color<ctx->npart-1))) { /* send inertia0 to neighbour0 */
-          PetscCallMPI(MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
-          PetscCallMPI(MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
         }
         if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)|| (sr->dir<0 && ctx->subc->color>0)) { /* receive inertia1 from neighbour1 */
-          PetscCallMPI(MPI_Recv(&(sr->inertia1),1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE));
-          PetscCallMPI(MPI_Recv(&(sr->int1),1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE));
+          PetscCallMPI(MPI_Recv(&sr->inertia1,1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE));
+          PetscCallMPI(MPI_Recv(&sr->int1,1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE));
         }
         if (sr->inertia0==-1 && !(sr->dir>0 && ctx->subc->color==ctx->npart-1) && !(sr->dir<0 && ctx->subc->color==0)) {
           sr->inertia0 = sr->inertia1; sr->int0 = sr->int1;
-          PetscCallMPI(MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
-          PetscCallMPI(MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
         }
       }
       if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)||(sr->dir<0 && ctx->subc->color>0)) {
@@ -440,8 +440,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       PetscCheck(zeros==0,((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
       if (!rank && sr->inertia0==-1) {
         sr->inertia0 = sr->inertia1; sr->int0 = sr->int1;
-        PetscCallMPI(MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
-        PetscCallMPI(MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+        PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+        PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
       }
       if (sr->hasEnd) {
         sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
@@ -912,8 +912,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     count0=count1=0;
     for (i=0;i<k;i++) {
       lambda = PetscRealPart(sr->back[i]);
-      if (((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0)) count0++;
-      if (((sr->dir)*(lambda - sPres->value) > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0)) count1++;
+      if ((sr->dir*(sPres->value - lambda) > 0) && (sr->dir*(lambda - sPres->ext[0]) > 0)) count0++;
+      if ((sr->dir*(lambda - sPres->value) > 0) && (sr->dir*(sPres->ext[1] - lambda) > 0)) count1++;
     }
     if (k>eps->nev && eps->ncv-k<5) eps->reason = EPS_CONVERGED_TOL;
     else {
@@ -986,7 +986,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   /* Check for completion */
   for (i=0;i< eps->nconv; i++) {
-    if ((sr->dir)*PetscRealPart(eps->eigr[i])>0) sPres->nconv[1]++;
+    if (sr->dir*PetscRealPart(eps->eigr[i])>0) sPres->nconv[1]++;
     else sPres->nconv[0]++;
   }
   sPres->comp[0] = PetscNot(count0 < sPres->nsch[0]);
@@ -1019,7 +1019,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
     if (sPres->neigs==0) {/* No value has been accepted*/
       if (sPres->neighb[0]) {
         /* Multiplying by 10 the previous distance */
-        *newS = sPres->value + 10*(sr->dir)*PetscAbsReal(sPres->value - sPres->neighb[0]->value);
+        *newS = sPres->value + 10*sr->dir*PetscAbsReal(sPres->value - sPres->neighb[0]->value);
         sr->nleap++;
         /* Stops when the interval is open and no values are found in the last 5 shifts (there might be infinite eigenvalues) */
         PetscCheck(sr->hasEnd || sr->nleap<=5,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unable to compute the wanted eigenvalues with open interval");
@@ -1029,7 +1029,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         idxP=0;/* Number of values left from shift */
         for (i=0;i<eps->nconv;i++) {
           lambda = PetscRealPart(eps->eigr[i]);
-          if ((sr->dir)*(lambda - sPres->value) <0) idxP++;
+          if (sr->dir*(lambda - sPres->value) <0) idxP++;
           else break;
         }
         /* Avoiding subtraction of eigenvalues (might be the same).*/
@@ -1038,7 +1038,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         } else {
           d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[eps->nconv-1]))/(eps->nconv+0.3);
         }
-        *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
+        *newS = sPres->value + (sr->dir*d_prev*eps->nev)/2;
       }
     } else { /* Accepted values found */
       sr->nleap = 0;
@@ -1051,21 +1051,21 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         d_prev = PetscAbsReal((sPres->value - s->value)/(sPres->inertia - s->inertia));
       } else { /* First shift. Average distance obtained with values in this shift */
         /* first shift might be too far from first wanted eigenvalue (no values found outside the interval)*/
-        if ((sr->dir)*(PetscRealPart(sr->eigr[0])-sPres->value)>0 && PetscAbsReal((PetscRealPart(sr->eigr[sr->indexEig-1]) - PetscRealPart(sr->eigr[0]))/PetscRealPart(sr->eigr[0])) > PetscSqrtReal(eps->tol)) {
+        if (sr->dir*(PetscRealPart(sr->eigr[0])-sPres->value)>0 && PetscAbsReal((PetscRealPart(sr->eigr[sr->indexEig-1]) - PetscRealPart(sr->eigr[0]))/PetscRealPart(sr->eigr[0])) > PetscSqrtReal(eps->tol)) {
           d_prev =  PetscAbsReal((PetscRealPart(sr->eigr[sr->indexEig-1]) - PetscRealPart(sr->eigr[0])))/(sPres->neigs+0.3);
         } else {
           d_prev = PetscAbsReal(PetscRealPart(sr->eigr[sr->indexEig-1]) - sPres->value)/(sPres->neigs+0.3);
         }
       }
       /* Average distance is used for next shift by adding it to value on the right or to shift */
-      if ((sr->dir)*(PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1]) - sPres->value)>0) {
-        *newS = PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1])+ ((sr->dir)*d_prev*(eps->nev))/2;
+      if (sr->dir*(PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1]) - sPres->value)>0) {
+        *newS = PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1])+ (sr->dir*d_prev*eps->nev)/2;
       } else { /* Last accepted value is on the left of shift. Adding to shift */
-        *newS = sPres->value + ((sr->dir)*d_prev*(eps->nev))/2;
+        *newS = sPres->value + (sr->dir*d_prev*eps->nev)/2;
       }
     }
     /* End of interval can not be surpassed */
-    if ((sr->dir)*(sr->int1 - *newS) < 0) *newS = sr->int1;
+    if (sr->dir*(sr->int1 - *newS) < 0) *newS = sr->int1;
   }/* of neighb[side]==null */
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1116,7 +1116,7 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
     lambda = PetscRealPart(eps->eigr[eps->perm[i]]);
     err = eps->errest[eps->perm[i]];
 
-    if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
+    if (sr->dir*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
       PetscCheck(count<sr->numEigs,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unexpected error in Spectrum Slicing");
       sr->eigr[count] = lambda;
       sr->errest[count] = err;
@@ -1168,8 +1168,8 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   for (i=ini;i<fin;i++) {
     val=PetscRealPart(sr->eigr[sr->perm[i]]);
     /* Values to the right of left shift */
-    if ((sr->dir)*(val - sPres->ext[1]) < 0) {
-      if ((sr->dir)*(val - sPres->value) < 0) count0++;
+    if (sr->dir*(val - sPres->ext[1]) < 0) {
+      if (sr->dir*(val - sPres->value) < 0) count0++;
       else count1++;
     } else break;
   }

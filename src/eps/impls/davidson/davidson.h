@@ -203,7 +203,7 @@ static inline PetscErrorCode EPSDavidsonFLCall(dvdFunctionList *fl,dvdDashboard 
   dvdFunctionList *l;
 
   PetscFunctionBegin;
-  for (l=fl;l;l=l->next) PetscCall((l->f)(d));
+  for (l=fl;l;l=l->next) PetscCall(l->f(d));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

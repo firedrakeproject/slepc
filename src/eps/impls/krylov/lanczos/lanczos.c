@@ -50,7 +50,7 @@ static PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION);
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE);
 
-  PetscCheck(lanczos->reorthog!=(EPSLanczosReorthogType)-1,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"You should explicitly provide the reorthogonalization type, e.g., -eps_lanczos_reorthog local\n          ...   Note that the EPSLANCZOS solver is *NOT RECOMMENDED* for general use, because it uses\n          ...   explicit restart which typically has slow convergence. The recommended solver is\n          ...   EPSKRYLOVSCHUR (the default), which implements Lanczos with thick restart in the\n          ...   case of symmetric/Hermitian problems");
+  PetscCheck(lanczos->reorthog!=(EPSLanczosReorthogType)-1,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"You should explicitly provide the reorthogonalization type, e.g., -eps_lanczos_reorthog local. Note that the EPSLANCZOS solver is *NOT RECOMMENDED* for general use, because it uses explicit restart which typically has slow convergence. The recommended solver is EPSKRYLOVSCHUR (the default), which implements Lanczos with thick restart in the case of symmetric/Hermitian problems");
 
   PetscCall(EPSAllocateSolution(eps,1));
   PetscCall(EPS_SetInnerProduct(eps));

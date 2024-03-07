@@ -378,7 +378,7 @@ PetscErrorCode LMEAllocateSolution(LME lme,PetscInt extra)
   /* allocate basis vectors */
   if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
   if (!oldsize) {
-    if (!((PetscObject)(lme->V))->type_name) PetscCall(BVSetType(lme->V,BVMAT));
+    if (!((PetscObject)lme->V)->type_name) PetscCall(BVSetType(lme->V,BVMAT));
     PetscCall(MatCreateVecsEmpty(lme->A,&t,NULL));
     PetscCall(BVSetSizesFromVec(lme->V,t,requested));
     PetscCall(VecDestroy(&t));
