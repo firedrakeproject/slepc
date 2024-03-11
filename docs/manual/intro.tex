@@ -352,7 +352,6 @@ Usage of matrices and vectors in \slepc is exactly the same as in \petsc. The us
         MatCreate(MPI_Comm comm,Mat *A);
         MatSetSizes(Mat A,PetscInt m,PetscInt n,PetscInt M,PetscInt N);
         MatSetFromOptions(Mat A);
-        MatSetUp(Mat A);
         \end{Verbatim}
 where the matrix format can be specified at runtime. The example creates a matrix, sets the nonzero values with \rutina{MatSetValues} and then assembles it.
 

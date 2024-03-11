@@ -58,7 +58,6 @@
       PetscCallA(MatCreate(PETSC_COMM_WORLD,A(1),ierr))
       PetscCallA(MatSetSizes(A(1),PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
       PetscCallA(MatSetFromOptions(A(1),ierr))
-      PetscCallA(MatSetUp(A(1),ierr))
       PetscCallA(MatGetOwnershipRange(A(1),Istart,Iend,ierr))
       do i=Istart,Iend-1
         val = i+1
@@ -70,7 +69,6 @@
       PetscCallA(MatCreate(PETSC_COMM_WORLD,A(2),ierr))
       PetscCallA(MatSetSizes(A(2),PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
       PetscCallA(MatSetFromOptions(A(2),ierr))
-      PetscCallA(MatSetUp(A(2),ierr))
       PetscCallA(MatGetOwnershipRange(A(2),Istart,Iend,ierr))
       do i=Istart,Iend-1
         val = 1
@@ -82,7 +80,6 @@
       PetscCallA(MatCreate(PETSC_COMM_WORLD,A(3),ierr))
       PetscCallA(MatSetSizes(A(3),PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
       PetscCallA(MatSetFromOptions(A(3),ierr))
-      PetscCallA(MatSetUp(A(3),ierr))
       PetscCallA(MatGetOwnershipRange(A(3),Istart,Iend,ierr))
       do i=Istart,Iend-1
         val = real(n)/real(i+1)

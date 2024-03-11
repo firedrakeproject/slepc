@@ -46,7 +46,6 @@ PetscErrorCode BuildSplitMatrices(PetscInt n,PetscReal a,Mat *Id,Mat *A,Mat *B)
   PetscCall(MatCreate(PETSC_COMM_WORLD,A));
   PetscCall(MatSetSizes(*A,PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(*A));
-  PetscCall(MatSetUp(*A));
   PetscCall(MatGetOwnershipRange(*A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     if (i>0) PetscCall(MatSetValue(*A,i,i-1,1.0/(h*h),INSERT_VALUES));
@@ -61,7 +60,6 @@ PetscErrorCode BuildSplitMatrices(PetscInt n,PetscReal a,Mat *Id,Mat *A,Mat *B)
   PetscCall(MatCreate(PETSC_COMM_WORLD,B));
   PetscCall(MatSetSizes(*B,PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(*B));
-  PetscCall(MatSetUp(*B));
   PetscCall(MatGetOwnershipRange(*B,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     xi = (i+1)*h;
@@ -188,14 +186,12 @@ int main(int argc,char **argv)
     PetscCall(MatSetFromOptions(F));
     PetscCall(MatSeqAIJSetPreallocation(F,3,NULL));
     PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-    PetscCall(MatSetUp(F));
     PetscCall(NEPSetFunction(nep,F,F,FormFunction,&ctx));
     PetscCall(MatCreate(PETSC_COMM_WORLD,&J));
     PetscCall(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n));
     PetscCall(MatSetFromOptions(J));
     PetscCall(MatSeqAIJSetPreallocation(J,3,NULL));
     PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-    PetscCall(MatSetUp(J));
     PetscCall(NEPSetJacobian(nep,J,FormJacobian,&ctx));
   }
 
@@ -230,14 +226,12 @@ int main(int argc,char **argv)
     PetscCall(MatSetFromOptions(F));
     PetscCall(MatSeqAIJSetPreallocation(F,3,NULL));
     PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-    PetscCall(MatSetUp(F));
     PetscCall(NEPSetFunction(nep,F,F,FormFunction,&ctx));
     PetscCall(MatCreate(PETSC_COMM_WORLD,&J));
     PetscCall(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n));
     PetscCall(MatSetFromOptions(J));
     PetscCall(MatSeqAIJSetPreallocation(J,3,NULL));
     PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-    PetscCall(MatSetUp(J));
     PetscCall(NEPSetJacobian(nep,J,FormJacobian,&ctx));
   }
 

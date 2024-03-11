@@ -92,7 +92,6 @@ PetscErrorCode GraphPreallocate(Graph graph,char *filename)
   PetscCall(MatCreate(graph->comm,&graph->adjacency));
   PetscCall(MatSetSizes(graph->adjacency,PETSC_DECIDE,PETSC_DECIDE,graph->nvertices,graph->nvertices));
   PetscCall(MatSetType(graph->adjacency,MATAIJ));
-  PetscCall(MatSetUp(graph->adjacency));   /* otherwise MatGetOwnershipRange() cannot be called */
   PetscCall(MatGetOwnershipRange(graph->adjacency,&Istart,&Iend));
   PetscCall(PetscCalloc2(Iend-Istart,&d_nnz,Iend-Istart,&o_nnz));
 
