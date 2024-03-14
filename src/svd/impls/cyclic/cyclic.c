@@ -95,7 +95,6 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
     PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Zm));
     PetscCall(MatSetSizes(Zm,m,m,M,M));
     PetscCall(MatSetFromOptions(Zm));
-    PetscCall(MatSetUp(Zm));
     PetscCall(MatGetOwnershipRange(Zm,&Istart,&Iend));
     for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(Zm,i,i,0.0,INSERT_VALUES));
     PetscCall(MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY));
@@ -103,7 +102,6 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
     PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Zn));
     PetscCall(MatSetSizes(Zn,n,n,N,N));
     PetscCall(MatSetFromOptions(Zn));
-    PetscCall(MatSetUp(Zn));
     PetscCall(MatGetOwnershipRange(Zn,&Istart,&Iend));
     for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(Zn,i,i,0.0,INSERT_VALUES));
     PetscCall(MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY));
@@ -282,7 +280,6 @@ static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
     PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Zm));
     PetscCall(MatSetSizes(Zm,m,n,M,N));
     PetscCall(MatSetFromOptions(Zm));
-    PetscCall(MatSetUp(Zm));
     PetscCall(MatGetOwnershipRange(Zm,&Istart,&Iend));
     for (i=Istart;i<Iend;i++) {
       if (i<N) PetscCall(MatSetValue(Zm,i,i,0.0,INSERT_VALUES));
@@ -292,7 +289,6 @@ static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
     PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Zn));
     PetscCall(MatSetSizes(Zn,n,m,N,M));
     PetscCall(MatSetFromOptions(Zn));
-    PetscCall(MatSetUp(Zn));
     PetscCall(MatGetOwnershipRange(Zn,&Istart,&Iend));
     for (i=Istart;i<Iend;i++) {
       if (i<m) PetscCall(MatSetValue(Zn,i,i,0.0,INSERT_VALUES));
@@ -407,7 +403,6 @@ static PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
     PetscCall(MatSetSizes(Omega,m+n,m+n,M+N,M+N));
     PetscCall(MatSetType(Omega,Atype));
-    PetscCall(MatSetUp(Omega));
     PetscCall(MatDiagonalSet(Omega,v,INSERT_VALUES));
     PetscCall(EPSSetOperators(cyclic->eps,cyclic->C,Omega));
     PetscCall(EPSSetProblemType(cyclic->eps,EPS_GHIEP));
