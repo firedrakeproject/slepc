@@ -33,7 +33,6 @@ PetscErrorCode Laplacian(MPI_Comm comm,PetscInt n,PetscInt m,PetscInt shift,Mat 
   PetscCall(MatCreate(comm,A));
   PetscCall(MatSetSizes(*A,nloc,nloc,N,N));
   PetscCall(MatSetFromOptions(*A));
-  PetscCall(MatSetUp(*A));
   PetscCall(MatGetOwnershipRange(*A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;

@@ -578,7 +578,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
   PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,P+Q,N));
   PetscCall(MatSetFromOptions(A));
-  PetscCall(MatSetUp(A));
   PetscCall(MatSetOption(A,MAT_IGNORE_OFF_PROC_ENTRIES,PETSC_TRUE));
 
   /* Set diagonals */
@@ -680,7 +679,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&Omega));
   PetscCall(MatSetSizes(Omega,PETSC_DECIDE,PETSC_DECIDE,P+Q,P+Q));
   PetscCall(MatSetType(Omega,Atype));
-  PetscCall(MatSetUp(Omega));
   PetscCall(MatDiagonalSet(Omega,vomega,INSERT_VALUES));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

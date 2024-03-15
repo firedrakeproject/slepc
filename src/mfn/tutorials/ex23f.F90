@@ -67,7 +67,6 @@
       PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
       PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr))
       PetscCallA(MatSetFromOptions(A,ierr))
-      PetscCallA(MatSetUp(A,ierr))
       PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       ix = 0
       cst = 0.5/real(m-1)

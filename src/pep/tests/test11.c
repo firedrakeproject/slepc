@@ -67,7 +67,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&K));
   PetscCall(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(K));
-  PetscCall(MatSetUp(K));
   PetscCall(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     if (i>0) PetscCall(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
@@ -81,7 +80,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&C));
   PetscCall(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(C));
-  PetscCall(MatSetUp(C));
   PetscCall(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     if (i>0) PetscCall(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
@@ -95,7 +93,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&M));
   PetscCall(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(M));
-  PetscCall(MatSetUp(M));
   PetscCall(MatGetOwnershipRange(M,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(M,i,i,mu,INSERT_VALUES));
   PetscCall(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));

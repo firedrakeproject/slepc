@@ -38,12 +38,10 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
   PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
   PetscCall(MatSetFromOptions(A));
-  PetscCall(MatSetUp(A));
 
   PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
   PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N));
   PetscCall(MatSetFromOptions(B));
-  PetscCall(MatSetUp(B));
 
   PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {

@@ -187,7 +187,6 @@ static PetscErrorCode SVDSetUp_Cross(SVD svd)
     PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
     PetscCall(MatSetSizes(Omega,n,n,N,N));
     PetscCall(MatSetType(Omega,Atype));
-    PetscCall(MatSetUp(Omega));
     PetscCall(MatDiagonalSet(Omega,svd->omega,INSERT_VALUES));
     PetscCall(EPSSetOperators(cross->eps,cross->C,Omega));
     PetscCall(EPSSetProblemType(cross->eps,EPS_GHIEP));

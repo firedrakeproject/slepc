@@ -66,7 +66,6 @@ int main(int argc,char **argv)
   PetscCall(MatSetFromOptions(F));
   PetscCall(MatSeqAIJSetPreallocation(F,3,NULL));
   PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-  PetscCall(MatSetUp(F));
   PetscCall(NEPSetFunction(nep,F,F,FormFunction,&ctx));
 
   PetscCall(MatCreate(PETSC_COMM_WORLD,&J));
@@ -74,7 +73,6 @@ int main(int argc,char **argv)
   PetscCall(MatSetFromOptions(J));
   PetscCall(MatSeqAIJSetPreallocation(J,3,NULL));
   PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-  PetscCall(MatSetUp(J));
   PetscCall(NEPSetJacobian(nep,J,FormJacobian,&ctx));
 
   PetscCall(NEPSetFromOptions(nep));

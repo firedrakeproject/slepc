@@ -57,11 +57,10 @@ int main(int argc,char **argv)
     PetscCall(MatCreate(PETSC_COMM_WORLD,&A[i]));
     PetscCall(MatSetSizes(A[i],PETSC_DECIDE,PETSC_DECIDE,n,n));
     PetscCall(MatSetFromOptions(A[i]));
-    PetscCall(MatSetUp(A[i]));
   }
-  PetscCall(MatGetOwnershipRange(A[0],&Istart,&Iend));
 
   /* A0 */
+  PetscCall(MatGetOwnershipRange(A[0],&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     PetscCall(MatSetValue(A[0],i,i,(i==n-1)?1.0*n:2.0*n,INSERT_VALUES));
     if (i>0) PetscCall(MatSetValue(A[0],i,i-1,-1.0*n,INSERT_VALUES));
@@ -69,6 +68,7 @@ int main(int argc,char **argv)
   }
 
   /* A1 */
+  PetscCall(MatGetOwnershipRange(A[1],&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     PetscCall(MatSetValue(A[1],i,i,(i==n-1)?2.0/(6.0*n):4.0/(6.0*n),INSERT_VALUES));
     if (i>0) PetscCall(MatSetValue(A[1],i,i-1,1.0/(6.0*n),INSERT_VALUES));
@@ -76,6 +76,7 @@ int main(int argc,char **argv)
   }
 
   /* A2 */
+  PetscCall(MatGetOwnershipRange(A[2],&Istart,&Iend));
   if (Istart<=n-1 && n-1<Iend) PetscCall(MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES));
 
   /* assemble matrices */

@@ -88,7 +88,6 @@
       PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
       PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
       PetscCallA(MatSetFromOptions(A,ierr))
-      PetscCallA(MatSetUp(A,ierr))
       PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       coeffs(1) = 1.0/(h*h)
       coeffs(2) = -2.0/(h*h)+aa
@@ -109,7 +108,6 @@
       PetscCallA(MatCreate(PETSC_COMM_WORLD,B,ierr))
       PetscCallA(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
       PetscCallA(MatSetFromOptions(B,ierr))
-      PetscCallA(MatSetUp(B,ierr))
       PetscCallA(MatGetOwnershipRange(B,Istart,Iend,ierr))
       do i=Istart,Iend-1
         xi = (i+1)*h

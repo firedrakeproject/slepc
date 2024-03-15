@@ -64,7 +64,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
   PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
   PetscCall(MatSetFromOptions(A));
-  PetscCall(MatSetUp(A));
 
   PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
@@ -113,7 +112,6 @@ int main(int argc,char **argv)
     PetscCall(MatCreate(PETSC_COMM_WORLD,&P));
     PetscCall(MatSetSizes(P,PETSC_DECIDE,PETSC_DECIDE,N,N));
     PetscCall(MatSetFromOptions(P));
-    PetscCall(MatSetUp(P));
     PetscCall(MatDiagonalSet(P,x,INSERT_VALUES));
     /*
        Set diagonal preconditioner

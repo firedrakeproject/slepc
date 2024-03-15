@@ -95,7 +95,6 @@ PROGRAM main
      PetscCallA(MatCreate(PETSC_COMM_WORLD,A(1),ierr))
      PetscCallA(MatSetSizes(A(1),PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
      PetscCallA(MatSetFromOptions(A(1),ierr))
-     PetscCallA(MatSetUp(A(1),ierr))
      PetscCallA(MatGetOwnershipRange(A(1),Istart,Iend,ierr))
      coeffs = -2.0
      do i=Istart,Iend-1
@@ -128,7 +127,6 @@ PROGRAM main
     PetscCallA(MatSetFromOptions(F,ierr))
     PetscCallA(MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,ierr))
     PetscCallA(MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
-    PetscCallA(MatSetUp(F,ierr))
     PetscCallA(NEPSetFunction(nep,F,F,FormFunction,PETSC_NULL_INTEGER,ierr))
 
     PetscCallA(MatCreate(PETSC_COMM_WORLD,J,ierr))
@@ -136,7 +134,6 @@ PROGRAM main
     PetscCallA(MatSetFromOptions(J,ierr))
     PetscCallA(MatSeqAIJSetPreallocation(J,one,PETSC_NULL_INTEGER,ierr))
     PetscCallA(MatMPIAIJSetPreallocation(J,one,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
-    PetscCallA(MatSetUp(J,ierr))
     PetscCallA(NEPSetJacobian(nep,J,FormJacobian,PETSC_NULL_INTEGER,ierr))
   end if
 

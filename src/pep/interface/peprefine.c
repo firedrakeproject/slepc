@@ -194,7 +194,7 @@ static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,P
 static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ctx,PetscInt idx,Mat *Mt,Mat *T,Mat *P,PetscBool ini,Vec t,Vec v)
 {
   PetscInt             i,nmat=pep->nmat,ml,m0,n0,m1,mg;
-  PetscInt             *dnz,*onz,ncols,*cols2=NULL,*nnz;
+  PetscInt             ncols,*cols2=NULL;
   PetscScalar          zero=0.0,*coeffs,*coeffs2;
   PetscMPIInt          rank,size;
   MPI_Comm             comm;
@@ -252,35 +252,6 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
       if (rank==size-1) ml++;
       PetscCall(MatSetSizes(*T,ml,ml,mg+1,mg+1));
       PetscCall(MatSetFromOptions(*T));
-      PetscCall(MatSetUp(*T));
-      /* Preallocate M */
-      if (size>1) {
-        MatPreallocateBegin(comm,ml,ml,dnz,onz);
-        for (i=m0;i<m1;i++) {
-          PetscCall(MatGetRow(M,i,&ncols,&cols,NULL));
-          PetscCall(MatPreallocateSet(i,ncols,cols,dnz,onz));
-          PetscCall(MatPreallocateSet(i,1,&mg,dnz,onz));
-          PetscCall(MatRestoreRow(M,i,&ncols,&cols,NULL));
-        }
-        if (rank==size-1) {
-          PetscCall(PetscCalloc1(mg+1,&cols2));
-          for (i=0;i<mg+1;i++) cols2[i]=i;
-          PetscCall(MatPreallocateSet(m1,mg+1,cols2,dnz,onz));
-          PetscCall(PetscFree(cols2));
-        }
-        PetscCall(MatMPIAIJSetPreallocation(*T,0,dnz,0,onz));
-        MatPreallocateEnd(dnz,onz);
-      } else {
-        PetscCall(PetscCalloc1(mg+1,&nnz));
-        for (i=0;i<mg;i++) {
-          PetscCall(MatGetRow(M,i,&ncols,NULL,NULL));
-          nnz[i] = ncols+1;
-          PetscCall(MatRestoreRow(M,i,&ncols,NULL,NULL));
-        }
-        nnz[mg] = mg+1;
-        PetscCall(MatSeqAIJSetPreallocation(*T,0,nnz));
-        PetscCall(PetscFree(nnz));
-      }
       *Mt = M;
       *P  = *T;
     }

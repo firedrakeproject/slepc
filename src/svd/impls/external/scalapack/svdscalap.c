@@ -60,14 +60,12 @@ static PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   PetscCall(MatCreate(PetscObjectComm((PetscObject)A),&Z));
   PetscCall(MatSetSizes(Z,m,mn,PETSC_DECIDE,PETSC_DECIDE));
   PetscCall(MatSetType(Z,MATSCALAPACK));
-  PetscCall(MatSetUp(Z));
   PetscCall(MatAssemblyBegin(Z,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(Z,MAT_FINAL_ASSEMBLY));
   z = (Mat_ScaLAPACK*)Z->data;
   PetscCall(MatCreate(PetscObjectComm((PetscObject)A),&QT));
   PetscCall(MatSetSizes(QT,mn,n,PETSC_DECIDE,PETSC_DECIDE));
   PetscCall(MatSetType(QT,MATSCALAPACK));
-  PetscCall(MatSetUp(QT));
   PetscCall(MatAssemblyBegin(QT,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(QT,MAT_FINAL_ASSEMBLY));
   q = (Mat_ScaLAPACK*)QT->data;
