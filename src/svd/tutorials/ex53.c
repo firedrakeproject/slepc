@@ -482,8 +482,13 @@ static PetscErrorCode RotateRows(XMat A,PetscInt i1,PetscInt i2,PetscReal c,Pets
     if (nc) {
       PetscCall(PetscBLASIntCast(nc,&nc_));
       if (i1mine && i2mine) PetscCallBLAS("BLASrot",BLASMIXEDrot_(&nc_,vaa1,&one,vaa2,&one,&c,&s));
-      else if (i1mine) MyAxpby(nc,c,vaa1,s,vaa2);
-      else MyAxpby(nc,c,vaa2,-s,vaa1);
+      else if (i1mine) {
+        MyAxpby(nc,c,vaa1,s,vaa2);
+        PetscCall(PetscFree2(vjj2,vaa2));
+      } else {
+        MyAxpby(nc,c,vaa2,-s,vaa1);
+        PetscCall(PetscFree2(vjj1,vaa1));
+      }
       time_now(t0);
       if (i1mine) PetscCall(XMatChangeRow(A,i1,nc,vjj1,vaa1));
       if (i2mine) PetscCall(XMatChangeRow(A,i2,nc,vjj2,vaa2));
@@ -744,6 +749,7 @@ int main(int argc,char **argv)
    testset:
       args: -svd_nsv 5 -d .15 -terse
       output_file: output/ex53_1.out
+      nsize: {{1 2}}
       test:
          args: -svd_type trlanczos
          suffix: 1_trlanczos
