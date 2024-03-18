@@ -751,7 +751,7 @@ int main(int argc,char **argv)
       output_file: output/ex53_1.out
       nsize: {{1 2}}
       test:
-         args: -svd_type trlanczos
+         args: -svd_type trlanczos -ds_parallel {{redundant synchronized}}
          suffix: 1_trlanczos
       test:
          args: -svd_type cross

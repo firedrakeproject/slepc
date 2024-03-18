@@ -97,6 +97,9 @@ int main(int argc,char **argv)
 
   PetscCall(SVDSetFromOptions(svd));
 
+  PetscCall(SVDIsHyperbolic(svd,&flg));
+  PetscCheck(flg,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_COR,"Problem should be hyperbolic");
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Solve the problem, display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

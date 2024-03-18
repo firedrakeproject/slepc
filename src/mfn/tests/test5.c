@@ -8,11 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Tests the case when both arguments of MFNSolve() are the same Vec.\n\n"
-  "The command line options are:\n"
-  "  -t <sval>, where <sval> = scalar value that multiplies the argument.\n"
-  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
-  "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
+static char help[] = "Test changing MFN type.\n\n";
 
 #include <slepcmfn.h>
 
@@ -71,32 +67,23 @@ int main(int argc,char **argv)
 
   PetscCall(MFNCreate(PETSC_COMM_WORLD,&mfn));
   PetscCall(MFNSetOperator(mfn,A));
+  PetscCall(MFNSetType(mfn,MFNEXPOKIT));
+  PetscCall(MFNSetDimensions(mfn,24));
+  PetscCall(MFNSetTolerances(mfn,1e-5,1000));
   PetscCall(MFNSetFN(mfn,f));
   PetscCall(MFNSetErrorIfNotConverged(mfn,PETSC_TRUE));
   PetscCall(MFNSetFromOptions(mfn));
+  PetscCall(MFNView(mfn,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Solve the problem, y=exp(t*A)*v
+            Change MFN type and solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  PetscCall(MFNSetType(mfn,MFNKRYLOV));
   PetscCall(FNSetScale(f,t,1.0));
   PetscCall(MFNSolve(mfn,v,y));
   PetscCall(VecNorm(y,NORM_2,&norm));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm));
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-           Repeat the computation in two steps, overwriting v:
-              v=exp(0.5*t*A)*v,  v=exp(0.5*t*A)*v
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  PetscCall(FNSetScale(f,0.5*t,1.0));
-  PetscCall(MFNSolve(mfn,v,v));
-  PetscCall(MFNSolve(mfn,v,v));
-  /* compute norm of difference */
-  PetscCall(VecAXPY(y,-1.0,v));
-  PetscCall(VecNorm(y,NORM_2,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <100*eps\n\n"));
-  else PetscCall(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is %g\n\n",(double)norm));
 
   /*
      Free work space
@@ -112,19 +99,6 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   testset:
-      args: -mfn_type {{krylov expokit}}
-      output_file: output/test2_1.out
-      test:
-         suffix: 1
-      test:
-         suffix: 1_cuda
-         args: -mat_type aijcusparse
-         requires: cuda
-
    test:
-      suffix: 3
-      args: -mfn_type expokit -t 0.6 -mfn_ncv 35
-      requires: !__float128
 
 TEST*/

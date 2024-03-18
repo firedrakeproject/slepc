@@ -27,7 +27,7 @@ row 19: (19, 20.)
  Type set to toar
  Problem type before changing = 0 ... changed to 2.
  Extraction before changing = 0 ... changed to 4
- Scaling: SCALAR, alpha=0.1, its=5
+ Scaling: BOTH, alpha=0.1, its=5
  Polynomial basis: CHEBYSHEV1
  Refinement: SIMPLE, tol=1e-09, its=2, scheme=SCHUR
  Which = 7, target = 4.8

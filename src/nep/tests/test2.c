@@ -162,5 +162,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
+      args: -nep_view
+      filter: grep -v tolerance
 
 TEST*/
