@@ -54,7 +54,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
         if (B) {
           PetscCall(DSGetMat(eps->ds,DS_MAT_B,&G));
           PetscCall(BVMatProject(eps->V,B,eps->V,G));
-          PetscCall(DSRestoreMat(eps->ds,DS_MAT_A,&G));
+          PetscCall(DSRestoreMat(eps->ds,DS_MAT_B,&G));
         }
         PetscCall(DSSolve(eps->ds,eps->eigr,eps->eigi));
         PetscCall(DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL));
