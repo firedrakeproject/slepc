@@ -53,8 +53,7 @@ int main(int argc,char **argv)
   PetscCall(PetscViewerDestroy(&viewer));
 
   /* set v = ones(n,1) */
-  PetscCall(MatCreateVecs(A,NULL,&y));
-  PetscCall(MatCreateVecs(A,NULL,&v));
+  PetscCall(MatCreateVecs(A,&v,&y));
   PetscCall(VecSet(v,1.0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

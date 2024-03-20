@@ -157,12 +157,13 @@ int main(int argc,char **argv)
   Mat            Id,A,B,Ap,J,F,P; /* problem matrices */
   FN             f1,f2,f3;        /* functions to define the nonlinear operator */
   ApplicationCtx ctx;             /* user-defined context */
-  Mat            mats[3];
+  Mat            mats[3],M;
   FN             funs[3];
   PetscScalar    coeffs[2];
-  PetscInt       n=128;
+  PetscInt       n=128,nterm;
   PetscReal      tau=0.001,a=20;
   PetscBool      split=PETSC_TRUE;
+  MatStructure   mstr;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -224,6 +225,12 @@ int main(int argc,char **argv)
   /* Set solver parameters at runtime */
   PetscCall(NEPSetFromOptions(nep));
 
+  if (split) {
+    PetscCall(NEPGetSplitPreconditionerInfo(nep,&nterm,&mstr));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Nonlinear preconditioner with %" PetscInt_FMT " terms, with %s nonzero pattern\n",nterm,MatStructures[mstr]));
+    PetscCall(NEPGetSplitPreconditionerTerm(nep,0,&M));
+  }
+
   /* Solve the eigensystem */
   PetscCall(NEPSolve(nep));
   PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
@@ -253,6 +260,7 @@ int main(int argc,char **argv)
       requires: double !defined(PETSCTEST_VALGRIND)
       output_file: output/test17_1.out
       timeoutfactor: 2
+      filter: grep -v "with 3 terms, with SAME"
       test:
          suffix: 1
          args: -nep_type slp -nep_two_sided {{0 1}} -split {{0 1}}
@@ -261,7 +269,7 @@ int main(int argc,char **argv)
       args: -nep_nev 2 -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7
       requires: !single
       output_file: output/test17_2.out
-      filter: sed -e "s/[+-]0\.0*i//g"
+      filter: sed -e "s/[+-]0\.0*i//g" | grep -v "with 3 terms, with SAME"
       test:
          suffix: 2_interpol
          args: -nep_type interpol -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type sor -nep_tol 1e-6 -nep_interpol_st_ksp_rtol 1e-7
@@ -278,6 +286,7 @@ int main(int argc,char **argv)
       args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -rg_ellipse_vscale 0.1 -nep_ciss_ksp_type bcgs -nep_ciss_pc_type sor
       output_file: output/test17_3.out
       requires: complex !single !defined(PETSCTEST_VALGRIND)
+      filter: grep -v "with 3 terms, with SAME"
       test:
          suffix: 3
          args: -split {{0 1}}

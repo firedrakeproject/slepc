@@ -18,6 +18,7 @@ int main(int argc,char **argv)
   PEP                pep;         /* eigenproblem solver context */
   ST                 st;
   KSP                ksp;
+  Vec                Dl,Dr;
   DS                 ds;
   PetscReal          tol,alpha;
   PetscScalar        target;
@@ -63,6 +64,10 @@ int main(int argc,char **argv)
   PetscCall(MatAssemblyBegin(A[2],MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(A[2],MAT_FINAL_ASSEMBLY));
 
+  PetscCall(MatCreateVecs(A[0],&Dr,&Dl));
+  PetscCall(VecSet(Dl,1.0));
+  PetscCall(VecSet(Dr,0.95));
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create eigensolver and test interface functions
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -89,7 +94,7 @@ int main(int argc,char **argv)
   PetscCall(PEPGetExtract(pep,&extr));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)extr));
 
-  PetscCall(PEPSetScale(pep,PEP_SCALE_SCALAR,.1,NULL,NULL,5,1.0));
+  PetscCall(PEPSetScale(pep,PEP_SCALE_BOTH,.1,Dl,Dr,5,1.0));
   PetscCall(PEPGetScale(pep,&scale,&alpha,NULL,NULL,&its,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Scaling: %s, alpha=%g, its=%" PetscInt_FMT "\n",PEPScaleTypes[scale],(double)alpha,its));
 
@@ -145,6 +150,8 @@ int main(int argc,char **argv)
   PetscCall(MatDestroy(&A[0]));
   PetscCall(MatDestroy(&A[1]));
   PetscCall(MatDestroy(&A[2]));
+  PetscCall(VecDestroy(&Dl));
+  PetscCall(VecDestroy(&Dr));
   PetscCall(SlepcFinalize());
   return 0;
 }

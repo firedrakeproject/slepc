@@ -137,13 +137,7 @@ static PetscErrorCode STApplyHermitianTranspose_Shell(ST st,Vec x,Vec y)
     PetscCall(VecDuplicate(x,&w));
     PetscCall(VecCopy(x,w));
     PetscCall(VecConjugate(w));
-    PetscCall(PetscObjectStateGet((PetscObject)y,&instate));
-    PetscCallBack("STSHELL user function applytrans()",(*shell->applytrans)(st,w,y));
-    PetscCall(PetscObjectStateGet((PetscObject)y,&outstate));
-    if (instate == outstate) {
-      /* user forgot to increase the state of the output vector */
-      PetscCall(PetscObjectStateIncrease((PetscObject)y));
-    }
+    PetscCall(STApplyTranspose_Shell(st,w,y));
     PetscCall(VecDestroy(&w));
     PetscCall(VecConjugate(y));
   }

@@ -57,11 +57,10 @@ int main(int argc,char **argv)
   PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
 
-  PetscCall(MatCreateVecs(A,NULL,&v));
+  PetscCall(MatCreateVecs(A,&v,&y));
   PetscCall(VecSetValue(v,0,1.0,INSERT_VALUES));
   PetscCall(VecAssemblyBegin(v));
   PetscCall(VecAssemblyEnd(v));
-  PetscCall(VecDuplicate(v,&y));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the solver, set the matrix and the function
@@ -128,10 +127,15 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -mfn_monitor_cancel -mfn_converged_reason -mfn_view -log_exclude mfn,bv,fn -mfn_monitor draw::draw_lg -draw_virtual
-      requires: x
+   testset:
+      args: -mfn_monitor_cancel -mfn_converged_reason -mfn_view -log_exclude mfn,bv,fn
+      output_file: output/test3_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 1_x
+         args: -mfn_monitor draw::draw_lg -draw_virtual
+         requires: x
 
    test:
       suffix: 2
