@@ -29,6 +29,7 @@
       PetscEnum, parameter :: EPS_GNHEP                  =  4
       PetscEnum, parameter :: EPS_PGNHEP                 =  5
       PetscEnum, parameter :: EPS_GHIEP                  =  6
+      PetscEnum, parameter :: EPS_BSE                    =  7
 
       PetscEnum, parameter :: EPS_LARGEST_MAGNITUDE      =  1
       PetscEnum, parameter :: EPS_SMALLEST_MAGNITUDE     =  2

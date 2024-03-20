@@ -425,9 +425,13 @@ PetscErrorCode EPSSetUp(EPS eps)
    It must be called before EPSSetUp(). If it is called again after EPSSetUp() and
    the matrix sizes have changed then the EPS object is reset.
 
+   For structured eigenproblem types such as EPS_BSE (see EPSSetProblemType()), the
+   provided matrices must have been created with the corresponding helper function,
+   i.e., MatCreateBSE().
+
    Level: beginner
 
-.seealso: EPSSolve(), EPSSetUp(), EPSReset(), EPSGetST(), STGetMatrix()
+.seealso: EPSSolve(), EPSSetUp(), EPSReset(), EPSGetST(), STGetMatrix(), EPSSetProblemType()
 @*/
 PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {

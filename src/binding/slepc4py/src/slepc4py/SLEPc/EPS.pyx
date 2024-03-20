@@ -67,6 +67,7 @@ class EPSProblemType(object):
     - `PGNHEP`: Generalized Non-Hermitian eigenproblem
                 with positive definite ``B``.
     - `GHIEP`:  Generalized Hermitian-indefinite eigenproblem.
+    - `BSE`:    Structured Bethe-Salpeter eigenproblem.
     """
     HEP    = EPS_HEP
     NHEP   = EPS_NHEP
@@ -74,6 +75,7 @@ class EPSProblemType(object):
     GNHEP  = EPS_GNHEP
     PGNHEP = EPS_PGNHEP
     GHIEP  = EPS_GHIEP
+    BSE    = EPS_BSE
 
 class EPSExtraction(object):
     """

@@ -68,6 +68,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_GNHEP:  type = "generalized non-" SLEPC_STRING_HERMITIAN " eigenvalue problem"; break;
         case EPS_PGNHEP: type = "generalized non-" SLEPC_STRING_HERMITIAN " eigenvalue problem with " SLEPC_STRING_HERMITIAN " positive definite B"; break;
         case EPS_GHIEP:  type = "generalized " SLEPC_STRING_HERMITIAN "-indefinite eigenvalue problem"; break;
+        case EPS_BSE:    type = "structured Bethe-Salpeter eigenvalue problem"; break;
       }
     } else type = "not yet set";
     PetscCall(PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type));
