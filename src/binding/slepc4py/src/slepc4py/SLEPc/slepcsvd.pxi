@@ -85,7 +85,7 @@ cdef extern from * nogil:
     PetscErrorCode SVDSetOperators(SlepcSVD,PetscMat,PetscMat)
     PetscErrorCode SVDGetOperators(SlepcSVD,PetscMat*,PetscMat*)
     PetscErrorCode SVDSetSignature(SlepcSVD,PetscVec)
-    PetscErrorCode SVDGetSignature(SlepcSVD,PetscVec*)
+    PetscErrorCode SVDGetSignature(SlepcSVD,PetscVec)
 
     PetscErrorCode SVDSetInitialSpaces(SlepcSVD,PetscInt,PetscVec*,PetscInt,PetscVec*)
 

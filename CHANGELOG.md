@@ -7,6 +7,11 @@
 - `ST`: new function `STShellSetApplyHermitianTranspose` and other improvements for handling
   the conjugate transpose of the operator.
 
+### Changed
+
+- `SVDGetSignature()` now takes a `Vec` argument instead of `Vec*`. The former interface
+  could not be used from Fortran.
+
 ## [3.20] - 2023-09-29
 
 ### Changed

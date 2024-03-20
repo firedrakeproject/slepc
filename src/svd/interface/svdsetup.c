@@ -160,16 +160,23 @@ PetscErrorCode SVDSetSignature(SVD svd,Vec omega)
    Output Parameter:
 .  omega - a vector containing the diagonal elements of the signature matrix
 
+   Notes:
+   The signature matrix is relevant only for hyperbolic problems (HSVD).
+   If no signature has been set, this function will return a vector of all ones.
+
+   The user should pass a previously created Vec with the appropriate dimension.
+
    Level: intermediate
 
 .seealso: SVDSetSignature()
 @*/
-PetscErrorCode SVDGetSignature(SVD svd,Vec *omega)
+PetscErrorCode SVDGetSignature(SVD svd,Vec omega)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscAssertPointer(omega,2);
-  *omega = svd->omega;
+  PetscValidHeaderSpecific(omega,VEC_CLASSID,2);
+  if (svd->omega) PetscCall(VecCopy(svd->omega,omega));
+  else PetscCall(VecSet(omega,1.0));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
