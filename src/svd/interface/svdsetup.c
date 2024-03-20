@@ -233,7 +233,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* set default solver type (SVDSetFromOptions was not called) */
   if (!((PetscObject)svd)->type_name) PetscCall(SVDSetType(svd,SVDCROSS));
   if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
-  PetscCall(SVDSetDSType(svd));
 
   /* check matrices */
   PetscCheck(svd->OP,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");
@@ -256,6 +255,9 @@ PetscErrorCode SVDSetUp(SVD svd)
       else PetscCheck(!svd->ishyperbolic,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: a hyperbolic problem requires passing a signature with SVDSetSignature()");
     }
   }
+
+  /* set DS type once the default problem type has been determined */
+  PetscCall(SVDSetDSType(svd));
 
   /* determine how to handle the transpose */
   svd->expltrans = PETSC_TRUE;
