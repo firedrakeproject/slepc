@@ -147,7 +147,7 @@ PETSC_DEPRECATED_FUNCTION(3, 15, 0, "SVDSetOperators()", ) static inline PetscEr
 SLEPC_EXTERN PetscErrorCode SVDGetOperators(SVD,Mat*,Mat*);
 PETSC_DEPRECATED_FUNCTION(3, 15, 0, "SVDGetOperators()", ) static inline PetscErrorCode SVDGetOperator(SVD svd,Mat *A) {return SVDGetOperators(svd,A,PETSC_NULLPTR);}
 SLEPC_EXTERN PetscErrorCode SVDSetSignature(SVD,Vec);
-SLEPC_EXTERN PetscErrorCode SVDGetSignature(SVD,Vec*);
+SLEPC_EXTERN PetscErrorCode SVDGetSignature(SVD,Vec);
 SLEPC_EXTERN PetscErrorCode SVDSetInitialSpaces(SVD,PetscInt,Vec[],PetscInt,Vec[]);
 PETSC_DEPRECATED_FUNCTION(3, 1, 0, "SVDSetInitialSpaces()", ) static inline PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt nr,Vec *isr) {return SVDSetInitialSpaces(svd,nr,isr,0,PETSC_NULLPTR);}
 PETSC_DEPRECATED_FUNCTION(3, 1, 0, "SVDSetInitialSpaces()", ) static inline PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt nl,Vec *isl) {return SVDSetInitialSpaces(svd,0,PETSC_NULLPTR,nl,isl);}

@@ -251,6 +251,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   PetscCall(PetscFunctionListFind(DSList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
+  PetscTryTypeMethod(ds,destroy);
   PetscCall(PetscMemzero(ds->ops,sizeof(struct _DSOps)));
 
   PetscCall(PetscObjectChangeTypeName((PetscObject)ds,type));
