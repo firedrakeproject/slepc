@@ -47,7 +47,6 @@ PetscErrorCode BuildSplitMatrices(PetscInt n,PetscReal a,Mat *Id,Mat *A,Mat *B)
   PetscCall(MatCreate(PETSC_COMM_WORLD,A));
   PetscCall(MatSetSizes(*A,PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(*A));
-  PetscCall(MatSetUp(*A));
   PetscCall(MatGetOwnershipRange(*A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     if (i>0) PetscCall(MatSetValue(*A,i,i-1,1.0/(h*h),INSERT_VALUES));
@@ -62,7 +61,6 @@ PetscErrorCode BuildSplitMatrices(PetscInt n,PetscReal a,Mat *Id,Mat *A,Mat *B)
   PetscCall(MatCreate(PETSC_COMM_WORLD,B));
   PetscCall(MatSetSizes(*B,PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(*B));
-  PetscCall(MatSetUp(*B));
   PetscCall(MatGetOwnershipRange(*B,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     xi = (i+1)*h;
@@ -90,7 +88,6 @@ PetscErrorCode BuildSplitPreconditioner(PetscInt n,PetscReal a,Mat *Ap)
   PetscCall(MatCreate(PETSC_COMM_WORLD,Ap));
   PetscCall(MatSetSizes(*Ap,PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(*Ap));
-  PetscCall(MatSetUp(*Ap));
   PetscCall(MatGetOwnershipRange(*Ap,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(*Ap,i,i,-2.0/(h*h)+a,INSERT_VALUES));
   PetscCall(MatAssemblyBegin(*Ap,MAT_FINAL_ASSEMBLY));
@@ -160,12 +157,13 @@ int main(int argc,char **argv)
   Mat            Id,A,B,Ap,J,F,P; /* problem matrices */
   FN             f1,f2,f3;        /* functions to define the nonlinear operator */
   ApplicationCtx ctx;             /* user-defined context */
-  Mat            mats[3];
+  Mat            mats[3],M;
   FN             funs[3];
   PetscScalar    coeffs[2];
-  PetscInt       n=128;
+  PetscInt       n=128,nterm;
   PetscReal      tau=0.001,a=20;
   PetscBool      split=PETSC_TRUE;
+  MatStructure   mstr;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -214,7 +212,6 @@ int main(int argc,char **argv)
     PetscCall(MatSetFromOptions(F));
     PetscCall(MatSeqAIJSetPreallocation(F,3,NULL));
     PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-    PetscCall(MatSetUp(F));
     PetscCall(MatDuplicate(F,MAT_DO_NOT_COPY_VALUES,&P));
     PetscCall(NEPSetFunction(nep,F,P,FormFunction,&ctx));
     PetscCall(MatCreate(PETSC_COMM_WORLD,&J));
@@ -222,12 +219,17 @@ int main(int argc,char **argv)
     PetscCall(MatSetFromOptions(J));
     PetscCall(MatSeqAIJSetPreallocation(J,3,NULL));
     PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-    PetscCall(MatSetUp(J));
     PetscCall(NEPSetJacobian(nep,J,FormJacobian,&ctx));
   }
 
   /* Set solver parameters at runtime */
   PetscCall(NEPSetFromOptions(nep));
+
+  if (split) {
+    PetscCall(NEPGetSplitPreconditionerInfo(nep,&nterm,&mstr));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Nonlinear preconditioner with %" PetscInt_FMT " terms, with %s nonzero pattern\n",nterm,MatStructures[mstr]));
+    PetscCall(NEPGetSplitPreconditionerTerm(nep,0,&M));
+  }
 
   /* Solve the eigensystem */
   PetscCall(NEPSolve(nep));
@@ -258,6 +260,7 @@ int main(int argc,char **argv)
       requires: double !defined(PETSCTEST_VALGRIND)
       output_file: output/test17_1.out
       timeoutfactor: 2
+      filter: grep -v "with 3 terms, with SAME"
       test:
          suffix: 1
          args: -nep_type slp -nep_two_sided {{0 1}} -split {{0 1}}
@@ -266,7 +269,7 @@ int main(int argc,char **argv)
       args: -nep_nev 2 -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7
       requires: !single
       output_file: output/test17_2.out
-      filter: sed -e "s/[+-]0\.0*i//g"
+      filter: sed -e "s/[+-]0\.0*i//g" | grep -v "with 3 terms, with SAME"
       test:
          suffix: 2_interpol
          args: -nep_type interpol -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type sor -nep_tol 1e-6 -nep_interpol_st_ksp_rtol 1e-7
@@ -283,6 +286,7 @@ int main(int argc,char **argv)
       args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -rg_ellipse_vscale 0.1 -nep_ciss_ksp_type bcgs -nep_ciss_pc_type sor
       output_file: output/test17_3.out
       requires: complex !single !defined(PETSCTEST_VALGRIND)
+      filter: grep -v "with 3 terms, with SAME"
       test:
          suffix: 3
          args: -split {{0 1}}

@@ -88,11 +88,10 @@ PetscErrorCode GraphPreallocate(Graph graph,char *filename)
 
   PetscFunctionBeginUser;
   PetscCheck(graph->nvertices,PETSC_COMM_SELF,PETSC_ERR_ORDER,"Must call GraphPreload() first");
-  PetscCall(MatDestroy(&(graph->adjacency)));
+  PetscCall(MatDestroy(&graph->adjacency));
   PetscCall(MatCreate(graph->comm,&graph->adjacency));
   PetscCall(MatSetSizes(graph->adjacency,PETSC_DECIDE,PETSC_DECIDE,graph->nvertices,graph->nvertices));
   PetscCall(MatSetType(graph->adjacency,MATAIJ));
-  PetscCall(MatSetUp(graph->adjacency));   /* otherwise MatGetOwnershipRange() cannot be called */
   PetscCall(MatGetOwnershipRange(graph->adjacency,&Istart,&Iend));
   PetscCall(PetscCalloc2(Iend-Istart,&d_nnz,Iend-Istart,&o_nnz));
 

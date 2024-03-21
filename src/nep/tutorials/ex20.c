@@ -74,7 +74,6 @@ int main(int argc,char **argv)
   PetscCall(MatSetFromOptions(F));
   PetscCall(MatSeqAIJSetPreallocation(F,3,NULL));
   PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-  PetscCall(MatSetUp(F));
 
   /*
      Set Function matrix data structure and default Function evaluation
@@ -91,7 +90,6 @@ int main(int argc,char **argv)
   PetscCall(MatSetFromOptions(J));
   PetscCall(MatSeqAIJSetPreallocation(J,3,NULL));
   PetscCall(MatMPIAIJSetPreallocation(J,3,NULL,1,NULL));
-  PetscCall(MatSetUp(J));
 
   /*
      Set Jacobian matrix data structure and default Jacobian evaluation

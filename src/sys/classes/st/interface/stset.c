@@ -338,7 +338,7 @@ PetscErrorCode STSetTransform(ST st,PetscBool flg)
 }
 
 /*@
-   STGetTransform - Gets a flag that that indicates whether the transformed
+   STGetTransform - Gets a flag that indicates whether the transformed
    matrices are computed or not.
 
    Not Collective

@@ -171,7 +171,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   PetscFunctionBegin;
   if (!*svd) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*svd,SVD_CLASSID,1);
-  if (--((PetscObject)(*svd))->refct > 0) { *svd = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  if (--((PetscObject)*svd)->refct > 0) { *svd = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(SVDReset(*svd));
   PetscTryTypeMethod(*svd,destroy);
   if ((*svd)->sigma) PetscCall(PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest));

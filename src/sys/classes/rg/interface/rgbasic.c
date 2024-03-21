@@ -677,7 +677,7 @@ PetscErrorCode RGSetComplement(RG rg,PetscBool flg)
 }
 
 /*@
-   RGGetComplement - Gets a flag that that indicates whether the region
+   RGGetComplement - Gets a flag that indicates whether the region
    is complemented or not.
 
    Not Collective
@@ -824,7 +824,7 @@ PetscErrorCode RGDestroy(RG *rg)
   PetscFunctionBegin;
   if (!*rg) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*rg,RG_CLASSID,1);
-  if (--((PetscObject)(*rg))->refct > 0) { *rg = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  if (--((PetscObject)*rg)->refct > 0) { *rg = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscTryTypeMethod(*rg,destroy);
   PetscCall(PetscHeaderDestroy(rg));
   PetscFunctionReturn(PETSC_SUCCESS);

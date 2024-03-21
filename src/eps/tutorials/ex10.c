@@ -41,12 +41,14 @@ int main (int argc,char **argv)
   EPSType        type;
   PetscInt       n=30,i,Istart,Iend,nev;
   PetscBool      isShell,terse;
+  PetscBool      set_ht=PETSC_FALSE;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem (shell-enabled), n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-set_ht",&set_ht,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -55,7 +57,6 @@ int main (int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
   PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(A));
-  PetscCall(MatSetUp(A));
 
   PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
@@ -109,7 +110,7 @@ int main (int argc,char **argv)
 
     /* (Optional) Set the user-defined routine for applying the conjugate-transposed operator */
 #if defined(PETSC_USE_COMPLEX)
-    PetscCall(STShellSetApplyHermitianTranspose(st,STApplyHermitianTranspose_User));
+    if (set_ht) PetscCall(STShellSetApplyHermitianTranspose(st,STApplyHermitianTranspose_User));
 #endif
 
     /* (Optional) Set the user-defined routine for back-transformation */
@@ -337,7 +338,7 @@ PetscErrorCode STDestroy_User(SampleShellST *shell)
          requires: !single
       test:
          suffix: 1_sinvert_twoside
-         args: -st_type sinvert -eps_balance twoside
+         args: -st_type sinvert -eps_balance twoside -set_ht {{0 1}}
          requires: !single
       test:
          suffix: 1_shell
@@ -345,6 +346,6 @@ PetscErrorCode STDestroy_User(SampleShellST *shell)
          requires: !single
       test:
          suffix: 1_shell_twoside
-         args: -st_type shell -eps_balance twoside
+         args: -st_type shell -eps_balance twoside -set_ht {{0 1}}
 
 TEST*/

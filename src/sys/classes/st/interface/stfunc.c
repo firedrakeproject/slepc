@@ -140,7 +140,7 @@ PetscErrorCode STDestroy(ST *st)
   PetscFunctionBegin;
   if (!*st) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*st,ST_CLASSID,1);
-  if (--((PetscObject)(*st))->refct > 0) { *st = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  if (--((PetscObject)*st)->refct > 0) { *st = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(STReset(*st));
   PetscTryTypeMethod(*st,destroy);
   PetscCall(KSPDestroy(&(*st)->ksp));

@@ -106,7 +106,7 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
   PetscCall(BVDestroy(&sr->V));
   PetscCall(BVCreate(PetscObjectComm((PetscObject)pep),&sr->V));
   if (!pep->V) PetscCall(PEPGetBV(pep,&pep->V));
-  if (!((PetscObject)(pep->V))->type_name) PetscCall(BVSetType(sr->V,BVMAT));
+  if (!((PetscObject)pep->V)->type_name) PetscCall(BVSetType(sr->V,BVMAT));
   else {
     PetscCall(BVGetType(pep->V,&type));
     PetscCall(BVSetType(sr->V,type));
@@ -686,7 +686,7 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
     if (sPres->neigs==0) {/* No value has been accepted*/
       if (sPres->neighb[0]) {
         /* Multiplying by 10 the previous distance */
-        *newS = sPres->value + 10*(sr->dir)*PetscAbsReal(sPres->value - sPres->neighb[0]->value);
+        *newS = sPres->value + 10*sr->dir*PetscAbsReal(sPres->value - sPres->neighb[0]->value);
         sr->nleap++;
         /* Stops when the interval is open and no values are found in the last 5 shifts (there might be infinite eigenvalues) */
         PetscCheck(sr->hasEnd || sr->nleap<=5,PetscObjectComm((PetscObject)pep),PETSC_ERR_CONV_FAILED,"Unable to compute the wanted eigenvalues with open interval");
@@ -696,7 +696,7 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
           idxP=0;/* Number of values left from shift */
           for (i=0;i<pep->nconv;i++) {
             lambda = PetscRealPart(pep->eigr[i]);
-            if ((sr->dir)*(lambda - sPres->value) <0) idxP++;
+            if (sr->dir*(lambda - sPres->value) <0) idxP++;
             else break;
           }
           /* Avoiding subtraction of eigenvalues (might be the same).*/
@@ -705,7 +705,7 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
           } else {
             d_prev = PetscAbsReal(sPres->value - PetscRealPart(pep->eigr[pep->nconv-1]))/(pep->nconv+0.3);
           }
-          *newS = sPres->value + ((sr->dir)*d_prev*pep->nev)/2;
+          *newS = sPres->value + (sr->dir*d_prev*pep->nev)/2;
           sr->dirch = PETSC_FALSE;
         } else { /* No values found, no information for next shift */
           PetscCheck(!sr->dirch,PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"First shift renders no information");
@@ -725,21 +725,21 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
         d_prev = PetscAbsReal((sPres->value - s->value)/(sPres->inertia - s->inertia));
       } else { /* First shift. Average distance obtained with values in this shift */
         /* first shift might be too far from first wanted eigenvalue (no values found outside the interval)*/
-        if ((sr->dir)*(PetscRealPart(sr->eigr[0])-sPres->value)>0 && PetscAbsReal((PetscRealPart(sr->eigr[sr->indexEig-1]) - PetscRealPart(sr->eigr[0]))/PetscRealPart(sr->eigr[0])) > PetscSqrtReal(pep->tol)) {
+        if (sr->dir*(PetscRealPart(sr->eigr[0])-sPres->value)>0 && PetscAbsReal((PetscRealPart(sr->eigr[sr->indexEig-1]) - PetscRealPart(sr->eigr[0]))/PetscRealPart(sr->eigr[0])) > PetscSqrtReal(pep->tol)) {
           d_prev =  PetscAbsReal((PetscRealPart(sr->eigr[sr->indexEig-1]) - PetscRealPart(sr->eigr[0])))/(sPres->neigs+0.3);
         } else {
           d_prev = PetscAbsReal(PetscRealPart(sr->eigr[sr->indexEig-1]) - sPres->value)/(sPres->neigs+0.3);
         }
       }
       /* Average distance is used for next shift by adding it to value on the right or to shift */
-      if ((sr->dir)*(PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1]) - sPres->value)>0) {
-        *newS = PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1])+ ((sr->dir)*d_prev*(pep->nev))/2;
+      if (sr->dir*(PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1]) - sPres->value)>0) {
+        *newS = PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1])+ (sr->dir*d_prev*pep->nev)/2;
       } else { /* Last accepted value is on the left of shift. Adding to shift */
-        *newS = sPres->value + ((sr->dir)*d_prev*(pep->nev))/2;
+        *newS = sPres->value + (sr->dir*d_prev*pep->nev)/2;
       }
     }
     /* End of interval can not be surpassed */
-    if ((sr->dir)*(sr->int1 - *newS) < 0) *newS = sr->int1;
+    if (sr->dir*(sr->int1 - *newS) < 0) *newS = sr->int1;
   }/* of neighb[side]==null */
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -808,13 +808,13 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
     for (i=0;i<nconv;i++) {
       lambda = PetscRealPart(pep->eigr[pep->perm[i]]);
       err = pep->errest[pep->perm[i]];
-      if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
+      if (sr->dir*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
         PetscCheck(sr->indexEig+count-ndef<sr->numEigs,PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Unexpected error in Spectrum Slicing");
         PetscCall(PEPQSliceCheckEigenvalueType(pep,lambda,PetscRealPart(omega[pep->perm[i]]),PETSC_FALSE));
         eigr[count] = lambda;
         errest[count] = err;
-        if (((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0)) sPres->nconv[0]++;
-        if (((sr->dir)*(lambda - sPres->value) > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0)) sPres->nconv[1]++;
+        if ((sr->dir*(sPres->value - lambda) > 0) && (sr->dir*(lambda - sPres->ext[0]) > 0)) sPres->nconv[0]++;
+        if ((sr->dir*(lambda - sPres->value) > 0) && (sr->dir*(sPres->ext[1] - lambda) > 0)) sPres->nconv[1]++;
         PetscCall(PetscArraycpy(tS+count*(d*nconv),S+pep->perm[i]*(d*ld),nconv));
         PetscCall(PetscArraycpy(tS+count*(d*nconv)+nconv,S+pep->perm[i]*(d*ld)+ld,nconv));
         count++;
@@ -957,8 +957,8 @@ static PetscErrorCode PEPLookForDeflation(PEP pep)
   for (i=ini;i<fin;i++) {
     val=PetscRealPart(sr->eigr[sr->perm[i]]);
     /* Values to the right of left shift */
-    if ((sr->dir)*(val - sPres->ext[1]) < 0) {
-      if ((sr->dir)*(val - sPres->value) < 0) count0++;
+    if (sr->dir*(val - sPres->ext[1]) < 0) {
+      if (sr->dir*(val - sPres->value) < 0) count0++;
       else count1++;
     } else break;
   }
@@ -1234,8 +1234,8 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
     count0=count1=0;
     for (j=0;j<k;j++) {
       lambda = PetscRealPart(back[j]);
-      if (((sr->dir)*(sr->sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sr->sPres->ext[0]) > 0)) count0++;
-      if (((sr->dir)*(lambda - sr->sPres->value) > 0) && ((sr->dir)*(sr->sPres->ext[1] - lambda) > 0)) count1++;
+      if ((sr->dir*(sr->sPres->value - lambda) > 0) && (sr->dir*(lambda - sr->sPres->ext[0]) > 0)) count0++;
+      if ((sr->dir*(lambda - sr->sPres->value) > 0) && (sr->dir*(sr->sPres->ext[1] - lambda) > 0)) count1++;
     }
     if ((count0-sr->ndef0 >= sr->sPres->nsch[0]) && (count1-sr->ndef1 >= sr->sPres->nsch[1])) pep->reason = PEP_CONVERGED_TOL;
     /* Update l */

@@ -72,7 +72,6 @@
       PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
       PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n,ierr))
       PetscCallA(MatSetFromOptions(A,ierr))
-      PetscCallA(MatSetUp(A,ierr))
 
       PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       val(1) = 1.0

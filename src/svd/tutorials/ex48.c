@@ -61,7 +61,6 @@ int main(int argc,char **argv)
     PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
     PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
     PetscCall(MatSetFromOptions(B));
-    PetscCall(MatSetUp(B));
     PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
     PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
     PetscCall(MatShift(B,1.0));
@@ -75,7 +74,6 @@ int main(int argc,char **argv)
       PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
       PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
       PetscCall(MatSetFromOptions(B));
-      PetscCall(MatSetUp(B));
       PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
       for (i=Istart;i<Iend;i++) {
         col[0]=i-1; col[1]=i;
@@ -95,7 +93,6 @@ int main(int argc,char **argv)
         PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
         PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
         PetscCall(MatSetFromOptions(B));
-        PetscCall(MatSetUp(B));
         PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
         for (i=Istart;i<Iend;i++) {
           col[0]=i; col[1]=i+1; col[2]=i+2;

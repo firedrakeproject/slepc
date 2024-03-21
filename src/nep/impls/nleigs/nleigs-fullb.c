@@ -246,7 +246,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   PetscCall(EPSGetST(ctx->eps,&st));
   PetscCall(EPSSetTarget(ctx->eps,nep->target));
   PetscCall(STSetDefaultShift(st,nep->target));
-  if (!((PetscObject)(ctx->eps))->type_name) PetscCall(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
+  if (!((PetscObject)ctx->eps)->type_name) PetscCall(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
   else {
     PetscCall(PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks));
     PetscCheck(ks,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Full-basis option only implemented for Krylov-Schur");

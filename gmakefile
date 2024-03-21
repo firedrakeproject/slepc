@@ -50,6 +50,7 @@ libslepcall := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libslepcall_shared),$(l
 generated      := $(PETSC_ARCH)/lib/slepc/conf/files
 
 slepc_libs : $(libslepcall)
+
 .PHONY: slepc_libs
 
 .SECONDEXPANSION:               # to expand $$(@D)/.DIR
@@ -61,7 +62,7 @@ $(generated) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegen.py
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegen.py --petsc-arch=$(PETSC_ARCH_DIR) --pkg-dir=$(SLEPC_DIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH)
 
 # Skip including generated files (which triggers rebuilding them) when we're just going to clean anyway.
-ifneq ($(filter-out alletags deletefortranstubs allfortranstubs allfortranstubsinplace help clean check info gmakeinfo,$(MAKECMDGOALS:clean%=clean)),)
+ifneq ($(filter-out help clean distclean check info gmakeinfo checkbadSource deletefortranstubs allfortranstubs allfortranstubsinplace alletags lint_slepc get%,$(MAKECMDGOALS:clean%=clean)),)
 include $(generated)
 endif
 
@@ -144,7 +145,7 @@ define ARCHIVE_RECIPE_DEFAULT
 endef
 
 %.$(AR_LIB_SUFFIX) : $$(obj) | $$(@D)/.DIR
-	$(if $(findstring win_lib,$(AR)),$(ARCHIVE_RECIPE_WIN32FE_LIB),$(if $(findstring yes,$(AR_ARGFILE)),$(if $(GMAKE4),$(ARCHIVE_RECIPE_ARGFILE),$(ARCHIVE_RECIPE_DEFAULT)),$(ARCHIVE_RECIPE_DEFAULT)))
+	$(if $(findstring win32fe_lib,$(AR)),$(ARCHIVE_RECIPE_WIN32FE_LIB),$(if $(findstring yes,$(AR_ARGFILE)),$(if $(GMAKE4),$(ARCHIVE_RECIPE_ARGFILE),$(ARCHIVE_RECIPE_DEFAULT)),$(ARCHIVE_RECIPE_DEFAULT)))
 
 # with-single-library=0
 libpkg = $(foreach pkg, $1, $(LIBDIR)/libslepc$(pkg).$(SL_LINKER_SUFFIX))
@@ -231,7 +232,7 @@ $(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod
 $(OBJDIR)/src/lme/f90-mod/slepclmemod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o
 $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/src/sys/classes/ds/f90-mod/slepcdsmod.o $(OBJDIR)/src/sys/classes/rg/f90-mod/slepcrgmod.o $(OBJDIR)/src/sys/classes/st/f90-mod/slepcstmod.o $(OBJDIR)/src/lme/f90-mod/slepclmemod.o
 $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
-$(OBJDIR)/src/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o
+$(OBJDIR)/src/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o $(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o
 $(OBJDIR)/src/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
 
 # all sources should get recompiled when slepcvariables changes (i.e when configure is rerun or when slepcvariables is manually edited.)
@@ -283,22 +284,37 @@ gmakeinfo:
 	-@echo "-----------------------------------------"
 	-@echo "Using C/C++ include paths: ${SLEPC_CC_INCLUDES}"
 	-@echo "Using C compile: ${PETSC_CCOMPILE_SINGLE}"
-	-@if [ "${CXX}" != "" ]; then \
-           echo "Using C++ compile: ${PETSC_CXXCOMPILE_SINGLE}";\
-         fi
+	-@if [  "${MPICC_SHOW}" != "" ]; then \
+             printf  "mpicc -show: %b\n" "${MPICC_SHOW}";\
+          fi; \
+        printf  "C compiler version: %b\n" "${C_VERSION}"; \
+        if [ "${CXX}" != "" ]; then \
+        echo "Using C++ compile: ${PETSC_CXXCOMPILE_SINGLE}";\
+        if [ "${MPICXX_SHOW}" != "" ]; then \
+               printf "mpicxx -show: %b\n" "${MPICXX_SHOW}"; \
+            fi;\
+            printf  "C++ compiler version: %b\n" "${Cxx_VERSION}"; \
+          fi
 	-@if [ "${FC}" != "" ]; then \
 	   echo "Using Fortran include/module paths: ${SLEPC_FC_INCLUDES}";\
 	   echo "Using Fortran compile: ${PETSC_FCOMPILE_SINGLE}";\
+           if [ "${MPIFC_SHOW}" != "" ]; then \
+             printf "mpif90 -show: %b\n" "${MPIFC_SHOW}"; \
+           fi; \
+             printf  "Fortran compiler version: %b\n" "${FC_VERSION}"; \
          fi
 	-@if [ "${CUDAC}" != "" ]; then \
-           echo "Using CUDA compile: ${PETSC_CUCOMPILE_SINGLE}";\
+	   echo "Using CUDA compile: ${PETSC_CUCOMPILE_SINGLE}";\
          fi
+	-@if [ "${CLANGUAGE}" = "CXX" ]; then \
+           echo "Using C++ compiler to compile PETSc";\
+        fi
 	-@echo "-----------------------------------------"
 	-@echo "Using C/C++ linker: ${PCC_LINKER}"
 	-@echo "Using C/C++ flags: ${PCC_LINKER_FLAGS}"
 	-@if [ "${FC}" != "" ]; then \
-           echo "Using Fortran linker: ${FC_LINKER}";\
-           echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
+	   echo "Using Fortran linker: ${FC_LINKER}";\
+	   echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
          fi
 	-@echo "-----------------------------------------"
 	-@echo "Using libraries: ${SLEPC_LIB}"

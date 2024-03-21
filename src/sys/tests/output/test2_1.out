@@ -73,7 +73,7 @@ PetscDevice host Options:
 ----------------------------------------
 Root PetscDeviceContext Options:
   -root_device_context_device_type: <now host : formerly host> Underlying PetscDevice (choose one of) host cuda hip sycl (PetscDeviceContextSetDevice)
-  -root_device_context_stream_type: <now global_blocking : formerly global_blocking> PetscDeviceContext PetscStreamType (choose one of) global_blocking default_blocking global_nonblocking (PetscDeviceContextSetStreamType)
+  -root_device_context_stream_type: <now default : formerly default> PetscDeviceContext PetscStreamType (choose one of) default nonblocking default_with_barrier nonblocking_with_barrier (PetscDeviceContextSetStreamType)
 ----------------------------------------
 BLAS options:
   -blas_view: Display number of threads to use for BLAS operations (None)

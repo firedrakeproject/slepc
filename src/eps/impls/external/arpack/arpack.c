@@ -178,7 +178,7 @@ static PetscErrorCode EPSSolve_ARPACK(EPS eps)
       PetscCall(VecPlaceArray(y,&ar->workd[ipntr[1]-1]));
 
       if (ido == -1) {
-        /* Y = OP * X for for the initialization phase to
+        /* Y = OP * X for the initialization phase to
            force the starting vector into the range of OP */
         PetscCall(STApply(eps->st,x,y));
       } else if (ido == 2) {
@@ -213,7 +213,7 @@ static PetscErrorCode EPSSolve_ARPACK(EPS eps)
   eps->nconv = iparam[4];
   eps->its = iparam[2];
 
-  PetscCheck(info!=3,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
+  PetscCheck(info!=3,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"No shift could be applied in xxAUPD. Try increasing the size of NCV relative to NEV");
   PetscCheck(info==0 || info==1,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%" PetscInt_FMT ")",info);
 
   rvec = PETSC_TRUE;

@@ -60,7 +60,6 @@ static PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   PetscCall(DSSetType(pep->ds,DSNHEP));
   PetscCall(DSSetExtraRow(pep->ds,PETSC_TRUE));
   PetscCall(DSAllocate(pep->ds,pep->ncv+1));
-
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

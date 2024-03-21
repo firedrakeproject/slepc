@@ -20,7 +20,7 @@ int main(int argc,char **argv)
   PetscScalar    *U,*w,d;
   PetscInt       i,n=10,m,l=2,k=5,p=1,ld;
   PetscViewer    viewer;
-  PetscBool      verbose,extrarow;
+  PetscBool      verbose,extrarow,reorthog,flg;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -33,6 +33,7 @@ int main(int argc,char **argv)
   PetscCheck(l<=n && k<=n && l<=k && p>=0 && p<=n-l,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Wrong value of dimensions");
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-extrarow",&extrarow));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-reorthog",&reorthog));
 
   /* Create DS object */
   PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
@@ -44,6 +45,9 @@ int main(int argc,char **argv)
   PetscCall(DSHSVDSetDimensions(ds,m));
   PetscCall(DSSetCompact(ds,PETSC_TRUE));
   PetscCall(DSSetExtraRow(ds,extrarow));
+  PetscCall(DSHSVDSetReorthogonalize(ds,reorthog));
+  PetscCall(DSHSVDGetReorthogonalize(ds,&flg));
+  if (flg) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"reorthogonalizing\n"));
 
   /* Set up viewer */
   PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
@@ -118,8 +122,9 @@ int main(int argc,char **argv)
       requires: !single
 
    test:
-      args: -extrarow
+      args: -extrarow -reorthog {{0 1}}
       suffix: 3
       requires: !single
+      filter: grep -v reorthogonalizing
 
 TEST*/
