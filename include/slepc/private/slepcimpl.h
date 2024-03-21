@@ -50,6 +50,39 @@ struct _n_SlepcConvMon {
   PetscInt oldnconv;  /* previous value of nconv */
 };
 
+/* context for structured eigenproblem matrices created via MatCreateXXX */
+struct _n_SlepcMatStruct {
+  PetscInt cookie;    /* identify which structured matrix */
+};
+typedef struct _n_SlepcMatStruct* SlepcMatStruct;
+
+#define SLEPC_MAT_STRUCT_BSE 88101
+
+/*
+  SlepcCheckMatStruct - Check that a given Mat is a structured matrix of the wanted type.
+
+  Returns true/false in flg if it is given, otherwise yields an error if the check fails.
+  If cookie==0 it will check for any type.
+*/
+static inline PetscErrorCode SlepcCheckMatStruct(Mat A,PetscInt cookie,PetscBool *flg)
+{
+  PetscContainer container;
+  SlepcMatStruct mctx;
+
+  PetscFunctionBegin;
+  if (flg) *flg = PETSC_FALSE;
+  PetscCall(PetscObjectQuery((PetscObject)A,"SlepcMatStruct",(PetscObject*)&container));
+  if (flg && !container) PetscFunctionReturn(PETSC_SUCCESS);
+  PetscCheck(container,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_WRONG,"The Mat is not a structured matrix");
+  if (cookie) {
+    PetscCall(PetscContainerGetPointer(container,(void**)&mctx));
+    if (flg && (!mctx || mctx->cookie!=cookie)) PetscFunctionReturn(PETSC_SUCCESS);
+    PetscCheck(mctx && mctx->cookie==cookie,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_WRONG,"The type of structured matrix is different from the expected one");
+  }
+  if (flg) *flg = PETSC_TRUE;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 /*
   SlepcPrintEigenvalueASCII - Print an eigenvalue on an ASCII viewer.
 */

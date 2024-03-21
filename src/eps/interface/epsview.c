@@ -46,7 +46,8 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   const char     *type=NULL,*extr=NULL,*bal=NULL;
   char           str[50];
-  PetscBool      isascii,isexternal,istrivial;
+  PetscBool      isascii,isexternal,istrivial,isstruct=PETSC_FALSE,flg;
+  Mat            A;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -72,6 +73,12 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       }
     } else type = "not yet set";
     PetscCall(PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type));
+    PetscCall(EPSGetOperators(eps,&A,NULL));
+    if (A) PetscCall(SlepcCheckMatStruct(A,0,&isstruct));
+    if (isstruct) {
+      PetscCall(SlepcCheckMatStruct(A,SLEPC_MAT_STRUCT_BSE,&flg));
+      if (flg) PetscCall(PetscViewerASCIIPrintf(viewer,"  matrix A has a Bethe-Salpeter structure\n"));
+    }
     if (eps->extraction) {
       switch (eps->extraction) {
         case EPS_RITZ:              extr = "Rayleigh-Ritz"; break;
