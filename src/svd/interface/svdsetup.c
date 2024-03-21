@@ -136,13 +136,15 @@ PetscErrorCode SVDSetSignature(SVD svd,Vec omega)
     PetscCall(VecGetLocalSize(omega,&n));
     PetscCall(MatGetSize(svd->OP,&Ma,NULL));
     PetscCall(MatGetLocalSize(svd->OP,&ma,NULL));
-    PetscCheck(N==Ma,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Global size of signature (%" PetscInt_FMT ") does not match the row size of A (%" PetscInt_FMT ")",N,Ma);
-    PetscCheck(n==ma,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Local size of signature (%" PetscInt_FMT ") does not match the local row size of A (%" PetscInt_FMT ")",n,ma);
+    PetscCheck(N==Ma,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_SIZ,"Global size of signature (%" PetscInt_FMT ") does not match the row size of A (%" PetscInt_FMT ")",N,Ma);
+    PetscCheck(n==ma,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_SIZ,"Local size of signature (%" PetscInt_FMT ") does not match the local row size of A (%" PetscInt_FMT ")",n,ma);
   }
 
-  if (omega) PetscCall(PetscObjectReference((PetscObject)omega));
   PetscCall(VecDestroy(&svd->omega));
-  svd->omega = omega;
+  if (omega) {
+    PetscCall(VecDuplicate(omega,&svd->omega));
+    PetscCall(VecCopy(omega,svd->omega));
+  }
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -217,7 +219,7 @@ PetscErrorCode SVDSetDSType(SVD svd)
 PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscBool      flg;
-  PetscInt       M,N,P=0,k,maxnsol;
+  PetscInt       M,N,P=0,k,maxnsol,m,Nom,nom;
   SlepcSC        sc;
   Vec            *T;
   BV             bv;
@@ -276,6 +278,12 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (svd->isgeneralized) {
     PetscCall(MatGetSize(svd->OPb,&P,NULL));
     PetscCheck(M+P>=N,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case when [A;B] has less rows than columns is not supported");
+  } else if (svd->ishyperbolic) {
+    PetscCall(VecGetSize(svd->omega,&Nom));
+    PetscCall(VecGetLocalSize(svd->omega,&nom));
+    PetscCall(MatGetLocalSize(svd->OP,&m,NULL));
+    PetscCheck(Nom==M,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_SIZ,"Global size of signature (%" PetscInt_FMT ") does not match the row size of A (%" PetscInt_FMT ")",Nom,M);
+    PetscCheck(nom==m,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_SIZ,"Local size of signature (%" PetscInt_FMT ") does not match the local row size of A (%" PetscInt_FMT ")",nom,m);
   }
 
   /* build transpose matrix */
