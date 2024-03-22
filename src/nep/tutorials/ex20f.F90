@@ -249,7 +249,7 @@
 !     ** Assemble matrix
       PetscCall(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY,ierr))
       PetscCall(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY,ierr))
-      return
+
       end
 
 ! ---------------  Evaluate Jacobian matrix  T'(lambda)  ---------------
@@ -309,7 +309,7 @@
 !     ** Assemble matrix
       PetscCall(MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY,ierr))
       PetscCall(MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY,ierr))
-      return
+
       end
 
 !/*TEST
