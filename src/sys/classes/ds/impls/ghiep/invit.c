@@ -291,7 +291,7 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
   PetscCall(PetscBLASIntCast(tr1->n[1],&n1_));
   if (tr1->n[0] > 1) PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n0_,x+tr1->idx[0],x+tr1->idx[0]+1,&inc,tr1->tau));
   if (tr1->n[1]> 1) PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1_,x+tr1->idx[1],x+tr1->idx[1]+1,&inc,tr1->tau+1));
-  if (tr1->idx[0]<tr1->idx[1]) PetscCall(HRGen(PetscRealPart(x[tr1->idx[0]]),PetscRealPart(x[tr1->idx[1]]),&(tr1->type),&(tr1->cs),&(tr1->sn),&(tr1->alpha),ncond));
+  if (tr1->idx[0]<tr1->idx[1]) PetscCall(HRGen(PetscRealPart(x[tr1->idx[0]]),PetscRealPart(x[tr1->idx[1]]),&tr1->type,&tr1->cs,&tr1->sn,&tr1->alpha,ncond));
   else {
     tr1->alpha = PetscRealPart(x[tr1->idx[0]]);
     *ncond = 1.0;
@@ -326,7 +326,7 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
     PetscCall(PetscBLASIntCast(tr2->n[1],&n1_));
     if (tr2->n[0] > 1) PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n0_,y+tr2->idx[0],y+tr2->idx[0]+1,&inc,tr2->tau));
     if (tr2->n[1]> 1) PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1_,y+tr2->idx[1],y+tr2->idx[1]+1,&inc,tr2->tau+1));
-    if (tr2->idx[0]<tr2->idx[1]) PetscCall(HRGen(PetscRealPart(y[tr2->idx[0]]),PetscRealPart(y[tr2->idx[1]]),&(tr2->type),&(tr2->cs),&(tr2->sn),&(tr2->alpha),&ncond2));
+    if (tr2->idx[0]<tr2->idx[1]) PetscCall(HRGen(PetscRealPart(y[tr2->idx[0]]),PetscRealPart(y[tr2->idx[1]]),&tr2->type,&tr2->cs,&tr2->sn,&tr2->alpha,&ncond2));
     else {
       tr2->alpha = PetscRealPart(y[tr2->idx[0]]);
       ncond2 = 1.0;

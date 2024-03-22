@@ -12,7 +12,7 @@
 
 static PetscErrorCode MatCreateTile_Seq(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
-  PetscInt          i,j,M1,M2,N1,N2,*nnz,ncols,*scols,bs;
+  PetscInt          i,j,M1,M2,N1,N2,ncols,*scols;
   PetscScalar       *svals,*buf;
   const PetscInt    *cols;
   const PetscScalar *vals;
@@ -20,43 +20,6 @@ static PetscErrorCode MatCreateTile_Seq(PetscScalar a,Mat A,PetscScalar b,Mat B,
   PetscFunctionBegin;
   PetscCall(MatGetSize(A,&M1,&N1));
   PetscCall(MatGetSize(D,&M2,&N2));
-  PetscCall(MatGetBlockSize(A,&bs));
-
-  PetscCall(PetscCalloc1((M1+M2)/bs,&nnz));
-  /* Preallocate for A */
-  if (a!=0.0) {
-    for (i=0;i<(M1+bs-1)/bs;i++) {
-      PetscCall(MatGetRow(A,i*bs,&ncols,NULL,NULL));
-      nnz[i] += ncols/bs;
-      PetscCall(MatRestoreRow(A,i*bs,&ncols,NULL,NULL));
-    }
-  }
-  /* Preallocate for B */
-  if (b!=0.0) {
-    for (i=0;i<(M1+bs-1)/bs;i++) {
-      PetscCall(MatGetRow(B,i*bs,&ncols,NULL,NULL));
-      nnz[i] += ncols/bs;
-      PetscCall(MatRestoreRow(B,i*bs,&ncols,NULL,NULL));
-    }
-  }
-  /* Preallocate for C */
-  if (c!=0.0) {
-    for (i=0;i<(M2+bs-1)/bs;i++) {
-      PetscCall(MatGetRow(C,i*bs,&ncols,NULL,NULL));
-      nnz[i+M1/bs] += ncols/bs;
-      PetscCall(MatRestoreRow(C,i*bs,&ncols,NULL,NULL));
-    }
-  }
-  /* Preallocate for D */
-  if (d!=0.0) {
-    for (i=0;i<(M2+bs-1)/bs;i++) {
-      PetscCall(MatGetRow(D,i*bs,&ncols,NULL,NULL));
-      nnz[i+M1/bs] += ncols/bs;
-      PetscCall(MatRestoreRow(D,i*bs,&ncols,NULL,NULL));
-    }
-  }
-  PetscCall(MatXAIJSetPreallocation(G,bs,nnz,NULL,NULL,NULL));
-  PetscCall(PetscFree(nnz));
 
   PetscCall(PetscMalloc2(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols));
   /* Transfer A */
@@ -118,17 +81,17 @@ static PetscErrorCode MatCreateTile_Seq(PetscScalar a,Mat A,PetscScalar b,Mat B,
 static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscMPIInt       np;
-  PetscInt          p,i,j,N1,N2,m1,m2,n1,n2,*map1,*map2;
-  PetscInt          *dnz,*onz,ncols,*scols,start,gstart;
+  PetscInt          p,i,j,N1,N2,m1,m2,*map1,*map2;
+  PetscInt          ncols,*scols,start,gstart;
   PetscScalar       *svals,*buf;
   const PetscInt    *cols,*mapptr1,*mapptr2;
   const PetscScalar *vals;
 
   PetscFunctionBegin;
   PetscCall(MatGetSize(A,NULL,&N1));
-  PetscCall(MatGetLocalSize(A,&m1,&n1));
+  PetscCall(MatGetLocalSize(A,&m1,NULL));
   PetscCall(MatGetSize(D,NULL,&N2));
-  PetscCall(MatGetLocalSize(D,&m2,&n2));
+  PetscCall(MatGetLocalSize(D,&m2,NULL));
 
   /* Create mappings */
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)G),&np));
@@ -141,51 +104,7 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
   for (p=0;p<np;p++) {
     for (i=mapptr2[p];i<mapptr2[p+1];i++) map2[i] = i+mapptr1[p+1];
   }
-
-  MatPreallocateBegin(PetscObjectComm((PetscObject)G),m1+m2,n1+n2,dnz,onz);
   PetscCall(MatGetOwnershipRange(G,&gstart,NULL));
-  /* Preallocate for A */
-  if (a!=0.0) {
-    PetscCall(MatGetOwnershipRange(A,&start,NULL));
-    for (i=0;i<m1;i++) {
-      PetscCall(MatGetRow(A,i+start,&ncols,&cols,NULL));
-      for (j=0;j<ncols;j++) scols[j] = map1[cols[j]];
-      PetscCall(MatPreallocateSet(gstart+i,ncols,scols,dnz,onz));
-      PetscCall(MatRestoreRow(A,i+start,&ncols,&cols,NULL));
-    }
-  }
-  /* Preallocate for B */
-  if (b!=0.0) {
-    PetscCall(MatGetOwnershipRange(B,&start,NULL));
-    for (i=0;i<m1;i++) {
-      PetscCall(MatGetRow(B,i+start,&ncols,&cols,NULL));
-      for (j=0;j<ncols;j++) scols[j] = map2[cols[j]];
-      PetscCall(MatPreallocateSet(gstart+i,ncols,scols,dnz,onz));
-      PetscCall(MatRestoreRow(B,i+start,&ncols,&cols,NULL));
-    }
-  }
-  /* Preallocate for C */
-  if (c!=0.0) {
-    PetscCall(MatGetOwnershipRange(C,&start,NULL));
-    for (i=0;i<m2;i++) {
-      PetscCall(MatGetRow(C,i+start,&ncols,&cols,NULL));
-      for (j=0;j<ncols;j++) scols[j] = map1[cols[j]];
-      PetscCall(MatPreallocateSet(gstart+m1+i,ncols,scols,dnz,onz));
-      PetscCall(MatRestoreRow(C,i+start,&ncols,&cols,NULL));
-    }
-  }
-  /* Preallocate for D */
-  if (d!=0.0) {
-    PetscCall(MatGetOwnershipRange(D,&start,NULL));
-    for (i=0;i<m2;i++) {
-      PetscCall(MatGetRow(D,i+start,&ncols,&cols,NULL));
-      for (j=0;j<ncols;j++) scols[j] = map2[cols[j]];
-      PetscCall(MatPreallocateSet(gstart+m1+i,ncols,scols,dnz,onz));
-      PetscCall(MatRestoreRow(D,i+start,&ncols,&cols,NULL));
-    }
-  }
-  PetscCall(MatMPIAIJSetPreallocation(G,0,dnz,0,onz));
-  MatPreallocateEnd(dnz,onz);
 
   /* Transfer A */
   if (a!=0.0) {

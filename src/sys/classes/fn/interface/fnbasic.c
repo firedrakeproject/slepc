@@ -1032,7 +1032,7 @@ PetscErrorCode FNDestroy(FN *fn)
   PetscFunctionBegin;
   if (!*fn) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
-  if (--((PetscObject)(*fn))->refct > 0) { *fn = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  if (--((PetscObject)*fn)->refct > 0) { *fn = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscTryTypeMethod(*fn,destroy);
   for (i=0;i<(*fn)->nw;i++) PetscCall(MatDestroy(&(*fn)->W[i]));
   PetscCall(PetscHeaderDestroy(fn));

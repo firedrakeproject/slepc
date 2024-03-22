@@ -21,7 +21,7 @@
 */
 static PetscErrorCode STComputeOperator_Filter(ST st)
 {
-  ST_FILTER      *ctx = (ST_FILTER*)st->data;
+  ST_FILTER *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
   PetscCheck(st->nmat==1,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Only implemented for standard eigenvalue problem");
@@ -48,9 +48,9 @@ static PetscErrorCode STSetUp_Filter(ST st)
 
 static PetscErrorCode STSetFromOptions_Filter(ST st,PetscOptionItems *PetscOptionsObject)
 {
-  PetscReal      array[2]={0,0};
-  PetscInt       k;
-  PetscBool      flg;
+  PetscReal array[2]={0,0};
+  PetscInt  k;
+  PetscBool flg;
 
   PetscFunctionBegin;
   PetscOptionsHeadBegin(PetscOptionsObject,"ST Filter Options");
@@ -359,7 +359,7 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
 
 static PetscErrorCode STReset_Filter(ST st)
 {
-  ST_FILTER      *ctx = (ST_FILTER*)st->data;
+  ST_FILTER *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
   ctx->left  = 0.0;
@@ -372,8 +372,8 @@ static PetscErrorCode STReset_Filter(ST st)
 
 static PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
 {
-  ST_FILTER      *ctx = (ST_FILTER*)st->data;
-  PetscBool      isascii;
+  ST_FILTER *ctx = (ST_FILTER*)st->data;
+  PetscBool isascii;
 
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
@@ -388,7 +388,7 @@ static PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
 
 static PetscErrorCode STDestroy_Filter(ST st)
 {
-  ST_FILTER      *ctx = (ST_FILTER*)st->data;
+  ST_FILTER *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
   PetscCall(PetscFree(ctx->opts));
@@ -407,9 +407,10 @@ static PetscErrorCode STDestroy_Filter(ST st)
 
 SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
 {
-  ST_FILTER      *ctx;
-  FILTLAN_IOP    iop;
-  FILTLAN_PFI    pfi;
+  ST_FILTER   *ctx;
+  FILTLAN_IOP iop;
+  FILTLAN_PFI pfi;
+
   PetscFunctionBegin;
   PetscCall(PetscNew(&ctx));
   st->data = (void*)ctx;

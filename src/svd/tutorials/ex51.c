@@ -105,7 +105,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
   PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
   PetscCall(MatSetFromOptions(A));
-  PetscCall(MatSetUp(A));
   PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
 
   /* make sure that the matrix is the same irrespective of the number of MPI processes */
@@ -139,7 +138,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
   PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,2*N,N));
   PetscCall(MatSetFromOptions(B));
-  PetscCall(MatSetUp(B));
 
   for (i=Istart;i<Iend;i++) {
     /* upper block: kron(speye(n),T1) where T1 is tridiagonal */

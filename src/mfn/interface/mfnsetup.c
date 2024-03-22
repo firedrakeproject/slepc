@@ -158,7 +158,7 @@ PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
   /* allocate basis vectors */
   if (!mfn->V) PetscCall(MFNGetBV(mfn,&mfn->V));
   if (!oldsize) {
-    if (!((PetscObject)(mfn->V))->type_name) PetscCall(BVSetType(mfn->V,BVMAT));
+    if (!((PetscObject)mfn->V)->type_name) PetscCall(BVSetType(mfn->V,BVMAT));
     PetscCall(MatCreateVecsEmpty(mfn->A,&t,NULL));
     PetscCall(BVSetSizesFromVec(mfn->V,t,requested));
     PetscCall(VecDestroy(&t));

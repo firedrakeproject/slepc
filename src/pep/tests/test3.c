@@ -18,6 +18,7 @@ int main(int argc,char **argv)
   PEP                pep;         /* eigenproblem solver context */
   ST                 st;
   KSP                ksp;
+  Vec                Dl,Dr;
   DS                 ds;
   PetscReal          tol,alpha;
   PetscScalar        target;
@@ -42,7 +43,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A[0]));
   PetscCall(MatSetSizes(A[0],PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(A[0]));
-  PetscCall(MatSetUp(A[0]));
   PetscCall(MatGetOwnershipRange(A[0],&Istart,&Iend));
   for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(A[0],i,i,i+1,INSERT_VALUES));
   PetscCall(MatAssemblyBegin(A[0],MAT_FINAL_ASSEMBLY));
@@ -51,7 +51,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A[1]));
   PetscCall(MatSetSizes(A[1],PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(A[1]));
-  PetscCall(MatSetUp(A[1]));
   PetscCall(MatGetOwnershipRange(A[1],&Istart,&Iend));
   for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(A[1],i,i,1.0,INSERT_VALUES));
   PetscCall(MatAssemblyBegin(A[1],MAT_FINAL_ASSEMBLY));
@@ -60,11 +59,14 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A[2]));
   PetscCall(MatSetSizes(A[2],PETSC_DECIDE,PETSC_DECIDE,n,n));
   PetscCall(MatSetFromOptions(A[2]));
-  PetscCall(MatSetUp(A[2]));
   PetscCall(MatGetOwnershipRange(A[1],&Istart,&Iend));
   for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(A[2],i,i,n/(PetscReal)(i+1),INSERT_VALUES));
   PetscCall(MatAssemblyBegin(A[2],MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(A[2],MAT_FINAL_ASSEMBLY));
+
+  PetscCall(MatCreateVecs(A[0],&Dr,&Dl));
+  PetscCall(VecSet(Dl,1.0));
+  PetscCall(VecSet(Dr,0.95));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create eigensolver and test interface functions
@@ -92,7 +94,7 @@ int main(int argc,char **argv)
   PetscCall(PEPGetExtract(pep,&extr));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)extr));
 
-  PetscCall(PEPSetScale(pep,PEP_SCALE_SCALAR,.1,NULL,NULL,5,1.0));
+  PetscCall(PEPSetScale(pep,PEP_SCALE_BOTH,.1,Dl,Dr,5,1.0));
   PetscCall(PEPGetScale(pep,&scale,&alpha,NULL,NULL,&its,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Scaling: %s, alpha=%g, its=%" PetscInt_FMT "\n",PEPScaleTypes[scale],(double)alpha,its));
 
@@ -148,6 +150,8 @@ int main(int argc,char **argv)
   PetscCall(MatDestroy(&A[0]));
   PetscCall(MatDestroy(&A[1]));
   PetscCall(MatDestroy(&A[2]));
+  PetscCall(VecDestroy(&Dl));
+  PetscCall(VecDestroy(&Dr));
   PetscCall(SlepcFinalize());
   return 0;
 }

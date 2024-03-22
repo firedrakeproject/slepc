@@ -91,7 +91,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&ctx->T));
   PetscCall(MatSetSizes(ctx->T,PETSC_DECIDE,PETSC_DECIDE,N,N));
   PetscCall(MatSetFromOptions(ctx->T));
-  PetscCall(MatSetUp(ctx->T));
 
   PetscCall(MatGetOwnershipRange(ctx->T,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
@@ -328,7 +327,7 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
 
    test:
       suffix: 7
-      args: -n 40 -eps_nev 1 -eps_type arnoldi -eps_smallest_real -eps_refined -eps_ncv 40 -eps_max_it 300 -terse
+      args: -n 40 -eps_nev 1 -eps_type arnoldi -eps_smallest_real -eps_refined -eps_ncv 42 -eps_max_it 300 -terse
       requires: double
 
    test:

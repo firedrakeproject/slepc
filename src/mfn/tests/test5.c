@@ -8,11 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Computes the action of the square root of the 2-D Laplacian.\n\n"
-  "The command line options are:\n"
-  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
-  "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n"
-  "To draw the solution run with -mfn_view_solution draw -draw_pause -1\n\n";
+static char help[] = "Test changing MFN type.\n\n";
 
 #include <slepcmfn.h>
 
@@ -21,10 +17,11 @@ int main(int argc,char **argv)
   Mat            A;           /* problem matrix */
   MFN            mfn;
   FN             f;
-  PetscReal      norm,tol;
-  Vec            v,y,z;
-  PetscInt       N,n=10,m,Istart,Iend,i,j,II;
+  PetscReal      norm;
+  PetscScalar    t=0.3;
+  PetscInt       N,n=25,m,Istart,Iend,II,i,j;
   PetscBool      flag;
+  Vec            v,y;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -33,10 +30,11 @@ int main(int argc,char **argv)
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(t*A)*e, of the 2-D Laplacian, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                 Compute the discrete 2-D Laplacian, A
+                         Build the 2-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
@@ -56,57 +54,45 @@ int main(int argc,char **argv)
   PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
-  /* set symmetry flag so that solver can exploit it */
-  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
-
-  /* set v = e_1 */
-  PetscCall(MatCreateVecs(A,NULL,&v));
-  PetscCall(VecSetValue(v,0,1.0,INSERT_VALUES));
-  PetscCall(VecAssemblyBegin(v));
-  PetscCall(VecAssemblyEnd(v));
-  PetscCall(VecDuplicate(v,&y));
-  PetscCall(VecDuplicate(v,&z));
+  /* set v = ones(n,1) */
+  PetscCall(MatCreateVecs(A,&v,&y));
+  PetscCall(VecSet(v,1.0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-             Create the solver, set the matrix and the function
+                Create the solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f));
+  PetscCall(FNSetType(f,FNEXP));
+
   PetscCall(MFNCreate(PETSC_COMM_WORLD,&mfn));
   PetscCall(MFNSetOperator(mfn,A));
-  PetscCall(MFNGetFN(mfn,&f));
-  PetscCall(FNSetType(f,FNSQRT));
+  PetscCall(MFNSetType(mfn,MFNEXPOKIT));
+  PetscCall(MFNSetDimensions(mfn,24));
+  PetscCall(MFNSetTolerances(mfn,1e-5,1000));
+  PetscCall(MFNSetFN(mfn,f));
   PetscCall(MFNSetErrorIfNotConverged(mfn,PETSC_TRUE));
   PetscCall(MFNSetFromOptions(mfn));
+  PetscCall(MFNView(mfn,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      First solve: y=sqrt(A)*v
+            Change MFN type and solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  PetscCall(MFNSetType(mfn,MFNKRYLOV));
+  PetscCall(FNSetScale(f,t,1.0));
   PetscCall(MFNSolve(mfn,v,y));
   PetscCall(VecNorm(y,NORM_2,&norm));
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Intermediate vector has norm %g\n",(double)norm));
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-             Second solve: z=sqrt(A)*y and compare against A*v
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  PetscCall(MFNSolve(mfn,y,z));
-  PetscCall(MFNGetTolerances(mfn,&tol,NULL));
-
-  PetscCall(MatMult(A,v,y));   /* overwrite y */
-  PetscCall(VecAXPY(y,-1.0,z));
-  PetscCall(VecNorm(y,NORM_2,&norm));
-
-  if (norm<tol) PetscCall(PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n"));
-  else PetscCall(PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm));
 
   /*
      Free work space
   */
   PetscCall(MFNDestroy(&mfn));
+  PetscCall(FNDestroy(&f));
   PetscCall(MatDestroy(&A));
   PetscCall(VecDestroy(&v));
   PetscCall(VecDestroy(&y));
-  PetscCall(VecDestroy(&z));
   PetscCall(SlepcFinalize());
   return 0;
 }
@@ -114,7 +100,5 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
-      suffix: 1
-      args: -mfn_tol 1e-4
 
 TEST*/

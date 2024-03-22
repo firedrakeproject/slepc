@@ -54,7 +54,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
   PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
   PetscCall(MatSetFromOptions(A));
-  PetscCall(MatSetUp(A));
   PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
@@ -101,7 +100,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_ABSOLUTE,PETSC_VIEWER_STDOUT_WORLD));
   PetscCall(SVDDestroy(&svd));
   PetscCall(EPSDestroy(&eps));
   PetscCall(MatDestroy(&A));

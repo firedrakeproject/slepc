@@ -212,7 +212,6 @@ static inline PetscErrorCode BV_SetMatrixDiagonal(BV bv,Vec vomega,Mat M)
   PetscCall(MatCreate(PetscObjectComm((PetscObject)bv),&Omega));
   PetscCall(MatSetSizes(Omega,bv->n,bv->n,bv->N,bv->N));
   PetscCall(MatSetType(Omega,Mtype));
-  PetscCall(MatSetUp(Omega));
   PetscCall(MatDiagonalSet(Omega,vomega,INSERT_VALUES));
   PetscCall(BVSetMatrix(bv,Omega,PETSC_TRUE));
   PetscCall(MatDestroy(&Omega));

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#!/bin/env python3
 #
 #    Generates etag and ctag (use -noctags to skip generation of ctags) files for SLEPc
 #    Adds file names to list of tags in a TAGS file
@@ -147,7 +146,7 @@ def main(ctags):
     ctagfile = None
   flist = []
   if os.path.isdir('.git'):
-    output = subprocess.check_output('git ls-files | grep -E -v \(^\(docs/\|share/slepc/datafiles/\)\|/output/\|\.\(png\|pdf\|ps\|ppt\|jpg\|tex\)$\)', shell=True)
+    output = subprocess.check_output(f'git ls-files | grep -E -v \(^\(docs/\|share/slepc/datafiles/\)\|/output/\|\.\(png\|pdf\|ps\|ppt\|jpg\|tex\)$\)', shell=True)
     flist = output.decode(sys.getfilesystemencoding()).splitlines()
   else:
     for dirpath, dirnames, filenames in os.walk(os.getcwd()):

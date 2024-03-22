@@ -345,7 +345,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   PetscFunctionBegin;
   if (!*nep) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*nep,NEP_CLASSID,1);
-  if (--((PetscObject)(*nep))->refct > 0) { *nep = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  if (--((PetscObject)*nep)->refct > 0) { *nep = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(NEPReset(*nep));
   PetscTryTypeMethod(*nep,destroy);
   if ((*nep)->eigr) PetscCall(PetscFree4((*nep)->eigr,(*nep)->eigi,(*nep)->errest,(*nep)->perm));

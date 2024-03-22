@@ -229,7 +229,7 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
   leftDelta = (b1-a1)*opts->initialShiftStep;        /* initial left shift */
   rightDelta = leftDelta;                            /* initial right shift */
   opts->numGridPoints = PetscMax(opts->numGridPoints,(PetscInt)(2.0*(b-a)/halfPlateau));
-  gridSize = (b-a) / (PetscReal)(opts->numGridPoints);
+  gridSize = (b-a) / (PetscReal)opts->numGridPoints;
 
   for (i=0;i<6;i++) intv[i] = 0.0;
   if (filterInfo->filterType == 2) {  /* for interior eigenvalues */

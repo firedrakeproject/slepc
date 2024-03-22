@@ -53,7 +53,6 @@ int main(int argc,char **argv)
     if (!flg) n = m;
     PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,m,n));
     PetscCall(MatSetFromOptions(B));
-    PetscCall(MatSetUp(B));
     PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
     for (i=Istart;i<Iend;i++) {
       if (i>0 && i-1<n) PetscCall(MatSetValue(B,i,i-1,-1.0,INSERT_VALUES));

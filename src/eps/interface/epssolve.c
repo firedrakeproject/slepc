@@ -54,7 +54,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
         if (B) {
           PetscCall(DSGetMat(eps->ds,DS_MAT_B,&G));
           PetscCall(BVMatProject(eps->V,B,eps->V,G));
-          PetscCall(DSRestoreMat(eps->ds,DS_MAT_A,&G));
+          PetscCall(DSRestoreMat(eps->ds,DS_MAT_B,&G));
         }
         PetscCall(DSSolve(eps->ds,eps->eigr,eps->eigi));
         PetscCall(DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL));
@@ -187,13 +187,13 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscCall(EPSValuesViewFromOptions(eps));
   PetscCall(EPSVectorsViewFromOptions(eps));
 
-  PetscCall(PetscOptionsHasName(NULL,((PetscObject)eps)->prefix,"-eps_view_mat0",&hasname));
+  PetscCall(PetscOptionsHasName(((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_mat0",&hasname));
   if (hasname) {
     PetscCall(EPSGetOperators(eps,&A,NULL));
     PetscCall(MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0"));
   }
   if (eps->isgeneralized) {
-    PetscCall(PetscOptionsHasName(NULL,((PetscObject)eps)->prefix,"-eps_view_mat1",&hasname));
+    PetscCall(PetscOptionsHasName(((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_mat1",&hasname));
     if (hasname) {
       PetscCall(EPSGetOperators(eps,NULL,&B));
       PetscCall(MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1"));

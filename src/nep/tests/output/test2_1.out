@@ -39,8 +39,84 @@ DS Object: 1 MPI process
   type not yet set
 RG Object: 1 MPI process
   type: interval
-  region: [-inf.,inf.]x[-inf.,inf.]
+    region: [-inf.,inf.]x[-inf.,inf.]
+NEP Object: 1 MPI process
+  type: rii
+    maximum number of inner iterations: 10
+    updating the preconditioner every 1 iterations
+    KSP Object: (nep_rii_) 1 MPI process
+      type: gmres
+        restart=30, using Classical (unmodified) Gram-Schmidt Orthogonalization with no iterative refinement
+      maximum iterations=10000, initial guess is zero
+      left preconditioning
+      using PRECONDITIONED norm type for convergence test
+    PC Object: (nep_rii_) 1 MPI process
+      type: ilu
+        out-of-place factorization
+        0 levels of fill
+        matrix ordering: natural
+        factor fill ratio given 1., needed 1.
+          Factored matrix follows:
+            Mat Object: (nep_rii_) 1 MPI process
+              type: seqaij
+              rows=20, cols=20
+              package used to perform factorization: petsc
+              total: nonzeros=20, allocated nonzeros=20
+                not using I-node routines
+      linear system matrix = precond matrix:
+      Mat Object: (nep_rii_) 1 MPI process
+        type: seqaij
+        rows=20, cols=20
+        total: nonzeros=20, allocated nonzeros=20
+        total number of mallocs used during MatSetValues calls=0
+          not using I-node routines
+  problem type: rational eigenvalue problem
+  nonlinear operator in split form
+    number of terms: 3
+    nonzero pattern of the matrices: SAME
+  selected portion of the spectrum: closest to target: 1.1 (in magnitude)
+  number of eigenvalues (nev): 1
+  number of column vectors (ncv): 1
+  maximum dimension of projected problem (mpd): 1
+  maximum number of iterations: 200
+  convergence test: absolute
+  iterative refinement: SIMPLE, with EXPLICIT scheme
+  refinement stopping criterion: tol=1e-09, its=2
+BV Object: 1 MPI process
+  type: mat
+  1 columns of global length 20
+  vector orthogonalization method: classical Gram-Schmidt
+  orthogonalization refinement: if needed (eta: 0.7071)
+  block orthogonalization method: GS
+  doing matmult as a single matrix-matrix product
+DS Object: 1 MPI process
+  type: nhep
+  KSP Object: (nep_refine_) 1 MPI process
+    type: gmres
+      restart=30, using Classical (unmodified) Gram-Schmidt Orthogonalization with no iterative refinement
+    maximum iterations=10000, initial guess is zero
+    left preconditioning
+    using PRECONDITIONED norm type for convergence test
+  PC Object: (nep_refine_) 1 MPI process
+    type: ilu
+      out-of-place factorization
+      0 levels of fill
+      matrix ordering: natural
+      factor fill ratio given 1., needed 1.
+        Factored matrix follows:
+          Mat Object: (nep_refine_) 1 MPI process
+            type: seqaij
+            rows=21, cols=21
+            package used to perform factorization: petsc
+            total: nonzeros=61, allocated nonzeros=61
+              not using I-node routines
+    linear system matrix = precond matrix:
+    Mat Object: (nep_refine_) 1 MPI process
+      type: seqaij
+      rows=21, cols=21
+      total: nonzeros=61, allocated nonzeros=61
+      total number of mallocs used during MatSetValues calls=0
+        not using I-node routines
  Finished - converged reason = 1
- All requested eigenvalues computed up to the required tolerance:
      1.00000
 

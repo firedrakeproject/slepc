@@ -34,7 +34,7 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
   PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,k));
   if (!sparse) PetscCall(MatSetType(A,MATDENSE));
-  PetscCall(MatSetUp(A));
+  else PetscCall(MatSetType(A,MATAIJ));
   PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (j=0;j<k;j++) {
     for (i=0;i<=n/2;i++) {

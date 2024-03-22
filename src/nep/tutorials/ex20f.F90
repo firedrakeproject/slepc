@@ -93,14 +93,12 @@
       PetscCallA(MatSetFromOptions(F,ierr))
       PetscCallA(MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,ierr))
       PetscCallA(MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
-      PetscCallA(MatSetUp(F,ierr))
 
       PetscCallA(MatCreate(PETSC_COMM_WORLD,J,ierr))
       PetscCallA(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
       PetscCallA(MatSetFromOptions(J,ierr))
       PetscCallA(MatSeqAIJSetPreallocation(J,three,PETSC_NULL_INTEGER,ierr))
       PetscCallA(MatMPIAIJSetPreallocation(J,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
-      PetscCallA(MatSetUp(J,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and set various options

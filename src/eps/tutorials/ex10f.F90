@@ -87,7 +87,6 @@
       call MatCreate(PETSC_COMM_WORLD,A,ierr);CHKERRA(ierr)
       call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
       call MatSetFromOptions(A,ierr);CHKERRA(ierr)
-      call MatSetUp(A,ierr);CHKERRA(ierr)
 
       call MatGetOwnershipRange(A,Istart,Iend,ierr);CHKERRA(ierr)
       if (Istart .eq. 0) then

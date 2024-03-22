@@ -7,7 +7,7 @@ CONFIGDIR := $(SLEPC_DIR)/config
 # TESTSRCDIR is always relative to gmakefile.test
 #  This must be before includes
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
-TESTSRCDIR := $(dir $(mkfile_path))src
+TESTSRCDIR ?= $(dir $(mkfile_path))src
 
 -include $(SLEPC_DIR)/$(PETSC_ARCH)/lib/slepc/conf/slepcvariables
 -include $(SLEPC_DIR)/lib/slepc/conf/slepc_variables
@@ -116,7 +116,7 @@ endif
 $(generatedtest) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH_DIR) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
-ifneq ($(filter-out help clean check info gmakeinfo slepc_libs all install install-lib checkbadSource checkbadFileChange deletefortranstubs allfortranstubs allfortranstubsinplace alletags get%,$(MAKECMDGOALS:clean%=clean)),)
+ifneq ($(filter-out help clean distclean check info gmakeinfo slepc_libs all install install-lib checkbadSource deletefortranstubs allfortranstubs allfortranstubsinplace alletags lint_slepc get%,$(MAKECMDGOALS:clean%=clean)),)
 include $(generatedtest)
 endif
 
@@ -159,6 +159,7 @@ endif
 # The solution is not ideal in the sense we have to duplicate the same workaround to any external libraries
 # using C++17 inline static variables. We have to wait for GNU to clarify this issue.
 PETSC_COMPILE.kokkos.cxx = $(filter-out -fvisibility=hidden,$(subst -Xcompiler -fvisibility=hidden ,,$(strip $(KOKKOS_COMPILE))))
+KOKKOS_LINKER = $(filter-out -fvisibility=hidden,$(subst -Xcompiler -fvisibility=hidden ,,$(strip $(CLINKER))))
 
 ifneq ($(RAJA_USE_CUDA_COMPILER),)
   PETSC_COMPILE.raja.cxx  = ${CUDAC} $(MPICXX_INCLUDES) ${CUDAC_FLAGS} -x cu -Xcudafe "--display_error_number" -c --compiler-options="${PETSC_CXXCPPFLAGS} ${PETSC_CC_INCLUDES} ${CUDA_CXXFLAGS}" --expt-extended-lambda --expt-relaxed-constexpr
@@ -271,7 +272,7 @@ $(testexe.hip.cpp) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libpetscall)
 	-$(call macos-firewall-register,$@)
 
 $(testexe.kokkos.cxx) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libslepcall)
-	$(call quiet,CLINKER) $(EXEFLAGS) -o $@ $^ $(SLEPC_TEST_LIB)
+	$(call quiet,KOKKOS_LINKER) $(EXEFLAGS) -o $@ $^ $(SLEPC_TEST_LIB)
 	-$(call macos-firewall-register,$@)
 
 $(testexe.raja.cxx) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libpetscall)
@@ -433,7 +434,7 @@ help: help-make ${helpdeps}
 help-make:
 	-@echo
 	-@echo "SLEPc makefile basic usage:"
-	-@echo "   make  rule <V=1 for verbose output> <other options>"
+	-@echo "  ${OMAKE} rule <V=1 for verbose output> <other options>"
 	-@echo
 
 help-nontest:
@@ -453,13 +454,17 @@ help-nontest:
 	-@echo "   test - use \"make -f gmakefile.test help\" for help on running the extensive tests"
 	-@echo
 	-@echo "Developer rules:"
-	-@echo "   clean - delete libraries and Fortran module files"
+	-@echo "   clean - delete libraries and Fortran module files (used in $SLEPC_DIR)"
 	-@echo "   lint_slepc - run lint on the source code, including its embedded documentation"
+	-@echo "           delete compiled examples, .o and related files (used in tutorials or test directories)"
 	-@echo "   allfortranstubs - regenerate Fortran stubs/interface definitions, needed after git pulls or source code changes"
 	-@echo "   deletefortranstubs - delete the generated Fortran stubs/interface definitions"
 	-@echo "   checkbadSource - check the source code for violations of coding standards"
 	-@echo "   abitest - Compare ABI/API of two versions of SLEPc library with the old one defined by SLEPC_DIR_ABI_OLD and PETSC_{DIR,ARCH}_ABI_OLD"
 	-@echo "   reconfigure - delete libraries and Fortran module files and run the previously run configure again"
+	-@echo "   lint_slepc - run lint on the source code, including its embedded documentation"
+	-@echo "     Run \"${OMAKE} help-lint\" for lint options"
+	-@echo "   "
 	-@echo "   "
 
 help-test:

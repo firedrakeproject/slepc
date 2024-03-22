@@ -302,7 +302,7 @@ static PetscErrorCode PEPSetUp_Linear(PEP pep)
 
   } else {   /* implicit matrix */
     PetscCheck(pep->problem_type==PEP_GENERAL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option if problem type is not general");
-    if (!((PetscObject)(ctx->eps))->type_name) PetscCall(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
+    if (!((PetscObject)ctx->eps)->type_name) PetscCall(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
     else {
       PetscCall(PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks));
       PetscCheck(ks,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option only implemented for Krylov-Schur");

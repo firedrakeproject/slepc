@@ -164,7 +164,7 @@ static PetscErrorCode PEPSetUp_JD(PEP pep)
     PetscCall(BVDuplicateResize(pep->V,pjd->ld-1,pjd->N));
     PetscCall(BVDuplicateResize(pep->V,pjd->ld-1,pjd->N+1));
     pjd->X = pep->V;
-    PetscCall(PetscCalloc3((pjd->ld)*(pjd->ld),&pjd->XpX,pep->ncv*pep->ncv,&pjd->T,pjd->ld*pjd->ld*pep->nmat,&pjd->Tj));
+    PetscCall(PetscCalloc3(pjd->ld*pjd->ld,&pjd->XpX,pep->ncv*pep->ncv,&pjd->T,pjd->ld*pjd->ld*pep->nmat,&pjd->Tj));
   } else pjd->V = pep->V;
   if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) PetscCall(PEPJDDuplicateBasis(pep,&pjd->W));
   else pjd->W = pjd->V;
@@ -711,7 +711,7 @@ static PetscErrorCode MatMult_PEPJD(Mat P,Vec x,Vec y)
   PetscFunctionBegin;
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)P),&np));
   PetscCall(MatShellGetContext(P,&matctx));
-  pjd   = (PEP_JD*)(matctx->pep->data);
+  pjd   = (PEP_JD*)matctx->pep->data;
   nconv = pjd->nlock;
   nmat  = matctx->pep->nmat;
   ncv   = matctx->pep->ncv;
@@ -835,7 +835,7 @@ static PetscErrorCode MatCreateVecs_PEPJD(Mat A,Vec *right,Vec *left)
 
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(A,&matctx));
-  pjd   = (PEP_JD*)(matctx->pep->data);
+  pjd   = (PEP_JD*)matctx->pep->data;
 #if !defined (PETSC_USE_COMPLEX)
   kspsf = 2;
 #endif
@@ -1101,9 +1101,9 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
       PetscCall(BVSetActiveColumns(pjd->AX[j],0,pjd->nlock-i+1));
     }
     PetscCall(BVRestoreColumn(pjd->X,pjd->nlock-i,&x));
-    PetscCall(BVDotColumn(pjd->X,(pjd->nlock-i),pjd->XpX+(pjd->nlock-i)*(pjd->ld)));
+    PetscCall(BVDotColumn(pjd->X,(pjd->nlock-i),pjd->XpX+(pjd->nlock-i)*pjd->ld));
     pjd->XpX[(pjd->nlock-i)*(1+pjd->ld)] = 1.0;
-    for (j=0;j<pjd->nlock-i;j++) pjd->XpX[j*(pjd->ld)+pjd->nlock-i] = PetscConj(pjd->XpX[(pjd->nlock-i)*(pjd->ld)+j]);
+    for (j=0;j<pjd->nlock-i;j++) pjd->XpX[j*pjd->ld+pjd->nlock-i] = PetscConj(pjd->XpX[(pjd->nlock-i)*pjd->ld+j]);
   }
 
   /* minimality index */

@@ -428,7 +428,7 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   PetscFunctionBegin;
   if (!*mfn) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*mfn,MFN_CLASSID,1);
-  if (--((PetscObject)(*mfn))->refct > 0) { *mfn = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  if (--((PetscObject)*mfn)->refct > 0) { *mfn = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(MFNReset(*mfn));
   PetscTryTypeMethod(*mfn,destroy);
   PetscCall(FNDestroy(&(*mfn)->fn));

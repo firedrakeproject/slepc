@@ -906,7 +906,7 @@ PetscErrorCode DSDestroy(DS *ds)
   PetscFunctionBegin;
   if (!*ds) PetscFunctionReturn(PETSC_SUCCESS);
   PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
-  if (--((PetscObject)(*ds))->refct > 0) { *ds = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
+  if (--((PetscObject)*ds)->refct > 0) { *ds = NULL; PetscFunctionReturn(PETSC_SUCCESS); }
   PetscCall(DSReset(*ds));
   PetscTryTypeMethod(*ds,destroy);
   PetscCall(PetscFree((*ds)->work));

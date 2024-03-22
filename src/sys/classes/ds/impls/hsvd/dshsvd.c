@@ -402,6 +402,7 @@ static PetscErrorCode DSSynchronize_HSVD(DS ds,PetscScalar eigr[],PetscScalar ei
   PetscFunctionBegin;
   if (ds->compact) kr = 3*ld;
   else k = (ds->n-l)*ld;
+  kr += ld;
   if (ds->state>DS_STATE_RAW) k += 2*(ds->n-l)*ld;
   if (eigr) k += ds->n-l;
   PetscCall(DSAllocateWork_Private(ds,k+kr,0,0));

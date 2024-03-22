@@ -83,7 +83,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreate(PETSC_COMM_WORLD,&Omega));
   PetscCall(MatSetSizes(Omega,PETSC_DECIDE,PETSC_DECIDE,M,M));
   PetscCall(MatSetType(Omega,Atype));
-  PetscCall(MatSetUp(Omega));
   PetscCall(MatDiagonalSet(Omega,vomega,INSERT_VALUES));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -97,6 +96,9 @@ int main(int argc,char **argv)
   PetscCall(SVDSetProblemType(svd,SVD_HYPERBOLIC));
 
   PetscCall(SVDSetFromOptions(svd));
+
+  PetscCall(SVDIsHyperbolic(svd,&flg));
+  PetscCheck(flg,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_COR,"Problem should be hyperbolic");
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Solve the problem, display solution
