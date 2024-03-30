@@ -224,9 +224,9 @@ PetscErrorCode SlepcCitationsInitialize(void)
   PetscCall(PetscCitationsRegister("@TechReport{slepc-manual,\n"
     "   author = \"J. E. Roman and C. Campos and L. Dalcin and E. Romero and A. Tomas\",\n"
     "   title = \"{SLEPc} Users Manual\",\n"
-    "   number = \"DSIC-II/24/02 - Revision 3.20\",\n"
+    "   number = \"DSIC-II/24/02 - Revision 3.21\",\n"
     "   institution = \"D. Sistemes Inform\\`atics i Computaci\\'o, Universitat Polit\\`ecnica de Val\\`encia\",\n"
-    "   year = \"2023\"\n"
+    "   year = \"2024\"\n"
     "}\n",NULL));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
