@@ -108,15 +108,20 @@ class SlepcConfig(PetscConfig):
             lib[2:] for lib in split_quoted(self.SLEPC_LIB)
             if lib.startswith('-l')
         ]
-        slepc_cfg['runtime_library_dirs'] = [
-            strip_prefix(SLEPC_DESTDIR, d) for d in SLEPC_LIB_DIR
-        ]
-        self._configure_ext(extension, slepc_cfg, append=True)
+        # runtime_library_dirs is not supported on Windows
+        if sys.platform != 'win32':
+            rpath = [strip_prefix(SLEPC_DESTDIR, d) for d in SLEPC_LIB_DIR]
+            if sys.modules.get('slepc') is not None:
+                if sys.platform == 'darwin':
+                    rpath = ['@loader_path/../../slepc/lib']
+                else:
+                    rpath = ['$ORIGIN/../../slepc/lib']
+            slepc_cfg['runtime_library_dirs'] = rpath
+        self._configure_ext(extension, slepc_cfg)
         if self['BUILDSHAREDLIB'] == 'no':
             from petsc4py.lib import ImportPETSc
             PETSc = ImportPETSc(PETSC_ARCH)
             extension.extra_objects.append(PETSc.__file__)
-
         # extra configuration
         cflags = []
         extension.extra_compile_args.extend(cflags)
