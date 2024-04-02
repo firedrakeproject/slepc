@@ -339,33 +339,6 @@ PetscErrorCode BVNormalize_BLAS_CUDA(BV,PetscInt m_,PetscInt n_,PetscScalar *d_A
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#if defined(PETSC_USE_COMPLEX)
-#include <thrust/device_ptr.h>
-
-struct conjugate
-{
-  __host__ __device__
-    PetscScalar operator()(PetscScalar x)
-    {
-      return PetscConj(x);
-    }
-};
-
-PetscErrorCode BV_ConjugateCUDAArray(PetscScalar *a,PetscInt n)
-{
-  thrust::device_ptr<PetscScalar> ptr;
-
-  PetscFunctionBegin;
-  try {
-    ptr = thrust::device_pointer_cast(a);
-    thrust::transform(ptr,ptr+n,ptr,conjugate());
-  } catch (char *ex) {
-    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Thrust error: %s", ex);
-  }
-  PetscFunctionReturn(PETSC_SUCCESS);
-}
-#endif
-
 /*
    BV_CleanCoefficients_CUDA - Sets to zero all entries of column j of the bv buffer
 */
