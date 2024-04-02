@@ -144,6 +144,7 @@ struct _p_EPS {
   PetscBool      isgeneralized;
   PetscBool      ispositive;
   PetscBool      ishermitian;
+  PetscBool      isstructured;
   EPSConvergedReason reason;
 };
 

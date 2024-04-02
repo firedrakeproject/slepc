@@ -327,6 +327,12 @@ PetscErrorCode EPSSetUp(EPS eps)
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
   } else PetscCheck(nmat==1 || eps->isgeneralized,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state: the problem type does not match the number of matrices");
 
+  if (eps->isstructured) {
+    /* make sure the user has set the appropriate matrix */
+    PetscCall(STGetMatrix(eps->st,0,&A));
+    if (eps->problem_type==EPS_BSE) PetscCall(SlepcCheckMatStruct(A,SLEPC_MAT_STRUCT_BSE,NULL));
+  }
+
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
 

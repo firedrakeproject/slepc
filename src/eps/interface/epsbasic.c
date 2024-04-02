@@ -119,6 +119,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->isgeneralized   = PETSC_FALSE;
   eps->ispositive      = PETSC_FALSE;
   eps->ishermitian     = PETSC_FALSE;
+  eps->isstructured    = PETSC_FALSE;
   eps->reason          = EPS_CONVERGED_ITERATING;
 
   PetscCall(PetscNew(&eps->sc));
@@ -729,7 +730,7 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
 
    Level: intermediate
 
-.seealso: EPSIsHermitian(), EPSIsPositive()
+.seealso: EPSIsHermitian(), EPSIsPositive(), EPSIsStructured()
 @*/
 PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 {
@@ -754,7 +755,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 
    Level: intermediate
 
-.seealso: EPSIsGeneralized(), EPSIsPositive()
+.seealso: EPSIsGeneralized(), EPSIsPositive(), EPSIsStructured()
 @*/
 PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
 {
@@ -779,7 +780,7 @@ PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
 
    Level: intermediate
 
-.seealso: EPSIsGeneralized(), EPSIsHermitian()
+.seealso: EPSIsGeneralized(), EPSIsHermitian(), EPSIsStructured()
 @*/
 PetscErrorCode EPSIsPositive(EPS eps,PetscBool* is)
 {
@@ -787,5 +788,35 @@ PetscErrorCode EPSIsPositive(EPS eps,PetscBool* is)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscAssertPointer(is,2);
   *is = eps->ispositive;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   EPSIsStructured - Ask if the EPS object corresponds to a structured
+   eigenvalue problem.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  is - the answer
+
+   Note:
+   The result will be true if the problem type has been set to some
+   structured type such as EPS_BSE. This is independent of whether the
+   input matrix has been built with a certain structure with a helper function.
+
+   Level: intermediate
+
+.seealso: EPSIsGeneralized(), EPSIsHermitian(), EPSIsPositive(), EPSSetProblemType()
+@*/
+PetscErrorCode EPSIsStructured(EPS eps,PetscBool* is)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscAssertPointer(is,2);
+  *is = eps->isstructured;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

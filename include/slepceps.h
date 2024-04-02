@@ -269,6 +269,7 @@ SLEPC_EXTERN PetscErrorCode EPSSetArbitrarySelection(EPS,PetscErrorCode (*func)(
 SLEPC_EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSIsPositive(EPS,PetscBool*);
+SLEPC_EXTERN PetscErrorCode EPSIsStructured(EPS,PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode EPSSetTrackAll(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSGetTrackAll(EPS,PetscBool*);

@@ -185,11 +185,12 @@ In the case of generalized eigenproblems some considerations apply regarding sym
 For all these reasons, the user is strongly recommended to always specify the problem type in the source code.
 
 The characteristics of the problem can be determined with the functions
-        \findex{EPSIsGeneralized} \findex{EPSIsHermitian} \findex{EPSIsPositive}
+        \findex{EPSIsGeneralized} \findex{EPSIsHermitian} \findex{EPSIsPositive} \findex{EPSIsStructured}
         \begin{Verbatim}[fontsize=\small]
         EPSIsGeneralized(EPS eps,PetscBool *gen);
         EPSIsHermitian(EPS eps,PetscBool *her);
         EPSIsPositive(EPS eps,PetscBool *pos);
+        EPSIsStructured(EPS eps,PetscBool *stru);
         \end{Verbatim}
 
 The user can specify how many eigenvalues (and eigenvectors) to compute. The default is to compute only one. The function

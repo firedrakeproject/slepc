@@ -908,36 +908,43 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_NHEP:
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_GHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_TRUE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_GNHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_PGNHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_TRUE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_GHIEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_BSE:
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_TRUE;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");

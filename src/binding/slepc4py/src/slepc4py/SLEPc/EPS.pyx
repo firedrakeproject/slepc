@@ -504,6 +504,20 @@ cdef class EPS(Object):
         CHKERR( EPSIsPositive(self.eps, &tval) )
         return toBool(tval)
 
+    def isStructured(self):
+        """
+        Tells whether the EPS object corresponds to a structured eigenvalue problem.
+
+        Returns
+        -------
+        flag: bool
+              True if the problem type set with `setProblemType()` was
+              structured.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSIsStructured(self.eps, &tval) )
+        return toBool(tval)
+
     def getBalance(self):
         """
         Gets the balancing type used by the EPS object,

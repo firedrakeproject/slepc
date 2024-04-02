@@ -129,6 +129,7 @@ cdef extern from * nogil:
     PetscErrorCode EPSIsGeneralized(SlepcEPS,PetscBool*)
     PetscErrorCode EPSIsHermitian(SlepcEPS,PetscBool*)
     PetscErrorCode EPSIsPositive(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSIsStructured(SlepcEPS,PetscBool*)
     PetscErrorCode EPSSetExtraction(SlepcEPS,SlepcEPSExtraction)
     PetscErrorCode EPSGetExtraction(SlepcEPS,SlepcEPSExtraction*)
     PetscErrorCode EPSSetBalance(SlepcEPS,SlepcEPSBalance,PetscInt,PetscReal)
