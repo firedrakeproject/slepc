@@ -197,7 +197,7 @@ PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,const P
 }
 
 /*
-    y := A'*x computed as y' := x'*A
+    y := A'*x
 
     y is a CPU array, if NULL bv->buffer is used as a workspace
 */
@@ -219,12 +219,7 @@ PetscErrorCode BVDotVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,const PetscScala
     PetscCall(BVAllocateWork_Private(bv,k));
     if (n) {
       PetscCall(PetscLogGpuTimeBegin());
-#if defined(PETSC_USE_COMPLEX)
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,one,k,n,&sone,d_x,n,d_A,lda,&szero,d_work,one));
-      PetscCall(BV_ConjugateCUDAArray(d_work,k));
-#else
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,one,k,n,&sone,d_x,one,d_A,lda,&szero,d_work,one));
-#endif
+      PetscCallCUBLAS(cublasXgemv(cublasv2handle,CUBLAS_OP_C,n,k,&sone,d_A,lda,d_x,one,&szero,d_work,one));
       PetscCall(PetscLogGpuTimeEnd());
       PetscCallCUDA(cudaMemcpy(bv->work,d_work,k*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
       PetscCall(PetscLogGpuToCpu(k*sizeof(PetscScalar)));
@@ -254,12 +249,7 @@ PetscErrorCode BVDotVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,const PetscScala
   } else {
     if (n) {
       PetscCall(PetscLogGpuTimeBegin());
-#if defined(PETSC_USE_COMPLEX)
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,one,k,n,&sone,d_x,n,d_A,lda,&szero,d_work,one));
-      PetscCall(BV_ConjugateCUDAArray(d_work,k));
-#else
-      PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,one,k,n,&sone,d_x,one,d_A,lda,&szero,d_work,one));
-#endif
+      PetscCallCUBLAS(cublasXgemv(cublasv2handle,CUBLAS_OP_C,n,k,&sone,d_A,lda,d_x,one,&szero,d_work,one));
       PetscCall(PetscLogGpuTimeEnd());
     }
     if (!y) PetscCall(VecCUDARestoreArrayWrite(bv->buffer,&d_work));
