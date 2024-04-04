@@ -36,12 +36,7 @@ nep = SLEPc.NEP().create()
 
 # Create problem matrices
 #   Identity matrix
-Id = PETSc.Mat().create()
-Id.setSizes([n, n])
-Id.setFromOptions()
-Id.assemble()
-Id.shift(1.0)
-Id.setOption(PETSc.Mat.Option.HERMITIAN, True)
+Id = PETSc.Mat().createConstantDiagonal([n, n], 1.0)
 #   A = 1/h^2*tridiag(1,-2,1) + a*I
 A = PETSc.Mat().create()
 A.setSizes([n, n])

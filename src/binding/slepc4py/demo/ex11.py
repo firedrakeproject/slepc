@@ -17,7 +17,7 @@ def construct_operator(m, n):
     # Create matrix for 2D Laplacian operator
     A = PETSc.Mat().create()
     A.setSizes([m*n, m*n])
-    A.setFromOptions( )
+    A.setFromOptions()
     # Fill matrix
     hx = 1.0/(m-1) # x grid spacing
     hy = 1.0/(n-1) # y grid spacing

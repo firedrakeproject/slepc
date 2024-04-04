@@ -15,7 +15,7 @@ def build_matrix(m):
     Print("Markov y=exp(t*A)*e_1, N=%d (m=%d)"% (N, m))
     A = PETSc.Mat().create()
     A.setSizes([N, N])
-    A.setFromOptions( )
+    A.setFromOptions()
     Istart, Iend = A.getOwnershipRange()
     ix = 0
     cst = 0.5/(m-1)
