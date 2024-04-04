@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Matrix-free eigenproblem for the Laplacian operator in 2-D
+# ------------------------------------------------------------------------
+
 import sys, slepc4py
 slepc4py.init(sys.argv)
 

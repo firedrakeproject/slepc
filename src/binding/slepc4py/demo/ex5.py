@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Simple quadratic eigenvalue problem
+# ------------------------------------------------------------------------
+
 import sys, slepc4py
 slepc4py.init(sys.argv)
 
@@ -70,9 +74,9 @@ def solve_eigensystem(M, C, K):
         for i in range(nconv):
             k = Q.getEigenpair(i, xr, xi)
             error = Q.computeError(i)
-            if k.imag != 0.0: 
+            if k.imag != 0.0:
                 Print("%9f%+9f j    %12g" % (k.real, k.imag, error))
-            else: 
+            else:
                 Print("%12f         %12g" % (k.real, error))
     Print("")
 

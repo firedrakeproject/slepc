@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Standard symmetric eigenproblem for the Laplacian operator in 2-D
+# ------------------------------------------------------------------------
+
 try: range = xrange
 except: pass
 

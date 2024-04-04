@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Generalized symmetric-definite eigenproblem
+# ------------------------------------------------------------------------
+
 try: range = xrange
 except: pass
 
@@ -37,7 +41,7 @@ def Laplacian2D(m, n):
 
 def QuasiDiagonal(N):
     """
-    Builds matrix diag(2)+[4 -1; -1 -1]
+    Builds matrix diag(2)+[6 -1; -1 1]
     """
     # Create matrix
     B = PETSc.Mat().create()
@@ -62,12 +66,11 @@ def solve_eigensystem(A, B, problem_type=SLEPc.EPS.ProblemType.GHEP):
     pc = PETSc.PC().create()
     # pc.setType(pc.Type.HYPRE)
     pc.setType(pc.Type.BJACOBI)
-    
+
     ksp = PETSc.KSP().create()
     ksp.setType(ksp.Type.PREONLY)
     ksp.setPC( pc )
-    
-    
+
     F = SLEPc.ST().create()
     F.setType(F.Type.PRECOND)
     F.setKSP( ksp )

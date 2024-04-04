@@ -193,7 +193,7 @@ def solve(n):
     R.setEllipseParameters(*rg_params)
 
     nep.setFromOptions()
-    
+
     # Solve the problem
     nep.solve()
 

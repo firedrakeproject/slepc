@@ -1,4 +1,7 @@
-# Tests use of setArbitrarySelection()
+# ------------------------------------------------------------------------
+#   Tests use of setArbitrarySelection()
+#   - selection criterion is the projection onto a precomputed eigenvector
+# ------------------------------------------------------------------------
 
 import sys, slepc4py
 slepc4py.init(sys.argv)

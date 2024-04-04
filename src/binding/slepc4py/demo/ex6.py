@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Computes exp(t*A)*v for a matrix associated with a Markov model
+# ------------------------------------------------------------------------
+
 import sys, slepc4py
 slepc4py.init(sys.argv)
 

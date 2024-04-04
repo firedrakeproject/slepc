@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Standard symmetric eigenproblem for the Laplacian operator in 1-D
+# ------------------------------------------------------------------------
+
 import sys, slepc4py
 slepc4py.init(sys.argv)
 
