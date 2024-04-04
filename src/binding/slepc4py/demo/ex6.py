@@ -16,7 +16,6 @@ def build_matrix(m):
     A = PETSc.Mat().create()
     A.setSizes([N, N])
     A.setFromOptions( )
-    A.setUp()
     Istart, Iend = A.getOwnershipRange()
     ix = 0
     cst = 0.5/(m-1)

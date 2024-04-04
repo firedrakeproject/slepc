@@ -18,7 +18,6 @@ def construct_operators(m,n):
     K = PETSc.Mat().create()
     K.setSizes([n*m, n*m])
     K.setFromOptions( )
-    K.setUp()
     Istart, Iend = K.getOwnershipRange()
     for I in range(Istart,Iend):
         v = -1.0; i = I//n; j = I-i*n;
@@ -36,13 +35,11 @@ def construct_operators(m,n):
     C = PETSc.Mat().create()
     C.setSizes([n*m, n*m])
     C.setFromOptions( )
-    C.setUp()
     C.assemble()
     # M is the identity matrix
     M = PETSc.Mat().create()
     M.setSizes([n*m, n*m])
     M.setFromOptions( )
-    M.setUp()
     M.assemble()
     M.shift(1)
     #

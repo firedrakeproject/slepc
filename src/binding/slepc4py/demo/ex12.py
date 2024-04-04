@@ -14,7 +14,6 @@ n = opts.getInt('n', 30)
 A = PETSc.Mat(); A.create()
 A.setSizes([n, n])
 A.setFromOptions()
-A.setUp()
 rstart, rend = A.getOwnershipRange()
 for i in range(rstart, rend):
     if i>0: A[i, i-1] = -1
