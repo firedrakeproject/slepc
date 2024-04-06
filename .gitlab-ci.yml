@@ -432,8 +432,8 @@ pip-install:
     - ccache --zero-stats
     - printf "PYTHON:${PYTHON}\n"
   script:
-    - unset PETSC_DIR PETSC_ARCH SLEPC_DIR
     - |
+      unset PETSC_DIR PETSC_ARCH SLEPC_DIR
       slepc=$PWD
       cd ..
       if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
@@ -466,7 +466,7 @@ pip-install:
       python -m pip wheel $petsc/src/binding/petsc4py
       python -m pip wheel $slepc
       python -m pip wheel $slepc/src/binding/slepc4py
-      python -m pip install slepc4py
+      python -m pip install --pre --no-index --no-cache-dir slepc4py
       python -m pip list
       python -m slepc --prefix
       python -m slepc4py
