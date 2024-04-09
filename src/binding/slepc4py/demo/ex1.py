@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Standard symmetric eigenproblem for the Laplacian operator in 1-D
+# ------------------------------------------------------------------------
+
 import sys, slepc4py
 slepc4py.init(sys.argv)
 
@@ -11,7 +15,6 @@ n = opts.getInt('n', 30)
 A = PETSc.Mat(); A.create()
 A.setSizes([n, n])
 A.setFromOptions()
-A.setUp()
 
 rstart, rend = A.getOwnershipRange()
 

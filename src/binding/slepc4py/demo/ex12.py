@@ -1,4 +1,7 @@
-# Tests use of setArbitrarySelection()
+# ------------------------------------------------------------------------
+#   Tests use of setArbitrarySelection()
+#   - selection criterion is the projection onto a precomputed eigenvector
+# ------------------------------------------------------------------------
 
 import sys, slepc4py
 slepc4py.init(sys.argv)
@@ -14,7 +17,6 @@ n = opts.getInt('n', 30)
 A = PETSc.Mat(); A.create()
 A.setSizes([n, n])
 A.setFromOptions()
-A.setUp()
 rstart, rend = A.getOwnershipRange()
 for i in range(rstart, rend):
     if i>0: A[i, i-1] = -1

@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Computes exp(t*A)*v for a matrix associated with a Markov model
+# ------------------------------------------------------------------------
+
 import sys, slepc4py
 slepc4py.init(sys.argv)
 
@@ -15,8 +19,7 @@ def build_matrix(m):
     Print("Markov y=exp(t*A)*e_1, N=%d (m=%d)"% (N, m))
     A = PETSc.Mat().create()
     A.setSizes([N, N])
-    A.setFromOptions( )
-    A.setUp()
+    A.setFromOptions()
     Istart, Iend = A.getOwnershipRange()
     ix = 0
     cst = 0.5/(m-1)
