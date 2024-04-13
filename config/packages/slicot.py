@@ -17,8 +17,8 @@ class Slicot(package.Package):
     self.packagename    = 'slicot'
     self.installable    = True
     self.downloadable   = True
-    self.gitcommit      = '401037e4992827cd7476baae615be6fe818b71d4'
-    #self.version        = '5.8'
+    #self.gitcommit      = 'a037f7eb76134d45e7d222b7f017d5cbd16eb731'
+    self.version        = '5.9'
     obj = self.version if hasattr(self,'version') else self.gitcommit
     self.url            = 'https://github.com/SLICOT/SLICOT-Reference/archive/'+('v'+obj if hasattr(self,'version') else obj)+'.tar.gz'
     self.archive        = 'slicot-'+obj+'.tar.gz'
@@ -55,20 +55,6 @@ class Slicot(package.Package):
     cont += 'SLICOTLIB = ../'+libname+'\n'
     cont += 'LPKAUXLIB = ../'+libname+'\n'  # TODO: use a separate library for this
     self.WriteMakefile('make_Unix.inc',builddir,cont)
-
-    # Patch top level makefile_Unix
-    (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.sedinplace+' -e "s?MAKE.?MAKE) -f makefile_Unix?" makefile_Unix')
-    if result:
-      self.log.Exit('Problem when patching file makefile_Unix')
-
-    # Patch makefile_Unix in src
-    sedargs = ' -e "s?make.inc?make_Unix.inc?"'
-    remfiles = ['MB04RD', 'MB04RS', 'MB04RT', 'MB04RV', 'MB04RW', 'MB04RZ', 'zelctg']
-    for f in remfiles:
-      sedargs = sedargs + ' -e "s?'+f+'.o??"'
-    (result,output) = self.RunCommand('cd '+os.path.join(builddir,'src')+' && '+petsc.sedinplace+' '+sedargs+' makefile_Unix')
-    if result:
-      self.log.Exit('Problem when patching file makefile_Unix in src')
 
     # Build package
     target = 'lib'
