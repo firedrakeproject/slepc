@@ -35,13 +35,13 @@ nconv = E.getConverged()
 Print = PETSc.Sys.Print
 vw = PETSc.Viewer.STDOUT()
 if nconv>0:
-    sxr, sxi = A.createVecs()
-    E.getEigenpair(0, sxr, sxi)
+    sx, _ = A.createVecs()
+    E.getEigenpair(0, sx)
     vw.pushFormat(PETSc.Viewer.Format.ASCII_INFO_DETAIL)
     E.errorView(viewer=vw)
-    def myArbitrarySel(evalue, xr, xi, sxr):
-        return abs(xr.dot(sxr))
-    E.setArbitrarySelection(myArbitrarySel,sxr)
+    def myArbitrarySel(evalue, xr, xi, sx):
+        return abs(xr.dot(sx))
+    E.setArbitrarySelection(myArbitrarySel,sx)
     E.setWhichEigenpairs(SLEPc.EPS.Which.LARGEST_MAGNITUDE)
     E.solve()
     E.errorView(viewer=vw)

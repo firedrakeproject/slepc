@@ -1,5 +1,12 @@
 # Changelog of SLEPc versions
 
+## [unreleased]
+
+### Changed
+
+- In slepc4py now `EPS.getEigenpair()` and `EPS.getEigenvalue()` will return a real value
+instead of a complex, if the problem is of Hermitian or generalized Hermitian type.
+
 ## [3.21] - 2024-03-30
 
 ### Added
