@@ -70,7 +70,7 @@ static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscS
   if (PetscAbs(im) && PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
   if (PetscAbs(re) && PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
   /* print as real if imaginary part is zero */
-  if (im!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im));
+  if (im!=(PetscReal)0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im));
   else PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f",(double)re));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
