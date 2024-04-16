@@ -1322,8 +1322,10 @@ cdef class EPS(Object):
 
         Returns
         -------
-        e: scalar (possibly complex)
-           The computed eigenvalue.
+        e: float | complex
+           The computed eigenvalue. It will be a real variable in case
+           of a Hermitian or generalized Hermitian eigenproblem. Otherwise
+           it will be a complex variable (possibly with zero imaginary part).
 
         Notes
         -----
@@ -1334,8 +1336,13 @@ cdef class EPS(Object):
         """
         cdef PetscScalar sval1 = 0
         cdef PetscScalar sval2 = 0
+        cdef SlepcEPSProblemType ptype
         CHKERR( EPSGetEigenvalue(self.eps, i, &sval1, &sval2) )
-        return toComplex(sval1, sval2)
+        CHKERR( EPSGetProblemType(self.eps, &ptype) )
+        if ptype == EPS_HEP or ptype == EPS_GHEP:
+            return toReal(PetscRealPart(sval1))
+        else:
+            return toComplex(sval1, sval2)
 
     def getEigenvector(self, int i, Vec Vr, Vec Vi=None):
         """
@@ -1398,15 +1405,17 @@ cdef class EPS(Object):
         ----------
         i: int
            Index of the solution to be obtained.
-        Vr: Vec
+        Vr: Vec, optional
             Placeholder for the returned eigenvector (real part).
-        Vi: Vec
+        Vi: Vec, optional
             Placeholder for the returned eigenvector (imaginary part).
 
         Returns
         -------
-        e: scalar (possibly complex)
-           The computed eigenvalue.
+        e: float | complex
+           The computed eigenvalue. It will be a real variable in case
+           of a Hermitian or generalized Hermitian eigenproblem. Otherwise
+           it will be a complex variable (possibly with zero imaginary part).
 
         Notes
         -----
@@ -1419,8 +1428,13 @@ cdef class EPS(Object):
         cdef PetscScalar sval2 = 0
         cdef PetscVec vecr = Vr.vec if Vr is not None else <PetscVec>NULL
         cdef PetscVec veci = Vi.vec if Vi is not None else <PetscVec>NULL
+        cdef SlepcEPSProblemType ptype
         CHKERR( EPSGetEigenpair(self.eps, i, &sval1, &sval2, vecr, veci) )
-        return toComplex(sval1, sval2)
+        CHKERR( EPSGetProblemType(self.eps, &ptype) )
+        if ptype == EPS_HEP or ptype == EPS_GHEP:
+            return toReal(PetscRealPart(sval1))
+        else:
+            return toComplex(sval1, sval2)
 
     def getInvariantSubspace(self):
         """

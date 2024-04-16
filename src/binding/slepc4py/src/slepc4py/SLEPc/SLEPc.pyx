@@ -119,6 +119,10 @@ cdef inline PetscReal asComplexImag(object value) except? <PetscReal>-1.0:
     if cval.real == -1.0 and PyErr_Occurred() != NULL: cval.imag = -1.0
     return <PetscReal>cval.imag
 
+cdef extern from * nogil:
+    PetscReal PetscRealPart(PetscScalar v)
+    PetscReal PetscImaginaryPart(PetscScalar v)
+
 # --------------------------------------------------------------------
 
 # NumPy support
