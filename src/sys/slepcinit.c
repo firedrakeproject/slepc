@@ -301,7 +301,8 @@ PetscErrorCode SlepcFinalize(void)
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
-  PetscFunctionReturn(PETSC_SUCCESS);
+  PetscStackClearTop;
+  return PETSC_SUCCESS;
 }
 
 /*@C
