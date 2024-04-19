@@ -9,7 +9,7 @@ from slepc4py import SLEPc
 
 opts = PETSc.Options()
 n  = opts.getInt('n', 30)
-mu = opts.getScalar('mu', 1e-6)
+mu = opts.getReal('mu', 1e-6)
 
 PETSc.Sys.Print( "Lauchli singular value decomposition, (%d x %d) mu=%g\n" % (n+1,n,mu) )
 
