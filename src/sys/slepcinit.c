@@ -42,7 +42,7 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
     SlepcGetVersionNumber - Gets the SLEPc version information from the library.
 
     Not Collective

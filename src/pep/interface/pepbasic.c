@@ -126,7 +126,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPSetType - Selects the particular solver to be used in the PEP object.
 
    Logically Collective
@@ -179,7 +179,7 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPGetType - Gets the PEP type as a string from the PEP object.
 
    Not Collective

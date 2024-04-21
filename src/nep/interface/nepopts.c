@@ -1065,7 +1065,7 @@ PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    NEPSetOptionsPrefix - Sets the prefix used for searching for all
    NEP options in the database.
 
@@ -1105,7 +1105,7 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    NEPAppendOptionsPrefix - Appends to the prefix used for searching for all
    NEP options in the database.
 
@@ -1137,7 +1137,7 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    NEPGetOptionsPrefix - Gets the prefix used for searching for all
    NEP options in the database.
 

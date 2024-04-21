@@ -16,11 +16,6 @@
 #define mfnview_                          MFNVIEW
 #define mfnviewfromoptions_               MFNVIEWFROMOPTIONS
 #define mfnconvergedreasonview_           MFNCONVERGEDREASONVIEW
-#define mfnsetoptionsprefix_              MFNSETOPTIONSPREFIX
-#define mfnappendoptionsprefix_           MFNAPPENDOPTIONSPREFIX
-#define mfngetoptionsprefix_              MFNGETOPTIONSPREFIX
-#define mfnsettype_                       MFNSETTYPE
-#define mfngettype_                       MFNGETTYPE
 #define mfnmonitordefault_                MFNMONITORDEFAULT
 #define mfnmonitorset_                    MFNMONITORSET
 #define mfngettolerances00_               MFNGETTOLERANCES00
@@ -31,11 +26,6 @@
 #define mfnview_                          mfnview
 #define mfnviewfromoptions_               mfnviewfromoptions
 #define mfnconvergedreasonview_           mfnconvergedreasonview
-#define mfnsetoptionsprefix_              mfnsetoptionsprefix
-#define mfnappendoptionsprefix_           mfnappendoptionsprefix
-#define mfngetoptionsprefix_              mfngetoptionsprefix
-#define mfnsettype_                       mfnsettype
-#define mfngettype_                       mfngettype
 #define mfnmonitordefault_                mfnmonitordefault
 #define mfnmonitorset_                    mfnmonitorset
 #define mfngettolerances00_               mfngettolerances00
@@ -98,51 +88,6 @@ SLEPC_EXTERN void mfnconvergedreasonview_(MFN *mfn,PetscViewer *viewer,PetscErro
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = MFNConvergedReasonView(*mfn,v);
-}
-
-SLEPC_EXTERN void mfnsettype_(MFN *mfn,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  *ierr = MFNSetType(*mfn,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void mfngettype_(MFN *mfn,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  MFNType tname;
-
-  *ierr = MFNGetType(*mfn,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
-SLEPC_EXTERN void mfnsetoptionsprefix_(MFN *mfn,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = MFNSetOptionsPrefix(*mfn,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void mfnappendoptionsprefix_(MFN *mfn,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = MFNAppendOptionsPrefix(*mfn,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void mfngetoptionsprefix_(MFN *mfn,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  const char *tname;
-
-  *ierr = MFNGetOptionsPrefix(*mfn,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 SLEPC_EXTERN void mfnmonitorset_(MFN *mfn,void (*monitor)(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

@@ -16,11 +16,6 @@
 #define lmeview_                          LMEVIEW
 #define lmeviewfromoptions_               LMEVIEWFROMOPTIONS
 #define lmeconvergedreasonview_           LMECONVERGEDREASONVIEW
-#define lmesetoptionsprefix_              LMESETOPTIONSPREFIX
-#define lmeappendoptionsprefix_           LMEAPPENDOPTIONSPREFIX
-#define lmegetoptionsprefix_              LMEGETOPTIONSPREFIX
-#define lmesettype_                       LMESETTYPE
-#define lmegettype_                       LMEGETTYPE
 #define lmemonitordefault_                LMEMONITORDEFAULT
 #define lmemonitorset_                    LMEMONITORSET
 #define lmegettolerances00_               LMEGETTOLERANCES00
@@ -31,11 +26,6 @@
 #define lmeview_                          lmeview
 #define lmeviewfromoptions_               lmeviewfromoptions
 #define lmeconvergedreasonview_           lmeconvergedreasonview
-#define lmesetoptionsprefix_              lmesetoptionsprefix
-#define lmeappendoptionsprefix_           lmeappendoptionsprefix
-#define lmegetoptionsprefix_              lmegetoptionsprefix
-#define lmesettype_                       lmesettype
-#define lmegettype_                       lmegettype
 #define lmemonitordefault_                lmemonitordefault
 #define lmemonitorset_                    lmemonitorset
 #define lmegettolerances00_               lmegettolerances00
@@ -98,51 +88,6 @@ SLEPC_EXTERN void lmeconvergedreasonview_(LME *lme,PetscViewer *viewer,PetscErro
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = LMEConvergedReasonView(*lme,v);
-}
-
-SLEPC_EXTERN void lmesettype_(LME *lme,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  *ierr = LMESetType(*lme,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void lmegettype_(LME *lme,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  LMEType tname;
-
-  *ierr = LMEGetType(*lme,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
-SLEPC_EXTERN void lmesetoptionsprefix_(LME *lme,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = LMESetOptionsPrefix(*lme,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void lmeappendoptionsprefix_(LME *lme,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = LMEAppendOptionsPrefix(*lme,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void lmegetoptionsprefix_(LME *lme,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  const char *tname;
-
-  *ierr = LMEGetOptionsPrefix(*lme,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 SLEPC_EXTERN void lmemonitorset_(LME *lme,void (*monitor)(LME*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

@@ -18,8 +18,6 @@
 #define svdconvergedreasonview_           SVDCONVERGEDREASONVIEW
 #define svdvaluesview_                    SVDVALUESVIEW
 #define svdvectorsview_                   SVDVECTORSVIEW
-#define svdsettype_                       SVDSETTYPE
-#define svdgettype_                       SVDGETTYPE
 #define svdmonitorset_                    SVDMONITORSET
 #define svdmonitorall_                    SVDMONITORALL
 #define svdmonitorfirst_                  SVDMONITORFIRST
@@ -27,9 +25,6 @@
 #define svdmonitorconverged_              SVDMONITORCONVERGED
 #define svdmonitorconvergedcreate_        SVDMONITORCONVERGEDCREATE
 #define svdmonitorconvergeddestroy_       SVDMONITORCONVERGEDDESTROY
-#define svdsetoptionsprefix_              SVDSETOPTIONSPREFIX
-#define svdappendoptionsprefix_           SVDAPPENDOPTIONSPREFIX
-#define svdgetoptionsprefix_              SVDGETOPTIONSPREFIX
 #define svdconvergedabsolute_             SVDCONVERGEDABSOLUTE
 #define svdconvergedrelative_             SVDCONVERGEDRELATIVE
 #define svdconvergednorm_                 SVDCONVERGEDNORM
@@ -59,8 +54,6 @@
 #define svdconvergedreasonview_           svdconvergedreasonview
 #define svdvaluesview_                    svdvaluesview
 #define svdvectorsview_                   svdvectorsview
-#define svdsettype_                       svdsettype
-#define svdgettype_                       svdgettype
 #define svdmonitorset_                    svdmonitorset
 #define svdmonitorall_                    svdmonitorall
 #define svdmonitorfirst_                  svdmonitorfirst
@@ -68,9 +61,6 @@
 #define svdmonitorconverged_              svdmonitorconverged
 #define svdmonitorconvergedcreate_        svdmonitorconvergedcreate
 #define svdmonitorconvergeddestroy_       svdmonitorconvergeddestroy
-#define svdsetoptionsprefix_              svdsetoptionsprefix
-#define svdappendoptionsprefix_           svdappendoptionsprefix
-#define svdgetoptionsprefix_              svdgetoptionsprefix
 #define svdconvergedabsolute_             svdconvergedabsolute
 #define svdconvergedrelative_             svdconvergedrelative
 #define svdconvergednorm_                 svdconvergednorm
@@ -217,24 +207,6 @@ SLEPC_EXTERN void svdvectorsview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *i
   *ierr = SVDVectorsView(*svd,v);
 }
 
-SLEPC_EXTERN void svdsettype_(SVD *svd,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  *ierr = SVDSetType(*svd,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void svdgettype_(SVD *svd,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  SVDType tname;
-
-  *ierr = SVDGetType(*svd,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
 SLEPC_EXTERN void svdmonitorset_(SVD *svd,void (*monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(mctx);
@@ -250,33 +222,6 @@ SLEPC_EXTERN void svdmonitorset_(SVD *svd,void (*monitor)(SVD*,PetscInt*,PetscIn
     *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
     *ierr = SVDMonitorSet(*svd,ourmonitor,*svd,ourdestroy);
   }
-}
-
-SLEPC_EXTERN void svdsetoptionsprefix_(SVD *svd,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = SVDSetOptionsPrefix(*svd,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void svdappendoptionsprefix_(SVD *svd,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = SVDAppendOptionsPrefix(*svd,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void svdgetoptionsprefix_(SVD *svd,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  const char *tname;
-
-  *ierr = SVDGetOptionsPrefix(*svd,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 SLEPC_EXTERN void svdconvergedabsolute_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)

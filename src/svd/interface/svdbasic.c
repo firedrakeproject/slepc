@@ -186,7 +186,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDSetType - Selects the particular solver to be used in the SVD object.
 
    Logically Collective
@@ -239,7 +239,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDGetType - Gets the SVD type as a string from the SVD object.
 
    Not Collective

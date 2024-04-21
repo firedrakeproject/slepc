@@ -230,7 +230,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MFNSetType - Selects the particular solver to be used in the MFN object.
 
    Logically Collective
@@ -283,7 +283,7 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MFNGetType - Gets the MFN type as a string from the MFN object.
 
    Not Collective
