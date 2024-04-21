@@ -125,6 +125,7 @@ static PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
+  EPSCheckNotStructured(eps);
   if (!blopex->bs) blopex->bs = PetscMin(16,eps->nev);
   PetscCall(EPSSetDimensions_BLOPEX(eps,eps->nev,&eps->ncv,&eps->mpd));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);

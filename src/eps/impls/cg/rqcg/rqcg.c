@@ -41,6 +41,7 @@ static PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
+  EPSCheckNotStructured(eps);
   PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;

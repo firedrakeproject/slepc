@@ -42,6 +42,7 @@ static PetscErrorCode EPSSetUp_Lanczos(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
+  EPSCheckNotStructured(eps);
   PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
   PetscCheck(eps->ncv<=eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);

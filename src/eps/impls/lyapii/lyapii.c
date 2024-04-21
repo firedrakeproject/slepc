@@ -59,6 +59,7 @@ static PetscErrorCode EPSSetUp_LyapII(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckSinvert(eps);
+  EPSCheckNotStructured(eps);
   if (eps->ncv!=PETSC_DEFAULT) {
     PetscCheck(eps->ncv>=eps->nev+1,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
   } else eps->ncv = eps->nev+1;

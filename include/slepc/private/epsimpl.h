@@ -205,6 +205,15 @@ struct _p_EPS {
   } while (0)
 #define EPSCheckStandard(eps) EPSCheckStandardCondition(eps,PETSC_TRUE,"")
 
+/* EPSCheckNotStructured: the problem is not structured */
+#define EPSCheckNotStructuredCondition(eps,condition,msg) \
+  do { \
+    if (condition) { \
+      PetscCheck(!(eps)->isstructured,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not provide support for structured eigenproblems",((PetscObject)(eps))->type_name,(msg)); \
+    } \
+  } while (0)
+#define EPSCheckNotStructured(eps) EPSCheckNotStructuredCondition(eps,PETSC_TRUE,"")
+
 /* EPSCheckSinvert: shift-and-invert ST */
 #define EPSCheckSinvertCondition(eps,condition,msg) \
   do { \

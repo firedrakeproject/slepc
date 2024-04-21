@@ -58,6 +58,7 @@ static PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
+  EPSCheckNotStructured(eps);
   if (!ctx->bs) ctx->bs = PetscMin(16,eps->nev);
   PetscCheck(eps->n-eps->nds>=5*ctx->bs,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The problem size is too small relative to the block size");
   PetscCall(EPSSetDimensions_LOBPCG(eps,eps->nev,&eps->ncv,&eps->mpd));
