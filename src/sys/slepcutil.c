@@ -109,7 +109,7 @@ PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBoo
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SlepcHasExternalPackage - Determine whether SLEPc has been configured with the
    given package.
 

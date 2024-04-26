@@ -19,11 +19,6 @@
 #define pepconvergedreasonview_           PEPCONVERGEDREASONVIEW
 #define pepvaluesview_                    PEPVALUESVIEW
 #define pepvectorsview_                   PEPVECTORSVIEW
-#define pepsetoptionsprefix_              PEPSETOPTIONSPREFIX
-#define pepappendoptionsprefix_           PEPAPPENDOPTIONSPREFIX
-#define pepgetoptionsprefix_              PEPGETOPTIONSPREFIX
-#define pepsettype_                       PEPSETTYPE
-#define pepgettype_                       PEPGETTYPE
 #define pepmonitorset_                    PEPMONITORSET
 #define pepmonitorall_                    PEPMONITORALL
 #define pepmonitorfirst_                  PEPMONITORFIRST
@@ -75,11 +70,6 @@
 #define pepconvergedreasonview_           pepconvergedreasonview
 #define pepvaluesview_                    pepvaluesview
 #define pepvectorsview_                   pepvectorsview
-#define pepsetoptionsprefix_              pepsetoptionsprefix
-#define pepappendoptionsprefix_           pepappendoptionsprefix
-#define pepgetoptionsprefix_              pepgetoptionsprefix
-#define pepsettype_                       pepsettype
-#define pepgettype_                       pepgettype
 #define pepmonitorset_                    pepmonitorset
 #define pepmonitorall_                    pepmonitorall
 #define pepmonitorfirst_                  pepmonitorfirst
@@ -257,51 +247,6 @@ SLEPC_EXTERN void pepvectorsview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *i
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = PEPVectorsView(*pep,v);
-}
-
-SLEPC_EXTERN void pepsettype_(PEP *pep,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  *ierr = PEPSetType(*pep,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void pepgettype_(PEP *pep,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  PEPType tname;
-
-  *ierr = PEPGetType(*pep,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
-SLEPC_EXTERN void pepsetoptionsprefix_(PEP *pep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = PEPSetOptionsPrefix(*pep,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void pepappendoptionsprefix_(PEP *pep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = PEPAppendOptionsPrefix(*pep,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void pepgetoptionsprefix_(PEP *pep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  const char *tname;
-
-  *ierr = PEPGetOptionsPrefix(*pep,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 SLEPC_EXTERN void pepmonitorset_(PEP *pep,void (*monitor)(PEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

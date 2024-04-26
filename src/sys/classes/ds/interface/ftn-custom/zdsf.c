@@ -12,11 +12,6 @@
 #include <slepcds.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define dssettype_                DSSETTYPE
-#define dsgettype_                DSGETTYPE
-#define dssetoptionsprefix_       DSSETOPTIONSPREFIX
-#define dsappendoptionsprefix_    DSAPPENDOPTIONSPREFIX
-#define dsgetoptionsprefix_       DSGETOPTIONSPREFIX
 #define dsdestroy_                DSDESTROY
 #define dsview_                   DSVIEW
 #define dsviewfromoptions_        DSVIEWFROMOPTIONS
@@ -24,11 +19,6 @@
 #define dsvectors_                DSVECTORS
 #define dssort_                   DSSORT
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define dssettype_                dssettype
-#define dsgettype_                dsgettype
-#define dssetoptionsprefix_       dssetoptionsprefix
-#define dsappendoptionsprefix_    dsappendoptionsprefix
-#define dsgetoptionsprefix_       dsgetoptionsprefix
 #define dsdestroy_                dsdestroy
 #define dsview_                   dsview
 #define dsviewfromoptions_        dsviewfromoptions
@@ -36,51 +26,6 @@
 #define dsvectors_                dsvectors
 #define dssort_                   dssort
 #endif
-
-SLEPC_EXTERN void dssettype_(DS *ds,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  *ierr = DSSetType(*ds,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void dsgettype_(DS *ds,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  DSType tname;
-
-  *ierr = DSGetType(*ds,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
-SLEPC_EXTERN void dssetoptionsprefix_(DS *ds,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = DSSetOptionsPrefix(*ds,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void dsappendoptionsprefix_(DS *ds,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = DSAppendOptionsPrefix(*ds,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void dsgetoptionsprefix_(DS *ds,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  const char *tname;
-
-  *ierr = DSGetOptionsPrefix(*ds,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
-}
 
 SLEPC_EXTERN void dsdestroy_(DS *ds,PetscErrorCode *ierr)
 {

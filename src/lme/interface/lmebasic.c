@@ -241,7 +241,7 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMESetType - Selects the particular solver to be used in the LME object.
 
    Logically Collective
@@ -294,7 +294,7 @@ PetscErrorCode LMESetType(LME lme,LMEType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMEGetType - Gets the LME type as a string from the LME object.
 
    Not Collective

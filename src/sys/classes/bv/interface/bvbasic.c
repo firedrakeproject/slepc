@@ -16,7 +16,7 @@
 PetscBool         BVRegisterAllCalled = PETSC_FALSE;
 PetscFunctionList BVList = NULL;
 
-/*@C
+/*@
    BVSetType - Selects the type for the BV object.
 
    Logically Collective
@@ -63,7 +63,7 @@ PetscErrorCode BVSetType(BV bv,BVType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVGetType - Gets the BV type name (as a string) from the BV context.
 
    Not Collective
@@ -1384,7 +1384,7 @@ PetscErrorCode BVCreateVecEmpty(BV bv,Vec *v)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVSetVecType - Set the vector type to be used when creating vectors via BVCreateVec().
 
    Collective
@@ -1417,7 +1417,7 @@ PetscErrorCode BVSetVecType(BV bv,VecType vtype)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVGetVecType - Get the vector type to be used when creating vectors via BVCreateVec().
 
    Not Collective

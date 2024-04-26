@@ -20,11 +20,6 @@
 #define nepconvergedreasonview_           NEPCONVERGEDREASONVIEW
 #define nepvaluesview_                    NEPVALUESVIEW
 #define nepvectorsview_                   NEPVECTORSVIEW
-#define nepsetoptionsprefix_              NEPSETOPTIONSPREFIX
-#define nepappendoptionsprefix_           NEPAPPENDOPTIONSPREFIX
-#define nepgetoptionsprefix_              NEPGETOPTIONSPREFIX
-#define nepsettype_                       NEPSETTYPE
-#define nepgettype_                       NEPGETTYPE
 #define nepmonitorset_                    NEPMONITORSET
 #define nepmonitorall_                    NEPMONITORALL
 #define nepmonitorfirst_                  NEPMONITORFIRST
@@ -72,11 +67,6 @@
 #define nepconvergedreasonview_           nepconvergedreasonview
 #define nepvaluesview_                    nepvaluesview
 #define nepvectorsview_                   nepvectorsview
-#define nepsetoptionsprefix_              nepsetoptionsprefix
-#define nepappendoptionsprefix_           nepappendoptionsprefix
-#define nepgetoptionsprefix_              nepgetoptionsprefix
-#define nepsettype_                       nepsettype
-#define nepgettype_                       nepgettype
 #define nepmonitorset_                    nepmonitorset
 #define nepmonitorall_                    nepmonitorall
 #define nepmonitorfirst_                  nepmonitorfirst
@@ -274,51 +264,6 @@ SLEPC_EXTERN void nepvectorsview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *i
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = NEPVectorsView(*nep,v);
-}
-
-SLEPC_EXTERN void nepsettype_(NEP *nep,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  *ierr = NEPSetType(*nep,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void nepgettype_(NEP *nep,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  NEPType tname;
-
-  *ierr = NEPGetType(*nep,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
-SLEPC_EXTERN void nepsetoptionsprefix_(NEP *nep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = NEPSetOptionsPrefix(*nep,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void nepappendoptionsprefix_(NEP *nep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = NEPAppendOptionsPrefix(*nep,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void nepgetoptionsprefix_(NEP *nep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  const char *tname;
-
-  *ierr = NEPGetOptionsPrefix(*nep,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 SLEPC_EXTERN void nepmonitorset_(NEP *nep,void (*monitor)(NEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

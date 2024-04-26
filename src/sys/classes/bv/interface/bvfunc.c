@@ -438,7 +438,7 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVSetOptionsPrefix - Sets the prefix used for searching for all
    BV options in the database.
 
@@ -465,7 +465,7 @@ PetscErrorCode BVSetOptionsPrefix(BV bv,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVAppendOptionsPrefix - Appends to the prefix used for searching for all
    BV options in the database.
 
@@ -492,7 +492,7 @@ PetscErrorCode BVAppendOptionsPrefix(BV bv,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVGetOptionsPrefix - Gets the prefix used for searching for all
    BV options in the database.
 

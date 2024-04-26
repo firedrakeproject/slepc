@@ -123,7 +123,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    NEPSetType - Selects the particular solver to be used in the NEP object.
 
    Logically Collective
@@ -175,7 +175,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    NEPGetType - Gets the NEP type as a string from the NEP object.
 
    Not Collective
