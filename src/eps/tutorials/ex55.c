@@ -89,7 +89,7 @@ int main(int argc,char **argv)
 
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,H,NULL));
-  PetscCall(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetProblemType(eps,EPS_BSE));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE));
   PetscCall(EPSSetFromOptions(eps));
 

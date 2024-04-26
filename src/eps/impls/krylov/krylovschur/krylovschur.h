@@ -20,8 +20,17 @@ SLEPC_INTERN PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSReset_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSDestroy_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
+SLEPC_INTERN PetscErrorCode EPSSetUp_KrylovSchur_BSE(EPS);
+SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS);
 SLEPC_INTERN PetscErrorCode EPSGetArbitraryValues(EPS,PetscScalar*,PetscScalar*);
 SLEPC_INTERN PetscErrorCode EPSKrylovSchurGetChildEPS(EPS,EPS*);
+
+/* Context for shell matrices used in BSE sub-solver */
+struct _n_BSE_Mat {
+  Mat           A,B;          /* Top blocks of the BSE matrix */
+  Vec           w;            /* Work vector */
+};
+typedef struct _n_BSE_Mat *EPS_BSE_MAT;
 
 /* Structure characterizing a shift in spectrum slicing */
 typedef struct _n_shift *EPS_shift;

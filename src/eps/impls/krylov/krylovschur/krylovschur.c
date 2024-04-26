@@ -105,7 +105,8 @@ static PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     if (isfilt) PetscCall(EPSSetUp_KrylovSchur_Filter(eps));
     else PetscCall(EPSSetUp_KrylovSchur_Slice(eps));
   } else if (eps->isstructured) {
-    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Not implemented yet");
+    PetscCall(EPSSetUp_KrylovSchur_BSE(eps));
+    PetscFunctionReturn(PETSC_SUCCESS);
   } else {
     PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
     PetscCheck(eps->ncv<=eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
