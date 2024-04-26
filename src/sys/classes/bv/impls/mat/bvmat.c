@@ -413,12 +413,14 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     if (bv->cuda) {
 #if defined(PETSC_HAVE_CUDA)
       PetscCall(MatDenseCUDAGetArray(Apar,&array));
-      ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      if (bv->issplit>0) ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      else ptr = (bv->issplit==1)? array: array-lsplit;
       PetscCall(MatDenseCUDARestoreArray(Apar,&array));
 #endif
     } else {
       PetscCall(MatDenseGetArray(Apar,&array));
-      ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      if (bv->issplit>0) ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      else ptr = (bv->issplit==-1)? array: array-lsplit;
       PetscCall(MatDenseRestoreArray(Apar,&array));
     }
   }
@@ -456,6 +458,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     bv->ops->getcolumn        = BVGetColumn_Mat_CUDA;
     bv->ops->restorecolumn    = BVRestoreColumn_Mat_CUDA;
     bv->ops->restoresplit     = BVRestoreSplit_Mat_CUDA;
+    bv->ops->restoresplitrows = BVRestoreSplitRows_Mat_CUDA;
     bv->ops->getmat           = BVGetMat_Mat_CUDA;
     bv->ops->restoremat       = BVRestoreMat_Mat_CUDA;
 #endif

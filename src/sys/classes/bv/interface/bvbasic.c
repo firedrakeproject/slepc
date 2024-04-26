@@ -1882,7 +1882,7 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
 
   PetscFunctionBegin;
   ncols = left? bv->nc+bv->l: bv->m-bv->l;
-  if (*split && ncols!=(*split)->m) PetscCall(BVDestroy(split));
+  if (*split && (ncols!=(*split)->m || bv->N!=(*split)->N)) PetscCall(BVDestroy(split));
   if (!*split) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)bv),split));
     (*split)->issplit = left? 1: 2;
@@ -1936,7 +1936,7 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
 
    Level: advanced
 
-.seealso: BVRestoreSplit(), BVSetActiveColumns(), BVSetNumConstraints()
+.seealso: BVRestoreSplit(), BVSetActiveColumns(), BVSetNumConstraints(), BVGetSplitRows()
 @*/
 PetscErrorCode BVGetSplit(BV bv,BV *L,BV *R)
 {
@@ -1945,6 +1945,7 @@ PetscErrorCode BVGetSplit(BV bv,BV *L,BV *R)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   PetscCheck(bv->l,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must indicate the number of leading columns with BVSetActiveColumns()");
+  PetscCheck(bv->lsplit>=0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot call BVGetSplit() after BVGetSplitRows()");
   PetscCheck(!bv->lsplit,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot get the split BV's twice before restoring them with BVRestoreSplit()");
   bv->lsplit = bv->nc+bv->l;
   PetscCall(BVGetSplit_Private(bv,PETSC_TRUE,&bv->L));
@@ -1977,7 +1978,7 @@ PetscErrorCode BVRestoreSplit(BV bv,BV *L,BV *R)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  PetscCheck(bv->lsplit,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must call BVGetSplit first");
+  PetscCheck(bv->lsplit>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must call BVGetSplit first");
   PetscCheck(!L || *L==bv->L,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 2 is not the same BV that was obtained with BVGetSplit");
   PetscCheck(!R || *R==bv->R,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same BV that was obtained with BVGetSplit");
   PetscCheck(!L || ((*L)->ci[0]<=(*L)->nc-1 && (*L)->ci[1]<=(*L)->nc-1),PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Argument 2 has unrestored columns, use BVRestoreColumn()");
@@ -1987,6 +1988,158 @@ PetscErrorCode BVRestoreSplit(BV bv,BV *L,BV *R)
   bv->lsplit = 0;
   if (L) *L = NULL;
   if (R) *R = NULL;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*
+   Copy all user-provided attributes of V to another BV object W with different layout
+ */
+static inline PetscErrorCode BVDuplicateNewLayout_Private(BV V,BV W)
+{
+  PetscFunctionBegin;
+  PetscCall(PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)V),W->n,W->N,1,&W->map));
+  PetscCall(BVSetVecType(W,V->vtype));
+  W->ld           = V->ld;
+  PetscCall(BVSetType(W,((PetscObject)V)->type_name));
+  W->orthog_type  = V->orthog_type;
+  W->orthog_ref   = V->orthog_ref;
+  W->orthog_eta   = V->orthog_eta;
+  W->orthog_block = V->orthog_block;
+  W->vmm          = V->vmm;
+  W->rrandom      = V->rrandom;
+  W->deftol       = V->deftol;
+  if (V->rand) PetscCall(PetscObjectReference((PetscObject)V->rand));
+  W->rand         = V->rand;
+  W->sfocalled    = V->sfocalled;
+  PetscTryTypeMethod(V,duplicate,W);
+  PetscCall(PetscObjectStateIncrease((PetscObject)W));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode BVGetSplitRows_Private(BV bv,PetscBool top,IS is,BV *split)
+{
+  PetscInt  rstart,rend,lstart;
+  PetscInt  N,n;
+  PetscBool contig;
+
+  PetscFunctionBegin;
+  PetscCall(PetscLayoutGetRange(bv->map,&rstart,&rend));
+  PetscCall(ISContiguousLocal(is,rstart,rend,&lstart,&contig));
+  PetscCheck(contig,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"%s index set is not contiguous",(top==PETSC_TRUE)?"Upper":"Lower");
+  if (top) PetscCheck(lstart==0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Upper index set should start at first local row");
+  else bv->lsplit = -lstart;
+  PetscCall(ISGetSize(is,&N));
+  PetscCall(ISGetLocalSize(is,&n));
+  if (*split && (bv->m!=(*split)->m || N!=(*split)->N)) PetscCall(BVDestroy(split));
+  if (!*split) {
+    PetscCall(BVCreate(PetscObjectComm((PetscObject)bv),split));
+    (*split)->issplit = top? -1: -2;
+    (*split)->splitparent = bv;
+    (*split)->N = N;
+    (*split)->n = n;
+    (*split)->m = bv->m;
+    PetscCall(BVDuplicateNewLayout_Private(bv,*split));
+  }
+  (*split)->k  = bv->k;
+  (*split)->l  = bv->l;
+  (*split)->nc = bv->nc;
+  if ((*split)->nc) {
+    (*split)->ci[0] = -(*split)->nc-1;
+    (*split)->ci[1] = -(*split)->nc-1;
+  }
+  if (top) PetscCall(PetscObjectStateGet((PetscObject)*split,&bv->rstate));
+  else PetscCall(PetscObjectStateGet((PetscObject)*split,&bv->lstate));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   BVGetSplitRows - Splits the BV object into two BV objects that share the
+   internal data, using a disjoint horizontal splitting.
+
+   Collective
+
+   Input Parameters:
++  bv   - the basis vectors context
+.  isup - the index set that defines the upper part of the horizontal splitting
+-  islo - the index set that defines the lower part of the horizontal splitting
+
+   Output Parameters:
++  U - the resulting BV containing the upper rows
+-  L - the resulting BV containing the lower rows
+
+   Notes:
+   The index sets must be such that every MPI process can extract the selected
+   rows from its local part of the input BV, and this part must be contiguous.
+   With one process, isup will list contiguous indices starting from 0, and islo
+   will contain the remaining indices, hence we refer to upper and lower part.
+   However, with several processes the indices will be interleaved because
+   isup will refer to the upper part of the local array.
+
+   The intended use of this function is with matrices of MATNEST type, where
+   MatNestGetISs() will return the appropriate index sets.
+
+   The returned BV's must be seen as references (not copies) of the input
+   BV, that is, modifying them will change the entries of bv as well.
+   The returned BV's must not be destroyed. BVRestoreSplitRows() must be called
+   when they are no longer needed.
+
+   Pass NULL for any of the output BV's that is not needed.
+
+   Level: advanced
+
+.seealso: BVRestoreSplitRows(), BVGetSplit()
+@*/
+PetscErrorCode BVGetSplitRows(BV bv,IS isup,IS islo,BV *U,BV *L)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (U) PetscValidHeaderSpecific(isup,IS_CLASSID,2);
+  if (L) PetscValidHeaderSpecific(islo,IS_CLASSID,3);
+  PetscCheck(bv->lsplit<=0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot call BVGetSplitRows() after BVGetSplit()");
+  PetscCheck(!bv->lsplit,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot get the split BV's twice before restoring them with BVRestoreSplitRows()");
+  if (U) {
+    PetscCall(BVGetSplitRows_Private(bv,PETSC_TRUE,isup,&bv->R));
+    *U = bv->R;
+  }
+  if (L) {
+    PetscCall(BVGetSplitRows_Private(bv,PETSC_FALSE,islo,&bv->L));
+    *L = bv->L;
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   BVRestoreSplitRows - Restore the BV objects obtained with BVGetSplitRows().
+
+   Logically Collective
+
+   Input Parameters:
++  bv - the basis vectors context
+.  isup - the index set that defines the upper part of the horizontal splitting
+.  islo - the index set that defines the lower part of the horizontal splitting
+.  U - the BV containing the upper rows
+-  L - the BV containing the lower rows
+
+   Note:
+   The arguments must match the corresponding call to BVGetSplitRows().
+
+   Level: advanced
+
+.seealso: BVGetSplitRows()
+@*/
+PetscErrorCode BVRestoreSplitRows(BV bv,IS isup,IS islo,BV *U,BV *L)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  PetscCheck(bv->lsplit<0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must call BVGetSplitRows first");
+  PetscCheck(!U || ((*U)->ci[0]<=(*U)->nc-1 && (*U)->ci[1]<=(*U)->nc-1),PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"The upper BV has unrestored columns, use BVRestoreColumn()");
+  PetscCheck(!L || ((*L)->ci[0]<=(*L)->nc-1 && (*L)->ci[1]<=(*L)->nc-1),PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"The lower BV has unrestored columns, use BVRestoreColumn()");
+  PetscTryTypeMethod(bv,restoresplitrows,isup,islo,U,L);
+  bv->lsplit = 0;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
