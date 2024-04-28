@@ -347,7 +347,7 @@ static PetscErrorCode BVRestoreArrayRead_Mat(BV bv,const PetscScalar **a)
 
 static PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
 {
-  BV_MAT            *ctx = (BV_MAT*)bv->data;
+  Mat               A;
   PetscViewerFormat format;
   PetscBool         isascii;
   const char        *bvname,*name;
@@ -357,14 +357,16 @@ static PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
   if (isascii) {
     PetscCall(PetscViewerGetFormat(viewer,&format));
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(PETSC_SUCCESS);
-    PetscCall(MatView(ctx->A,viewer));
-    if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      PetscCall(PetscObjectGetName((PetscObject)bv,&bvname));
-      PetscCall(PetscObjectGetName((PetscObject)ctx->A,&name));
-      PetscCall(PetscViewerASCIIPrintf(viewer,"%s=%s;clear %s\n",bvname,name,name));
-      if (bv->nc) PetscCall(PetscViewerASCIIPrintf(viewer,"%s=%s(:,%" PetscInt_FMT ":end);\n",bvname,bvname,bv->nc+1));
-    }
-  } else PetscCall(MatView(ctx->A,viewer));
+  }
+  PetscCall(BVGetMat(bv,&A));
+  PetscCall(MatView(A,viewer));
+  if (format == PETSC_VIEWER_ASCII_MATLAB) {
+    PetscCall(PetscObjectGetName((PetscObject)A,&name));
+    PetscCall(PetscObjectGetName((PetscObject)bv,&bvname));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"%s=%s;clear %s\n",bvname,name,name));
+    if (bv->nc) PetscCall(PetscViewerASCIIPrintf(viewer,"%s=%s(:,%" PetscInt_FMT ":end);\n",bvname,bvname,bv->nc+1));
+  }
+  PetscCall(BVRestoreMat(bv,&A));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -483,6 +485,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->getarrayread     = BVGetArrayRead_Mat;
   bv->ops->restorearrayread = BVRestoreArrayRead_Mat;
   bv->ops->destroy          = BVDestroy_Mat;
-  if (!ctx->mpi) bv->ops->view = BVView_Mat;
+  bv->ops->view             = BVView_Mat;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
