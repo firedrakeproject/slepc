@@ -1539,11 +1539,18 @@ PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
 @*/
 PetscErrorCode BVGetMat(BV bv,Mat *A)
 {
+  char name[64];
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscAssertPointer(A,2);
   PetscUseTypeMethod(bv,getmat,A);
+  if (((PetscObject)bv)->name) {   /* set A's name based on BV name */
+    PetscCall(PetscStrncpy(name,"Mat_",sizeof(name)));
+    PetscCall(PetscStrlcat(name,((PetscObject)bv)->name,sizeof(name)));
+    PetscCall(PetscObjectSetName((PetscObject)*A,name));
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
