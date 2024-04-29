@@ -13,12 +13,6 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define pepdestroy_                       PEPDESTROY
-#define pepview_                          PEPVIEW
-#define pepviewfromoptions_               PEPVIEWFROMOPTIONS
-#define peperrorview_                     PEPERRORVIEW
-#define pepconvergedreasonview_           PEPCONVERGEDREASONVIEW
-#define pepvaluesview_                    PEPVALUESVIEW
-#define pepvectorsview_                   PEPVECTORSVIEW
 #define pepmonitorset_                    PEPMONITORSET
 #define pepmonitorall_                    PEPMONITORALL
 #define pepmonitorfirst_                  PEPMONITORFIRST
@@ -64,12 +58,6 @@
 #define pepsetinitialspace1_              PEPSETINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepdestroy_                       pepdestroy
-#define pepview_                          pepview
-#define pepviewfromoptions_               pepviewfromoptions
-#define peperrorview_                     peperrorview
-#define pepconvergedreasonview_           pepconvergedreasonview
-#define pepvaluesview_                    pepvaluesview
-#define pepvectorsview_                   pepvectorsview
 #define pepmonitorset_                    pepmonitorset
 #define pepmonitorall_                    pepmonitorall
 #define pepmonitorfirst_                  pepmonitorfirst
@@ -202,51 +190,6 @@ SLEPC_EXTERN void pepdestroy_(PEP *pep,PetscErrorCode *ierr)
   PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(pep);
   *ierr = PEPDestroy(pep); if (*ierr) return;
   PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(pep);
-}
-
-SLEPC_EXTERN void pepview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = PEPView(*pep,v);
-}
-
-SLEPC_EXTERN void pepviewfromoptions_(PEP *pep,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  CHKFORTRANNULLOBJECT(obj);
-  *ierr = PEPViewFromOptions(*pep,obj,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void pepconvergedreasonview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = PEPConvergedReasonView(*pep,v);
-}
-
-SLEPC_EXTERN void peperrorview_(PEP *pep,PEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = PEPErrorView(*pep,*etype,v);
-}
-
-SLEPC_EXTERN void pepvaluesview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = PEPValuesView(*pep,v);
-}
-
-SLEPC_EXTERN void pepvectorsview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = PEPVectorsView(*pep,v);
 }
 
 SLEPC_EXTERN void pepmonitorset_(PEP *pep,void (*monitor)(PEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

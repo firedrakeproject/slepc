@@ -991,7 +991,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STView - Prints the ST data structure.
 
    Collective
@@ -1064,7 +1064,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STViewFromOptions - View from options
 
    Collective

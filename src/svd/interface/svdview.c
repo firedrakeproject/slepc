@@ -14,7 +14,7 @@
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 #include <petscdraw.h>
 
-/*@C
+/*@
    SVDView - Prints the SVD data structure.
 
    Collective
@@ -109,7 +109,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDViewFromOptions - View from options
 
    Collective
@@ -131,7 +131,7 @@ PetscErrorCode SVDViewFromOptions(SVD svd,PetscObject obj,const char name[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDConvergedReasonView - Displays the reason an SVD solve converged or diverged.
 
    Collective
@@ -282,7 +282,7 @@ static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDErrorView - Displays the errors associated with the computed solution
    (as well as the singular values).
 
@@ -482,7 +482,7 @@ static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDValuesView - Displays the computed singular values in a viewer.
 
    Collective
@@ -575,7 +575,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDVectorsView - Outputs computed singular vectors to a viewer.
 
    Collective

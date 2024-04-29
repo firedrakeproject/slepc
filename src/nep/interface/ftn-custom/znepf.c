@@ -14,12 +14,6 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define nepdestroy_                       NEPDESTROY
-#define nepview_                          NEPVIEW
-#define nepviewfromoptions_               NEPVIEWFROMOPTIONS
-#define neperrorview_                     NEPERRORVIEW
-#define nepconvergedreasonview_           NEPCONVERGEDREASONVIEW
-#define nepvaluesview_                    NEPVALUESVIEW
-#define nepvectorsview_                   NEPVECTORSVIEW
 #define nepmonitorset_                    NEPMONITORSET
 #define nepmonitorall_                    NEPMONITORALL
 #define nepmonitorfirst_                  NEPMONITORFIRST
@@ -61,12 +55,6 @@
 #define nepsetinitialspace1_              NEPSETINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define nepdestroy_                       nepdestroy
-#define nepview_                          nepview
-#define nepviewfromoptions_               nepviewfromoptions
-#define neperrorview_                     neperrorview
-#define nepconvergedreasonview_           nepconvergedreasonview
-#define nepvaluesview_                    nepvaluesview
-#define nepvectorsview_                   nepvectorsview
 #define nepmonitorset_                    nepmonitorset
 #define nepmonitorall_                    nepmonitorall
 #define nepmonitorfirst_                  nepmonitorfirst
@@ -219,51 +207,6 @@ SLEPC_EXTERN void nepdestroy_(NEP *nep,PetscErrorCode *ierr)
   PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(nep);
   *ierr = NEPDestroy(nep); if (*ierr) return;
   PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(nep);
-}
-
-SLEPC_EXTERN void nepview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPView(*nep,v);
-}
-
-SLEPC_EXTERN void nepviewfromoptions_(NEP *nep,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  CHKFORTRANNULLOBJECT(obj);
-  *ierr = NEPViewFromOptions(*nep,obj,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void nepconvergedreasonview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPConvergedReasonView(*nep,v);
-}
-
-SLEPC_EXTERN void neperrorview_(NEP *nep,NEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPErrorView(*nep,*etype,v);
-}
-
-SLEPC_EXTERN void nepvaluesview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPValuesView(*nep,v);
-}
-
-SLEPC_EXTERN void nepvectorsview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPVectorsView(*nep,v);
 }
 
 SLEPC_EXTERN void nepmonitorset_(NEP *nep,void (*monitor)(NEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

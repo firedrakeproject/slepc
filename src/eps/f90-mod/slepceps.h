@@ -11,8 +11,7 @@
 !
 #include "slepc/finclude/slepceps.h"
 
-      type tEPS
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tEPS
       end type tEPS
 
       EPS, parameter :: SLEPC_NULL_EPS = tEPS(0)

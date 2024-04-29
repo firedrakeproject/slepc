@@ -84,7 +84,7 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSViewMat - Prints one of the internal DS matrices.
 
    Collective

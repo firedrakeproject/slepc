@@ -13,11 +13,6 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define svddestroy_                       SVDDESTROY
-#define svdview_                          SVDVIEW
-#define svderrorview_                     SVDERRORVIEW
-#define svdconvergedreasonview_           SVDCONVERGEDREASONVIEW
-#define svdvaluesview_                    SVDVALUESVIEW
-#define svdvectorsview_                   SVDVECTORSVIEW
 #define svdmonitorset_                    SVDMONITORSET
 #define svdmonitorall_                    SVDMONITORALL
 #define svdmonitorfirst_                  SVDMONITORFIRST
@@ -49,11 +44,6 @@
 #define svdsetinitialspaces11_            SVDSETINITIALSPACES11
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define svddestroy_                       svddestroy
-#define svdview_                          svdview
-#define svderrorview_                     svderrorview
-#define svdconvergedreasonview_           svdconvergedreasonview
-#define svdvaluesview_                    svdvaluesview
-#define svdvectorsview_                   svdvectorsview
 #define svdmonitorset_                    svdmonitorset
 #define svdmonitorall_                    svdmonitorall
 #define svdmonitorfirst_                  svdmonitorfirst
@@ -170,41 +160,6 @@ SLEPC_EXTERN void svddestroy_(SVD *svd,PetscErrorCode *ierr)
   PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(svd);
   *ierr = SVDDestroy(svd); if (*ierr) return;
   PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(svd);
-}
-
-SLEPC_EXTERN void svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDView(*svd,v);
-}
-
-SLEPC_EXTERN void svdconvergedreasonview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDConvergedReasonView(*svd,v);
-}
-
-SLEPC_EXTERN void svderrorview_(SVD *svd,SVDErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDErrorView(*svd,*etype,v);
-}
-
-SLEPC_EXTERN void svdvaluesview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDValuesView(*svd,v);
-}
-
-SLEPC_EXTERN void svdvectorsview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDVectorsView(*svd,v);
 }
 
 SLEPC_EXTERN void svdmonitorset_(SVD *svd,void (*monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

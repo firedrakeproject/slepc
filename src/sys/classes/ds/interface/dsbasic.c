@@ -746,7 +746,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSView - Prints the DS data structure.
 
    Collective
@@ -801,7 +801,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSViewFromOptions - View from options
 
    Collective

@@ -30,7 +30,7 @@ def FixFile(filename):
   data = re.subn('\nvoid ','\nSLEPC_EXTERN void ',data)[0]
   data = re.subn('\nPetscErrorCode ','\nSLEPC_EXTERN void ',data)[0]
   data = re.subn(r'Petsc([ToRm]*)Pointer\(int\)','Petsc\\1Pointer(void*)',data)[0]
-  data = re.subn(r'PetscToPointer\(a\) \(a\)','PetscToPointer(a) (*(PetscFortranAddr *)(a))',data)[0]
+  data = re.subn(r'PetscToPointer\(a\) \(a\)','PetscToPointer(a) (a ? *(PetscFortranAddr *)(a) : 0)',data)[0]
   data = re.subn(r'PetscFromPointer\(a\) \(int\)\(a\)','PetscFromPointer(a) (PetscFortranAddr)(a)',data)[0]
   data = re.subn(r'PetscToPointer\( \*\(int\*\)','PetscToPointer(',data)[0]
   data = re.subn('MPI_Comm comm','MPI_Comm *comm',data)[0]
@@ -46,6 +46,7 @@ def FixFile(filename):
   with open(filename, 'w') as ff:
     ff.write('#include "petscsys.h"\n#include "petscfix.h"\n#include "petsc/private/fortranimpl.h"\n'+data)
 
+  # https://gitlab.com/petsc/petsc/-/issues/360#note_231598172
   l, c = findLineCol(filename, '\00')
   if l > 0: print('WARNING: Found null character in generated Fortran stub file after generatefortranstubs.py processing:\n  %s:%d:%d\n' % (filename, l, c))
 
@@ -96,7 +97,6 @@ def FixDir(petscdir,petscarch,parentdir,dir,verbose):
   inbuf = fd.read()
   fd.close()
   cppflags = ""
-  libbase = ""
 
   # new makefile will be created from outbuf
   outbuf  =  '\n'
@@ -247,11 +247,15 @@ def processf90interfaces(petscdir,petscarch,verbose):
           for sfile in os.listdir(tmpDir):
             if verbose: print('  Copying in '+sfile)
             with open(os.path.join(tmpDir,sfile),'r') as fdr:
-              for ibuf in fdr.read().split('      subroutine')[1:]:
+              buf =  fdr.read()
+              if buf.startswith('#if defined(PETSC_HAVE_FORTRAN_TYPE_STAR)'):
+                fd.write('#if defined(PETSC_HAVE_FORTRAN_TYPE_STAR)\n')
+              for ibuf in buf.split('      subroutine')[1:]:
                 ibuf = '      subroutine'+ibuf
                 ibuf = ibuf.replace('integer z','PetscErrorCode z')
                 ibuf = ibuf.replace('integer a ! MPI_Comm','MPI_Comm a ! MPI_Comm')
                 plist = [p for p in ptypes if ' '+p[1:]+' ' in ibuf]
+                if 'PetscObject' in ibuf: plist.append('tPetscObject')
                 if plist: ibuf = ibuf.replace(')',')\n       import '+','.join(set(plist)),1)
                 fd.write(ibuf)
         shutil.rmtree(tmpDir)

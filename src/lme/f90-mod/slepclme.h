@@ -12,8 +12,7 @@
 #include "slepc/finclude/slepcsys.h"
 #include "slepc/finclude/slepclme.h"
 
-      type tLME
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tLME
       end type tLME
 
       LME, parameter :: SLEPC_NULL_LME = tLME(0)

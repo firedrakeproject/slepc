@@ -11,8 +11,7 @@
 !
 #include "slepc/finclude/slepcst.h"
 
-      type tST
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tST
       end type tST
 
       ST, parameter :: SLEPC_NULL_ST = tST(0)

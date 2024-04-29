@@ -11,8 +11,7 @@
 !
 #include "slepc/finclude/slepcnep.h"
 
-      type tNEP
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tNEP
       end type tNEP
 
       NEP, parameter :: SLEPC_NULL_NEP = tNEP(0)

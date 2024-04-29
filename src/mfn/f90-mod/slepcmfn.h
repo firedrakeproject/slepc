@@ -12,8 +12,7 @@
 #include "slepc/finclude/slepcsys.h"
 #include "slepc/finclude/slepcmfn.h"
 
-      type tMFN
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tMFN
       end type tMFN
 
       MFN, parameter :: SLEPC_NULL_MFN = tMFN(0)

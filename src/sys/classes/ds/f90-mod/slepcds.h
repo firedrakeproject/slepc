@@ -11,8 +11,7 @@
 !
 #include "slepc/finclude/slepcds.h"
 
-      type tDS
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tDS
       end type tDS
 
       DS, parameter :: SLEPC_NULL_DS = tDS(0)
