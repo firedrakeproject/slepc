@@ -126,6 +126,8 @@ SLEPC_EXTERN PetscErrorCode BVGetColumn(BV,PetscInt,Vec*);
 SLEPC_EXTERN PetscErrorCode BVRestoreColumn(BV,PetscInt,Vec*);
 SLEPC_EXTERN PetscErrorCode BVGetSplit(BV,BV*,BV*);
 SLEPC_EXTERN PetscErrorCode BVRestoreSplit(BV,BV*,BV*);
+SLEPC_EXTERN PetscErrorCode BVGetSplitRows(BV,IS,IS,BV*,BV*);
+SLEPC_EXTERN PetscErrorCode BVRestoreSplitRows(BV,IS,IS,BV*,BV*);
 SLEPC_EXTERN PetscErrorCode BVGetArray(BV,PetscScalar**);
 SLEPC_EXTERN PetscErrorCode BVRestoreArray(BV,PetscScalar**);
 SLEPC_EXTERN PetscErrorCode BVGetArrayRead(BV,const PetscScalar**);

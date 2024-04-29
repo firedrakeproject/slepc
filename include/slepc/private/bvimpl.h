@@ -49,6 +49,7 @@ struct _BVOps {
   PetscErrorCode (*getarrayread)(BV,const PetscScalar**);
   PetscErrorCode (*restorearrayread)(BV,const PetscScalar**);
   PetscErrorCode (*restoresplit)(BV,BV*,BV*);
+  PetscErrorCode (*restoresplitrows)(BV,IS,IS,BV*,BV*);
   PetscErrorCode (*gramschmidt)(BV,PetscInt,Vec,PetscBool*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*);
   PetscErrorCode (*getmat)(BV,Mat*);
   PetscErrorCode (*restoremat)(BV,Mat*);
@@ -95,10 +96,10 @@ struct _p_BV {
   PetscBool          defersfo;     /* deferred call to setfromoptions */
   BV                 cached;       /* cached BV to store result of matrix times BV */
   PetscObjectState   bvstate;      /* state of BV when BVApplyMatrixBV() was called */
-  BV                 L,R;          /* BV objects obtained with BVGetSplit() */
-  PetscObjectState   lstate,rstate;/* state of L and R when BVGetSplit() was called */
-  PetscInt           lsplit;       /* the value of l when BVGetSplit() was called */
-  PetscInt           issplit;      /* >0 if this BV has been created by splitting (1=left, 2=right) */
+  BV                 L,R;          /* BV objects obtained with BVGetSplit/Rows() */
+  PetscObjectState   lstate,rstate;/* state of L and R when BVGetSplit/Rows() was called */
+  PetscInt           lsplit;       /* value of l when BVGetSplit() was called (-1 if BVGetSplitRows()) */
+  PetscInt           issplit;      /* !=0 if BV is from split (1=left, 2=right, -1=top, -2=bottom) */
   BV                 splitparent;  /* my parent if I am a split BV */
   PetscRandom        rand;         /* random number generator */
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */

@@ -513,6 +513,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->data = (void*)ctx;
 
   if (PetscUnlikely(bv->issplit)) {
+    PetscCheck(bv->issplit>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVVECS does not support BVGetSplitRows()");
     /* split BV: share the Vecs of the parent BV */
     parent = bv->splitparent;
     lsplit = parent->lsplit;

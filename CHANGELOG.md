@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+### Added
+
+- `BV`: new function `BVGetSplitRows()` to split a `BV` row-wise using index sets.
+
 ### Changed
 
 - In slepc4py now `EPS.getEigenpair()` and `EPS.getEigenvalue()` will return a real value
@@ -11,7 +15,7 @@ instead of a complex, if the problem is of Hermitian or generalized Hermitian ty
 
 ### Added
 
-- `ST`: new function `STShellSetApplyHermitianTranspose` and other improvements for handling
+- `ST`: new function `STShellSetApplyHermitianTranspose()` and other improvements for handling
   the conjugate transpose of the operator.
 
 ### Changed
