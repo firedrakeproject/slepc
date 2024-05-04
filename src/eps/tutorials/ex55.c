@@ -47,10 +47,16 @@ int main(int argc,char **argv)
                Compute the problem matrices R and C
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+#if defined(PETSC_USE_COMPLEX)
   a = PetscCMPLX(-0.1,0.2);
   b = PetscCMPLX(1.0,0.5);
-  c = 4.5;
   d = PetscCMPLX(2.0,0.2);
+#else
+  a = -0.1;
+  b = 1.0;
+  d = 2.0;
+#endif
+  c = 4.5;
 
   PetscCall(MatCreate(PETSC_COMM_WORLD,&R));
   PetscCall(MatSetSizes(R,PETSC_DECIDE,PETSC_DECIDE,n,n));

@@ -21,28 +21,68 @@
 #include <slepc/private/epsimpl.h>
 #include "krylovschur.h"
 
-static PetscErrorCode EPSBSELanczos(EPS eps,Mat Htp,Mat Htm,BV U,BV V,PetscReal *alpha,PetscReal *beta,PetscInt k,PetscInt *M,PetscBool *breakdown)
+static PetscErrorCode Orthog1(Vec x,BV U,BV V,PetscInt j,PetscScalar *h,PetscScalar *c,PetscBool *breakdown)
 {
-  PetscInt       j,m = *M,i,ld,l;
-  Vec            v,x,y;
-  PetscScalar    *hwork,lhwork[100],gamma;
-  PetscReal      norm,norm1,norm2,t;
-  PetscBLASInt   j_,one=1;
+  PetscInt i;
 
   PetscFunctionBegin;
-  PetscCall(DSGetLeadingDimension(eps->ds,&ld));
-  PetscCall(DSGetDimensions(eps->ds,NULL,&l,NULL,NULL));   /* */
-  if (m > 100) PetscCall(PetscMalloc1(m,&hwork));
+  PetscCall(BVSetActiveColumns(U,0,j));
+  PetscCall(BVSetActiveColumns(V,0,j));
+  /* c = real(V^* x) ; c2 = imag(U^* x)*1i */
+#if defined(PETSC_USE_COMPLEX)
+  PetscCall(BVDotVecBegin(V,x,c));
+  PetscCall(BVDotVecBegin(U,x,c+j));
+  PetscCall(BVDotVecEnd(V,x,c));
+  PetscCall(BVDotVecEnd(U,x,c+j));
+#else
+  PetscCall(BVDotVec(V,x,c));
+#endif
+  for (i=0; i<j; i++) {
+    c[i] = PetscRealPart(c[i]);
+#if defined(PETSC_USE_COMPLEX)
+    c[j+i] = PetscCMPLX(0.0,PetscImaginaryPart(c[j+i]));
+#endif
+  }
+  /* x = x-U*c-V*c2 */
+  PetscCall(BVMultVec(U,-1.0,1.0,x,c));
+#if defined(PETSC_USE_COMPLEX)
+  PetscCall(BVMultVec(V,-1.0,1.0,x,c+j));
+#endif
+  /* accumulate orthog coeffs into h */
+  for (i=0; i<2*j; i++)
+    h[i] += c[i];
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/* Orthogonalize vector x against first j vectors in U and V */
+static PetscErrorCode OrthogonalizeVector(Vec x,BV U,BV V,PetscInt j,PetscScalar *h,PetscBool *breakdown)
+{
+  PetscFunctionBegin;
+  PetscCall(PetscArrayzero(h,2*j));
+  /* Orghogonalize twice */
+  PetscCall(Orthog1(x,U,V,j,h,h+2*j,breakdown));
+  PetscCall(Orthog1(x,U,V,j,h,h+2*j,breakdown));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode EPSBSELanczos(EPS eps,Mat Htp,Mat Htm,BV U,BV V,PetscReal *alpha,PetscReal *beta,PetscInt k,PetscInt *M,PetscBool *breakdown)
+{
+  PetscInt       j,m = *M;
+  Vec            v,x,y;
+  PetscScalar    *hwork,lhwork[100],gamma;
+
+  PetscFunctionBegin;
+  if (4*m > 100) PetscCall(PetscMalloc1(4*m,&hwork));
   else hwork = lhwork;
 
-  //PetscCall(BVSetActiveColumns(U,0,m));
-  //PetscCall(BVSetActiveColumns(V,0,m));
   for (j=k;j<m;j++) {
+    /* j+1 columns (indexes 0 to j) have been computed */
     PetscCall(BVGetColumn(V,j,&v));
     PetscCall(BVGetColumn(U,j+1,&x));
     PetscCall(BVGetColumn(V,j+1,&y));
     PetscCall(MatMult(Htm,v,x));
-    //PetscCall(BVOrthogonalizeColumn(eps->V,j+1,hwork,&norm,breakdown));
+    PetscCall(OrthogonalizeVector(x,U,V,j+1,hwork,breakdown));
+    alpha[j] = PetscRealPart(hwork[j]);
     PetscCall(MatMult(Htp,x,y));
     PetscCall(VecDot(x,y,&gamma));
     beta[j] = PetscSqrtReal(PetscRealPart(gamma));
@@ -51,11 +91,8 @@ static PetscErrorCode EPSBSELanczos(EPS eps,Mat Htp,Mat Htm,BV U,BV V,PetscReal 
     PetscCall(BVRestoreColumn(V,j,&v));
     PetscCall(BVRestoreColumn(U,j+1,&x));
     PetscCall(BVRestoreColumn(V,j+1,&y));
-    //alpha[j] = PetscRealPart(hwork[j]);
   }
-  if (m > 100) PetscCall(PetscFree(hwork));
-//hwork[i] = PetscRealPart(hwork[i]);
-//hwork[i] = PetscCMPLX(0.0,PetscImaginaryPart(hwork[i]));
+  if (4*m > 100) PetscCall(PetscFree(hwork));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -142,7 +179,7 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
   IS              is[2];
   Vec             x,u1,v1;//w=eps->work[0];
   VecType         vtype;
-  PetscReal       *a,*b,beta,nrm;
+  PetscReal       *a,*b,beta,nrm,delta;
   PetscScalar     alpha;
   PetscBool       breakdown=PETSC_FALSE;
 
@@ -214,10 +251,7 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
 
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
-    else {
-      l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
-      PetscCall(DSGetTruncateSize(eps->ds,k,nv,&l));
-    }
+    else l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
     if (l) PetscCall(PetscInfo(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
 
@@ -226,15 +260,34 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
       /* Prepare the Rayleigh quotient for restart */
       PetscCall(DSTruncate(eps->ds,k+l,PETSC_FALSE));
     }
-    /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
+    /* Update the corresponding vectors
+       U(:,idx) = U*Q(:,idx),  V(:,idx) = V*Q(:,idx) */
     PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&Q));
-    PetscCall(BVMultInPlace(eps->V,Q,eps->nconv,k+l));
+    PetscCall(BVMultInPlace(U,Q,eps->nconv,k+l));
+    PetscCall(BVMultInPlace(V,Q,eps->nconv,k+l));
     PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&Q));
 
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(eps->V,nv,k+l));
     eps->nconv = k;
     PetscCall(EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv));
   }
+
+  /* Obtain eigenvalues and eigenvectors */
+  for (k=0; k<eps->nconv; k++) {
+    delta = 1.0/PetscSqrtReal(1.0+eps->eigr[k]);
+    eps->eigr[k] = PetscSqrtReal(eps->eigr[k]);
+    PetscCall(BVGetColumn(U,k,&u1));
+    PetscCall(BVGetColumn(V,k,&v1));
+    /* approx eigenvector is [     u1*eigr[k]*delta+v1*delta ]
+                             [conj(u1*eigr[k]*delta-v1*delta)]  */
+    PetscCall(VecScale(u1,eps->eigr[k]*delta));
+    PetscCall(VecAXPY(u1,delta,v1));
+    PetscCall(VecAYPX(v1,-2.0*delta,u1));
+    PetscCall(VecConjugate(v1));
+    PetscCall(BVRestoreColumn(U,k,&u1));
+    PetscCall(BVRestoreColumn(V,k,&v1));
+  }
+
   PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
   PetscCall(BVRestoreSplitRows(eps->V,is[0],is[1],&U,&V));
   PetscCall(VecDestroy(&matctx->w));
