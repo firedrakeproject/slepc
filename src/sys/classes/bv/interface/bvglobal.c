@@ -134,7 +134,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 
    Notes:
    This is analogue to VecMDot(), but using BV to represent a collection
-   of vectors. The result is m = X^H*y, so m_i is equal to x_j^H y. Note
+   of vectors. The result is m = X^H*y, so m_i is equal to x_i^H y. Note
    that here X is transposed as opposed to BVDot().
 
    If a non-standard inner product has been specified with BVSetMatrix(),
