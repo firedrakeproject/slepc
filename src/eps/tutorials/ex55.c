@@ -34,8 +34,10 @@ int main(int argc,char **argv)
   Mat            H,R,C;      /* problem matrices */
   EPS            eps;        /* eigenproblem solver context */
   PetscScalar    a,b,c,d;
-  PetscInt       n=24,Istart,Iend,i;
-  PetscBool      terse;
+  PetscReal      lev;
+  PetscInt       n=24,Istart,Iend,i,nconv;
+  PetscBool      terse,checkorthog;
+  Vec            t,*x,*y;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -114,6 +116,26 @@ int main(int argc,char **argv)
     PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
     PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
+
+  /* check bi-orthogonality */
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-checkorthog",&checkorthog));
+  PetscCall(EPSGetConverged(eps,&nconv));
+  if (checkorthog && nconv>0) {
+    PetscCall(MatCreateVecs(H,&t,NULL));
+    PetscCall(VecDuplicateVecs(t,nconv,&x));
+    PetscCall(VecDuplicateVecs(t,nconv,&y));
+    for (i=0;i<nconv;i++) {
+      PetscCall(EPSGetEigenvector(eps,i,x[i],NULL));
+      PetscCall(EPSGetLeftEigenvector(eps,i,y[i],NULL));
+    }
+    PetscCall(VecCheckOrthogonality(x,nconv,y,nconv,NULL,NULL,&lev));
+    if (lev<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD," Level of bi-orthogonality of eigenvectors < 100*eps\n\n"));
+    else PetscCall(PetscPrintf(PETSC_COMM_WORLD," Level of bi-orthogonality of eigenvectors: %g\n\n",(double)lev));
+    PetscCall(VecDestroy(&t));
+    PetscCall(VecDestroyVecs(nconv,&x));
+    PetscCall(VecDestroyVecs(nconv,&y));
+  }
+
   PetscCall(EPSDestroy(&eps));
   PetscCall(MatDestroy(&R));
   PetscCall(MatDestroy(&C));
@@ -124,11 +146,13 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   build:
-      requires: complex
-
-   test:
-      args: -eps_nev 4 -terse
-      filter: sed -e "s/[+-]0\.0*i//g" | sed -e "s/-2\./2./g"
+   testset:
+      args: -eps_nev 4 -terse -checkorthog
+      test:
+         suffix: 1
+         requires: complex
+      test:
+         suffix: 1_real
+         requires: !complex
 
 TEST*/

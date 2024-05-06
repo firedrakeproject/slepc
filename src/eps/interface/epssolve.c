@@ -551,7 +551,11 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 @*/
 PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
 {
-  PetscInt       k;
+  PetscInt    k;
+  PetscBool   trivial;
+  Mat         H;
+  IS          is[2];
+  Vec         v;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -559,12 +563,33 @@ PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
   if (Wr) { PetscValidHeaderSpecific(Wr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Wr,3); }
   if (Wi) { PetscValidHeaderSpecific(Wi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Wi,4); }
   EPSCheckSolved(eps,1);
-  PetscCheck(eps->twosided,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetTwoSided");
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+
+  trivial = (eps->problem_type==EPS_HEP || eps->problem_type==EPS_GHEP || eps->problem_type==EPS_BSE)? PETSC_TRUE: PETSC_FALSE;
+  if (!trivial) PetscCheck(eps->twosided,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetTwoSided");
+
   PetscCall(EPSComputeVectors(eps));
   k = eps->perm[i];
-  PetscCall(BV_GetEigenvector(eps->W,k,eps->eigi[k],Wr,Wi));
+  if (trivial) {
+    PetscCall(BV_GetEigenvector(eps->V,k,eps->eigi[k],Wr,Wi));
+    if (eps->problem_type==EPS_BSE) {   /* change sign of bottom part of the vector */
+      PetscCall(STGetMatrix(eps->st,0,&H));
+      PetscCall(MatNestGetISs(H,is,NULL));
+      if (Wr) {
+        PetscCall(VecGetSubVector(Wr,is[1],&v));
+        PetscCall(VecScale(v,-1.0));
+        PetscCall(VecRestoreSubVector(Wr,is[1],&v));
+      }
+      if (Wi) {
+        PetscCall(VecGetSubVector(Wi,is[1],&v));
+        PetscCall(VecScale(v,-1.0));
+        PetscCall(VecRestoreSubVector(Wi,is[1],&v));
+      }
+    }
+  } else {
+    PetscCall(BV_GetEigenvector(eps->W,k,eps->eigi[k],Wr,Wi));
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
