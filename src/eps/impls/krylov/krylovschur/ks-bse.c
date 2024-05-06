@@ -96,10 +96,34 @@ static PetscErrorCode EPSBSELanczos(EPS eps,Mat Htp,Mat Htm,BV U,BV V,PetscReal 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-PetscErrorCode EPSComputeVectors_BSE(EPS eps)
+static PetscErrorCode EPSComputeVectors_BSE(EPS eps)
 {
+  Mat        H;
+  Vec        u1,v1;
+  BV         U,V;
+  IS         is[2];
+  PetscInt   k;
+  PetscReal  delta,lambda;
+
   PetscFunctionBegin;
-  PetscCall(EPSComputeVectors_Schur(eps));   /* FIXME */
+  PetscCall(STGetMatrix(eps->st,0,&H));
+  PetscCall(MatNestGetISs(H,is,NULL));
+  PetscCall(BVGetSplitRows(eps->V,is[0],is[1],&U,&V));
+  for (k=0; k<eps->nconv; k++) {
+    lambda = PetscRealPart(eps->eigr[k]);
+    delta  = 1.0/PetscSqrtReal(1.0+lambda*lambda);
+    PetscCall(BVGetColumn(U,k,&u1));
+    PetscCall(BVGetColumn(V,k,&v1));
+    /* approx eigenvector is [     u1*eigr[k]*delta+v1*delta ]
+                             [conj(u1*eigr[k]*delta-v1*delta)]  */
+    PetscCall(VecScale(u1,eps->eigr[k]*delta));
+    PetscCall(VecAXPY(u1,delta,v1));
+    PetscCall(VecAYPX(v1,-2.0*delta,u1));
+    PetscCall(VecConjugate(v1));
+    PetscCall(BVRestoreColumn(U,k,&u1));
+    PetscCall(BVRestoreColumn(V,k,&v1));
+  }
+  PetscCall(BVRestoreSplitRows(eps->V,is[0],is[1],&U,&V));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -177,9 +201,9 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
   Mat             H,Htp,Htm,Q;
   BV              U,V;
   IS              is[2];
-  Vec             x,u1,v1;//w=eps->work[0];
+  Vec             x,u1,v1;
   VecType         vtype;
-  PetscReal       *a,*b,beta,nrm,delta;
+  PetscReal       *a,*b,beta,nrm;
   PetscScalar     alpha;
   PetscBool       breakdown=PETSC_FALSE;
 
@@ -272,21 +296,8 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
     PetscCall(EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv));
   }
 
-  /* Obtain eigenvalues and eigenvectors */
-  for (k=0; k<eps->nconv; k++) {
-    delta = 1.0/PetscSqrtReal(1.0+eps->eigr[k]);
-    eps->eigr[k] = PetscSqrtReal(eps->eigr[k]);
-    PetscCall(BVGetColumn(U,k,&u1));
-    PetscCall(BVGetColumn(V,k,&v1));
-    /* approx eigenvector is [     u1*eigr[k]*delta+v1*delta ]
-                             [conj(u1*eigr[k]*delta-v1*delta)]  */
-    PetscCall(VecScale(u1,eps->eigr[k]*delta));
-    PetscCall(VecAXPY(u1,delta,v1));
-    PetscCall(VecAYPX(v1,-2.0*delta,u1));
-    PetscCall(VecConjugate(v1));
-    PetscCall(BVRestoreColumn(U,k,&u1));
-    PetscCall(BVRestoreColumn(V,k,&v1));
-  }
+  /* Obtain eigenvalues */
+  for (k=0; k<eps->nconv; k++) eps->eigr[k] = PetscSqrtReal(PetscRealPart(eps->eigr[k]));
 
   PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
   PetscCall(BVRestoreSplitRows(eps->V,is[0],is[1],&U,&V));
