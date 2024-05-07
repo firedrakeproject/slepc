@@ -131,12 +131,13 @@ PetscErrorCode EPSSetUp_KrylovSchur_BSE(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscBool       flg,sinvert;
+  PetscInt        nev=(eps->nev+1)/2;
 
   PetscFunctionBegin;
   PetscCheck((eps->problem_type==EPS_BSE),PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Problem type should be BSE");
   EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION | EPS_FEATURE_BALANCE,PETSC_TRUE," with BSE structure");
-  PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
-  PetscCheck(eps->ncv<=eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
+  PetscCall(EPSSetDimensions_Default(eps,nev,&eps->ncv,&eps->mpd));
+  PetscCheck(eps->ncv<=nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
   PetscCall(PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STSHIFT,""));
@@ -197,7 +198,7 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   EPS_BSE_MAT     matctx;
-  PetscInt        M,N,m,n,k,l,ld,nv,nconv=0;
+  PetscInt        M,N,m,n,k,l,ld,nv,nconv=0,nevsave;
   Mat             H,Htp,Htm,Q;
   BV              U,V;
   IS              is[2];
@@ -244,6 +245,8 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
   /* Get the split bases */
   PetscCall(BVGetSplitRows(eps->V,is[0],is[1],&U,&V));
 
+  nevsave  = eps->nev;
+  eps->nev = (eps->nev+1)/2;
   l = 0;
 
   /* Restart loop */
@@ -298,6 +301,7 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
 
   /* Obtain eigenvalues */
   for (k=0; k<eps->nconv; k++) eps->eigr[k] = PetscSqrtReal(PetscRealPart(eps->eigr[k]));
+  eps->nev = nevsave;
 
   PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
   PetscCall(BVRestoreSplitRows(eps->V,is[0],is[1],&U,&V));

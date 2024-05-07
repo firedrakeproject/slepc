@@ -11,7 +11,7 @@
 #pragma once
 
 #include <slepceps.h>
-#include <slepc/private/slepcimpl.h>
+#include <slepc/private/bvimpl.h>
 
 /* SUBMANSEC = EPS */
 
@@ -326,6 +326,84 @@ static inline PetscErrorCode EPS_KSPSetOperators(KSP ksp,Mat A,Mat B)
        only applies if the Mat has no user-defined prefix */
     PetscCall(KSPGetOptionsPrefix(ksp,&prefix));
     PetscCall(MatSetOptionsPrefix(B,prefix));
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*
+  EPS_GetActualConverged - Gets the actual value of nconv; in special cases the
+  number of available eigenvalues is larger than the computed ones
+*/
+static inline PetscErrorCode EPS_GetActualConverged(EPS eps,PetscInt *nconv)
+{
+  PetscFunctionBegin;
+  *nconv = eps->nconv;
+  if (eps->isstructured) {
+    if (eps->problem_type == EPS_BSE && (eps->which == EPS_SMALLEST_MAGNITUDE || eps->which == EPS_LARGEST_MAGNITUDE)) *nconv *= 2;
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*
+  EPS_GetEigenvector - Gets the i-th eigenvector taking into account the case
+  where i exceeds the number of computed vectors (structure-preserving solver).
+  The argument V should be eps->V for right eigenvectors, eps->W for left ones.
+*/
+static inline PetscErrorCode EPS_GetEigenvector(EPS eps,BV V,PetscInt i,Vec Vr,Vec Vi)
+{
+  PetscInt k;
+  Vec      v0,v1,w,w0,w1;
+  Mat      H;
+  IS       is[2];
+
+  PetscFunctionBegin;
+  if (!eps->isstructured) {
+    k = eps->perm[i];
+    PetscCall(BV_GetEigenvector(V,k,eps->eigi[k],Vr,Vi));
+  } else {
+    if (eps->problem_type == EPS_BSE && (eps->which == EPS_SMALLEST_MAGNITUDE || eps->which == EPS_LARGEST_MAGNITUDE)) {
+      /* BSE problem, even index is +lambda, odd index is -lambda */
+      k = eps->perm[i/2];
+      if (i%2) {
+        /* eigenvector of -lambda is J*conj(X) where J=[0 I; I 0] and x is eigenvector of lambda */
+        PetscCall(VecDuplicate(Vr?Vr:Vi,&w));
+        PetscCall(STGetMatrix(eps->st,0,&H));
+        PetscCall(MatNestGetISs(H,is,NULL));
+        if (Vr) {
+          PetscCall(BV_GetEigenvector(V,k,eps->eigi[k],w,NULL));
+          PetscCall(VecConjugate(w));
+          PetscCall(VecGetSubVector(w,is[0],&w0));
+          PetscCall(VecGetSubVector(w,is[1],&w1));
+          PetscCall(VecGetSubVector(Vr,is[0],&v0));
+          PetscCall(VecGetSubVector(Vr,is[1],&v1));
+          PetscCall(VecCopy(w1,v0));
+          PetscCall(VecCopy(w0,v1));
+          PetscCall(VecRestoreSubVector(w,is[0],&w0));
+          PetscCall(VecRestoreSubVector(w,is[1],&w1));
+          PetscCall(VecRestoreSubVector(Vr,is[0],&v0));
+          PetscCall(VecRestoreSubVector(Vr,is[1],&v1));
+        }
+#if !defined(PETSC_USE_COMPLEX)
+        if (Vi) {
+          PetscCall(BV_GetEigenvector(V,k,eps->eigi[k],NULL,w));
+          PetscCall(VecScale(w,-1.0));
+          PetscCall(VecGetSubVector(w,is[0],&w0));
+          PetscCall(VecGetSubVector(w,is[1],&w1));
+          PetscCall(VecGetSubVector(Vi,is[0],&v0));
+          PetscCall(VecGetSubVector(Vi,is[1],&v1));
+          PetscCall(VecCopy(w1,v0));
+          PetscCall(VecCopy(w0,v1));
+          PetscCall(VecRestoreSubVector(w,is[0],&w0));
+          PetscCall(VecRestoreSubVector(w,is[1],&w1));
+          PetscCall(VecRestoreSubVector(Vi,is[0],&v0));
+          PetscCall(VecRestoreSubVector(Vi,is[1],&v1));
+        }
+#endif
+        PetscCall(VecDestroy(&w));
+      } else {
+        PetscCall(BV_GetEigenvector(V,k,eps->eigi[k],Vr,Vi));
+      }
+    } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Inconsistent state");
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
