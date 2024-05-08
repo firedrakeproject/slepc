@@ -98,12 +98,13 @@ static PetscErrorCode EPSBSELanczos(EPS eps,Mat Htp,Mat Htm,BV U,BV V,PetscReal 
 
 static PetscErrorCode EPSComputeVectors_BSE(EPS eps)
 {
-  Mat        H;
-  Vec        u1,v1;
-  BV         U,V;
-  IS         is[2];
-  PetscInt   k;
-  PetscReal  delta,lambda;
+  Mat         H;
+  Vec         u1,v1;
+  BV          U,V;
+  IS          is[2];
+  PetscInt    k;
+  PetscReal   delta,lambda,norm1,norm2;
+  PetscScalar norminv;
 
   PetscFunctionBegin;
   PetscCall(STGetMatrix(eps->st,0,&H));
@@ -120,6 +121,14 @@ static PetscErrorCode EPSComputeVectors_BSE(EPS eps)
     PetscCall(VecAXPY(u1,delta,v1));
     PetscCall(VecAYPX(v1,-2.0*delta,u1));
     PetscCall(VecConjugate(v1));
+    /* Normalize eigenvector */
+    PetscCall(VecNormBegin(u1,NORM_2,&norm1));
+    PetscCall(VecNormBegin(v1,NORM_2,&norm2));
+    PetscCall(VecNormEnd(u1,NORM_2,&norm1));
+    PetscCall(VecNormEnd(v1,NORM_2,&norm2));
+    norminv = 1.0/SlepcAbs(norm1,norm2);
+    PetscCall(VecScale(u1,norminv));
+    PetscCall(VecScale(v1,norminv));
     PetscCall(BVRestoreColumn(U,k,&u1));
     PetscCall(BVRestoreColumn(V,k,&v1));
   }
