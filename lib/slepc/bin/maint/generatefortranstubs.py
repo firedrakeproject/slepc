@@ -171,12 +171,12 @@ def processDir(petscdir, petscarch, bfort, verbose, dirpath, dirnames, filenames
     options = ['-dir '+outdir, '-mnative', '-ansi', '-nomsgs', '-noprofile', '-anyname', '-mapptr',
                '-mpi', '-shortargname', '-ferr', '-ptrprefix Petsc', '-ptr64 PETSC_USE_POINTER_CONVERSION',
                '-fcaps PETSC_HAVE_FORTRAN_CAPS', '-fuscore PETSC_HAVE_FORTRAN_UNDERSCORE',
-               '-f90mod_skip_header','-on_error_abort']
+               '-f90mod_skip_header', '-on_error_abort', '-fstring']
     split_ct = 10
     for i in range(0, len(filenames), split_ct):
       cmd = 'BFORT_CONFIG_PATH='+os.path.join(petscdir,'lib','slepc','conf')+' '+bfort+' '+' '.join(options+filenames[i:i+split_ct])+' -f90modfile f90module'+str(i)+'.f90'
       try:
-        output = check_output(cmd, cwd=dirpath, shell=True, stderr=subprocess.STDOUT)
+        output = check_output(cmd, cwd=dirpath, shell=True).decode('utf-8')
       except subprocess.CalledProcessError as e:
         raise SystemError(str(e)+'\nIn '+dirpath+'\n'+e.output.decode(encoding='UTF-8',errors='replace'));
     FixDir(petscdir,petscarch,dirpath,outdir,verbose)
@@ -308,7 +308,5 @@ if __name__ ==  '__main__':
     assert isinstance(args.bfort, (list, tuple))
     bfort_exec = args.bfort[0]
     assert isinstance(bfort_exec, str)
-    ret = main(
-      args.slepc_dir, args.petsc_arch, bfort_exec, os.path.join(args.slepc_dir, 'src'), args.verbose
-    )
+    ret = main(args.slepc_dir, args.petsc_arch, bfort_exec, os.path.join(args.slepc_dir, 'src'), args.verbose)
   sys.exit(ret)

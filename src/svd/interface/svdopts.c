@@ -892,7 +892,7 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDSetOptionsPrefix - Sets the prefix used for searching for all
    SVD options in the database.
 
@@ -931,7 +931,7 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDAppendOptionsPrefix - Appends to the prefix used for searching for all
    SVD options in the database.
 
@@ -962,7 +962,7 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDGetOptionsPrefix - Gets the prefix used for searching for all
    SVD options in the database.
 

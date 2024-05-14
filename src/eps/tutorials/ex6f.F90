@@ -166,7 +166,6 @@
       PetscCall(VecRestoreArrayRead(x,x_array,i_x,ierr))
       PetscCall(VecRestoreArray(y,y_array,i_y,ierr))
 
-      return
       end
 
 ! -------------------------------------------------------------------

@@ -141,7 +141,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSSetOptionsPrefix - Sets the prefix used for searching for all
    DS options in the database.
 
@@ -168,7 +168,7 @@ PetscErrorCode DSSetOptionsPrefix(DS ds,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSAppendOptionsPrefix - Appends to the prefix used for searching for all
    DS options in the database.
 
@@ -194,7 +194,7 @@ PetscErrorCode DSAppendOptionsPrefix(DS ds,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSGetOptionsPrefix - Gets the prefix used for searching for all
    DS options in the database.
 
@@ -223,7 +223,7 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSSetType - Selects the type for the DS object.
 
    Logically Collective
@@ -251,6 +251,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   PetscCall(PetscFunctionListFind(DSList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
+  PetscTryTypeMethod(ds,destroy);
   PetscCall(PetscMemzero(ds->ops,sizeof(struct _DSOps)));
 
   PetscCall(PetscObjectChangeTypeName((PetscObject)ds,type));
@@ -258,7 +259,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSGetType - Gets the DS type name (as a string) from the DS context.
 
    Not Collective

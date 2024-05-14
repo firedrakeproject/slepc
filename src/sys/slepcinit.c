@@ -42,7 +42,7 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
     SlepcGetVersionNumber - Gets the SLEPc version information from the library.
 
     Not Collective
@@ -224,9 +224,9 @@ PetscErrorCode SlepcCitationsInitialize(void)
   PetscCall(PetscCitationsRegister("@TechReport{slepc-manual,\n"
     "   author = \"J. E. Roman and C. Campos and L. Dalcin and E. Romero and A. Tomas\",\n"
     "   title = \"{SLEPc} Users Manual\",\n"
-    "   number = \"DSIC-II/24/02 - Revision 3.20\",\n"
+    "   number = \"DSIC-II/24/02 - Revision 3.21\",\n"
     "   institution = \"D. Sistemes Inform\\`atics i Computaci\\'o, Universitat Polit\\`ecnica de Val\\`encia\",\n"
-    "   year = \"2023\"\n"
+    "   year = \"2024\"\n"
     "}\n",NULL));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -301,7 +301,8 @@ PetscErrorCode SlepcFinalize(void)
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
-  PetscFunctionReturn(PETSC_SUCCESS);
+  PetscStackClearTop;
+  return PETSC_SUCCESS;
 }
 
 /*@C

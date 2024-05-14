@@ -4,8 +4,24 @@
 
 ### Added
 
-- `ST`: new function `STShellSetApplyHermitianTranspose` and other improvements for handling
+- `BV`: new function `BVGetSplitRows()` to split a `BV` row-wise using index sets.
+
+### Changed
+
+- In slepc4py now `EPS.getEigenpair()` and `EPS.getEigenvalue()` will return a real value
+instead of a complex, if the problem is of Hermitian or generalized Hermitian type.
+
+## [3.21] - 2024-03-30
+
+### Added
+
+- `ST`: new function `STShellSetApplyHermitianTranspose()` and other improvements for handling
   the conjugate transpose of the operator.
+
+### Changed
+
+- `SVDGetSignature()` now takes a `Vec` argument instead of `Vec*`. The former interface
+  could not be used from Fortran.
 
 ## [3.20] - 2023-09-29
 
@@ -454,7 +470,8 @@
 - Classical and modified Gram-Schmidt orthogonalization use iterative refinement, with user options
   for parameter adjustment.
 
-[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.20...main
+[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.21...main
+[3.21]: https://gitlab.com/slepc/slepc/compare/v3.20...v3.21
 [3.20]: https://gitlab.com/slepc/slepc/compare/v3.19...v3.20
 [3.19]: https://gitlab.com/slepc/slepc/compare/v3.18...v3.19
 [3.18]: https://gitlab.com/slepc/slepc/compare/v3.17...v3.18

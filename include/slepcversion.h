@@ -13,9 +13,9 @@
 
 #define SLEPC_VERSION_RELEASE    0
 #define SLEPC_VERSION_MAJOR      3
-#define SLEPC_VERSION_MINOR      20
-#define SLEPC_VERSION_SUBMINOR   2
-#define SLEPC_RELEASE_DATE       "September 29, 2023"
+#define SLEPC_VERSION_MINOR      21
+#define SLEPC_VERSION_SUBMINOR   1
+#define SLEPC_RELEASE_DATE       "March 30, 2024"
 #define SLEPC_VERSION_DATE       "unknown"
 
 #if !defined (SLEPC_VERSION_GIT)

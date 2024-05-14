@@ -12,69 +12,14 @@
 #include <slepcst.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define stsettype_                STSETTYPE
-#define stgettype_                STGETTYPE
-#define stsetoptionsprefix_       STSETOPTIONSPREFIX
-#define stappendoptionsprefix_    STAPPENDOPTIONSPREFIX
-#define stgetoptionsprefix_       STGETOPTIONSPREFIX
 #define stdestroy_                STDESTROY
 #define stview_                   STVIEW
 #define stviewfromoptions_        STVIEWFROMOPTIONS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define stsettype_                stsettype
-#define stgettype_                stgettype
-#define stsetoptionsprefix_       stsetoptionsprefix
-#define stappendoptionsprefix_    stappendoptionsprefix
-#define stgetoptionsprefix_       stgetoptionsprefix
 #define stdestroy_                stdestroy
 #define stview_                   stview
 #define stviewfromoptions_        stviewfromoptions
 #endif
-
-SLEPC_EXTERN void stsettype_(ST *st,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  *ierr = STSetType(*st,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void stgettype_(ST *st,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  STType tname;
-
-  *ierr = STGetType(*st,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
-SLEPC_EXTERN void stsetoptionsprefix_(ST *st,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = STSetOptionsPrefix(*st,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void stappendoptionsprefix_(ST *st,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = STAppendOptionsPrefix(*st,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void stgetoptionsprefix_(ST *st,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  const char *tname;
-
-  *ierr = STGetOptionsPrefix(*st,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
-}
 
 SLEPC_EXTERN void stdestroy_(ST *st,PetscErrorCode *ierr)
 {

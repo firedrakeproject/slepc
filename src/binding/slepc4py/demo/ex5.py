@@ -1,3 +1,6 @@
+# ------------------------------------------------------------------------
+#   Simple quadratic eigenvalue problem
+# ------------------------------------------------------------------------
 
 import sys, slepc4py
 slepc4py.init(sys.argv)
@@ -17,8 +20,7 @@ def construct_operators(m,n):
     # K is the 2-D Laplacian
     K = PETSc.Mat().create()
     K.setSizes([n*m, n*m])
-    K.setFromOptions( )
-    K.setUp()
+    K.setFromOptions()
     Istart, Iend = K.getOwnershipRange()
     for I in range(Istart,Iend):
         v = -1.0; i = I//n; j = I-i*n;
@@ -35,27 +37,17 @@ def construct_operators(m,n):
     # C is the zero matrix
     C = PETSc.Mat().create()
     C.setSizes([n*m, n*m])
-    C.setFromOptions( )
-    C.setUp()
+    C.setFromOptions()
     C.assemble()
     # M is the identity matrix
-    M = PETSc.Mat().create()
-    M.setSizes([n*m, n*m])
-    M.setFromOptions( )
-    M.setUp()
-    M.assemble()
-    M.shift(1)
+    M = PETSc.Mat().createConstantDiagonal([n*m, n*m], 1.0)
     #
     return M, C, K
 
 def solve_eigensystem(M, C, K):
     # Setup the eigensolver
     Q = SLEPc.PEP().create()
-    A = [ ]
-    A.append(K)
-    A.append(C)
-    A.append(M)
-    Q.setOperators(A)
+    Q.setOperators([K, C, M])
     Q.setDimensions(6)
     Q.setProblemType(SLEPc.PEP.ProblemType.GENERAL)
     Q.setFromOptions()
@@ -82,9 +74,9 @@ def solve_eigensystem(M, C, K):
         for i in range(nconv):
             k = Q.getEigenpair(i, xr, xi)
             error = Q.computeError(i)
-            if k.imag != 0.0: 
+            if k.imag != 0.0:
                 Print("%9f%+9f j    %12g" % (k.real, k.imag, error))
-            else: 
+            else:
                 Print("%12f         %12g" % (k.real, error))
     Print("")
 

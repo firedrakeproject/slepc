@@ -5,6 +5,24 @@ CHANGES: SLEPc for Python
 :Author:  Lisandro Dalcin
 :Contact: dalcinl@gmail.com
 
+Development
+===========
+
+- In slepc4py now `EPS.getEigenpair()` and `EPS.getEigenvalue()` will return a real value
+instead of a complex, if the problem is of Hermitian or generalized Hermitian type.
+
+
+Release 3.21.1
+==============
+
+- Update to SLEPc 3.21.1.
+
+
+Release 3.21.0
+==============
+
+- Update to SLEPc 3.21.0.
+
 
 Release 3.20.2
 ==============

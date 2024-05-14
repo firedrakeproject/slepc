@@ -657,22 +657,28 @@ cdef class SVD(Object):
         cdef PetscMat Bmat = B.mat if B is not None else <PetscMat>NULL
         CHKERR( SVDSetOperators(self.svd, A.mat, Bmat) )
 
-    def getSignature(self):
+    def getSignature(self, Vec omega=None):
         """
         Gets the signature matrix defining a hyperbolic singular value problem.
+
+        Parameters
+        ----------
+        omega: Vec
+           Optional vector to store the diagonal elements of the signature matrix.
 
         Returns
         -------
         omega: Vec
            A vector containing the diagonal elements of the signature matrix.
         """
-        cdef Vec omega = Vec()
-        CHKERR( SVDGetSignature(self.svd, &omega.vec) )
-        if (omega.vec == NULL):
-            return None
-        else:
-            CHKERR( PetscINCREF(omega.obj) )
-            return omega
+        cdef PetscMat A = NULL
+        if omega is None:
+            omega = Vec()
+        if omega.vec == NULL:
+            CHKERR( SVDGetOperators(self.svd, &A, <PetscMat*>NULL) )
+            CHKERR( MatCreateVecs(A, <PetscVec*>NULL, &omega.vec) )
+        CHKERR( SVDGetSignature(self.svd, omega.vec) )
+        return omega
 
     def setSignature(self, Vec omega=None):
         """

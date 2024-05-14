@@ -3,6 +3,7 @@ nativeptr SlepcSC
 
 # slepcbv.h
 nativeptr BV
+char      BVType
 native    BVOrthogType
 native    BVOrthogRefineType
 native    BVOrthogBlockType
@@ -11,25 +12,30 @@ native    BVSVDMethod
 
 # slepcds.h
 nativeptr DS
+char      DSType
 native    DSStateType
 native    DSMatType
 native    DSParallelType
 
 # slepcfn.h
 nativeptr FN
+char      FNType
 native    FNCombineType
 native    FNParallelType
 
 # slepcrg.h, slepcrgtypes.h
 nativeptr RG
+char      RGType
 native    RGQuadRule
 
 # slepcst.h
 nativeptr ST
+char      STType
 native    STMatMode
 
 # slepceps.h
 nativeptr EPS
+char      EPSType
 native    EPSProblemType
 native    EPSExtraction
 native    EPSWhich
@@ -48,15 +54,18 @@ native    EPSEVSLDamping
 
 # slepclme.h
 nativeptr LME
+char      LMEType
 native    LMEProblemType
 native    LMEConvergedReason
 
 # slepcmfn.h
 nativeptr MFN
+char      MFNType
 native    MFNConvergedReason
 
 # slepcnep.h
 nativeptr NEP
+char      NEPType
 native    NEPProblemType
 native    NEPWhich
 native    NEPErrorType
@@ -69,6 +78,7 @@ native    NEPCISSExtraction
 
 # slepcpep.h
 nativeptr PEP
+char      PEPType
 native    PEPProblemType
 native    PEPWhich
 native    PEPBasis
@@ -85,6 +95,7 @@ native    PEPCISSExtraction
 
 # slepcsvd.h
 nativeptr SVD
+char      SVDType
 native    SVDProblemType
 native    SVDWhich
 native    SVDErrorType

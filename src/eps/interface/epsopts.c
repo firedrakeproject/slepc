@@ -1370,7 +1370,7 @@ PetscErrorCode EPSGetPurify(EPS eps,PetscBool *purify)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSSetOptionsPrefix - Sets the prefix used for searching for all
    EPS options in the database.
 
@@ -1412,7 +1412,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSAppendOptionsPrefix - Appends to the prefix used for searching for all
    EPS options in the database.
 
@@ -1446,7 +1446,7 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetOptionsPrefix - Gets the prefix used for searching for all
    EPS options in the database.
 

@@ -431,7 +431,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     if (bv->cuda) {
 #if defined(PETSC_HAVE_CUDA)
       PetscCall(VecCUDAGetArrayRead(vpar,&array));
-      ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      if (bv->issplit>0) ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      else ptr = (bv->issplit==1)? array: array-lsplit;
       PetscCall(VecCUDARestoreArrayRead(vpar,&array));
       if (ctx->mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
       else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,NULL,&ctx->v));
@@ -439,7 +440,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 #endif
     } else {
       PetscCall(VecGetArrayRead(vpar,&array));
-      ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      if (bv->issplit>0) ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      else ptr = (bv->issplit==1)? array: array-lsplit;
       PetscCall(VecRestoreArrayRead(vpar,&array));
       if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
       else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,NULL,&ctx->v));
@@ -493,6 +495,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->getcolumn        = BVGetColumn_Svec_CUDA;
     bv->ops->restorecolumn    = BVRestoreColumn_Svec_CUDA;
     bv->ops->restoresplit     = BVRestoreSplit_Svec_CUDA;
+    bv->ops->restoresplitrows = BVRestoreSplitRows_Svec_CUDA;
     bv->ops->getmat           = BVGetMat_Svec_CUDA;
     bv->ops->restoremat       = BVRestoreMat_Svec_CUDA;
 #endif

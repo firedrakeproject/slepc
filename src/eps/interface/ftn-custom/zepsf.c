@@ -19,11 +19,6 @@
 #define epsconvergedreasonview_           EPSCONVERGEDREASONVIEW
 #define epsvaluesview_                    EPSVALUESVIEW
 #define epsvectorsview_                   EPSVECTORSVIEW
-#define epssetoptionsprefix_              EPSSETOPTIONSPREFIX
-#define epsappendoptionsprefix_           EPSAPPENDOPTIONSPREFIX
-#define epsgetoptionsprefix_              EPSGETOPTIONSPREFIX
-#define epssettype_                       EPSSETTYPE
-#define epsgettype_                       EPSGETTYPE
 #define epsmonitorset_                    EPSMONITORSET
 #define epsmonitorall_                    EPSMONITORALL
 #define epsmonitorfirst_                  EPSMONITORFIRST
@@ -75,11 +70,6 @@
 #define epsconvergedreasonview_           epsconvergedreasonview
 #define epsvaluesview_                    epsvaluesview
 #define epsvectorsview_                   epsvectorsview
-#define epssetoptionsprefix_              epssetoptionsprefix
-#define epsappendoptionsprefix_           epsappendoptionsprefix
-#define epsgetoptionsprefix_              epsgetoptionsprefix
-#define epssettype_                       epssettype
-#define epsgettype_                       epsgettype
 #define epsmonitorset_                    epsmonitorset
 #define epsmonitorall_                    epsmonitorall
 #define epsmonitorfirst_                  epsmonitorfirst
@@ -264,51 +254,6 @@ SLEPC_EXTERN void epsvectorsview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *i
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = EPSVectorsView(*eps,v);
-}
-
-SLEPC_EXTERN void epssettype_(EPS *eps,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  *ierr = EPSSetType(*eps,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void epsgettype_(EPS *eps,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  EPSType tname;
-
-  *ierr = EPSGetType(*eps,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
-SLEPC_EXTERN void epssetoptionsprefix_(EPS *eps,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = EPSSetOptionsPrefix(*eps,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void epsappendoptionsprefix_(EPS *eps,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = EPSAppendOptionsPrefix(*eps,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void epsgetoptionsprefix_(EPS *eps,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  const char *tname;
-
-  *ierr = EPSGetOptionsPrefix(*eps,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 SLEPC_EXTERN void epsmonitorset_(EPS *eps,void (*monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

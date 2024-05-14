@@ -59,7 +59,6 @@ def construct_operator(m):
     A = PETSc.Mat().create(PETSc.COMM_SELF)
     A.setSizes([m, m])
     A.setFromOptions()
-    A.setUp()
     # Fill matrix
     hx = 1.0/(m-1) # x grid spacing
     diagv = 2.0/hx
@@ -88,7 +87,6 @@ def set_problem_rhs(m):
     M = PETSc.Mat().create(PETSc.COMM_SELF)
     M.setSizes([m, m])
     M.setFromOptions()
-    M.setUp()
     # Fill matrix
     hx = 1.0/(m-1) # x grid spacing
     diagv = hx/3
@@ -165,7 +163,6 @@ def construct_snapshot_matrix(A, N, m):
     snapshots = PETSc.Mat().create(PETSc.COMM_SELF)
     snapshots.setSizes([m, N])
     snapshots.setType('seqdense')
-    snapshots.setUp()
 
     Istart, Iend = snapshots.getOwnershipRange()
     hx = 1.0/(m - 1)

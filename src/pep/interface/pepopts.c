@@ -1282,7 +1282,7 @@ PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPSetOptionsPrefix - Sets the prefix used for searching for all
    PEP options in the database.
 
@@ -1324,7 +1324,7 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPAppendOptionsPrefix - Appends to the prefix used for searching for all
    PEP options in the database.
 
@@ -1358,7 +1358,7 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPGetOptionsPrefix - Gets the prefix used for searching for all
    PEP options in the database.
 

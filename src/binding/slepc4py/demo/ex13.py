@@ -99,7 +99,6 @@ def solve(n):
     A = PETSc.Mat().create()
     A.setSizes([n, n])
     A.setFromOptions()
-    A.setUp()
     A.setOption(PETSc.Mat.Option.HERMITIAN, False)
 
     rstart, rend = A.getOwnershipRange()
@@ -134,7 +133,6 @@ def solve(n):
     Id = PETSc.Mat().create()
     Id.setSizes([n, n])
     Id.setFromOptions()
-    Id.setUp()
     Id.setOption(PETSc.Mat.Option.HERMITIAN, True)
     rstart, rend = Id.getOwnershipRange()
     if rstart == 0:
@@ -147,7 +145,6 @@ def solve(n):
     D = PETSc.Mat().create()
     D.setSizes([n, n])
     D.setFromOptions()
-    D.setUp()
     D.setOption(PETSc.Mat.Option.HERMITIAN, True)
     _, rend = D.getOwnershipRange()
     if rend == n:
@@ -196,7 +193,7 @@ def solve(n):
     R.setEllipseParameters(*rg_params)
 
     nep.setFromOptions()
-    
+
     # Solve the problem
     nep.solve()
 

@@ -36,18 +36,11 @@ nep = SLEPc.NEP().create()
 
 # Create problem matrices
 #   Identity matrix
-Id = PETSc.Mat().create()
-Id.setSizes([n, n])
-Id.setFromOptions()
-Id.setUp()
-Id.assemble()
-Id.shift(1.0)
-Id.setOption(PETSc.Mat.Option.HERMITIAN, True)
+Id = PETSc.Mat().createConstantDiagonal([n, n], 1.0)
 #   A = 1/h^2*tridiag(1,-2,1) + a*I
 A = PETSc.Mat().create()
 A.setSizes([n, n])
 A.setFromOptions()
-A.setUp()
 rstart, rend = A.getOwnershipRange()
 vd = -2.0/(h*h)+a
 vo = 1.0/(h*h)
@@ -64,7 +57,6 @@ A.assemble()
 B = PETSc.Mat().create()
 B.setSizes([n, n])
 B.setFromOptions()
-B.setUp()
 rstart, rend = B.getOwnershipRange()
 for i in range(rstart, rend):
   xi = (i+1)*h

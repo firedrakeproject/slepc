@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Standard symmetric eigenproblem for the Laplacian operator in 1-D
+# ------------------------------------------------------------------------
+
 import sys, slepc4py
 slepc4py.init(sys.argv)
 
@@ -11,7 +15,6 @@ n = opts.getInt('n', 30)
 A = PETSc.Mat(); A.create()
 A.setSizes([n, n])
 A.setFromOptions()
-A.setUp()
 
 rstart, rend = A.getOwnershipRange()
 
@@ -67,16 +70,13 @@ Print( "Number of converged eigenpairs %d" % nconv )
 
 if nconv > 0:
   # Create the results vectors
-  vr, vi = A.createVecs()
+  v, _ = A.createVecs()
   #
   Print()
   Print("        k          ||Ax-kx||/||kx|| ")
   Print("----------------- ------------------")
   for i in range(nconv):
-    k = E.getEigenpair(i, vr, vi)
+    k = E.getEigenpair(i, v)
     error = E.computeError(i)
-    if k.imag != 0.0:
-      Print( " %9f%+9f j %12g" % (k.real, k.imag, error) )
-    else:
-      Print( " %12f       %12g" % (k.real, error) )
+    Print( " %12f       %12g" % (k, error) )
   Print()

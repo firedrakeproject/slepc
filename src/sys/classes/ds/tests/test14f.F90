@@ -127,7 +127,7 @@
           X(i,i+j) = 1.d0
         end do
       end do
-      return
+
       end
 
 !/*TEST

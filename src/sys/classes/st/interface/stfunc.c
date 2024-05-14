@@ -902,7 +902,7 @@ PetscErrorCode STMatGetLocalSize(ST st,PetscInt *m,PetscInt *n)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STSetOptionsPrefix - Sets the prefix used for searching for all
    ST options in the database.
 
@@ -932,7 +932,7 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STAppendOptionsPrefix - Appends to the prefix used for searching for all
    ST options in the database.
 
@@ -962,7 +962,7 @@ PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STGetOptionsPrefix - Gets the prefix used for searching for all
    ST options in the database.
 

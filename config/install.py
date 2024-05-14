@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import print_function
-import os, sys, shutil
+import re, os, sys, shutil
 import subprocess
 
 try:
@@ -302,6 +302,144 @@ class Installer:
     self.fixConfFile(os.path.join(self.destIncludeDir,'slepcconf.h'))
     return
 
+  def fixPythonWheel(self):
+    import glob
+    import shutil
+    #
+    for pattern in (
+        self.destLibDir  + '/*.a',
+        self.destLibDir  + '/*.la',
+        self.destLibDir  + '/pkgconfig',  # TODO: keep?
+        self.destConfDir + '/configure-hash',
+        self.destConfDir + '/uninstall.py',
+        self.destConfDir + '/reconfigure-*.py',
+        self.destConfDir + '/pkg.conf.*',
+        self.destConfDir + '/pkg.git*.*',
+        self.destConfDir + '/modules',  # TODO: keep?
+        self.destShareDir + '/*/examples/src/*',
+        self.destShareDir + '/*/datafiles',
+    ):
+      for pathname in glob.glob(pattern):
+        if os.path.isdir(pathname):
+          shutil.rmtree(pathname)
+        elif os.path.exists(pathname):
+          os.remove(pathname)
+    #
+    for filename in (
+      self.destIncludeDir + '/slepcconf.h',
+      self.destShareDir + '/slepc/examples/gmakefile.test',
+      self.destConfDir + '/slepc_rules_doc.mk',
+      self.destConfDir + '/slepc_rules_util.mk',
+      self.destConfDir + '/slepc_rules',
+      self.destConfDir + '/slepcrules',
+      self.destConfDir + '/slepc_variables',
+      self.destConfDir + '/slepcvariables',
+    ):
+      with open(filename, 'r') as oldFile:
+        contents = oldFile.read()
+      contents = contents.replace(self.installDir, '${SLEPC_DIR}')
+      contents = contents.replace(self.rootDir, '${SLEPC_DIR}')
+      contents = contents.replace(self.petscDir, '${PETSC_DIR}')
+      with open(filename, 'w') as newFile:
+        newFile.write(contents)
+    #
+    def lsdir(dirname, *patterns):
+      return glob.glob(os.path.join(dirname, *patterns))
+    def shell(*args):
+      out  = subprocess.check_output(list(args), universal_newlines=True)
+      return out[:-1] if out[-1:] == '\n' else out
+    plibdir = os.path.join(self.petscDir, 'lib')
+    slibdir = os.path.join(self.installDir, 'lib')
+    if sys.platform == 'linux':
+      libraries = [
+        lib for lib in lsdir(self.destLibDir, 'lib*.so*')
+        if not os.path.islink(lib)
+      ]
+      for shlib in libraries:
+        # fix shared library rpath
+        rpath = shell('patchelf', '--print-rpath', shlib)
+        rpath = rpath.split(os.path.pathsep)
+        if plibdir in rpath:
+          rpath.insert(0, '$ORIGIN/../../petsc/lib')
+          while plibdir in rpath:
+            rpath.remove(plibdir)
+        if slibdir in rpath:
+          rpath.insert(0, '$ORIGIN')
+          while slibdir in rpath:
+            rpath.remove(slibdir)
+        if rpath:
+          rpath = os.path.pathsep.join(rpath)
+          shell('patchelf', '--set-rpath', rpath, shlib)
+        # fix shared library file and symlink
+        basename = os.path.basename(shlib)
+        libname, ext, _ = basename.partition('.so')
+        liblink = libname + ext
+        soname = shell('patchelf', '--print-soname', shlib)
+        for symlink in lsdir(self.destLibDir, liblink + '*'):
+          if os.path.islink(symlink):
+            os.unlink(symlink)
+        curdir = os.getcwd()
+        try:
+          os.chdir(os.path.dirname(shlib))
+          if soname != basename:
+            os.rename(basename, soname)
+          if soname != liblink:
+            os.symlink(soname, liblink)
+        finally:
+          os.chdir(curdir)
+    if sys.platform == 'darwin':
+      def otool(cmd, dylib):
+        pattern = r'''
+          ^\s+ cmd \s %s$\n
+          ^\s+ cmdsize \s \d+$\n
+          ^\s+ (?:name|path) \s (.*) \s \(offset \s \d+\)$
+        ''' % cmd
+        return re.findall(
+          pattern, shell('otool', '-l', dylib),
+          flags=re.VERBOSE | re.MULTILINE,
+        )
+      libraries = [
+        lib for lib in lsdir(self.destLibDir, 'lib*.dylib')
+        if not os.path.islink(lib)
+      ]
+      for dylib in libraries:
+        install_name = otool('LC_ID_DYLIB', dylib)[0]
+        dependencies = otool('LC_LOAD_DYLIB', dylib)
+        runtime_path = otool('LC_RPATH', dylib)
+        # fix shared library install name and rpath
+        install_name = '@rpath/' + os.path.basename(install_name)
+        shell('install_name_tool', '-id', install_name, dylib)
+        for libdir in (plibdir, slibdir):
+          if libdir in runtime_path:
+            shell('install_name_tool', '-delete_rpath', libdir, dylib)
+        for rpath in ('@loader_path', '@loader_path/../../petsc/lib'):
+          if rpath not in runtime_path:
+            shell('install_name_tool', '-add_rpath', rpath, dylib)
+        for dep in dependencies:
+          if os.path.dirname(dep) in (plibdir, slibdir):
+            newid = '@rpath/' + os.path.basename(dep)
+            shell('install_name_tool', '-change', dep, newid, dylib)
+        # fix shared library file and symlink
+        basename = os.path.basename(dylib)
+        libname, ext = os.path.splitext(basename)
+        libname = libname.partition('.')[0]
+        liblink = libname + ext
+        dyname = os.path.basename(install_name)
+        for symlink in lsdir(self.destLibDir, libname + '*' + ext):
+          if os.path.islink(symlink):
+            os.unlink(symlink)
+        curdir = os.getcwd()
+        try:
+          os.chdir(os.path.dirname(dylib))
+          if dyname != basename:
+            os.rename(basename, dyname)
+          if dyname != liblink:
+            os.symlink(dyname, liblink)
+        finally:
+          os.chdir(curdir)
+    #
+    return
+
   def createUninstaller(self):
     uninstallscript = os.path.join(self.destConfDir, 'uninstall.py')
     f = open(uninstallscript, 'w')
@@ -441,14 +579,16 @@ Before use - please copy/install over to specified prefix: %s
     self.installBin()
     self.installLib()
     self.installShare()
+    self.createUninstaller()
     return
 
   def runfix(self):
     self.fixConf()
+    if os.environ.get('PEP517_BUILD_BACKEND'):
+      self.fixPythonWheel()
     return
 
   def rundone(self):
-    self.createUninstaller()
     if self.destDir == self.installDir:
       self.outputInstallDone()
     else:

@@ -77,7 +77,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     beta1 = PetscMax(beta1,beta2);
 #endif
     PetscCall(EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,t-eps->nconv,beta*beta1,0.0,1.0,&k));
-    PetscCall((*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx));
+    if (!symmlost) PetscCall((*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx));
     nconv = k;
 
     /* Update l */

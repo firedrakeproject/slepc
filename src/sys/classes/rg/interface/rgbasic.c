@@ -104,7 +104,7 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGSetOptionsPrefix - Sets the prefix used for searching for all
    RG options in the database.
 
@@ -131,7 +131,7 @@ PetscErrorCode RGSetOptionsPrefix(RG rg,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGAppendOptionsPrefix - Appends to the prefix used for searching for all
    RG options in the database.
 
@@ -157,7 +157,7 @@ PetscErrorCode RGAppendOptionsPrefix(RG rg,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGGetOptionsPrefix - Gets the prefix used for searching for all
    RG options in the database.
 
@@ -186,7 +186,7 @@ PetscErrorCode RGGetOptionsPrefix(RG rg,const char *prefix[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGSetType - Selects the type for the RG object.
 
    Logically Collective
@@ -222,7 +222,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGGetType - Gets the RG type name (as a string) from the RG context.
 
    Not Collective
