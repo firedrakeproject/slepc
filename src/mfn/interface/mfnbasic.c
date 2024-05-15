@@ -27,7 +27,7 @@ PetscFunctionList MFNMonitorCreateList        = NULL;
 PetscFunctionList MFNMonitorDestroyList       = NULL;
 PetscBool         MFNMonitorRegisterAllCalled = PETSC_FALSE;
 
-/*@C
+/*@
    MFNView - Prints the MFN data structure.
 
    Collective
@@ -83,7 +83,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MFNViewFromOptions - View from options
 
    Collective
@@ -104,7 +104,7 @@ PetscErrorCode MFNViewFromOptions(MFN mfn,PetscObject obj,const char name[])
   PetscCall(PetscObjectViewFromOptions((PetscObject)mfn,obj,name));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
-/*@C
+/*@
    MFNConvergedReasonView - Displays the reason an MFN solve converged or diverged.
 
    Collective

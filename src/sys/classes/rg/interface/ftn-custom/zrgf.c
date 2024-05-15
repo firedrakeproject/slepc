@@ -13,12 +13,8 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define rgdestroy_                RGDESTROY
-#define rgview_                   RGVIEW
-#define rgviewfromoptions_        RGVIEWFROMOPTIONS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define rgdestroy_                rgdestroy
-#define rgview_                   rgview
-#define rgviewfromoptions_        rgviewfromoptions
 #endif
 
 SLEPC_EXTERN void rgdestroy_(RG *rg,PetscErrorCode *ierr)
@@ -26,21 +22,4 @@ SLEPC_EXTERN void rgdestroy_(RG *rg,PetscErrorCode *ierr)
   PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(rg);
   *ierr = RGDestroy(rg); if (*ierr) return;
   PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(rg);
-}
-
-SLEPC_EXTERN void rgview_(RG *rg,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = RGView(*rg,v);
-}
-
-SLEPC_EXTERN void rgviewfromoptions_(RG *rg,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  CHKFORTRANNULLOBJECT(obj);
-  *ierr = RGViewFromOptions(*rg,obj,t);if (*ierr) return;
-  FREECHAR(type,t);
 }

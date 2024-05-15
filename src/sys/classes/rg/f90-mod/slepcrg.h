@@ -11,8 +11,7 @@
 !
 #include "slepc/finclude/slepcrg.h"
 
-      type tRG
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tRG
       end type tRG
 
       RG, parameter :: SLEPC_NULL_RG = tRG(0)

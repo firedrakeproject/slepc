@@ -13,9 +13,6 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define mfndestroy_                       MFNDESTROY
-#define mfnview_                          MFNVIEW
-#define mfnviewfromoptions_               MFNVIEWFROMOPTIONS
-#define mfnconvergedreasonview_           MFNCONVERGEDREASONVIEW
 #define mfnmonitordefault_                MFNMONITORDEFAULT
 #define mfnmonitorset_                    MFNMONITORSET
 #define mfngettolerances00_               MFNGETTOLERANCES00
@@ -23,9 +20,6 @@
 #define mfngettolerances01_               MFNGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define mfndestroy_                       mfndestroy
-#define mfnview_                          mfnview
-#define mfnviewfromoptions_               mfnviewfromoptions
-#define mfnconvergedreasonview_           mfnconvergedreasonview
 #define mfnmonitordefault_                mfnmonitordefault
 #define mfnmonitorset_                    mfnmonitorset
 #define mfngettolerances00_               mfngettolerances00
@@ -64,30 +58,6 @@ SLEPC_EXTERN void mfndestroy_(MFN *mfn,PetscErrorCode *ierr)
   PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(mfn);
   *ierr = MFNDestroy(mfn); if (*ierr) return;
   PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(mfn);
-}
-
-SLEPC_EXTERN void mfnview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = MFNView(*mfn,v);
-}
-
-SLEPC_EXTERN void mfnviewfromoptions_(MFN *mfn,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  CHKFORTRANNULLOBJECT(obj);
-  *ierr = MFNViewFromOptions(*mfn,obj,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void mfnconvergedreasonview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = MFNConvergedReasonView(*mfn,v);
 }
 
 SLEPC_EXTERN void mfnmonitorset_(MFN *mfn,void (*monitor)(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

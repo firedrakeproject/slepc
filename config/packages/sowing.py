@@ -18,8 +18,8 @@ class Sowing(package.Package):
     self.packagename  = 'sowing'
     self.downloadable = True
     self.inplace      = False
-    #self.gitcommit    = '2fe1f1f12257b274cbb0b4425f2994965bcc9bde'
-    self.version      = '1.1.26.9'
+    #self.gitcommit    = '05f3396448167075363a64a30a9c20847c598a3e'
+    self.version      = '1.1.26.10'
     obj = self.version if hasattr(self,'version') else self.gitcommit
     self.url          = 'https://bitbucket.org/petsc/pkg-sowing/get/'+('v'+obj if hasattr(self,'version') else obj)+'.tar.gz'
     self.archive      = 'sowing-'+obj+'.tar.gz'

@@ -900,7 +900,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNView - Prints the FN data structure.
 
    Collective
@@ -946,7 +946,7 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNViewFromOptions - View from options
 
    Collective

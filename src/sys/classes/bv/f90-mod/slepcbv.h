@@ -11,8 +11,7 @@
 !
 #include "slepc/finclude/slepcbv.h"
 
-      type tBV
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tBV
       end type tBV
 
       BV, parameter :: SLEPC_NULL_BV = tBV(0)

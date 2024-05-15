@@ -286,7 +286,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGView - Prints the RG data structure.
 
    Collective
@@ -332,7 +332,7 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGViewFromOptions - View from options
 
    Collective

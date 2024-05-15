@@ -521,7 +521,7 @@ PetscErrorCode BVGetOptionsPrefix(BV bv,const char *prefix[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVView - Prints the BV data structure.
 
    Collective
@@ -604,7 +604,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVViewFromOptions - View from options
 
    Collective

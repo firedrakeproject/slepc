@@ -15,7 +15,7 @@
 #include <slepc/private/bvimpl.h>
 #include <petscdraw.h>
 
-/*@C
+/*@
    EPSView - Prints the EPS data structure.
 
    Collective
@@ -188,7 +188,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSViewFromOptions - View from options
 
    Collective
@@ -210,7 +210,7 @@ PetscErrorCode EPSViewFromOptions(EPS eps,PetscObject obj,const char name[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSConvergedReasonView - Displays the reason an EPS solve converged or diverged.
 
    Collective
@@ -375,7 +375,7 @@ static PetscErrorCode EPSErrorView_MATLAB(EPS eps,EPSErrorType etype,PetscViewer
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSErrorView - Displays the errors associated with the computed solution
    (as well as the eigenvalues).
 
@@ -621,7 +621,7 @@ static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSValuesView - Displays the computed eigenvalues in a viewer.
 
    Collective
@@ -714,7 +714,7 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSVectorsView - Outputs computed eigenvectors to a viewer.
 
    Collective
