@@ -269,12 +269,3 @@
           PetscErrorCode z
         end subroutine
       end interface EPSSetLeftInitialSpace
-
-      interface
-        subroutine EPSDestroy(a,z)
-          import tEPS
-          EPS a
-          PetscErrorCode z
-        end subroutine
-      end interface
-

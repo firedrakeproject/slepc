@@ -316,7 +316,7 @@ PetscErrorCode EPSReset(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSDestroy - Destroys the EPS context.
 
    Collective

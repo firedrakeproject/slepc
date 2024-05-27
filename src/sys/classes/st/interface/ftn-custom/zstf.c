@@ -12,14 +12,5 @@
 #include <slepcst.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define stdestroy_                STDESTROY
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define stdestroy_                stdestroy
 #endif
-
-SLEPC_EXTERN void stdestroy_(ST *st,PetscErrorCode *ierr)
-{
-  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(st);
-  *ierr = STDestroy(st); if (*ierr) return;
-  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(st);
-}

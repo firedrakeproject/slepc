@@ -890,7 +890,7 @@ PetscErrorCode DSReset(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSDestroy - Destroys DS context that was created with DSCreate().
 
    Collective
