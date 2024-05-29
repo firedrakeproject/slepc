@@ -101,7 +101,7 @@ PetscErrorCode BVInitializePackage(void)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVDestroy - Destroys BV context that was created with BVCreate().
 
    Collective

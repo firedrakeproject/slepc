@@ -12,14 +12,12 @@
 #include <slepclme.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define lmedestroy_                       LMEDESTROY
 #define lmemonitordefault_                LMEMONITORDEFAULT
 #define lmemonitorset_                    LMEMONITORSET
 #define lmegettolerances00_               LMEGETTOLERANCES00
 #define lmegettolerances10_               LMEGETTOLERANCES10
 #define lmegettolerances01_               LMEGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define lmedestroy_                       lmedestroy
 #define lmemonitordefault_                lmemonitordefault
 #define lmemonitorset_                    lmemonitorset
 #define lmegettolerances00_               lmegettolerances00
@@ -51,13 +49,6 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   LME lme = (LME)*ctx;
   PetscObjectUseFortranCallback(lme,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
-}
-
-SLEPC_EXTERN void lmedestroy_(LME *lme,PetscErrorCode *ierr)
-{
-  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(lme);
-  *ierr = LMEDestroy(lme); if (*ierr) return;
-  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(lme);
 }
 
 SLEPC_EXTERN void lmemonitorset_(LME *lme,void (*monitor)(LME*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

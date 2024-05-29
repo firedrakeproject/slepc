@@ -807,7 +807,7 @@ PetscErrorCode RGPopScale(RG rg)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGDestroy - Destroys RG context that was created with RGCreate().
 
    Collective

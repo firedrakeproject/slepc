@@ -411,7 +411,7 @@ PetscErrorCode MFNReset(MFN mfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MFNDestroy - Destroys the MFN context.
 
    Collective

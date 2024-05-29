@@ -13,7 +13,6 @@
 #include <slepcnep.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define nepdestroy_                       NEPDESTROY
 #define nepmonitorset_                    NEPMONITORSET
 #define nepmonitorall_                    NEPMONITORALL
 #define nepmonitorfirst_                  NEPMONITORFIRST
@@ -54,7 +53,6 @@
 #define nepsetinitialspace0_              NEPSETINITIALSPACE0
 #define nepsetinitialspace1_              NEPSETINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define nepdestroy_                       nepdestroy
 #define nepmonitorset_                    nepmonitorset
 #define nepmonitorall_                    nepmonitorall
 #define nepmonitorfirst_                  nepmonitorfirst
@@ -200,13 +198,6 @@ static PetscErrorCode ournepjacobian(NEP nep,PetscScalar lambda,Mat J,void *ctx)
   PetscCall(PetscObjectGetFortranCallback((PetscObject)nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.jacobian_pgiptr,NULL,&ptr));
 #endif
   PetscObjectUseFortranCallback(nep,_cb.jacobian,(NEP*,PetscScalar*,Mat*,void*,PetscErrorCode* PETSC_F90_2PTR_PROTO_NOVAR),(&nep,&lambda,&J,_ctx,&ierr PETSC_F90_2PTR_PARAM(ptr)));
-}
-
-SLEPC_EXTERN void nepdestroy_(NEP *nep,PetscErrorCode *ierr)
-{
-  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(nep);
-  *ierr = NEPDestroy(nep); if (*ierr) return;
-  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(nep);
 }
 
 SLEPC_EXTERN void nepmonitorset_(NEP *nep,void (*monitor)(NEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

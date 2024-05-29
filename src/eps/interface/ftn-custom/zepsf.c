@@ -12,7 +12,6 @@
 #include <slepceps.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define epsdestroy_                       EPSDESTROY
 #define epsmonitorset_                    EPSMONITORSET
 #define epsmonitorall_                    EPSMONITORALL
 #define epsmonitorfirst_                  EPSMONITORFIRST
@@ -57,7 +56,6 @@
 #define epssetleftinitialspace0_          EPSSETLEFTINITIALSPACE0
 #define epssetleftinitialspace1_          EPSSETLEFTINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define epsdestroy_                       epsdestroy
 #define epsmonitorset_                    epsmonitorset
 #define epsmonitorall_                    epsmonitorall
 #define epsmonitorfirst_                  epsmonitorfirst
@@ -190,13 +188,6 @@ static PetscErrorCode ourarbitraryfunc(PetscScalar er,PetscScalar ei,Vec xr,Vec 
 {
   EPS eps = (EPS)ctx;
   PetscObjectUseFortranCallback(eps,_cb.arbitrary,(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*),(&er,&ei,&xr,&xi,rr,ri,_ctx,&ierr));
-}
-
-SLEPC_EXTERN void epsdestroy_(EPS *eps,PetscErrorCode *ierr)
-{
-  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(eps);
-  *ierr = EPSDestroy(eps); if (*ierr) return;
-  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(eps);
 }
 
 SLEPC_EXTERN void epsmonitorset_(EPS *eps,void (*monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
