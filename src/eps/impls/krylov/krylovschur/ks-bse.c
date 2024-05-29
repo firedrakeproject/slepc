@@ -65,25 +65,66 @@ static PetscErrorCode OrthogonalizeVector(Vec x,BV U,BV V,PetscInt j,PetscScalar
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-static PetscErrorCode EPSBSELanczos(EPS eps,Mat Htp,Mat Htm,BV U,BV V,PetscReal *alpha,PetscReal *beta,PetscInt k,PetscInt *M,PetscBool *breakdown)
+static PetscErrorCode EPSBSELanczos(EPS eps,BV U,BV V,PetscReal *alpha,PetscReal *beta,PetscInt k,PetscInt *M,PetscBool *breakdown)
 {
   PetscInt       j,m = *M;
-  Vec            v,x,y;
+  Vec            v,x,y,w,f,g,vecs[2];
+  Mat            H;
+  IS             is[2];
+  PetscReal      nrm;
   PetscScalar    *hwork,lhwork[100],gamma;
 
   PetscFunctionBegin;
   if (4*m > 100) PetscCall(PetscMalloc1(4*m,&hwork));
   else hwork = lhwork;
+  PetscCall(STGetMatrix(eps->st,0,&H));
+  PetscCall(MatNestGetISs(H,is,NULL));
+
+  /* create work vectors */
+  PetscCall(BVGetColumn(V,0,&v));
+  PetscCall(VecDuplicate(v,&w));
+  vecs[0] = v;
+  vecs[1] = w;
+  PetscCall(VecCreateNest(PetscObjectComm((PetscObject)eps),2,is,vecs,&f));
+  PetscCall(VecCreateNest(PetscObjectComm((PetscObject)eps),2,is,vecs,&g));
+  PetscCall(BVRestoreColumn(V,0,&v));
+
+  /* Normalize initial vector */
+  if (k==0) {
+    PetscCall(EPSGetStartVector(eps,0,NULL));
+    PetscCall(BVGetColumn(U,0,&x));
+    PetscCall(BVGetColumn(V,0,&y));
+    PetscCall(VecCopy(x,w));
+    PetscCall(VecConjugate(w));
+    PetscCall(VecNestSetSubVec(f,0,x));
+    PetscCall(VecNestSetSubVec(g,0,y));
+    PetscCall(STApply(eps->st,f,g));
+    PetscCall(VecDot(y,x,&gamma));
+    nrm = PetscSqrtReal(PetscRealPart(gamma));
+    PetscCall(VecScale(x,1.0/nrm));
+    PetscCall(VecScale(y,1.0/nrm));
+    PetscCall(BVRestoreColumn(U,0,&x));
+    PetscCall(BVRestoreColumn(V,0,&y));
+  }
 
   for (j=k;j<m;j++) {
     /* j+1 columns (indexes 0 to j) have been computed */
     PetscCall(BVGetColumn(V,j,&v));
     PetscCall(BVGetColumn(U,j+1,&x));
     PetscCall(BVGetColumn(V,j+1,&y));
-    PetscCall(MatMult(Htm,v,x));
+    PetscCall(VecCopy(v,w));
+    PetscCall(VecConjugate(w));
+    PetscCall(VecScale(w,-1.0));
+    PetscCall(VecNestSetSubVec(f,0,v));
+    PetscCall(VecNestSetSubVec(g,0,x));
+    PetscCall(STApply(eps->st,f,g));
     PetscCall(OrthogonalizeVector(x,U,V,j+1,hwork,breakdown));
     alpha[j] = PetscRealPart(hwork[j]);
-    PetscCall(MatMult(Htp,x,y));
+    PetscCall(VecCopy(x,w));
+    PetscCall(VecConjugate(w));
+    PetscCall(VecNestSetSubVec(f,0,x));
+    PetscCall(VecNestSetSubVec(g,0,y));
+    PetscCall(STApply(eps->st,f,g));
     PetscCall(VecDot(x,y,&gamma));
     beta[j] = PetscSqrtReal(PetscRealPart(gamma));
     PetscCall(VecScale(x,1.0/beta[j]));
@@ -93,6 +134,9 @@ static PetscErrorCode EPSBSELanczos(EPS eps,Mat Htp,Mat Htm,BV U,BV V,PetscReal 
     PetscCall(BVRestoreColumn(V,j+1,&y));
   }
   if (4*m > 100) PetscCall(PetscFree(hwork));
+  PetscCall(VecDestroy(&w));
+  PetscCall(VecDestroy(&f));
+  PetscCall(VecDestroy(&g));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -159,6 +203,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_BSE(EPS eps)
   }
 
   if (!ctx->keep) ctx->keep = 0.5;
+  PetscCall(STSetStructured(eps->st,PETSC_TRUE));
 
   PetscCall(EPSAllocateSolution(eps,1));
   eps->ops->solve = EPSSolve_KrylovSchur_BSE;
@@ -170,51 +215,14 @@ PetscErrorCode EPSSetUp_KrylovSchur_BSE(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*
-   Computes the product y=A*x+B*conj(x)
- */
-static PetscErrorCode MatMult_Htp(Mat Ht,Vec x,Vec y)
-{
-  EPS_BSE_MAT matctx;
-
-  PetscFunctionBegin;
-  PetscCall(MatShellGetContext(Ht,&matctx));
-  PetscCall(VecCopy(x,y));
-  PetscCall(VecConjugate(y));
-  PetscCall(MatMult(matctx->B,y,matctx->w));
-  PetscCall(MatMultAdd(matctx->A,x,matctx->w,y));
-  PetscFunctionReturn(PETSC_SUCCESS);
-}
-
-/*
-   Computes the product y=A*x-B*conj(x)
- */
-static PetscErrorCode MatMult_Htm(Mat Ht,Vec x,Vec y)
-{
-  EPS_BSE_MAT matctx;
-
-  PetscFunctionBegin;
-  PetscCall(MatShellGetContext(Ht,&matctx));
-  PetscCall(VecCopy(x,y));
-  PetscCall(VecConjugate(y));
-  PetscCall(VecScale(y,-1.0));
-  PetscCall(MatMult(matctx->B,y,matctx->w));
-  PetscCall(MatMultAdd(matctx->A,x,matctx->w,y));
-  PetscFunctionReturn(PETSC_SUCCESS);
-}
-
 PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  EPS_BSE_MAT     matctx;
-  PetscInt        M,N,m,n,k,l,ld,nv,nconv=0,nevsave;
-  Mat             H,Htp,Htm,Q;
+  PetscInt        k,l,ld,nv,nconv=0,nevsave;
+  Mat             H,Q;
   BV              U,V;
   IS              is[2];
-  Vec             x,u1,v1;
-  VecType         vtype;
-  PetscReal       *a,*b,beta,nrm;
-  PetscScalar     alpha;
+  PetscReal       *a,*b,beta;
   PetscBool       breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -223,33 +231,6 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
   /* Extract matrix blocks */
   PetscCall(STGetMatrix(eps->st,0,&H));
   PetscCall(MatNestGetISs(H,is,NULL));
-  PetscCall(PetscNew(&matctx));
-  PetscCall(MatNestGetSubMat(H,0,0,&matctx->A));
-  PetscCall(MatNestGetSubMat(H,0,1,&matctx->B));
-  PetscCall(MatCreateVecs(matctx->A,&matctx->w,NULL));
-  PetscCall(VecGetType(matctx->w,&vtype));
-  PetscCall(MatGetSize(matctx->A,&M,&N));
-  PetscCall(MatGetLocalSize(matctx->A,&m,&n));
-  PetscCall(MatCreateShell(PetscObjectComm((PetscObject)eps),m,n,M,N,matctx,&Htp));
-  PetscCall(MatShellSetOperation(Htp,MATOP_MULT,(void(*)(void))MatMult_Htp));
-  PetscCall(MatShellSetVecType(Htp,vtype));
-  PetscCall(MatCreateShell(PetscObjectComm((PetscObject)eps),m,n,M,N,matctx,&Htm));
-  PetscCall(MatShellSetOperation(Htm,MATOP_MULT,(void(*)(void))MatMult_Htm));
-  PetscCall(MatShellSetVecType(Htm,vtype));
-
-  /* Normalize initial vector */
-  PetscCall(EPSGetStartVector(eps,0,NULL));
-  PetscCall(BVGetColumn(eps->V,0,&x));
-  PetscCall(VecGetSubVector(x,is[0],&u1));
-  PetscCall(VecGetSubVector(x,is[1],&v1));
-  PetscCall(MatMult(Htp,u1,v1));
-  PetscCall(VecDot(v1,u1,&alpha));
-  nrm = PetscSqrtReal(PetscRealPart(alpha));
-  PetscCall(VecScale(u1,1.0/nrm));
-  PetscCall(MatMult(Htp,u1,v1));
-  PetscCall(VecRestoreSubVector(x,is[0],&u1));
-  PetscCall(VecRestoreSubVector(x,is[1],&v1));
-  PetscCall(BVRestoreColumn(eps->V,0,&x));
 
   /* Get the split bases */
   PetscCall(BVGetSplitRows(eps->V,is[0],is[1],&U,&V));
@@ -267,7 +248,7 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
     PetscCall(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
     PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&a));
     b = a + ld;
-    PetscCall(EPSBSELanczos(eps,Htp,Htm,U,V,a,b,eps->nconv+l,&nv,&breakdown));
+    PetscCall(EPSBSELanczos(eps,U,V,a,b,eps->nconv+l,&nv,&breakdown));
     beta = b[nv-1];
     PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&a));
     PetscCall(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
@@ -314,9 +295,5 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE(EPS eps)
 
   PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
   PetscCall(BVRestoreSplitRows(eps->V,is[0],is[1],&U,&V));
-  PetscCall(VecDestroy(&matctx->w));
-  PetscCall(MatDestroy(&Htp));
-  PetscCall(MatDestroy(&Htm));
-  PetscCall(PetscFree(matctx));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

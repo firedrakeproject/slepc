@@ -303,6 +303,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   PetscCall(EPSSetDefaultST(eps));
 
   PetscCall(STSetTransform(eps->st,PETSC_TRUE));
+  PetscCall(STSetStructured(eps->st,PETSC_FALSE));
   if (eps->useds && !eps->ds) PetscCall(EPSGetDS(eps,&eps->ds));
   if (eps->useds) PetscCall(EPSSetDSType(eps));
   if (eps->twosided) {
