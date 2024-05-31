@@ -339,7 +339,7 @@ static inline PetscErrorCode EPS_GetActualConverged(EPS eps,PetscInt *nconv)
   PetscFunctionBegin;
   *nconv = eps->nconv;
   if (eps->isstructured) {
-    if (eps->problem_type == EPS_BSE && (eps->which == EPS_SMALLEST_MAGNITUDE || eps->which == EPS_LARGEST_MAGNITUDE)) *nconv *= 2;
+    if (eps->problem_type == EPS_BSE && (eps->which == EPS_SMALLEST_MAGNITUDE || eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_TARGET_MAGNITUDE)) *nconv *= 2;
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -361,7 +361,7 @@ static inline PetscErrorCode EPS_GetEigenvector(EPS eps,BV V,PetscInt i,Vec Vr,V
     k = eps->perm[i];
     PetscCall(BV_GetEigenvector(V,k,eps->eigi[k],Vr,Vi));
   } else {
-    if (eps->problem_type == EPS_BSE && (eps->which == EPS_SMALLEST_MAGNITUDE || eps->which == EPS_LARGEST_MAGNITUDE)) {
+    if (eps->problem_type == EPS_BSE && (eps->which == EPS_SMALLEST_MAGNITUDE || eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_TARGET_MAGNITUDE)) {
       /* BSE problem, even index is +lambda, odd index is -lambda */
       k = eps->perm[i/2];
       if (i%2) {

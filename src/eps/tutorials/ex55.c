@@ -98,7 +98,6 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,H,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_BSE));
-  PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE));
   PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -154,6 +153,16 @@ int main(int argc,char **argv)
          requires: complex
       test:
          suffix: 1_real
+         requires: !complex
+
+   testset:
+      args: -eps_nev 4 -eps_ncv 16 -eps_krylovschur_bse_type {{shao gruning projectedbse}} -st_type sinvert -terse
+      filter: sed -e "s/17496/17495/g"
+      test:
+         suffix: 1_sinvert
+         requires: complex
+      test:
+         suffix: 1_real_sinvert
          requires: !complex
 
 TEST*/
