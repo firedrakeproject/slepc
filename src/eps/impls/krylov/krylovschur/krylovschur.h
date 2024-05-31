@@ -98,4 +98,6 @@ typedef struct {
   Mat              *submata,*submatb;  /* seq matrices used in update of subcomm mats */
   /* the following are used only in filter */
   PetscBool        estimatedrange;     /* the filter range was not set by the user */
+  /* the following are used only for BSE problem type */
+  EPSKrylovSchurBSEType bse;           /* the BSE method */
 } EPS_KRYLOVSCHUR;

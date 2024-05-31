@@ -1348,13 +1348,94 @@ PetscErrorCode EPSKrylovSchurGetKSP(EPS eps,KSP *ksp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-static PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSKrylovSchurSetBSEType_KrylovSchur(EPS eps,EPSKrylovSchurBSEType bse)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscBool       flg,lock,b,f1,f2,f3,isfilt;
-  PetscReal       keep;
-  PetscInt        i,j,k;
-  KSP             ksp;
+
+  PetscFunctionBegin;
+  switch (bse) {
+    case EPS_KRYLOVSCHUR_BSE_SHAO:
+    case EPS_KRYLOVSCHUR_BSE_GRUNING:
+    case EPS_KRYLOVSCHUR_BSE_SYMPLECTIC:
+      if (ctx->bse != bse) {
+        ctx->bse = bse;
+        eps->state = EPS_STATE_INITIAL;
+      }
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid BSE type");
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   EPSKrylovSchurSetBSEType - Sets the method to be used for BSE structured eigenproblems
+   in the Krylov-Schur solver.
+
+   Logically Collective
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  bse - the BSE method
+
+   Options Database Key:
+.  -eps_krylovschur_bse_type - Sets the BSE type (either 'shao', 'gruning', or 'symplectic')
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurGetBSEType(), EPSKrylovSchurBSEType, MatCreateBSE()
+@*/
+PetscErrorCode EPSKrylovSchurSetBSEType(EPS eps,EPSKrylovSchurBSEType bse)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,bse,2);
+  PetscTryMethod(eps,"EPSKrylovSchurSetBSEType_C",(EPS,EPSKrylovSchurBSEType),(eps,bse));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode EPSKrylovSchurGetBSEType_KrylovSchur(EPS eps,EPSKrylovSchurBSEType *bse)
+{
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  *bse = ctx->bse;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   EPSKrylovSchurGetBSEType - Gets the method used for BSE structured eigenproblems
+   in the Krylov-Schur solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  bse - the BSE method
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetBSEType(), EPSKrylovSchurBSEType, MatCreateBSE()
+@*/
+PetscErrorCode EPSKrylovSchurGetBSEType(EPS eps,EPSKrylovSchurBSEType *bse)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscAssertPointer(bse,2);
+  PetscUseMethod(eps,"EPSKrylovSchurGetBSEType_C",(EPS,EPSKrylovSchurBSEType*),(eps,bse));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOptionsObject)
+{
+  EPS_KRYLOVSCHUR       *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscBool             flg,lock,b,f1,f2,f3,isfilt;
+  PetscReal             keep;
+  PetscInt              i,j,k;
+  KSP                   ksp;
+  EPSKrylovSchurBSEType bse;
 
   PetscFunctionBegin;
   PetscOptionsHeadBegin(PetscOptionsObject,"EPS Krylov-Schur Options");
@@ -1379,6 +1460,9 @@ static PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *Pe
     PetscCall(PetscOptionsInt("-eps_krylovschur_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&j,&f2));
     PetscCall(PetscOptionsInt("-eps_krylovschur_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&k,&f3));
     if (f1 || f2 || f3) PetscCall(EPSKrylovSchurSetDimensions(eps,i,j,k));
+
+    PetscCall(PetscOptionsEnum("-eps_krylovschur_bse_type","Method for BSE structured eigenproblems","EPSKrylovSchurSetBSEType",EPSKrylovSchurBSETypes,(PetscEnum)ctx->bse,(PetscEnum*)&bse,&flg));
+    if (flg) PetscCall(EPSKrylovSchurSetBSEType(eps,bse));
 
   PetscOptionsHeadEnd();
 
@@ -1408,6 +1492,7 @@ static PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   if (isascii) {
     PetscCall(PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep)));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-"));
+    if (eps->problem_type==EPS_BSE) PetscCall(PetscViewerASCIIPrintf(viewer,"  BSE method: %s\n",EPSKrylovSchurBSETypes[ctx->bse]));
     if (eps->which==EPS_ALL) {
       PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt));
       if (isfilt) PetscCall(PetscViewerASCIIPrintf(viewer,"  using filtering to extract all eigenvalues in an interval\n"));
@@ -1461,6 +1546,8 @@ static PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommMats_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurUpdateSubcommMats_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetKSP_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetBSEType_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetBSEType_C",NULL));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -1528,5 +1615,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommMats_C",EPSKrylovSchurGetSubcommMats_KrylovSchur));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurUpdateSubcommMats_C",EPSKrylovSchurUpdateSubcommMats_KrylovSchur));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetKSP_C",EPSKrylovSchurGetKSP_KrylovSchur));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetBSEType_C",EPSKrylovSchurSetBSEType_KrylovSchur));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetBSEType_C",EPSKrylovSchurGetBSEType_KrylovSchur));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

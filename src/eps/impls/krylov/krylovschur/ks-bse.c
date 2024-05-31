@@ -206,12 +206,23 @@ PetscErrorCode EPSSetUp_KrylovSchur_BSE(EPS eps)
   PetscCall(STSetStructured(eps->st,PETSC_TRUE));
 
   PetscCall(EPSAllocateSolution(eps,1));
-  eps->ops->solve = EPSSolve_KrylovSchur_BSE;
-  eps->ops->computevectors = EPSComputeVectors_BSE;
-  PetscCall(DSSetType(eps->ds,DSHEP));
-  PetscCall(DSSetCompact(eps->ds,PETSC_TRUE));
-  PetscCall(DSSetExtraRow(eps->ds,PETSC_TRUE));
-  PetscCall(DSAllocate(eps->ds,eps->ncv+1));
+  switch (ctx->bse) {
+    case EPS_KRYLOVSCHUR_BSE_SHAO:
+      eps->ops->solve = EPSSolve_KrylovSchur_BSE;
+      eps->ops->computevectors = EPSComputeVectors_BSE;
+      PetscCall(DSSetType(eps->ds,DSHEP));
+      PetscCall(DSSetCompact(eps->ds,PETSC_TRUE));
+      PetscCall(DSSetExtraRow(eps->ds,PETSC_TRUE));
+      PetscCall(DSAllocate(eps->ds,eps->ncv+1));
+      break;
+    case EPS_KRYLOVSCHUR_BSE_GRUNING:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Not implemented yet");
+      break;
+    case EPS_KRYLOVSCHUR_BSE_SYMPLECTIC:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Not implemented yet");
+      break;
+    default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unexpected error");
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

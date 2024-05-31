@@ -45,6 +45,7 @@ native    EPSConv
 native    EPSStop
 native    EPSConvergedReason
 native    EPSPowerShiftType
+native    EPSKrylovSchurBSEType
 native    EPSLanczosReorthogType
 native    EPSPRIMMEMethod
 native    EPSCISSQuadRule

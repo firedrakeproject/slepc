@@ -212,6 +212,12 @@ cdef extern from * nogil:
     PetscErrorCode EPSArnoldiSetDelayed(SlepcEPS,PetscBool)
     PetscErrorCode EPSArnoldiGetDelayed(SlepcEPS,PetscBool*)
 
+    ctypedef enum SlepcEPSKrylovSchurBSEType "EPSKrylovSchurBSEType":
+        EPS_KRYLOVSCHUR_BSE_SHAO
+        EPS_KRYLOVSCHUR_BSE_GRUNING
+        EPS_KRYLOVSCHUR_BSE_SYMPLECTIC
+    PetscErrorCode EPSKrylovSchurSetBSEType(SlepcEPS,SlepcEPSKrylovSchurBSEType)
+    PetscErrorCode EPSKrylovSchurGetBSEType(SlepcEPS,SlepcEPSKrylovSchurBSEType*)
     PetscErrorCode EPSKrylovSchurSetRestart(SlepcEPS,PetscReal)
     PetscErrorCode EPSKrylovSchurGetRestart(SlepcEPS,PetscReal*)
     PetscErrorCode EPSKrylovSchurSetLocking(SlepcEPS,PetscBool)

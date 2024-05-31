@@ -206,6 +206,18 @@ class EPSPowerShiftType(object):
     RAYLEIGH  = EPS_POWER_SHIFT_RAYLEIGH
     WILKINSON = EPS_POWER_SHIFT_WILKINSON
 
+class EPSKrylovSchurBSEType(object):
+    """
+    EPS Krylov-Schur method for BSE problems
+
+    - `SHAO`:       Lanczos recurrence for H square.
+    - `GRUNING`:    Lanczos recurrence for H.
+    - `SYMPLECTIC`: Symplectic Lanczos.
+    """
+    SHAO       = EPS_KRYLOVSCHUR_BSE_SHAO
+    GRUNING    = EPS_KRYLOVSCHUR_BSE_GRUNING
+    SYMPLECTIC = EPS_KRYLOVSCHUR_BSE_SYMPLECTIC
+
 class EPSLanczosReorthogType(object):
     """
     EPS Lanczos reorthogonalization type
@@ -1710,6 +1722,39 @@ cdef class EPS(Object):
         return val
 
     #
+
+    def setKrylovSchurBSEType(self, bse):
+        """
+        Sets the method to be used for BSE structured eigenproblems in
+        the Krylov-Schur solver.
+
+        Parameters
+        ----------
+        bse: `EPS.KrylovSchurBSEType` enumerate
+             The BSE method.
+
+        Notes
+        -----
+        This call is only relevant if the type was set to
+        `EPS.Type.KRYLOVSCHUR` with `setType()` and the problem
+        type to `EPS.ProblemType.BSE` with `setProblemType()`.
+        """
+        cdef SlepcEPSKrylovSchurBSEType val = bse
+        CHKERR( EPSKrylovSchurSetBSEType(self.eps, val) )
+
+    def getKrylovSchurBSEType(self):
+        """
+        Gets the method used for BSE structured eigenproblems in the
+        Krylov-Schur solver.
+
+        Returns
+        -------
+        bse: `EPS.KrylovSchurBSEType` enumerate
+             The BSE method.
+        """
+        cdef SlepcEPSKrylovSchurBSEType val = EPS_KRYLOVSCHUR_BSE_SHAO
+        CHKERR( EPSKrylovSchurGetBSEType(self.eps, &val) )
+        return val
 
     def setKrylovSchurRestart(self, keep):
         """
