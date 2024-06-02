@@ -107,7 +107,7 @@
       end do
 
 !     ** Create Mat
-      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,k,l,PETSC_NULL_SCALAR,Q,ierr))
+      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,k,l,PETSC_NULL_SCALAR_ARRAY,Q,ierr))
       PetscCallA(MatDenseGetArrayF90(Q,qq,ierr))
       do i=1,k
         do j=1,l
@@ -137,7 +137,7 @@
       PetscCallA(BVRestoreColumn(Y,izero,v,ierr))
 
 !     ** Test BVDot
-      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,l,k,PETSC_NULL_SCALAR,M,ierr))
+      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,l,k,PETSC_NULL_SCALAR_ARRAY,M,ierr))
       PetscCallA(BVDot(X,Y,M,ierr))
 
 !     ** Test BVDotVec
