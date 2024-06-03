@@ -430,7 +430,7 @@ PetscErrorCode BVRestoreSplitRows_Svec_CUDA(BV bv,IS,IS,BV *U,BV *L)
   PetscFunctionBegin;
   /* force sync flag to PETSC_CUDA_BOTH */
   if (U) {
-    PetscCall(PetscObjectStateGet((PetscObject)*U,&lstate));
+    PetscCall(PetscObjectStateGet((PetscObject)*U,&rstate));
     if (rstate != bv->rstate) {
       v = ((BV_SVEC*)bv->R->data)->v;
       PetscCall(VecCUDAGetArrayRead(v,&d_pv));
@@ -439,7 +439,7 @@ PetscErrorCode BVRestoreSplitRows_Svec_CUDA(BV bv,IS,IS,BV *U,BV *L)
     }
   }
   if (L) {
-    PetscCall(PetscObjectStateGet((PetscObject)*L,&rstate));
+    PetscCall(PetscObjectStateGet((PetscObject)*L,&lstate));
     if (lstate != bv->lstate) {
       v = ((BV_SVEC*)bv->L->data)->v;
       PetscCall(VecCUDAGetArrayRead(v,&d_pv));
