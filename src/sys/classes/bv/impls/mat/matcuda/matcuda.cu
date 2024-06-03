@@ -399,7 +399,7 @@ PetscErrorCode BVRestoreSplitRows_Mat_CUDA(BV bv,IS,IS,BV *U,BV *L)
   PetscFunctionBegin;
   /* force sync flag to PETSC_CUDA_BOTH */
   if (U) {
-    PetscCall(PetscObjectStateGet((PetscObject)*U,&lstate));
+    PetscCall(PetscObjectStateGet((PetscObject)*U,&rstate));
     if (rstate != bv->rstate) {
       A = ((BV_MAT*)bv->R->data)->A;
       PetscCall(MatDenseCUDAGetArrayRead(A,&d_pv));
@@ -408,7 +408,7 @@ PetscErrorCode BVRestoreSplitRows_Mat_CUDA(BV bv,IS,IS,BV *U,BV *L)
     }
   }
   if (L) {
-    PetscCall(PetscObjectStateGet((PetscObject)*L,&rstate));
+    PetscCall(PetscObjectStateGet((PetscObject)*L,&lstate));
     if (lstate != bv->lstate) {
       A = ((BV_MAT*)bv->L->data)->A;
       PetscCall(MatDenseCUDAGetArrayRead(A,&d_pv));
