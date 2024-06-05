@@ -738,7 +738,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSSort - Sorts the result of DSSolve() according to a given sorting
    criterion.
 
@@ -771,7 +771,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
 .seealso: DSSolve(), DSSetSlepcSC(), DSSortWithPermutation()
 @*/
-PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+PetscErrorCode DSSort(DS ds,PetscScalar eigr[],PetscScalar eigi[],PetscScalar rr[],PetscScalar ri[],PetscInt *k)
 {
   PetscInt       i;
 
@@ -796,7 +796,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSSortWithPermutation - Reorders the result of DSSolve() according to a given
    permutation.
 
@@ -819,7 +819,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
 
 .seealso: DSSolve(), DSSort()
 @*/
-PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode DSSortWithPermutation(DS ds,PetscInt perm[],PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -888,7 +888,7 @@ PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSVectors - Compute vectors associated to the dense system such
    as eigenvectors.
 
@@ -1012,7 +1012,7 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSTranslateHarmonic - Computes a translation of the dense system.
 
    Logically Collective

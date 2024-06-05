@@ -287,7 +287,7 @@ SLEPC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    VecCreateComp - Creates a new vector containing several subvectors,
    each stored separately.
 
@@ -311,7 +311,7 @@ SLEPC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
 
 .seealso: VecCreateCompWithVecs(), VecCompSetSubVecs()
 @*/
-PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec Vparent,Vec *V)
+PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt Nx[],PetscInt n,VecType t,Vec Vparent,Vec *V)
 {
   Vec            *x;
   PetscInt       i;
@@ -328,7 +328,7 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    VecCreateCompWithVecs - Creates a new vector containing several subvectors,
    each stored separately, from an array of Vecs.
 
@@ -346,7 +346,7 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
 
 .seealso: VecCreateComp()
 @*/
-PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
+PetscErrorCode VecCreateCompWithVecs(Vec x[],PetscInt n,Vec Vparent,Vec *V)
 {
   PetscInt       i;
 
@@ -447,7 +447,7 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    VecCompSetSubVecs - Resets the number of subvectors defining a compound vector,
    or replaces the subvectors.
 
@@ -466,7 +466,7 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
 
 .seealso: VecCreateComp(), VecCompGetSubVecs()
 @*/
-PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec *x)
+PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec x[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(win,VEC_CLASSID,1);

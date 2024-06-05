@@ -243,7 +243,7 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNRationalSetNumerator - Sets the parameters defining the numerator of the
    rational function.
 
@@ -267,7 +267,7 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
 
 .seealso: FNRationalSetDenominator(), FNRationalGetNumerator()
 @*/
-PetscErrorCode FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff)
+PetscErrorCode FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar pcoeff[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -340,7 +340,7 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNRationalSetDenominator - Sets the parameters defining the denominator of the
    rational function.
 
@@ -364,7 +364,7 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
 
 .seealso: FNRationalSetNumerator(), FNRationalGetDenominator()
 @*/
-PetscErrorCode FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff)
+PetscErrorCode FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar qcoeff[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);

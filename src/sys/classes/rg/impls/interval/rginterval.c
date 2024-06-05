@@ -91,7 +91,7 @@ static PetscErrorCode RGIntervalGetEndpoints_Interval(RG rg,PetscReal *a,PetscRe
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGIntervalGetEndpoints - Gets the parameters that define the interval region.
 
    Not Collective

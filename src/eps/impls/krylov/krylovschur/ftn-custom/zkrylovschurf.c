@@ -12,24 +12,12 @@
 #include <slepceps.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define epskrylovschursetsubintervals_    EPSKRYLOVSCHURSETSUBINTERVALS
 #define epskrylovschurgetsubintervals_    EPSKRYLOVSCHURGETSUBINTERVALS
 #define epskrylovschurgetinertias_        EPSKRYLOVSCHURGETINERTIAS
-#define epskrylovschurgetsubcomminfo_     EPSKRYLOVSCHURGETSUBCOMMINFO
-#define epskrylovschurgetsubcommmats_     EPSKRYLOVSCHURGETSUBCOMMMATS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define epskrylovschursetsubintervals_    epskrylovschursetsubintervals
 #define epskrylovschurgetsubintervals_    epskrylovschurgetsubintervals
 #define epskrylovschurgetinertias_        epskrylovschurgetinertias
-#define epskrylovschurgetsubcomminfo_     epskrylovschurgetsubcomminfo
-#define epskrylovschurgetsubcommmats_     epskrylovschurgetsubcommmats
 #endif
-
-SLEPC_EXTERN void epskrylovschursetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLREAL(subint);
-  *ierr = EPSKrylovSchurSetSubintervals(*eps,subint);
-}
 
 SLEPC_EXTERN void epskrylovschurgetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
 {
@@ -57,17 +45,4 @@ SLEPC_EXTERN void epskrylovschurgetinertias_(EPS *eps,PetscInt *nshift,PetscReal
   *nshift = n;
   *ierr = PetscFree(oshifts);if (*ierr) return;
   *ierr = PetscFree(oinertias);
-}
-
-SLEPC_EXTERN void epskrylovschurgetsubcomminfo_(EPS *eps,PetscInt *k,PetscInt *n,Vec *v,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLOBJECT(v);
-  *ierr = EPSKrylovSchurGetSubcommInfo(*eps,k,n,v);
-}
-
-SLEPC_EXTERN void epskrylovschurgetsubcommmats_(EPS *eps,Mat *A,Mat *B,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLOBJECT(A);
-  CHKFORTRANNULLOBJECT(B);
-  *ierr = EPSKrylovSchurGetSubcommMats(*eps,A,B);
 }

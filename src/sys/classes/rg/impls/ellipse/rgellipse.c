@@ -86,7 +86,7 @@ static PetscErrorCode RGEllipseGetParameters_Ellipse(RG rg,PetscScalar *center,P
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGEllipseGetParameters - Gets the parameters that define the ellipse region.
 
    Not Collective

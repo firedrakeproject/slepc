@@ -7,26 +7,3 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-      interface MFNGetTolerances
-        subroutine MFNGetTolerances00(a,b,c,z)
-          import tMFN
-          MFN a
-          PetscReal b
-          PetscInt c
-          PetscErrorCode z
-        end subroutine
-        subroutine MFNGetTolerances10(a,b,c,z)
-          import tMFN
-          MFN a
-          PetscReal b(*)
-          PetscInt c
-          PetscErrorCode z
-        end subroutine
-        subroutine MFNGetTolerances01(a,b,c,z)
-          import tMFN
-          MFN a
-          PetscReal b
-          PetscInt c(*)
-          PetscErrorCode z
-        end subroutine
-      end interface MFNGetTolerances

@@ -14,15 +14,9 @@
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define mfnmonitordefault_                MFNMONITORDEFAULT
 #define mfnmonitorset_                    MFNMONITORSET
-#define mfngettolerances00_               MFNGETTOLERANCES00
-#define mfngettolerances10_               MFNGETTOLERANCES10
-#define mfngettolerances01_               MFNGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define mfnmonitordefault_                mfnmonitordefault
 #define mfnmonitorset_                    mfnmonitorset
-#define mfngettolerances00_               mfngettolerances00
-#define mfngettolerances10_               mfngettolerances10
-#define mfngettolerances01_               mfngettolerances01
 #endif
 
 /*
@@ -62,26 +56,4 @@ SLEPC_EXTERN void mfnmonitorset_(MFN *mfn,void (*monitor)(MFN*,PetscInt*,PetscRe
     *ierr = PetscObjectSetFortranCallback((PetscObject)*mfn,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
     *ierr = MFNMonitorSet(*mfn,ourmonitor,*mfn,ourdestroy);
   }
-}
-
-SLEPC_EXTERN void mfngettolerances_(MFN *mfn,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLREAL(tol);
-  CHKFORTRANNULLINTEGER(maxits);
-  *ierr = MFNGetTolerances(*mfn,tol,maxits);
-}
-
-SLEPC_EXTERN void mfngettolerances00_(MFN *mfn,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  mfngettolerances_(mfn,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void mfngettolerances10_(MFN *mfn,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  mfngettolerances_(mfn,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void mfngettolerances01_(MFN *mfn,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  mfngettolerances_(mfn,tol,maxits,ierr);
 }

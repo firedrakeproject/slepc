@@ -369,7 +369,7 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 

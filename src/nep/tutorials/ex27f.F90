@@ -116,7 +116,7 @@ PROGRAM main
      ! ** Define functions for the split form
      PetscCallA(FNCreate(PETSC_COMM_WORLD,fn(1),ierr))
      PetscCallA(FNSetType(fn(1),FNRATIONAL,ierr))
-     PetscCallA(FNRationalSetNumerator(fn(1),one,done,ierr))
+     PetscCallA(FNRationalSetNumerator(fn(1),one,[done],ierr))
      PetscCallA(FNCreate(PETSC_COMM_WORLD,fn(2),ierr))
      PetscCallA(FNSetType(fn(2),FNSQRT,ierr))
      PetscCallA(NEPSetSplitOperator(nep,two,A,fn,SUBSET_NONZERO_PATTERN,ierr))

@@ -112,7 +112,7 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVMatLanczos - Computes a Lanczos factorization associated with a matrix.
 
    Collective

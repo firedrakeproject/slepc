@@ -391,7 +391,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDSetInitialSpaces - Specify two basis of vectors that constitute the initial
    right and/or left spaces.
 
