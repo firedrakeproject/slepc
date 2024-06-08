@@ -209,7 +209,6 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
 
   PetscFunctionBegin;
   PetscAssertPointer(outlme,2);
-  *outlme = NULL;
   PetscCall(LMEInitializePackage());
   PetscCall(SlepcHeaderCreate(lme,LME_CLASSID,"LME","Linear Matrix Equation","LME",comm,LMEDestroy,LMEView));
 

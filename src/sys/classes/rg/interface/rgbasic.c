@@ -92,7 +92,6 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
 
   PetscFunctionBegin;
   PetscAssertPointer(newrg,2);
-  *newrg = NULL;
   PetscCall(RGInitializePackage());
   PetscCall(SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView));
   rg->complement = PETSC_FALSE;

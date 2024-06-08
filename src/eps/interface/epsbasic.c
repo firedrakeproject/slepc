@@ -51,7 +51,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   PetscFunctionBegin;
   PetscAssertPointer(outeps,2);
-  *outeps = NULL;
   PetscCall(EPSInitializePackage());
   PetscCall(SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView));
 

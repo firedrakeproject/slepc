@@ -98,7 +98,6 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
 
   PetscFunctionBegin;
   PetscAssertPointer(newfn,2);
-  *newfn = NULL;
   PetscCall(FNInitializePackage());
   PetscCall(SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView));
 

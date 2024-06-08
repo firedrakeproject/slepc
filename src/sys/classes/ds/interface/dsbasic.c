@@ -108,7 +108,6 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
 
   PetscFunctionBegin;
   PetscAssertPointer(newds,2);
-  *newds = NULL;
   PetscCall(DSInitializePackage());
   PetscCall(SlepcHeaderCreate(ds,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView));
 

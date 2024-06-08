@@ -169,7 +169,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 
   PetscFunctionBegin;
   PetscAssertPointer(newst,2);
-  *newst = NULL;
   PetscCall(STInitializePackage());
   PetscCall(SlepcHeaderCreate(st,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView));
 

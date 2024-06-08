@@ -202,7 +202,6 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
 
   PetscFunctionBegin;
   PetscAssertPointer(outmfn,2);
-  *outmfn = NULL;
   PetscCall(MFNInitializePackage());
   PetscCall(SlepcHeaderCreate(mfn,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView));
 

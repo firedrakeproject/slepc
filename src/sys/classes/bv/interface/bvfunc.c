@@ -161,7 +161,6 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 
   PetscFunctionBegin;
   PetscAssertPointer(newbv,2);
-  *newbv = NULL;
   PetscCall(BVInitializePackage());
   PetscCall(SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView));
 
