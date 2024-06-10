@@ -53,6 +53,8 @@ PetscErrorCode NEPComputeVectors(NEP nep)
 
    Options Database Keys:
 +  -nep_view - print information about the solver used
+.  -nep_view_matk - view the split form matrix Ak (replace k by an integer from 0 to nt-1)
+.  -nep_view_fnk - view the split form function fk (replace k by an integer from 0 to nt-1)
 .  -nep_view_vectors - view the computed eigenvectors
 .  -nep_view_values - view the computed eigenvalues
 .  -nep_converged_reason - print reason for convergence, and number of iterations
@@ -74,6 +76,7 @@ PetscErrorCode NEPComputeVectors(NEP nep)
 PetscErrorCode NEPSolve(NEP nep)
 {
   PetscInt       i;
+  char           str[16];
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -119,6 +122,14 @@ PetscErrorCode NEPSolve(NEP nep)
   PetscCall(NEPErrorViewFromOptions(nep));
   PetscCall(NEPValuesViewFromOptions(nep));
   PetscCall(NEPVectorsViewFromOptions(nep));
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+    for (i=0;i<nep->nt;i++) {
+      PetscCall(PetscSNPrintf(str,sizeof(str),"-nep_view_mat%" PetscInt_FMT,i));
+      PetscCall(MatViewFromOptions(nep->A[i],(PetscObject)nep,str));
+      PetscCall(PetscSNPrintf(str,sizeof(str),"-nep_view_fn%" PetscInt_FMT,i));
+      PetscCall(FNViewFromOptions(nep->f[i],(PetscObject)nep,str));
+    }
+  }
 
   /* Remove the initial subspace */
   nep->nini = 0;
