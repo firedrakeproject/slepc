@@ -274,7 +274,7 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MatCreateVecsEmpty - Get vector(s) compatible with the matrix, i.e. with the same
    parallel layout, but without internal array.
 
@@ -352,7 +352,7 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MatNormEstimate - Estimate the 2-norm of a matrix.
 
    Collective

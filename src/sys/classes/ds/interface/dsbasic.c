@@ -662,6 +662,9 @@ PetscErrorCode DSGetBlockSize(DS ds,PetscInt *bs)
 +  ds - the direct solver context
 -  sc - a pointer to the sorting criterion context
 
+   Note:
+   Not available in Fortran.
+
    Level: developer
 
 .seealso: DSGetSlepcSC(), DSSort()
@@ -685,8 +688,11 @@ PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
    Input Parameter:
 .  ds - the direct solver context
 
-   Output Parameters:
+   Output Parameter:
 .  sc - a pointer to the sorting criterion context
+
+   Note:
+   Not available in Fortran.
 
    Level: developer
 
@@ -926,7 +932,7 @@ PetscErrorCode DSDestroy(DS *ds)
 +  name - name of a new user-defined DS
 -  function - routine to create context
 
-   Notes:
+   Note:
    DSRegister() may be called multiple times to add several user-defined
    direct solvers.
 

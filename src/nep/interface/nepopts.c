@@ -211,7 +211,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    NEPGetTolerances - Gets the tolerance and maximum iteration count used
    by the NEP convergence tests.
 
@@ -285,7 +285,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    NEPGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
 
@@ -1030,7 +1030,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    NEPGetRefine - Gets the refinement strategy used by the NEP object, and the
    associated parameters.
 

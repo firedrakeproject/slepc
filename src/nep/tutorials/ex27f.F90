@@ -116,7 +116,7 @@ PROGRAM main
      ! ** Define functions for the split form
      PetscCallA(FNCreate(PETSC_COMM_WORLD,fn(1),ierr))
      PetscCallA(FNSetType(fn(1),FNRATIONAL,ierr))
-     PetscCallA(FNRationalSetNumerator(fn(1),one,done,ierr))
+     PetscCallA(FNRationalSetNumerator(fn(1),one,[done],ierr))
      PetscCallA(FNCreate(PETSC_COMM_WORLD,fn(2),ierr))
      PetscCallA(FNSetType(fn(2),FNSQRT,ierr))
      PetscCallA(NEPSetSplitOperator(nep,two,A,fn,SUBSET_NONZERO_PATTERN,ierr))
@@ -125,15 +125,15 @@ PROGRAM main
     PetscCallA(MatCreate(PETSC_COMM_WORLD,F,ierr))
     PetscCallA(MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
     PetscCallA(MatSetFromOptions(F,ierr))
-    PetscCallA(MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,ierr))
-    PetscCallA(MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
+    PetscCallA(MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER_ARRAY,ierr))
+    PetscCallA(MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER_ARRAY,one,PETSC_NULL_INTEGER_ARRAY,ierr))
     PetscCallA(NEPSetFunction(nep,F,F,FormFunction,PETSC_NULL_INTEGER,ierr))
 
     PetscCallA(MatCreate(PETSC_COMM_WORLD,J,ierr))
     PetscCallA(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
     PetscCallA(MatSetFromOptions(J,ierr))
-    PetscCallA(MatSeqAIJSetPreallocation(J,one,PETSC_NULL_INTEGER,ierr))
-    PetscCallA(MatMPIAIJSetPreallocation(J,one,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
+    PetscCallA(MatSeqAIJSetPreallocation(J,one,PETSC_NULL_INTEGER_ARRAY,ierr))
+    PetscCallA(MatMPIAIJSetPreallocation(J,one,PETSC_NULL_INTEGER_ARRAY,one,PETSC_NULL_INTEGER_ARRAY,ierr))
     PetscCallA(NEPSetJacobian(nep,J,FormJacobian,PETSC_NULL_INTEGER,ierr))
   end if
 
@@ -217,7 +217,7 @@ SUBROUTINE FormFunction(nep,lambda,fun,B,ctx,ierr)
      col(0) = i-1
      col(1) = i
      col(2) = i+1
-     PetscCall(MatSetValues(fun,one,i,three,col,val,INSERT_VALUES,ierr))
+     PetscCall(MatSetValues(fun,one,[i],three,col,val,INSERT_VALUES,ierr))
   end do
 
   if (LastBlock) then
@@ -226,7 +226,7 @@ SUBROUTINE FormFunction(nep,lambda,fun,B,ctx,ierr)
      col(1) = n-1
      val(0) = 1.0
      val(1) = t-2.0
-     PetscCall(MatSetValues(fun,one,i,two,col,val,INSERT_VALUES,ierr))
+     PetscCall(MatSetValues(fun,one,[i],two,col,val,INSERT_VALUES,ierr))
   end if
 
   if (FirstBlock) then
@@ -235,7 +235,7 @@ SUBROUTINE FormFunction(nep,lambda,fun,B,ctx,ierr)
      col(1) = 1
      val(0) = t-2.0
      val(1) = 1.0
-     PetscCall(MatSetValues(fun,one,i,two,col,val,INSERT_VALUES,ierr))
+     PetscCall(MatSetValues(fun,one,[i],two,col,val,INSERT_VALUES,ierr))
   end if
 
   ! ** Assemble matrix

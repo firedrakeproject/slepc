@@ -804,7 +804,7 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STMatCreateVecs - Get vector(s) compatible with the ST matrices.
 
    Collective
@@ -828,7 +828,7 @@ PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STMatCreateVecsEmpty - Get vector(s) compatible with the ST matrices, i.e. with the same
    parallel layout, but without internal array.
 
