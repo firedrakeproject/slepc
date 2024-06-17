@@ -55,7 +55,7 @@ class SLEPc(package.Package):
     self.AddDefine(slepcconf,'PETSC_ARCH',petsc.arch)
     self.AddDefine(slepcconf,'DIR',slepc.dir)
     self.AddDefine(slepcconf,'LIB_DIR',os.path.join(slepc.prefixdir,'lib'))
-    if slepc.isrepo:
+    if slepc.isrepo and slepc.gitrev != 'unknown':
       self.AddDefine(slepcconf,'VERSION_GIT',slepc.gitrev)
       self.AddDefine(slepcconf,'VERSION_DATE_GIT',slepc.gitdate)
       self.AddDefine(slepcconf,'VERSION_BRANCH_GIT',slepc.branch)
@@ -69,7 +69,7 @@ class SLEPc(package.Package):
 
   def ShowInfo(self):
     self.log.Println('\nSLEPc directory:\n  '+self.dir)
-    if self.isrepo:
+    if self.isrepo and self.gitrev != 'unknown':
       self.log.Println('  It is a git repository on branch: '+self.branch)
     if self.isinstall:
       self.log.Println('SLEPc prefix directory:\n  '+self.prefixdir)
@@ -110,28 +110,36 @@ class SLEPc(package.Package):
     # Check whether this is a working copy of the repository
     self.isrepo = False
     if os.path.exists(os.path.join(self.dir,'src','docs')):
+      self.log.write('This appears to be a repository clone - src/docs exists')
       self.isrepo = True
-      (status, output) = self.RunCommand('git help')
-      if status:
-        self.log.Warn('SLEPC_DIR appears to be a git working copy, but git is not found in PATH')
-        self.gitrev = 'unknown'
-        self.gitdate = 'unknown'
-        self.branch = 'unknown'
-      else:
-        (status, output) = self.RunCommand('git rev-parse')
+      if os.path.exists(os.path.join(self.dir,'.git')):
+        self.log.write('.git directory exists')
+        (status, output) = self.RunCommand('git help')
         if status:
-          self.log.Warn('SLEPC_DIR appears to be a git working copy, but the .git folder is missing')
+          self.log.Warn('SLEPC_DIR appears to be a git working copy, but git is not found in PATH')
           self.gitrev = 'unknown'
           self.gitdate = 'unknown'
           self.branch = 'unknown'
         else:
-          (status, self.gitrev) = self.RunCommand('git describe')
+          (status, self.gitrev) = self.RunCommand('git describe --match=v*')
           if not self.gitrev:
             (status, self.gitrev) = self.RunCommand('git log -1 --pretty=format:%H')
           (status, self.gitdate) = self.RunCommand('git log -1 --pretty=format:%ci')
           (status, self.branch) = self.RunCommand('git describe --contains --all HEAD')
           if status:
-            self.branch = 'unknown'
+            (status, self.branch) = self.RunCommand('git rev-parse --abbrev-ref HEAD')
+            if status:
+              self.branch = 'unknown'
+      else:
+        self.log.write('This repository clone is obtained as a tarball as no .git dirs exist')
+        self.gitrev = 'unknown'
+        self.gitdate = 'unknown'
+        self.branch = 'unknown'
+    else:
+      if os.path.exists(os.path.join(self.dir,'.git')):
+        self.log.Exit('Your SLEPc source tree is broken. Use "git status" to check, or remove the entire directory and start all over again')
+      else:
+        self.log.write('This is a tarball installation')
 
   def CreateFile(self,basedir,fname):
     ''' Create file basedir/fname and return path string '''
