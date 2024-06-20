@@ -11,8 +11,7 @@
 !
 #include "slepc/finclude/slepcpep.h"
 
-      type tPEP
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tPEP
       end type tPEP
 
       PEP, parameter :: SLEPC_NULL_PEP = tPEP(0)

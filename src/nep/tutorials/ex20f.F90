@@ -91,14 +91,14 @@
       PetscCallA(MatCreate(PETSC_COMM_WORLD,F,ierr))
       PetscCallA(MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
       PetscCallA(MatSetFromOptions(F,ierr))
-      PetscCallA(MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,ierr))
-      PetscCallA(MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
+      PetscCallA(MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER_ARRAY,ierr))
+      PetscCallA(MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER_ARRAY,one,PETSC_NULL_INTEGER_ARRAY,ierr))
 
       PetscCallA(MatCreate(PETSC_COMM_WORLD,J,ierr))
       PetscCallA(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
       PetscCallA(MatSetFromOptions(J,ierr))
-      PetscCallA(MatSeqAIJSetPreallocation(J,three,PETSC_NULL_INTEGER,ierr))
-      PetscCallA(MatMPIAIJSetPreallocation(J,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
+      PetscCallA(MatSeqAIJSetPreallocation(J,three,PETSC_NULL_INTEGER_ARRAY,ierr))
+      PetscCallA(MatMPIAIJSetPreallocation(J,three,PETSC_NULL_INTEGER_ARRAY,one,PETSC_NULL_INTEGER_ARRAY,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and set various options
@@ -221,7 +221,7 @@
         j(2) = 1
         A(1) = 2.0*(d-lambda*h/3.0)
         A(2) = -d-lambda*h/6.0
-        PetscCall(MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr))
+        PetscCall(MatSetValues(fun,one,[i],two,j,A,INSERT_VALUES,ierr))
         Istart = Istart + 1
       endif
 
@@ -231,7 +231,7 @@
         j(2) = n-1
         A(1) = -d-lambda*h/6.0
         A(2) = d-lambda*h/3.0+lambda*c
-        PetscCall(MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr))
+        PetscCall(MatSetValues(fun,one,[i],two,j,A,INSERT_VALUES,ierr))
         Iend = Iend - 1
       endif
 
@@ -243,7 +243,7 @@
         A(1) = -d-lambda*h/6.0
         A(2) = 2.0*(d-lambda*h/3.0)
         A(3) = -d-lambda*h/6.0
-        PetscCall(MatSetValues(fun,one,i,three,j,A,INSERT_VALUES,ierr))
+        PetscCall(MatSetValues(fun,one,[i],three,j,A,INSERT_VALUES,ierr))
       enddo
 
 !     ** Assemble matrix
@@ -281,7 +281,7 @@
         j(2) = 1
         A(1) = -2.0*h/3.0
         A(2) = -h/6.0
-        PetscCall(MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr))
+        PetscCall(MatSetValues(jac,one,[i],two,j,A,INSERT_VALUES,ierr))
         Istart = Istart + 1
       endif
 
@@ -291,7 +291,7 @@
         j(2) = n-1
         A(1) = -h/6.0
         A(2) = -h/3.0-c*c
-        PetscCall(MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr))
+        PetscCall(MatSetValues(jac,one,[i],two,j,A,INSERT_VALUES,ierr))
         Iend = Iend - 1
       endif
 
@@ -303,7 +303,7 @@
         A(1) = -h/6.0
         A(2) = -2.0*h/3.0
         A(3) = -h/6.0
-        PetscCall(MatSetValues(jac,one,i,three,j,A,INSERT_VALUES,ierr))
+        PetscCall(MatSetValues(jac,one,[i],three,j,A,INSERT_VALUES,ierr))
       enddo
 
 !     ** Assemble matrix

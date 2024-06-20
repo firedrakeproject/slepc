@@ -12,25 +12,11 @@
 #include <slepcmfn.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define mfndestroy_                       MFNDESTROY
-#define mfnview_                          MFNVIEW
-#define mfnviewfromoptions_               MFNVIEWFROMOPTIONS
-#define mfnconvergedreasonview_           MFNCONVERGEDREASONVIEW
 #define mfnmonitordefault_                MFNMONITORDEFAULT
 #define mfnmonitorset_                    MFNMONITORSET
-#define mfngettolerances00_               MFNGETTOLERANCES00
-#define mfngettolerances10_               MFNGETTOLERANCES10
-#define mfngettolerances01_               MFNGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define mfndestroy_                       mfndestroy
-#define mfnview_                          mfnview
-#define mfnviewfromoptions_               mfnviewfromoptions
-#define mfnconvergedreasonview_           mfnconvergedreasonview
 #define mfnmonitordefault_                mfnmonitordefault
 #define mfnmonitorset_                    mfnmonitorset
-#define mfngettolerances00_               mfngettolerances00
-#define mfngettolerances10_               mfngettolerances10
-#define mfngettolerances01_               mfngettolerances01
 #endif
 
 /*
@@ -59,37 +45,6 @@ static PetscErrorCode ourdestroy(void** ctx)
   PetscObjectUseFortranCallback(mfn,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-SLEPC_EXTERN void mfndestroy_(MFN *mfn,PetscErrorCode *ierr)
-{
-  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(mfn);
-  *ierr = MFNDestroy(mfn); if (*ierr) return;
-  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(mfn);
-}
-
-SLEPC_EXTERN void mfnview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = MFNView(*mfn,v);
-}
-
-SLEPC_EXTERN void mfnviewfromoptions_(MFN *mfn,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  CHKFORTRANNULLOBJECT(obj);
-  *ierr = MFNViewFromOptions(*mfn,obj,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void mfnconvergedreasonview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = MFNConvergedReasonView(*mfn,v);
-}
-
 SLEPC_EXTERN void mfnmonitorset_(MFN *mfn,void (*monitor)(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(mctx);
@@ -101,26 +56,4 @@ SLEPC_EXTERN void mfnmonitorset_(MFN *mfn,void (*monitor)(MFN*,PetscInt*,PetscRe
     *ierr = PetscObjectSetFortranCallback((PetscObject)*mfn,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
     *ierr = MFNMonitorSet(*mfn,ourmonitor,*mfn,ourdestroy);
   }
-}
-
-SLEPC_EXTERN void mfngettolerances_(MFN *mfn,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLREAL(tol);
-  CHKFORTRANNULLINTEGER(maxits);
-  *ierr = MFNGetTolerances(*mfn,tol,maxits);
-}
-
-SLEPC_EXTERN void mfngettolerances00_(MFN *mfn,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  mfngettolerances_(mfn,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void mfngettolerances10_(MFN *mfn,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  mfngettolerances_(mfn,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void mfngettolerances01_(MFN *mfn,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  mfngettolerances_(mfn,tol,maxits,ierr);
 }

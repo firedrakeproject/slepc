@@ -13,13 +13,6 @@
 #include <slepcnep.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define nepdestroy_                       NEPDESTROY
-#define nepview_                          NEPVIEW
-#define nepviewfromoptions_               NEPVIEWFROMOPTIONS
-#define neperrorview_                     NEPERRORVIEW
-#define nepconvergedreasonview_           NEPCONVERGEDREASONVIEW
-#define nepvaluesview_                    NEPVALUESVIEW
-#define nepvectorsview_                   NEPVECTORSVIEW
 #define nepmonitorset_                    NEPMONITORSET
 #define nepmonitorall_                    NEPMONITORALL
 #define nepmonitorfirst_                  NEPMONITORFIRST
@@ -35,38 +28,7 @@
 #define nepgetfunction_                   NEPGETFUNCTION
 #define nepsetjacobian_                   NEPSETJACOBIAN
 #define nepgetjacobian_                   NEPGETJACOBIAN
-#define nepgetdimensions000_              NEPGETDIMENSIONS000
-#define nepgetdimensions100_              NEPGETDIMENSIONS100
-#define nepgetdimensions010_              NEPGETDIMENSIONS010
-#define nepgetdimensions001_              NEPGETDIMENSIONS001
-#define nepgetdimensions110_              NEPGETDIMENSIONS110
-#define nepgetdimensions011_              NEPGETDIMENSIONS011
-#define nepgetdimensions101_              NEPGETDIMENSIONS101
-#define nepgeteigenpair00_                NEPGETEIGENPAIR00
-#define nepgeteigenpair10_                NEPGETEIGENPAIR10
-#define nepgeteigenpair01_                NEPGETEIGENPAIR01
-#define nepgeteigenpair11_                NEPGETEIGENPAIR11
-#define nepgettolerances00_               NEPGETTOLERANCES00
-#define nepgettolerances10_               NEPGETTOLERANCES10
-#define nepgettolerances01_               NEPGETTOLERANCES01
-#define nepgetrefine000_                  NEPGETREFINE000
-#define nepgetrefine100_                  NEPGETREFINE100
-#define nepgetrefine010_                  NEPGETREFINE010
-#define nepgetrefine001_                  NEPGETREFINE001
-#define nepgetrefine110_                  NEPGETREFINE110
-#define nepgetrefine011_                  NEPGETREFINE011
-#define nepgetrefine101_                  NEPGETREFINE101
-#define nepgetrefine111_                  NEPGETREFINE111
-#define nepsetinitialspace0_              NEPSETINITIALSPACE0
-#define nepsetinitialspace1_              NEPSETINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define nepdestroy_                       nepdestroy
-#define nepview_                          nepview
-#define nepviewfromoptions_               nepviewfromoptions
-#define neperrorview_                     neperrorview
-#define nepconvergedreasonview_           nepconvergedreasonview
-#define nepvaluesview_                    nepvaluesview
-#define nepvectorsview_                   nepvectorsview
 #define nepmonitorset_                    nepmonitorset
 #define nepmonitorall_                    nepmonitorall
 #define nepmonitorfirst_                  nepmonitorfirst
@@ -82,30 +44,6 @@
 #define nepgetfunction_                   nepgetfunction
 #define nepsetjacobian_                   nepsetjacobian
 #define nepgetjacobian_                   nepgetjacobian
-#define nepgetdimensions000_              nepgetdimensions000
-#define nepgetdimensions100_              nepgetdimensions100
-#define nepgetdimensions010_              nepgetdimensions010
-#define nepgetdimensions001_              nepgetdimensions001
-#define nepgetdimensions110_              nepgetdimensions110
-#define nepgetdimensions011_              nepgetdimensions011
-#define nepgetdimensions101_              nepgetdimensions101
-#define nepgeteigenpair00_                nepgeteigenpair00
-#define nepgeteigenpair10_                nepgeteigenpair10
-#define nepgeteigenpair01_                nepgeteigenpair01
-#define nepgeteigenpair11_                nepgeteigenpair11
-#define nepgettolerances00_               nepgettolerances00
-#define nepgettolerances10_               nepgettolerances10
-#define nepgettolerances01_               nepgettolerances01
-#define nepgetrefine000_                  nepgetrefine000
-#define nepgetrefine100_                  nepgetrefine100
-#define nepgetrefine010_                  nepgetrefine010
-#define nepgetrefine001_                  nepgetrefine001
-#define nepgetrefine110_                  nepgetrefine110
-#define nepgetrefine011_                  nepgetrefine011
-#define nepgetrefine101_                  nepgetrefine101
-#define nepgetrefine111_                  nepgetrefine111
-#define nepsetinitialspace0_              nepsetinitialspace0
-#define nepsetinitialspace1_              nepsetinitialspace1
 #endif
 
 /*
@@ -214,58 +152,6 @@ static PetscErrorCode ournepjacobian(NEP nep,PetscScalar lambda,Mat J,void *ctx)
   PetscObjectUseFortranCallback(nep,_cb.jacobian,(NEP*,PetscScalar*,Mat*,void*,PetscErrorCode* PETSC_F90_2PTR_PROTO_NOVAR),(&nep,&lambda,&J,_ctx,&ierr PETSC_F90_2PTR_PARAM(ptr)));
 }
 
-SLEPC_EXTERN void nepdestroy_(NEP *nep,PetscErrorCode *ierr)
-{
-  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(nep);
-  *ierr = NEPDestroy(nep); if (*ierr) return;
-  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(nep);
-}
-
-SLEPC_EXTERN void nepview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPView(*nep,v);
-}
-
-SLEPC_EXTERN void nepviewfromoptions_(NEP *nep,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  CHKFORTRANNULLOBJECT(obj);
-  *ierr = NEPViewFromOptions(*nep,obj,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void nepconvergedreasonview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPConvergedReasonView(*nep,v);
-}
-
-SLEPC_EXTERN void neperrorview_(NEP *nep,NEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPErrorView(*nep,*etype,v);
-}
-
-SLEPC_EXTERN void nepvaluesview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPValuesView(*nep,v);
-}
-
-SLEPC_EXTERN void nepvectorsview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPVectorsView(*nep,v);
-}
-
 SLEPC_EXTERN void nepmonitorset_(NEP *nep,void (*monitor)(NEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(mctx);
@@ -368,151 +254,4 @@ SLEPC_EXTERN void nepgetjacobian_(NEP *nep,Mat *J,void *func,void **ctx,PetscErr
   CHKFORTRANNULLOBJECT(J);
   *ierr = NEPGetJacobian(*nep,J,NULL,NULL); if (*ierr) return;
   *ierr = PetscObjectGetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.jacobian,NULL,ctx);
-}
-
-SLEPC_EXTERN void nepgetdimensions_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLINTEGER(nev);
-  CHKFORTRANNULLINTEGER(ncv);
-  CHKFORTRANNULLINTEGER(mpd);
-  *ierr = NEPGetDimensions(*nep,nev,ncv,mpd);
-}
-
-SLEPC_EXTERN void nepgetdimensions000_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void nepgetdimensions100_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void nepgetdimensions010_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void nepgetdimensions001_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void nepgetdimensions110_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void nepgetdimensions011_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void nepgeteigenpair_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLSCALAR(eigr);
-  CHKFORTRANNULLSCALAR(eigi);
-  *ierr = NEPGetEigenpair(*nep,*i,eigr,eigi,*Vr,*Vi);
-}
-
-SLEPC_EXTERN void nepgeteigenpair00_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
-{
-  nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
-}
-
-SLEPC_EXTERN void nepgeteigenpair10_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
-{
-  nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
-}
-
-SLEPC_EXTERN void nepgeteigenpair01_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
-{
-  nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
-}
-
-SLEPC_EXTERN void nepgeteigenpair11_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
-{
-  nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
-}
-
-SLEPC_EXTERN void nepgettolerances_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLREAL(tol);
-  CHKFORTRANNULLINTEGER(maxits);
-  *ierr = NEPGetTolerances(*nep,tol,maxits);
-}
-
-SLEPC_EXTERN void nepgettolerances00_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  nepgettolerances_(nep,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void nepgettolerances10_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  nepgettolerances_(nep,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void nepgettolerances01_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  nepgettolerances_(nep,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void nepgetrefine_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLINTEGER(npart);
-  CHKFORTRANNULLREAL(tol);
-  CHKFORTRANNULLINTEGER(its);
-  *ierr = NEPGetRefine(*nep,refine,npart,tol,its,scheme);
-}
-
-SLEPC_EXTERN void nepgetrefine000_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
-{
-  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
-}
-
-SLEPC_EXTERN void nepgetrefine100_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
-{
-  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
-}
-
-SLEPC_EXTERN void nepgetrefine010_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
-{
-  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
-}
-
-SLEPC_EXTERN void nepgetrefine001_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
-{
-  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
-}
-
-SLEPC_EXTERN void nepgetrefine110_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
-{
-  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
-}
-
-SLEPC_EXTERN void nepgetrefine011_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
-{
-  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
-}
-
-SLEPC_EXTERN void nepgetrefine101_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
-{
-  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
-}
-
-SLEPC_EXTERN void nepgetrefine111_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
-{
-  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
-}
-
-SLEPC_EXTERN void nepsetinitialspace0_(NEP *nep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLOBJECT(is);
-  *ierr = NEPSetInitialSpace(*nep,*n,is);
-}
-
-SLEPC_EXTERN void nepsetinitialspace1_(NEP *nep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLOBJECT(is);
-  *ierr = NEPSetInitialSpace(*nep,*n,is);
 }

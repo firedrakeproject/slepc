@@ -229,7 +229,7 @@ PetscErrorCode LMEGetProblemType(LME lme,LMEProblemType *type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMEGetTolerances - Gets the tolerance and maximum iteration count used
    by the LME convergence tests.
 

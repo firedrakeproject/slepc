@@ -51,7 +51,6 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
 
   PetscFunctionBegin;
   PetscAssertPointer(outpep,2);
-  *outpep = NULL;
   PetscCall(PEPInitializePackage());
   PetscCall(SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView));
 
@@ -316,7 +315,7 @@ PetscErrorCode PEPReset(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPDestroy - Destroys the PEP context.
 
    Collective

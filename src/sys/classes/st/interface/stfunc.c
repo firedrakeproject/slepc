@@ -123,7 +123,7 @@ PetscErrorCode STReset(ST st)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STDestroy - Destroys ST context that was created with STCreate().
 
    Collective
@@ -169,7 +169,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 
   PetscFunctionBegin;
   PetscAssertPointer(newst,2);
-  *newst = NULL;
   PetscCall(STInitializePackage());
   PetscCall(SlepcHeaderCreate(st,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView));
 
@@ -805,7 +804,7 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STMatCreateVecs - Get vector(s) compatible with the ST matrices.
 
    Collective
@@ -829,7 +828,7 @@ PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STMatCreateVecsEmpty - Get vector(s) compatible with the ST matrices, i.e. with the same
    parallel layout, but without internal array.
 
@@ -991,7 +990,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STView - Prints the ST data structure.
 
    Collective
@@ -1064,7 +1063,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STViewFromOptions - View from options
 
    Collective

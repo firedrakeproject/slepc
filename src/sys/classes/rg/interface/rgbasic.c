@@ -92,7 +92,6 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
 
   PetscFunctionBegin;
   PetscAssertPointer(newrg,2);
-  *newrg = NULL;
   PetscCall(RGInitializePackage());
   PetscCall(SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView));
   rg->complement = PETSC_FALSE;
@@ -286,7 +285,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGView - Prints the RG data structure.
 
    Collective
@@ -332,7 +331,7 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGViewFromOptions - View from options
 
    Collective
@@ -807,7 +806,7 @@ PetscErrorCode RGPopScale(RG rg)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGDestroy - Destroys RG context that was created with RGCreate().
 
    Collective

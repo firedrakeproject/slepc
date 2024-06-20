@@ -48,7 +48,6 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 
   PetscFunctionBegin;
   PetscAssertPointer(outnep,2);
-  *outnep = NULL;
   PetscCall(NEPInitializePackage());
   PetscCall(SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView));
 
@@ -328,7 +327,7 @@ PetscErrorCode NEPReset(NEP nep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    NEPDestroy - Destroys the NEP context.
 
    Collective

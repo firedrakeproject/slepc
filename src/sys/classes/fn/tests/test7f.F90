@@ -61,7 +61,7 @@
       PetscCallA(FNGetScale(fn,tau,eta,ierr))
       PetscCallA(FNView(fn,PETSC_NULL_VIEWER,ierr))
 
-      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,A,ierr))
+      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR_ARRAY,A,ierr))
       PetscCallA(PetscObjectSetName(A,'A',ierr))
       PetscCallA(MatDenseGetArrayF90(A,aa,ierr))
       call FillUpMatrix(n,aa)
@@ -99,7 +99,7 @@
 !     Compute matrix square root
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,S,ierr))
+      PetscCallA(MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR_ARRAY,S,ierr))
       PetscCallA(PetscObjectSetName(S,'S',ierr))
       if (inplace) then
         PetscCallA(MatCopy(A,S,SAME_NONZERO_PATTERN,ierr))

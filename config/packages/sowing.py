@@ -18,8 +18,8 @@ class Sowing(package.Package):
     self.packagename  = 'sowing'
     self.downloadable = True
     self.inplace      = False
-    #self.gitcommit    = '2fe1f1f12257b274cbb0b4425f2994965bcc9bde'
-    self.version      = '1.1.26.9'
+    #self.gitcommit    = '3a410fa51a7bb531676f16deb8bc0c1ded8293c3'
+    self.version      = '1.1.26.12'
     obj = self.version if hasattr(self,'version') else self.gitcommit
     self.url          = 'https://bitbucket.org/petsc/pkg-sowing/get/'+('v'+obj if hasattr(self,'version') else obj)+'.tar.gz'
     self.archive      = 'sowing-'+obj+'.tar.gz'
@@ -69,7 +69,7 @@ class Sowing(package.Package):
         self.log.write('Using BFORT='+bfort)
         sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))
         import generatefortranstubs
-        generatefortranstubs.main(slepc.dir,'' if self.inplace else petsc.archname,bfort,os.path.join(slepc.dir,'src'),0)
+        generatefortranstubs.main(slepc.dir,'' if self.inplace else petsc.archname,bfort,slepc.dir,0)
         generatefortranstubs.processf90interfaces(slepc.dir,'' if self.inplace else petsc.archname,0)
       except:
         self.log.Exit('Try configuring with --download-sowing or use a Git version of PETSc')

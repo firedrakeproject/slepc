@@ -11,8 +11,7 @@
 !
 #include "slepc/finclude/slepcsvd.h"
 
-      type tSVD
-        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
+      type, extends(tPetscObject) :: tSVD
       end type tSVD
 
       SVD, parameter :: SLEPC_NULL_SVD = tSVD(0)

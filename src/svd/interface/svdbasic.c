@@ -51,7 +51,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
   PetscFunctionBegin;
   PetscAssertPointer(outsvd,2);
-  *outsvd = NULL;
   PetscCall(SVDInitializePackage());
   PetscCall(SlepcHeaderCreate(svd,SVD_CLASSID,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView));
 
@@ -154,7 +153,7 @@ PetscErrorCode SVDReset(SVD svd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDDestroy - Destroys the SVD context.
 
    Collective

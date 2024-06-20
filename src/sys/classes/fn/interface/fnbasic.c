@@ -98,7 +98,6 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
 
   PetscFunctionBegin;
   PetscAssertPointer(newfn,2);
-  *newfn = NULL;
   PetscCall(FNInitializePackage());
   PetscCall(SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView));
 
@@ -900,7 +899,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNView - Prints the FN data structure.
 
    Collective
@@ -946,7 +945,7 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNViewFromOptions - View from options
 
    Collective
@@ -1013,7 +1012,7 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNDestroy - Destroys FN context that was created with FNCreate().
 
    Collective

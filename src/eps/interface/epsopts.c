@@ -241,7 +241,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetTolerances - Gets the tolerance and maximum iteration count used
    by the EPS convergence tests.
 
@@ -315,7 +315,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
 
@@ -1101,7 +1101,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetBalance - Gets the balancing type used by the EPS object, and the
    associated parameters.
 

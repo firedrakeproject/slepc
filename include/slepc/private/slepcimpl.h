@@ -17,7 +17,7 @@
 
 SLEPC_INTERN PetscBool SlepcBeganPetsc;
 
-/*@C
+/*MC
     SlepcHeaderCreate - Creates a SLEPc object
 
     Input Parameters:
@@ -37,7 +37,7 @@ SLEPC_INTERN PetscBool SlepcBeganPetsc;
     has been called.
 
     Level: developer
-@*/
+M*/
 #define SlepcHeaderCreate(h,classid,class_name,descr,mansec,comm,destroy,view) \
     ((PetscErrorCode)((!SlepcInitializeCalled && \
                        PetscError(comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,PETSC_ERR_ORDER,PETSC_ERROR_INITIAL, \

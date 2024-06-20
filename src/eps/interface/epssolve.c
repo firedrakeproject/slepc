@@ -366,7 +366,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    EPSSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
@@ -418,7 +418,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetEigenvalue - Gets the i-th eigenvalue as computed by EPSSolve().
 
    Not Collective

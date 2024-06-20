@@ -123,7 +123,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDGetTolerances - Gets the tolerance and maximum
    iteration count used by the default SVD convergence tests.
 
@@ -211,7 +211,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDGetDimensions - Gets the number of singular values to compute
    and the dimension of the subspace.
 
