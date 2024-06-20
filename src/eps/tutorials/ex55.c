@@ -147,7 +147,8 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      args: -eps_nev 4 -terse -checkorthog
+      args: -eps_nev 4 -eps_ncv 16 -eps_krylovschur_bse_type {{shao gruning}} -terse -checkorthog
+      filter: sed -e "s/17496/17495/g"
       test:
          suffix: 1
          requires: complex
