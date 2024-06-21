@@ -16,7 +16,7 @@
 PetscBool         STRegisterAllCalled = PETSC_FALSE;
 PetscFunctionList STList = NULL;
 
-/*@C
+/*@
    STSetType - Builds ST for a particular spectral transformation.
 
    Logically Collective
@@ -69,7 +69,7 @@ PetscErrorCode STSetType(ST st,STType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    STGetType - Gets the ST type name (as a string) from the ST context.
 
    Not Collective

@@ -51,7 +51,6 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
 
   PetscFunctionBegin;
   PetscAssertPointer(outpep,2);
-  *outpep = NULL;
   PetscCall(PEPInitializePackage());
   PetscCall(SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView));
 
@@ -126,7 +125,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPSetType - Selects the particular solver to be used in the PEP object.
 
    Logically Collective
@@ -179,7 +178,7 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPGetType - Gets the PEP type as a string from the PEP object.
 
    Not Collective
@@ -316,7 +315,7 @@ PetscErrorCode PEPReset(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPDestroy - Destroys the PEP context.
 
    Collective

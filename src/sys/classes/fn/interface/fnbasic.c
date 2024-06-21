@@ -98,7 +98,6 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
 
   PetscFunctionBegin;
   PetscAssertPointer(newfn,2);
-  *newfn = NULL;
   PetscCall(FNInitializePackage());
   PetscCall(SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView));
 
@@ -114,7 +113,7 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNSetOptionsPrefix - Sets the prefix used for searching for all
    FN options in the database.
 
@@ -141,7 +140,7 @@ PetscErrorCode FNSetOptionsPrefix(FN fn,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNAppendOptionsPrefix - Appends to the prefix used for searching for all
    FN options in the database.
 
@@ -167,7 +166,7 @@ PetscErrorCode FNAppendOptionsPrefix(FN fn,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNGetOptionsPrefix - Gets the prefix used for searching for all
    FN options in the database.
 
@@ -196,7 +195,7 @@ PetscErrorCode FNGetOptionsPrefix(FN fn,const char *prefix[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNSetType - Selects the type for the FN object.
 
    Logically Collective
@@ -236,7 +235,7 @@ PetscErrorCode FNSetType(FN fn,FNType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNGetType - Gets the FN type name (as a string) from the FN context.
 
    Not Collective
@@ -900,7 +899,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNView - Prints the FN data structure.
 
    Collective
@@ -946,7 +945,7 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNViewFromOptions - View from options
 
    Collective
@@ -1013,7 +1012,7 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    FNDestroy - Destroys FN context that was created with FNCreate().
 
    Collective

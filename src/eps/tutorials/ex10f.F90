@@ -233,7 +233,6 @@
 
       call KSPSolve(myksp,x,y,ierr);CHKERRQ(ierr)
 
-      return
       end
 
 ! -------------------------------------------------------------------
@@ -259,7 +258,6 @@
 
       call KSPSolveTranspose(myksp,x,y,ierr);CHKERRQ(ierr)
 
-      return
       end
 
 #if defined(PETSC_USE_COMPLEX)
@@ -292,7 +290,6 @@
       call VecConjugate(y,ierr);CHKERRQ(ierr)
       call VecDestroy(w,ierr);CHKERRQ(ierr)
 
-      return
       end
 #endif
 
@@ -325,7 +322,6 @@
       enddo
       ierr = 0
 
-      return
       end
 
 !/*TEST

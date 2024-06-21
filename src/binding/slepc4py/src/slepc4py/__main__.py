@@ -27,9 +27,11 @@ def help(args=None):
         args = args.split()
     else:
         args = [str(a) for a in args]
+    if '-help' not in args:
+        args.append('-help')
     # initialization
     import slepc4py
-    slepc4py.init([prog, '-help'] + args)
+    slepc4py.init([prog] + args)
     from slepc4py import SLEPc
     # and finally ...
     COMM = SLEPc.COMM_SELF

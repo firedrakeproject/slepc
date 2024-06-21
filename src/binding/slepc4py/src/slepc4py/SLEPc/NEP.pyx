@@ -800,7 +800,7 @@ cdef class NEP(Object):
 
         Returns
         -------
-        e: scalar (possibly complex)
+        e: complex
             The computed eigenvalue.
         """
         cdef PetscScalar sval1 = 0

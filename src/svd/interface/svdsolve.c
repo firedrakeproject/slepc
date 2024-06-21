@@ -275,7 +275,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    SVDGetSingularTriplet - Gets the i-th triplet of the singular value decomposition
    as computed by SVDSolve(). The solution consists in the singular value and its left
    and right singular vectors.

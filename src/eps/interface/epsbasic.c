@@ -51,7 +51,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   PetscFunctionBegin;
   PetscAssertPointer(outeps,2);
-  *outeps = NULL;
   PetscCall(EPSInitializePackage());
   PetscCall(SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView));
 
@@ -127,7 +126,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSSetType - Selects the particular solver to be used in the EPS object.
 
    Logically Collective
@@ -180,7 +179,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetType - Gets the EPS type as a string from the EPS object.
 
    Not Collective
@@ -316,7 +315,7 @@ PetscErrorCode EPSReset(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSDestroy - Destroys the EPS context.
 
    Collective

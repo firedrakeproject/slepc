@@ -12,18 +12,10 @@
 #include <slepcds.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define dspepsetcoefficients_    DSPEPSETCOEFFICIENTS
 #define dspepgetcoefficients_    DSPEPGETCOEFFICIENTS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define dspepsetcoefficients_    dspepsetcoefficients
 #define dspepgetcoefficients_    dspepgetcoefficients
 #endif
-
-SLEPC_EXTERN void dspepsetcoefficients_(DS *ds,PetscReal *pbc,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLREAL(pbc);
-  *ierr = DSPEPSetCoefficients(*ds,pbc);
-}
 
 SLEPC_EXTERN void dspepgetcoefficients_(DS *ds,PetscReal *pbc,PetscErrorCode *ierr)
 {

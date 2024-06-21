@@ -216,7 +216,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       PetscCallA(EPSSetUp(eps,ierr))
-      PetscCallA(EPSKrylovSchurGetInertias(eps,k,PETSC_NULL_REAL,PETSC_NULL_INTEGER,ierr))
+      PetscCallA(EPSKrylovSchurGetInertias(eps,k,PETSC_NULL_REAL_ARRAY,PETSC_NULL_INTEGER_ARRAY,ierr))
       if (k>MAXSHI) then; SETERRA(PETSC_COMM_SELF,1,'Too many shifts'); endif
       PetscCallA(EPSKrylovSchurGetInertias(eps,k,shifts,inertias,ierr))
       if (rank .eq. 0) then

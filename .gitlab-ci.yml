@@ -421,7 +421,6 @@ gnu-cxx-int64:
 pip-install:
   extends: .test
   stage: stage-2
-  allow_failure: true   # set this after release before the new petsc4py version is uploaded to pypi
   tags:
     - pip, name:jepri
   before_script:
@@ -433,34 +432,45 @@ pip-install:
     - ccache --zero-stats
     - printf "PYTHON:${PYTHON}\n"
   script:
-    - unset PETSC_DIR PETSC_ARCH SLEPC_DIR
     - |
-      if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' include/slepcversion.h) == 1 ]; then
-        pip install --user .;
-        pip install --user src/binding/slepc4py;
-        make -C src/binding/slepc4py/demo;
+      unset PETSC_DIR PETSC_ARCH SLEPC_DIR
+      slepc=$PWD
+      cd ..
+      if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
+      cd petsc
+      git clean ${GIT_CLEAN_FLAGS}
+      git fetch
+      if [ -z ${PETSC_BRANCH+x} ]; then
+        if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $slepc/include/slepcversion.h) == 1 ]; then
+          git checkout origin/release
+        else
+          git checkout origin/main
+        fi
       else
-        slepc=$PWD;
-        cd ..;
-        if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi;
-        cd petsc;
-        petsc=$PWD;
-        git clean ${GIT_CLEAN_FLAGS}
-        git fetch;
-        if [ -z ${PETSC_BRANCH+x} ]; then git checkout origin/main; else git checkout origin/$PETSC_BRANCH; fi;
-        set -eu pipefail;
-        rm -rf /tmp/env;
-        python -m venv /tmp/env;
-        source /tmp/env/bin/activate;
-        set -x;
-        python -m pip install -U pip==23.0.1    # pin version due to issue with pip 23.1
-        pip install numpy;
-        pip install $petsc;
-        pip install $petsc/src/binding/petsc4py;
-        pip install $slepc;
-        pip install $slepc/src/binding/slepc4py;
-        make -C $slepc/src/binding/slepc4py/demo;
+        git checkout origin/$PETSC_BRANCH
       fi
+      petsc=$PWD
+      cd ..
+      set -eu pipefail
+      rm -rf /tmp/venv
+      python -m venv /tmp/venv
+      source /tmp/venv/bin/activate
+      set -x
+      python -m pip install --upgrade pip
+      wheelhouse=$PWD/wheelhouse
+      rm -rf $wheelhouse
+      mkdir -p $wheelhouse
+      export PIP_WHEEL_DIR=$wheelhouse
+      export PIP_FIND_LINKS=$wheelhouse
+      python -m pip wheel $petsc
+      python -m pip wheel $petsc/src/binding/petsc4py
+      python -m pip wheel $slepc
+      python -m pip wheel $slepc/src/binding/slepc4py
+      python -m pip install --pre slepc4py
+      python -m pip list
+      python -m slepc --prefix
+      python -m slepc4py
+      make -C $slepc/src/binding/slepc4py/demo
   after_script:
     - date
 

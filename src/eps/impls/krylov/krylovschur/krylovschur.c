@@ -772,7 +772,7 @@ static PetscErrorCode EPSKrylovSchurSetSubintervals_KrylovSchur(EPS eps,PetscRea
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSKrylovSchurSetSubintervals - Sets the points that delimit the
    subintervals to be used in spectrum slicing with several partitions.
 
@@ -796,10 +796,11 @@ static PetscErrorCode EPSKrylovSchurSetSubintervals_KrylovSchur(EPS eps,PetscRea
 
 .seealso: EPSKrylovSchurSetPartitions(), EPSKrylovSchurGetSubintervals(), EPSSetInterval()
 @*/
-PetscErrorCode EPSKrylovSchurSetSubintervals(EPS eps,PetscReal *subint)
+PetscErrorCode EPSKrylovSchurSetSubintervals(EPS eps,PetscReal subint[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscAssertPointer(subint,2);
   PetscTryMethod(eps,"EPSKrylovSchurSetSubintervals_C",(EPS,PetscReal*),(eps,subint));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -943,14 +944,14 @@ static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,
    The arrays should be at least of length n. The value of n can be determined
    by an initial call
 .vb
-   EPSKrylovSchurGetInertias(eps,n,PETSC_NULL_REAL,PETSC_NULL_INTEGER,ierr)
+   EPSKrylovSchurGetInertias(eps,n,PETSC_NULL_REAL_ARRAY,PETSC_NULL_INTEGER_ARRAY,ierr)
 .ve
 
    Level: advanced
 
 .seealso: EPSSetInterval(), EPSKrylovSchurSetSubintervals()
 @*/
-PetscErrorCode EPSKrylovSchurGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+PetscErrorCode EPSKrylovSchurGetInertias(EPS eps,PetscInt *n,PetscReal *shifts[],PetscInt *inertias[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -973,7 +974,7 @@ static PetscErrorCode EPSKrylovSchurGetSubcommInfo_KrylovSchur(EPS eps,PetscInt 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSKrylovSchurGetSubcommInfo - Gets information related to the case of
    doing spectrum slicing for a computational interval with multiple
    communicators.
@@ -1066,7 +1067,7 @@ static PetscErrorCode EPSKrylovSchurGetSubcommMats_KrylovSchur(EPS eps,Mat *A,Ma
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSKrylovSchurGetSubcommMats - Gets the eigenproblem matrices stored
    internally in the subcommunicator to which the calling process belongs.
 

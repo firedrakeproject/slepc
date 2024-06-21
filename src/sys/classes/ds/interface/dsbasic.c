@@ -108,7 +108,6 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
 
   PetscFunctionBegin;
   PetscAssertPointer(newds,2);
-  *newds = NULL;
   PetscCall(DSInitializePackage());
   PetscCall(SlepcHeaderCreate(ds,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView));
 
@@ -141,7 +140,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSSetOptionsPrefix - Sets the prefix used for searching for all
    DS options in the database.
 
@@ -168,7 +167,7 @@ PetscErrorCode DSSetOptionsPrefix(DS ds,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSAppendOptionsPrefix - Appends to the prefix used for searching for all
    DS options in the database.
 
@@ -194,7 +193,7 @@ PetscErrorCode DSAppendOptionsPrefix(DS ds,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSGetOptionsPrefix - Gets the prefix used for searching for all
    DS options in the database.
 
@@ -223,7 +222,7 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSSetType - Selects the type for the DS object.
 
    Logically Collective
@@ -251,6 +250,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   PetscCall(PetscFunctionListFind(DSList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
+  PetscTryTypeMethod(ds,destroy);
   PetscCall(PetscMemzero(ds->ops,sizeof(struct _DSOps)));
 
   PetscCall(PetscObjectChangeTypeName((PetscObject)ds,type));
@@ -258,7 +258,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSGetType - Gets the DS type name (as a string) from the DS context.
 
    Not Collective
@@ -662,6 +662,9 @@ PetscErrorCode DSGetBlockSize(DS ds,PetscInt *bs)
 +  ds - the direct solver context
 -  sc - a pointer to the sorting criterion context
 
+   Note:
+   Not available in Fortran.
+
    Level: developer
 
 .seealso: DSGetSlepcSC(), DSSort()
@@ -685,8 +688,11 @@ PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
    Input Parameter:
 .  ds - the direct solver context
 
-   Output Parameters:
+   Output Parameter:
 .  sc - a pointer to the sorting criterion context
+
+   Note:
+   Not available in Fortran.
 
    Level: developer
 
@@ -745,7 +751,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSView - Prints the DS data structure.
 
    Collective
@@ -800,7 +806,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSViewFromOptions - View from options
 
    Collective
@@ -889,7 +895,7 @@ PetscErrorCode DSReset(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSDestroy - Destroys DS context that was created with DSCreate().
 
    Collective
@@ -926,7 +932,7 @@ PetscErrorCode DSDestroy(DS *ds)
 +  name - name of a new user-defined DS
 -  function - routine to create context
 
-   Notes:
+   Note:
    DSRegister() may be called multiple times to add several user-defined
    direct solvers.
 

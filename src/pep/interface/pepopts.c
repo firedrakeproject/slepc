@@ -237,7 +237,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPGetTolerances - Gets the tolerance and maximum iteration count used
    by the PEP convergence tests.
 
@@ -311,7 +311,7 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
 
@@ -1068,7 +1068,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPGetScale - Gets the scaling strategy used by the PEP object, and the
    associated parameters.
 
@@ -1247,7 +1247,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPGetRefine - Gets the refinement strategy used by the PEP object, and the
    associated parameters.
 
@@ -1282,7 +1282,7 @@ PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPSetOptionsPrefix - Sets the prefix used for searching for all
    PEP options in the database.
 
@@ -1324,7 +1324,7 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPAppendOptionsPrefix - Appends to the prefix used for searching for all
    PEP options in the database.
 
@@ -1358,7 +1358,7 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPGetOptionsPrefix - Gets the prefix used for searching for all
    PEP options in the database.
 

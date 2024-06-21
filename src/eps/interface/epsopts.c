@@ -241,7 +241,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetTolerances - Gets the tolerance and maximum iteration count used
    by the EPS convergence tests.
 
@@ -315,7 +315,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
 
@@ -1101,7 +1101,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetBalance - Gets the balancing type used by the EPS object, and the
    associated parameters.
 
@@ -1370,7 +1370,7 @@ PetscErrorCode EPSGetPurify(EPS eps,PetscBool *purify)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSSetOptionsPrefix - Sets the prefix used for searching for all
    EPS options in the database.
 
@@ -1412,7 +1412,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSAppendOptionsPrefix - Appends to the prefix used for searching for all
    EPS options in the database.
 
@@ -1446,7 +1446,7 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    EPSGetOptionsPrefix - Gets the prefix used for searching for all
    EPS options in the database.
 

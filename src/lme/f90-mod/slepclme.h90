@@ -7,35 +7,3 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-      interface LMEGetTolerances
-        subroutine LMEGetTolerances00(a,b,c,z)
-          import tLME
-          LME a
-          PetscReal b
-          PetscInt c
-          PetscErrorCode z
-        end subroutine
-        subroutine LMEGetTolerances10(a,b,c,z)
-          import tLME
-          LME a
-          PetscReal b(*)
-          PetscInt c
-          PetscErrorCode z
-        end subroutine
-        subroutine LMEGetTolerances01(a,b,c,z)
-          import tLME
-          LME a
-          PetscReal b
-          PetscInt c(*)
-          PetscErrorCode z
-        end subroutine
-      end interface LMEGetTolerances
-
-      interface
-        subroutine LMEDestroy(a,z)
-          import tLME
-          LME a
-          PetscErrorCode z
-        end subroutine
-      end interface
-

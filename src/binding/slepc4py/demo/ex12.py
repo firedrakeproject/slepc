@@ -1,4 +1,7 @@
-# Tests use of setArbitrarySelection()
+# ------------------------------------------------------------------------
+#   Tests use of setArbitrarySelection()
+#   - selection criterion is the projection onto a precomputed eigenvector
+# ------------------------------------------------------------------------
 
 import sys, slepc4py
 slepc4py.init(sys.argv)
@@ -14,7 +17,6 @@ n = opts.getInt('n', 30)
 A = PETSc.Mat(); A.create()
 A.setSizes([n, n])
 A.setFromOptions()
-A.setUp()
 rstart, rend = A.getOwnershipRange()
 for i in range(rstart, rend):
     if i>0: A[i, i-1] = -1
@@ -33,13 +35,13 @@ nconv = E.getConverged()
 Print = PETSc.Sys.Print
 vw = PETSc.Viewer.STDOUT()
 if nconv>0:
-    sxr, sxi = A.createVecs()
-    E.getEigenpair(0, sxr, sxi)
+    sx, _ = A.createVecs()
+    E.getEigenpair(0, sx)
     vw.pushFormat(PETSc.Viewer.Format.ASCII_INFO_DETAIL)
     E.errorView(viewer=vw)
-    def myArbitrarySel(evalue, xr, xi, sxr):
-        return abs(xr.dot(sxr))
-    E.setArbitrarySelection(myArbitrarySel,sxr)
+    def myArbitrarySel(evalue, xr, xi, sx):
+        return abs(xr.dot(sx))
+    E.setArbitrarySelection(myArbitrarySel,sx)
     E.setWhichEigenpairs(SLEPc.EPS.Which.LARGEST_MAGNITUDE)
     E.solve()
     E.errorView(viewer=vw)

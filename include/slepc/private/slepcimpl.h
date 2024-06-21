@@ -17,7 +17,7 @@
 
 SLEPC_INTERN PetscBool SlepcBeganPetsc;
 
-/*@C
+/*MC
     SlepcHeaderCreate - Creates a SLEPc object
 
     Input Parameters:
@@ -37,7 +37,7 @@ SLEPC_INTERN PetscBool SlepcBeganPetsc;
     has been called.
 
     Level: developer
-@*/
+M*/
 #define SlepcHeaderCreate(h,classid,class_name,descr,mansec,comm,destroy,view) \
     ((PetscErrorCode)((!SlepcInitializeCalled && \
                        PetscError(comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,PETSC_ERR_ORDER,PETSC_ERROR_INITIAL, \
@@ -70,7 +70,7 @@ static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscS
   if (PetscAbs(im) && PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
   if (PetscAbs(re) && PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
   /* print as real if imaginary part is zero */
-  if (im!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im));
+  if (im!=(PetscReal)0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im));
   else PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f",(double)re));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

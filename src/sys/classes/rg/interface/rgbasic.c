@@ -92,7 +92,6 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
 
   PetscFunctionBegin;
   PetscAssertPointer(newrg,2);
-  *newrg = NULL;
   PetscCall(RGInitializePackage());
   PetscCall(SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView));
   rg->complement = PETSC_FALSE;
@@ -104,7 +103,7 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGSetOptionsPrefix - Sets the prefix used for searching for all
    RG options in the database.
 
@@ -131,7 +130,7 @@ PetscErrorCode RGSetOptionsPrefix(RG rg,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGAppendOptionsPrefix - Appends to the prefix used for searching for all
    RG options in the database.
 
@@ -157,7 +156,7 @@ PetscErrorCode RGAppendOptionsPrefix(RG rg,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGGetOptionsPrefix - Gets the prefix used for searching for all
    RG options in the database.
 
@@ -186,7 +185,7 @@ PetscErrorCode RGGetOptionsPrefix(RG rg,const char *prefix[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGSetType - Selects the type for the RG object.
 
    Logically Collective
@@ -222,7 +221,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGGetType - Gets the RG type name (as a string) from the RG context.
 
    Not Collective
@@ -286,7 +285,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGView - Prints the RG data structure.
 
    Collective
@@ -332,7 +331,7 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGViewFromOptions - View from options
 
    Collective
@@ -807,7 +806,7 @@ PetscErrorCode RGPopScale(RG rg)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    RGDestroy - Destroys RG context that was created with RGCreate().
 
    Collective

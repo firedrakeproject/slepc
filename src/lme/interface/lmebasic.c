@@ -27,7 +27,7 @@ PetscFunctionList LMEMonitorCreateList        = NULL;
 PetscFunctionList LMEMonitorDestroyList       = NULL;
 PetscBool         LMEMonitorRegisterAllCalled = PETSC_FALSE;
 
-/*@C
+/*@
    LMEView - Prints the LME data structure.
 
    Collective
@@ -90,7 +90,7 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMEViewFromOptions - View from options
 
    Collective
@@ -111,7 +111,7 @@ PetscErrorCode LMEViewFromOptions(LME lme,PetscObject obj,const char name[])
   PetscCall(PetscObjectViewFromOptions((PetscObject)lme,obj,name));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
-/*@C
+/*@
    LMEConvergedReasonView - Displays the reason an LME solve converged or diverged.
 
    Collective
@@ -209,7 +209,6 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
 
   PetscFunctionBegin;
   PetscAssertPointer(outlme,2);
-  *outlme = NULL;
   PetscCall(LMEInitializePackage());
   PetscCall(SlepcHeaderCreate(lme,LME_CLASSID,"LME","Linear Matrix Equation","LME",comm,LMEDestroy,LMEView));
 
@@ -241,7 +240,7 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMESetType - Selects the particular solver to be used in the LME object.
 
    Logically Collective
@@ -294,7 +293,7 @@ PetscErrorCode LMESetType(LME lme,LMEType type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMEGetType - Gets the LME type as a string from the LME object.
 
    Not Collective
@@ -427,7 +426,7 @@ PetscErrorCode LMEReset(LME lme)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMEDestroy - Destroys the LME context.
 
    Collective

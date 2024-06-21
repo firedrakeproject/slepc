@@ -420,6 +420,41 @@ PetscErrorCode BVRestoreSplit_Svec_CUDA(BV bv,BV *L,BV *R)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+PetscErrorCode BVRestoreSplitRows_Svec_CUDA(BV bv,IS,IS,BV *U,BV *L)
+{
+  Vec               v;
+  const PetscScalar *d_pv;
+  PetscObjectState  lstate,rstate;
+  PetscBool         change=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  /* force sync flag to PETSC_CUDA_BOTH */
+  if (U) {
+    PetscCall(PetscObjectStateGet((PetscObject)*U,&rstate));
+    if (rstate != bv->rstate) {
+      v = ((BV_SVEC*)bv->R->data)->v;
+      PetscCall(VecCUDAGetArrayRead(v,&d_pv));
+      PetscCall(VecCUDARestoreArrayRead(v,&d_pv));
+      change = PETSC_TRUE;
+    }
+  }
+  if (L) {
+    PetscCall(PetscObjectStateGet((PetscObject)*L,&lstate));
+    if (lstate != bv->lstate) {
+      v = ((BV_SVEC*)bv->L->data)->v;
+      PetscCall(VecCUDAGetArrayRead(v,&d_pv));
+      PetscCall(VecCUDARestoreArrayRead(v,&d_pv));
+      change = PETSC_TRUE;
+    }
+  }
+  if (change) {
+    v = ((BV_SVEC*)bv->data)->v;
+    PetscCall(VecCUDAGetArray(v,(PetscScalar **)&d_pv));
+    PetscCall(VecCUDARestoreArray(v,(PetscScalar **)&d_pv));
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 PetscErrorCode BVGetMat_Svec_CUDA(BV bv,Mat *A)
 {
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;

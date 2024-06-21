@@ -63,7 +63,7 @@
       q(2) = 1.1
       q(3) = 1.0
       PetscCallA(FNSetType(fn,FNRATIONAL,ierr))
-      PetscCallA(FNRationalSetNumerator(fn,na,PETSC_NULL_SCALAR,ierr))
+      PetscCallA(FNRationalSetNumerator(fn,na,PETSC_NULL_SCALAR_ARRAY,ierr))
       PetscCallA(FNRationalSetDenominator(fn,nb,q,ierr))
       PetscCallA(FNView(fn,PETSC_NULL_VIEWER,ierr))
       x = 2.2
@@ -110,8 +110,8 @@
       nb = 0
       five = 5.0
       PetscCallA(FNSetType(fn,FNRATIONAL,ierr))
-      PetscCallA(FNRationalSetNumerator(fn,na,five,ierr))
-      PetscCallA(FNRationalSetDenominator(fn,nb,PETSC_NULL_SCALAR,ierr))
+      PetscCallA(FNRationalSetNumerator(fn,na,[five],ierr))
+      PetscCallA(FNRationalSetDenominator(fn,nb,PETSC_NULL_SCALAR_ARRAY,ierr))
       PetscCallA(FNView(fn,PETSC_NULL_VIEWER,ierr))
       x = 2.2
       PetscCallA(FNEvaluateFunction(fn,x,y,ierr))
@@ -153,7 +153,7 @@
       endif
  110  format (A2,'(',F4.1,') = ',F10.5)
  120  format (A2,'(',F4.1,') = ',F10.5,SP,F9.5,'i')
-      return
+
       end
 
 !/*TEST

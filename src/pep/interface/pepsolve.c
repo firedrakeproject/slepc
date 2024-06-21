@@ -264,7 +264,7 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    PEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    PEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
 

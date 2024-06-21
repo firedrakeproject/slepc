@@ -334,7 +334,7 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
     }
     fro = SlepcAbs(fro,SlepcAbs(alpha[j],beta[j]));
     if (j>0) fro = SlepcAbs(fro,beta[j-1]);
-    if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*eps->tol)) { *symmlost = PETSC_TRUE; *M=j+1; break; }
+    if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*eps->tol)) { *symmlost = PETSC_TRUE; *M=j; break; }
     omega[j+1] = (norm<0.0)? -1.0: 1.0;
     PetscCall(BVScaleColumn(eps->V,j+1,1.0/norm));
     /* */

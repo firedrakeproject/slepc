@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Singular value decomposition of the Lauchli matrix
+# ------------------------------------------------------------------------
+
 try: range = xrange
 except: pass
 
@@ -9,14 +13,13 @@ from slepc4py import SLEPc
 
 opts = PETSc.Options()
 n  = opts.getInt('n', 30)
-mu = opts.getScalar('mu', 1e-6)
+mu = opts.getReal('mu', 1e-6)
 
 PETSc.Sys.Print( "Lauchli singular value decomposition, (%d x %d) mu=%g\n" % (n+1,n,mu) )
 
 A = PETSc.Mat(); A.create()
 A.setSizes([n+1, n])
-A.setFromOptions( )
-A.setUp()
+A.setFromOptions()
 
 rstart, rend = A.getOwnershipRange()
 

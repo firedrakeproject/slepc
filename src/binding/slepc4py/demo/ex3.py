@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------
+#   Matrix-free eigenproblem for the Laplacian operator in 2-D
+# ------------------------------------------------------------------------
+
 import sys, slepc4py
 slepc4py.init(sys.argv)
 
@@ -49,7 +53,6 @@ def construct_operator(m, n):
     # Create shell matrix
     context = Laplacian2D(m,n)
     A = PETSc.Mat().createPython([m*n,m*n], context)
-    A.setUp()
     return A
 
 def solve_eigensystem(A, problem_type=SLEPc.EPS.ProblemType.HEP):
@@ -60,7 +63,7 @@ def solve_eigensystem(A, problem_type=SLEPc.EPS.ProblemType.HEP):
     E = SLEPc.EPS().create()
     E.setOperators(A,None)
     E.setDimensions(3,PETSc.DECIDE)
-    E.setProblemType( problem_type )
+    E.setProblemType(problem_type)
     E.setFromOptions()
 
     # Solve the eigensystem

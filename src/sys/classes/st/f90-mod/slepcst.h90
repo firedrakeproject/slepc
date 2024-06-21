@@ -7,12 +7,3 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-
-      interface
-        subroutine STDestroy(a,z)
-          import tST
-          ST a
-          PetscErrorCode z
-        end subroutine
-      end interface
-

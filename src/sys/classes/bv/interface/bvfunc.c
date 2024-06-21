@@ -101,7 +101,7 @@ PetscErrorCode BVInitializePackage(void)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVDestroy - Destroys BV context that was created with BVCreate().
 
    Collective
@@ -161,7 +161,6 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 
   PetscFunctionBegin;
   PetscAssertPointer(newbv,2);
-  *newbv = NULL;
   PetscCall(BVInitializePackage());
   PetscCall(SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView));
 
@@ -438,7 +437,7 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVSetOptionsPrefix - Sets the prefix used for searching for all
    BV options in the database.
 
@@ -465,7 +464,7 @@ PetscErrorCode BVSetOptionsPrefix(BV bv,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVAppendOptionsPrefix - Appends to the prefix used for searching for all
    BV options in the database.
 
@@ -492,7 +491,7 @@ PetscErrorCode BVAppendOptionsPrefix(BV bv,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVGetOptionsPrefix - Gets the prefix used for searching for all
    BV options in the database.
 
@@ -521,7 +520,7 @@ PetscErrorCode BVGetOptionsPrefix(BV bv,const char *prefix[])
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVView - Prints the BV data structure.
 
    Collective
@@ -604,7 +603,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVViewFromOptions - View from options
 
    Collective

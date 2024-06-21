@@ -229,7 +229,7 @@ PetscErrorCode LMEGetProblemType(LME lme,LMEProblemType *type)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMEGetTolerances - Gets the tolerance and maximum iteration count used
    by the LME convergence tests.
 
@@ -417,7 +417,7 @@ PetscErrorCode LMEGetErrorIfNotConverged(LME lme,PetscBool *flag)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMESetOptionsPrefix - Sets the prefix used for searching for all
    LME options in the database.
 
@@ -453,7 +453,7 @@ PetscErrorCode LMESetOptionsPrefix(LME lme,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMEAppendOptionsPrefix - Appends to the prefix used for searching for all
    LME options in the database.
 
@@ -481,7 +481,7 @@ PetscErrorCode LMEAppendOptionsPrefix(LME lme,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    LMEGetOptionsPrefix - Gets the prefix used for searching for all
    LME options in the database.
 

@@ -12,14 +12,6 @@
 #include <slepcsvd.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define svddestroy_                       SVDDESTROY
-#define svdview_                          SVDVIEW
-#define svderrorview_                     SVDERRORVIEW
-#define svdconvergedreasonview_           SVDCONVERGEDREASONVIEW
-#define svdvaluesview_                    SVDVALUESVIEW
-#define svdvectorsview_                   SVDVECTORSVIEW
-#define svdsettype_                       SVDSETTYPE
-#define svdgettype_                       SVDGETTYPE
 #define svdmonitorset_                    SVDMONITORSET
 #define svdmonitorall_                    SVDMONITORALL
 #define svdmonitorfirst_                  SVDMONITORFIRST
@@ -27,40 +19,13 @@
 #define svdmonitorconverged_              SVDMONITORCONVERGED
 #define svdmonitorconvergedcreate_        SVDMONITORCONVERGEDCREATE
 #define svdmonitorconvergeddestroy_       SVDMONITORCONVERGEDDESTROY
-#define svdsetoptionsprefix_              SVDSETOPTIONSPREFIX
-#define svdappendoptionsprefix_           SVDAPPENDOPTIONSPREFIX
-#define svdgetoptionsprefix_              SVDGETOPTIONSPREFIX
 #define svdconvergedabsolute_             SVDCONVERGEDABSOLUTE
 #define svdconvergedrelative_             SVDCONVERGEDRELATIVE
 #define svdconvergednorm_                 SVDCONVERGEDNORM
 #define svdconvergedmaxit_                SVDCONVERGEDMAXIT
 #define svdsetconvergencetestfunction_    SVDSETCONVERGENCETESTFUNCTION
 #define svdsetstoppingtestfunction_       SVDSETSTOPPINGTESTFUNCTION
-#define svdgetdimensions000_              SVDGETDIMENSIONS000
-#define svdgetdimensions100_              SVDGETDIMENSIONS100
-#define svdgetdimensions010_              SVDGETDIMENSIONS010
-#define svdgetdimensions001_              SVDGETDIMENSIONS001
-#define svdgetdimensions110_              SVDGETDIMENSIONS110
-#define svdgetdimensions011_              SVDGETDIMENSIONS011
-#define svdgetdimensions101_              SVDGETDIMENSIONS101
-#define svdgetsingulartriplet0_           SVDGETSINGULARTRIPLET0
-#define svdgetsingulartriplet1_           SVDGETSINGULARTRIPLET1
-#define svdgettolerances00_               SVDGETTOLERANCES00
-#define svdgettolerances10_               SVDGETTOLERANCES10
-#define svdgettolerances01_               SVDGETTOLERANCES01
-#define svdsetinitialspaces00_            SVDSETINITIALSPACES00
-#define svdsetinitialspaces01_            SVDSETINITIALSPACES01
-#define svdsetinitialspaces10_            SVDSETINITIALSPACES10
-#define svdsetinitialspaces11_            SVDSETINITIALSPACES11
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define svddestroy_                       svddestroy
-#define svdview_                          svdview
-#define svderrorview_                     svderrorview
-#define svdconvergedreasonview_           svdconvergedreasonview
-#define svdvaluesview_                    svdvaluesview
-#define svdvectorsview_                   svdvectorsview
-#define svdsettype_                       svdsettype
-#define svdgettype_                       svdgettype
 #define svdmonitorset_                    svdmonitorset
 #define svdmonitorall_                    svdmonitorall
 #define svdmonitorfirst_                  svdmonitorfirst
@@ -68,31 +33,12 @@
 #define svdmonitorconverged_              svdmonitorconverged
 #define svdmonitorconvergedcreate_        svdmonitorconvergedcreate
 #define svdmonitorconvergeddestroy_       svdmonitorconvergeddestroy
-#define svdsetoptionsprefix_              svdsetoptionsprefix
-#define svdappendoptionsprefix_           svdappendoptionsprefix
-#define svdgetoptionsprefix_              svdgetoptionsprefix
 #define svdconvergedabsolute_             svdconvergedabsolute
 #define svdconvergedrelative_             svdconvergedrelative
 #define svdconvergednorm_                 svdconvergednorm
 #define svdconvergedmaxit_                svdconvergedmaxit
 #define svdsetconvergencetestfunction_    svdsetconvergencetestfunction
 #define svdsetstoppingtestfunction_       svdsetstoppingtestfunction
-#define svdgetdimensions000_              svdgetdimensions000
-#define svdgetdimensions100_              svdgetdimensions100
-#define svdgetdimensions010_              svdgetdimensions010
-#define svdgetdimensions001_              svdgetdimensions001
-#define svdgetdimensions110_              svdgetdimensions110
-#define svdgetdimensions011_              svdgetdimensions011
-#define svdgetdimensions101_              svdgetdimensions101
-#define svdgetsingulartriplet0_           svdgetsingulartriplet0
-#define svdgetsingulartriplet1_           svdgetsingulartriplet1
-#define svdgettolerances00_               svdgettolerances00
-#define svdgettolerances10_               svdgettolerances10
-#define svdgettolerances01_               svdgettolerances01
-#define svdsetinitialspaces00_            svdsetinitialspaces00
-#define svdsetinitialspaces01_            svdsetinitialspaces01
-#define svdsetinitialspaces10_            svdsetinitialspaces10
-#define svdsetinitialspaces11_            svdsetinitialspaces11
 #endif
 
 /*
@@ -175,66 +121,6 @@ static PetscErrorCode ourstopdestroy(void *ctx)
   PetscObjectUseFortranCallback(svd,_cb.stopdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-SLEPC_EXTERN void svddestroy_(SVD *svd,PetscErrorCode *ierr)
-{
-  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(svd);
-  *ierr = SVDDestroy(svd); if (*ierr) return;
-  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(svd);
-}
-
-SLEPC_EXTERN void svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDView(*svd,v);
-}
-
-SLEPC_EXTERN void svdconvergedreasonview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDConvergedReasonView(*svd,v);
-}
-
-SLEPC_EXTERN void svderrorview_(SVD *svd,SVDErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDErrorView(*svd,*etype,v);
-}
-
-SLEPC_EXTERN void svdvaluesview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDValuesView(*svd,v);
-}
-
-SLEPC_EXTERN void svdvectorsview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
-{
-  PetscViewer v;
-  PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDVectorsView(*svd,v);
-}
-
-SLEPC_EXTERN void svdsettype_(SVD *svd,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(type,len,t);
-  *ierr = SVDSetType(*svd,t);if (*ierr) return;
-  FREECHAR(type,t);
-}
-
-SLEPC_EXTERN void svdgettype_(SVD *svd,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  SVDType tname;
-
-  *ierr = SVDGetType(*svd,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
 SLEPC_EXTERN void svdmonitorset_(SVD *svd,void (*monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(mctx);
@@ -250,33 +136,6 @@ SLEPC_EXTERN void svdmonitorset_(SVD *svd,void (*monitor)(SVD*,PetscInt*,PetscIn
     *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
     *ierr = SVDMonitorSet(*svd,ourmonitor,*svd,ourdestroy);
   }
-}
-
-SLEPC_EXTERN void svdsetoptionsprefix_(SVD *svd,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = SVDSetOptionsPrefix(*svd,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void svdappendoptionsprefix_(SVD *svd,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  char *t;
-
-  FIXCHAR(prefix,len,t);
-  *ierr = SVDAppendOptionsPrefix(*svd,t);if (*ierr) return;
-  FREECHAR(prefix,t);
-}
-
-SLEPC_EXTERN void svdgetoptionsprefix_(SVD *svd,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  const char *tname;
-
-  *ierr = SVDGetOptionsPrefix(*svd,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 SLEPC_EXTERN void svdconvergedabsolute_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
@@ -334,112 +193,4 @@ SLEPC_EXTERN void svdsetstoppingtestfunction_(SVD *svd,void (*func)(SVD*,PetscIn
     *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.stopdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
     *ierr = SVDSetStoppingTestFunction(*svd,ourstopping,*svd,ourstopdestroy);
   }
-}
-
-SLEPC_EXTERN void svdgetdimensions_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLINTEGER(nev);
-  CHKFORTRANNULLINTEGER(ncv);
-  CHKFORTRANNULLINTEGER(mpd);
-  *ierr = SVDGetDimensions(*svd,nev,ncv,mpd);
-}
-
-SLEPC_EXTERN void svdgetdimensions000_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void svdgetdimensions100_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void svdgetdimensions010_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void svdgetdimensions001_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void svdgetdimensions110_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void svdgetdimensions011_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void svdgetdimensions101_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
-{
-  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
-}
-
-SLEPC_EXTERN void svdgetsingulartriplet_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLREAL(sigma);
-  *ierr = SVDGetSingularTriplet(*svd,*i,sigma,*u,*v);
-}
-
-SLEPC_EXTERN void svdgetsingulartriplet0_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v, PetscErrorCode *ierr)
-{
-  svdgetsingulartriplet_(svd,i,sigma,u,v,ierr);
-}
-
-SLEPC_EXTERN void svdgetsingulartriplet1_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v, PetscErrorCode *ierr)
-{
-  svdgetsingulartriplet_(svd,i,sigma,u,v,ierr);
-}
-
-SLEPC_EXTERN void svdgettolerances_(SVD *svd,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLREAL(tol);
-  CHKFORTRANNULLINTEGER(maxits);
-  *ierr = SVDGetTolerances(*svd,tol,maxits);
-}
-
-SLEPC_EXTERN void svdgettolerances00_(SVD *svd,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  svdgettolerances_(svd,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void svdgettolerances10_(SVD *svd,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  svdgettolerances_(svd,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void svdgettolerances01_(SVD *svd,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
-{
-  svdgettolerances_(svd,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void svdsetinitialspaces_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLOBJECT(isr);
-  CHKFORTRANNULLOBJECT(isl);
-  *ierr = SVDSetInitialSpaces(*svd,*nr,isr,*nl,isl);
-}
-
-SLEPC_EXTERN void svdsetinitialspaces00_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,PetscErrorCode *ierr)
-{
-  svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
-}
-
-SLEPC_EXTERN void svdsetinitialspaces01_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,PetscErrorCode *ierr)
-{
-  svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
-}
-
-SLEPC_EXTERN void svdsetinitialspaces10_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,PetscErrorCode *ierr)
-{
-  svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
-}
-
-SLEPC_EXTERN void svdsetinitialspaces11_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,PetscErrorCode *ierr)
-{
-  svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
 }

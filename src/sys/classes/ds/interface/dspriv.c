@@ -84,7 +84,7 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSViewMat - Prints one of the internal DS matrices.
 
    Collective
@@ -395,7 +395,7 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSOrthogonalize - Orthogonalize the columns of a matrix.
 
    Logically Collective
@@ -502,7 +502,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSPseudoOrthogonalize - Orthogonalize the columns of a matrix with Modified
    Gram-Schmidt in an indefinite inner product space defined by a signature.
 
@@ -525,7 +525,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
 
 .seealso: DSOrthogonalize()
 @*/
-PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal *s,PetscInt *lindcols,PetscReal *ns)
+PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal s[],PetscInt *lindcols,PetscReal ns[])
 {
   PetscInt       i,j,k,l,n,ld;
   PetscBLASInt   info,one=1,zero=0,rA_,ld_;

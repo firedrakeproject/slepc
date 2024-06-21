@@ -128,7 +128,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MFNGetTolerances - Gets the tolerance and maximum iteration count used
    by the MFN convergence tests.
 
@@ -316,7 +316,7 @@ PetscErrorCode MFNGetErrorIfNotConverged(MFN mfn,PetscBool *flag)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MFNSetOptionsPrefix - Sets the prefix used for searching for all
    MFN options in the database.
 
@@ -354,7 +354,7 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MFNAppendOptionsPrefix - Appends to the prefix used for searching for all
    MFN options in the database.
 
@@ -384,7 +384,7 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    MFNGetOptionsPrefix - Gets the prefix used for searching for all
    MFN options in the database.
 

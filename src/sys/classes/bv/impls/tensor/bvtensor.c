@@ -615,7 +615,7 @@ static PetscErrorCode BVTensorGetFactors_Tensor(BV V,BV *U,Mat *S)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVTensorGetFactors - Returns the two factors involved in the definition of the
    tensor basis vectors object, V = (I otimes U) S.
 
@@ -664,7 +664,7 @@ static PetscErrorCode BVTensorRestoreFactors_Tensor(BV V,BV *U,Mat *S)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    BVTensorRestoreFactors - Restore the two factors that were obtained with
    BVTensorGetFactors().
 

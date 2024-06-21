@@ -371,7 +371,7 @@ static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-/*@C
+/*@
    DSPEPSetCoefficients - Sets the polynomial basis coefficients for a DSPEP.
 
    Logically Collective
@@ -397,10 +397,11 @@ static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
 
 .seealso: DSPEPGetCoefficients(), DSPEPSetDegree()
 @*/
-PetscErrorCode DSPEPSetCoefficients(DS ds,PetscReal *pbc)
+PetscErrorCode DSPEPSetCoefficients(DS ds,PetscReal pbc[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscAssertPointer(pbc,2);
   PetscTryMethod(ds,"DSPEPSetCoefficients_C",(DS,PetscReal*),(ds,pbc));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

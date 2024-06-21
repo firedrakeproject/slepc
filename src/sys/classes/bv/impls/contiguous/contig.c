@@ -355,6 +355,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   PetscCall(BV_SetDefaultLD(bv,nloc));
 
   if (PetscUnlikely(bv->issplit)) {
+    PetscCheck(bv->issplit>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVCONTIGUOUS does not support BVGetSplitRows()");
     /* split BV: share memory and Vecs of the parent BV */
     parent = bv->splitparent;
     lsplit = parent->lsplit;
