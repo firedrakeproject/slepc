@@ -146,36 +146,29 @@ static PetscErrorCode EPSComputeVectors_BSE_Shao(EPS eps)
   BV          U,V;
   IS          is[2];
   PetscInt    k;
-  PetscReal   delta,lambda,norm1,norm2;
-  PetscScalar norminv;
+  PetscScalar eiginv;
 
   PetscFunctionBegin;
   PetscCall(STGetMatrix(eps->st,0,&H));
   PetscCall(MatNestGetISs(H,is,NULL));
   PetscCall(BVGetSplitRows(eps->V,is[0],is[1],&U,&V));
   for (k=0; k<eps->nconv; k++) {
-    lambda = PetscRealPart(eps->eigr[k]);
-    delta  = 1.0/PetscSqrtReal(1.0+lambda*lambda);
+    eiginv = 1.0/eps->eigr[k];
     PetscCall(BVGetColumn(U,k,&u1));
     PetscCall(BVGetColumn(V,k,&v1));
-    /* approx eigenvector is [     u1*eigr[k]*delta+v1*delta ]
-                             [conj(u1*eigr[k]*delta-v1*delta)]  */
-    PetscCall(VecScale(u1,eps->eigr[k]*delta));
-    PetscCall(VecAXPY(u1,delta,v1));
-    PetscCall(VecAYPX(v1,-2.0*delta,u1));
+    /* approx eigenvector is [    (u1+v1*eiginv)/2]
+                             [conj(u1-v1*eiginv)/2]  */
+    PetscCall(VecAXPY(u1,eiginv,v1));
+    PetscCall(VecScale(u1,0.5));
+    PetscCall(VecAYPX(v1,-eiginv,u1));
     PetscCall(VecConjugate(v1));
-    /* Normalize eigenvector */
-    PetscCall(VecNormBegin(u1,NORM_2,&norm1));
-    PetscCall(VecNormBegin(v1,NORM_2,&norm2));
-    PetscCall(VecNormEnd(u1,NORM_2,&norm1));
-    PetscCall(VecNormEnd(v1,NORM_2,&norm2));
-    norminv = 1.0/SlepcAbs(norm1,norm2);
-    PetscCall(VecScale(u1,norminv));
-    PetscCall(VecScale(v1,norminv));
     PetscCall(BVRestoreColumn(U,k,&u1));
     PetscCall(BVRestoreColumn(V,k,&v1));
   }
   PetscCall(BVRestoreSplitRows(eps->V,is[0],is[1],&U,&V));
+  /* Normalize eigenvectors */
+  PetscCall(BVSetActiveColumns(eps->V,0,eps->nconv));
+  PetscCall(BVNormalize(eps->V,NULL));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -351,8 +344,7 @@ static PetscErrorCode EPSComputeVectors_BSE_Gruning(EPS eps)
   BV          U,V;
   IS          is[2];
   PetscInt    k;
-  PetscReal   delta,norm1,norm2;
-  PetscScalar norminv;
+  PetscReal   delta;
 
   PetscFunctionBegin;
   PetscCall(STGetMatrix(eps->st,0,&H));
@@ -373,18 +365,13 @@ static PetscErrorCode EPSComputeVectors_BSE_Gruning(EPS eps)
        [x2]   [x2] */
     PetscCall(VecScale(u1,delta));
     PetscCall(VecScale(v1,delta));
-    /* Normalize eigenvector */
-    PetscCall(VecNormBegin(u1,NORM_2,&norm1));
-    PetscCall(VecNormBegin(v1,NORM_2,&norm2));
-    PetscCall(VecNormEnd(u1,NORM_2,&norm1));
-    PetscCall(VecNormEnd(v1,NORM_2,&norm2));
-    norminv = 1.0/SlepcAbs(norm1,norm2);
-    PetscCall(VecScale(u1,norminv));
-    PetscCall(VecScale(v1,norminv));
     PetscCall(BVRestoreColumn(U,k,&u1));
     PetscCall(BVRestoreColumn(V,k,&v1));
   }
   PetscCall(BVRestoreSplitRows(eps->V,is[0],is[1],&U,&V));
+  /* Normalize eigenvectors */
+  PetscCall(BVSetActiveColumns(eps->V,0,eps->nconv));
+  PetscCall(BVNormalize(eps->V,NULL));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -510,11 +497,10 @@ PetscErrorCode EPSSolve_KrylovSchur_BSE_Shao(EPS eps)
 
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(eps->V,nv,k+l));
     eps->nconv = k;
+    for (k=0; k<eps->ncv; k++) eps->eigr[k] = PetscSqrtReal(PetscRealPart(eps->eigr[k]));
     PetscCall(EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv));
   }
 
-  /* Obtain eigenvalues */
-  for (k=0; k<eps->nconv; k++) eps->eigr[k] = PetscSqrtReal(PetscRealPart(eps->eigr[k]));
   eps->nev = nevsave;
 
   PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
