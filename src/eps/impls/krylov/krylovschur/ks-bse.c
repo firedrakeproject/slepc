@@ -146,21 +146,18 @@ static PetscErrorCode EPSComputeVectors_BSE_Shao(EPS eps)
   BV          U,V;
   IS          is[2];
   PetscInt    k;
-  PetscScalar eiginv;
 
   PetscFunctionBegin;
   PetscCall(STGetMatrix(eps->st,0,&H));
   PetscCall(MatNestGetISs(H,is,NULL));
   PetscCall(BVGetSplitRows(eps->V,is[0],is[1],&U,&V));
   for (k=0; k<eps->nconv; k++) {
-    eiginv = 1.0/eps->eigr[k];
     PetscCall(BVGetColumn(U,k,&u1));
     PetscCall(BVGetColumn(V,k,&v1));
-    /* approx eigenvector is [    (u1+v1*eiginv)/2]
-                             [conj(u1-v1*eiginv)/2]  */
-    PetscCall(VecAXPY(u1,eiginv,v1));
-    PetscCall(VecScale(u1,0.5));
-    PetscCall(VecAYPX(v1,-eiginv,u1));
+    /* approx eigenvector is [    (eigr[k]*u1+v1)]
+                             [conj(eigr[k]*u1-v1)]  */
+    PetscCall(VecAYPX(u1,eps->eigr[k],v1));
+    PetscCall(VecAYPX(v1,-2.0,u1));
     PetscCall(VecConjugate(v1));
     PetscCall(BVRestoreColumn(U,k,&u1));
     PetscCall(BVRestoreColumn(V,k,&v1));
@@ -344,27 +341,21 @@ static PetscErrorCode EPSComputeVectors_BSE_Gruning(EPS eps)
   BV          U,V;
   IS          is[2];
   PetscInt    k;
-  PetscReal   delta;
 
   PetscFunctionBegin;
   PetscCall(STGetMatrix(eps->st,0,&H));
   PetscCall(MatNestGetISs(H,is,NULL));
   PetscCall(BVGetSplitRows(eps->V,is[0],is[1],&U,&V));
-  /* approx eigenvector [x1] is [     (u1+v1)/delta ]
-                        [x2]    [(conj(u1)-conj(v1))/delta)]  */
-  delta = PetscSqrtReal(2);
+  /* approx eigenvector [x1] is [     u1+v1       ]
+                        [x2]    [conj(u1)-conj(v1)]  */
   for (k=0; k<eps->nconv; k++) {
     PetscCall(BVGetColumn(U,k,&u1));
     PetscCall(BVGetColumn(V,k,&v1));
     /* x1 = u1 + v1 */
-    PetscCall(VecAXPY(u1,1,v1));
+    PetscCall(VecAXPY(u1,1.0,v1));
     /* x2 = conj(u1) - conj(v1) = conj(u1 - v1) = conj((u1 + v1) - 2*v1) */
-    PetscCall(VecAYPX(v1,-2,u1));
+    PetscCall(VecAYPX(v1,-2.0,u1));
     PetscCall(VecConjugate(v1));
-    /* [x1] = [x1] / delta
-       [x2]   [x2] */
-    PetscCall(VecScale(u1,delta));
-    PetscCall(VecScale(v1,delta));
     PetscCall(BVRestoreColumn(U,k,&u1));
     PetscCall(BVRestoreColumn(V,k,&v1));
   }
