@@ -272,12 +272,12 @@ PetscErrorCode PEPConvergedReasonViewFromOptions(PEP pep)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_converged_reason",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_converged_reason",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(PEPConvergedReasonView(pep,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -455,26 +455,26 @@ PetscErrorCode PEPErrorViewFromOptions(PEP pep)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_error_absolute",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_error_absolute",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(PEPErrorView(pep,PEP_ERROR_ABSOLUTE,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_error_relative",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_error_relative",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(PEPErrorView(pep,PEP_ERROR_RELATIVE,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_error_backward",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_error_backward",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -702,12 +702,12 @@ PetscErrorCode PEPValuesViewFromOptions(PEP pep)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_view_values",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_view_values",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(PEPValuesView(pep,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -787,12 +787,12 @@ PetscErrorCode PEPVectorsViewFromOptions(PEP pep)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_view_vectors",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_view_vectors",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(PEPVectorsView(pep,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);

@@ -583,7 +583,7 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
   PetscBool            flg;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,opt,&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,opt,&viewer,&format,&flg));
   if (!flg) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetType(viewer,&vtype));
@@ -596,7 +596,7 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
   PetscCall((*cfunc)(viewer,format,ctx,&vf));
-  PetscCall(PetscOptionsRestoreViewer(&viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
   PetscCall(SVDMonitorSet(svd,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   if (trackall) PetscCall(SVDSetTrackAll(svd,PETSC_TRUE));
   PetscFunctionReturn(PETSC_SUCCESS);
