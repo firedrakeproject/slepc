@@ -273,12 +273,12 @@ PetscErrorCode EPSConvergedReasonViewFromOptions(EPS eps)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_converged_reason",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_converged_reason",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSConvergedReasonView(eps,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -456,26 +456,26 @@ PetscErrorCode EPSErrorViewFromOptions(EPS eps)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_absolute",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_absolute",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSErrorView(eps,EPS_ERROR_ABSOLUTE,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_relative",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_relative",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_backward",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_backward",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSErrorView(eps,EPS_ERROR_BACKWARD,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -703,12 +703,12 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_values",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_values",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSValuesView(eps,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -796,12 +796,12 @@ PetscErrorCode EPSVectorsViewFromOptions(EPS eps)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(PETSC_SUCCESS);
   incall = PETSC_TRUE;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_vectors",&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_vectors",&viewer,&format,&flg));
   if (flg) {
     PetscCall(PetscViewerPushFormat(viewer,format));
     PetscCall(EPSVectorsView(eps,viewer));
     PetscCall(PetscViewerPopFormat(viewer));
-    PetscCall(PetscOptionsRestoreViewer(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(PETSC_SUCCESS);

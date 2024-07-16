@@ -45,7 +45,7 @@ PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char opt[],const char name
   PetscBool            flg;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,opt,&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,opt,&viewer,&format,&flg));
   if (!flg) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetType(viewer,&vtype));
@@ -58,7 +58,7 @@ PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char opt[],const char name
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
   PetscCall((*cfunc)(viewer,format,ctx,&vf));
-  PetscCall(PetscOptionsRestoreViewer(&viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
   PetscCall(EPSMonitorSet(eps,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   if (trackall) PetscCall(EPSSetTrackAll(eps,PETSC_TRUE));
   PetscFunctionReturn(PETSC_SUCCESS);
