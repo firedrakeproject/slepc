@@ -45,7 +45,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name
   PetscBool            flg;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,opt,&viewer,&format,&flg));
+  PetscCall(PetscOptionsCreateViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,opt,&viewer,&format,&flg));
   if (!flg) PetscFunctionReturn(PETSC_SUCCESS);
 
   PetscCall(PetscViewerGetType(viewer,&vtype));
@@ -58,7 +58,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
   PetscCall((*cfunc)(viewer,format,ctx,&vf));
-  PetscCall(PetscOptionsRestoreViewer(&viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
   PetscCall(NEPMonitorSet(nep,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   if (trackall) PetscCall(NEPSetTrackAll(nep,PETSC_TRUE));
   PetscFunctionReturn(PETSC_SUCCESS);

@@ -363,7 +363,7 @@ PetscErrorCode PEPMonitorConvergedDestroy(PetscViewerAndFormat **vf)
   PetscFunctionBegin;
   if (!*vf) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(PetscFree((*vf)->data));
-  PetscCall(PetscOptionsRestoreViewer(&(*vf)->viewer));
+  PetscCall(PetscViewerDestroy(&(*vf)->viewer));
   PetscCall(PetscDrawLGDestroy(&(*vf)->lg));
   PetscCall(PetscFree(*vf));
   PetscFunctionReturn(PETSC_SUCCESS);
