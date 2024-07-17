@@ -215,7 +215,7 @@ cdef extern from * nogil:
     ctypedef enum SlepcEPSKrylovSchurBSEType "EPSKrylovSchurBSEType":
         EPS_KRYLOVSCHUR_BSE_SHAO
         EPS_KRYLOVSCHUR_BSE_GRUNING
-        EPS_KRYLOVSCHUR_BSE_SYMPLECTIC
+        EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE
     PetscErrorCode EPSKrylovSchurSetBSEType(SlepcEPS,SlepcEPSKrylovSchurBSEType)
     PetscErrorCode EPSKrylovSchurGetBSEType(SlepcEPS,SlepcEPSKrylovSchurBSEType*)
     PetscErrorCode EPSKrylovSchurSetRestart(SlepcEPS,PetscReal)

@@ -1356,7 +1356,7 @@ static PetscErrorCode EPSKrylovSchurSetBSEType_KrylovSchur(EPS eps,EPSKrylovSchu
   switch (bse) {
     case EPS_KRYLOVSCHUR_BSE_SHAO:
     case EPS_KRYLOVSCHUR_BSE_GRUNING:
-    case EPS_KRYLOVSCHUR_BSE_SYMPLECTIC:
+    case EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE:
       if (ctx->bse != bse) {
         ctx->bse = bse;
         eps->state = EPS_STATE_INITIAL;
@@ -1379,7 +1379,7 @@ static PetscErrorCode EPSKrylovSchurSetBSEType_KrylovSchur(EPS eps,EPSKrylovSchu
 -  bse - the BSE method
 
    Options Database Key:
-.  -eps_krylovschur_bse_type - Sets the BSE type (either 'shao', 'gruning', or 'symplectic')
+.  -eps_krylovschur_bse_type - Sets the BSE type (either 'shao', 'gruning', or 'projectedbse')
 
    Level: advanced
 

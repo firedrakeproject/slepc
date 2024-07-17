@@ -210,13 +210,13 @@ class EPSKrylovSchurBSEType(object):
     """
     EPS Krylov-Schur method for BSE problems
 
-    - `SHAO`:       Lanczos recurrence for H square.
-    - `GRUNING`:    Lanczos recurrence for H.
-    - `SYMPLECTIC`: Symplectic Lanczos.
+    - `SHAO`:         Lanczos recurrence for H square.
+    - `GRUNING`:      Lanczos recurrence for H.
+    - `PROJECTEDBSE`: Lanczos where the projected problem has BSE structure.
     """
-    SHAO       = EPS_KRYLOVSCHUR_BSE_SHAO
-    GRUNING    = EPS_KRYLOVSCHUR_BSE_GRUNING
-    SYMPLECTIC = EPS_KRYLOVSCHUR_BSE_SYMPLECTIC
+    SHAO         = EPS_KRYLOVSCHUR_BSE_SHAO
+    GRUNING      = EPS_KRYLOVSCHUR_BSE_GRUNING
+    PROJECTEDBSE = EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE
 
 class EPSLanczosReorthogType(object):
     """

@@ -349,7 +349,7 @@ SLEPC_EXTERN PetscErrorCode EPSArnoldiGetDelayed(EPS,PetscBool*);
 E*/
 typedef enum { EPS_KRYLOVSCHUR_BSE_SHAO,
                EPS_KRYLOVSCHUR_BSE_GRUNING,
-               EPS_KRYLOVSCHUR_BSE_SYMPLECTIC } EPSKrylovSchurBSEType;
+               EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE } EPSKrylovSchurBSEType;
 SLEPC_EXTERN const char *EPSKrylovSchurBSETypes[];
 
 SLEPC_EXTERN PetscErrorCode EPSKrylovSchurSetBSEType(EPS,EPSKrylovSchurBSEType);

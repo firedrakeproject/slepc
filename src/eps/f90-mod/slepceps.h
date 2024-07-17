@@ -72,9 +72,9 @@
       PetscEnum, parameter :: EPS_POWER_SHIFT_RAYLEIGH   =  1
       PetscEnum, parameter :: EPS_POWER_SHIFT_WILKINSON  =  2
 
-      PetscEnum, parameter :: EPS_KRYLOVSCHUR_BSE_SHAO       =  0
-      PetscEnum, parameter :: EPS_KRYLOVSCHUR_BSE_GRUNING    =  1
-      PetscEnum, parameter :: EPS_KRYLOVSCHUR_BSE_SYMPLECTIC =  2
+      PetscEnum, parameter :: EPS_KRYLOVSCHUR_BSE_SHAO         =  0
+      PetscEnum, parameter :: EPS_KRYLOVSCHUR_BSE_GRUNING      =  1
+      PetscEnum, parameter :: EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE =  2
 
       PetscEnum, parameter :: EPS_LANCZOS_REORTHOG_LOCAL     =  0
       PetscEnum, parameter :: EPS_LANCZOS_REORTHOG_FULL      =  1
