@@ -345,7 +345,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   maxnsol = svd->isgeneralized? PetscMin(PetscMin(M,N),P): PetscMin(M,N);
   svd->ncv = PetscMin(svd->ncv,maxnsol);
   svd->nsv = PetscMin(svd->nsv,maxnsol);
-  PetscCheck(svd->ncv==PETSC_DEFAULT || svd->nsv<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
+  PetscCheck(svd->ncv==PETSC_DETERMINE || svd->nsv<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   /* relative convergence criterion is not allowed in GSVD */
   if (svd->conv==(SVDConv)-1) PetscCall(SVDSetConvergenceTest(svd,svd->isgeneralized?SVD_CONV_NORM:SVD_CONV_REL));
@@ -358,7 +358,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscUseTypeMethod(svd,setup);
 
   /* set tolerance if not yet set */
-  if (svd->tol==(PetscReal)PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
+  if (svd->tol==(PetscReal)PETSC_DETERMINE) svd->tol = SLEPC_DEFAULT_TOL;
 
   /* fill sorting criterion context */
   PetscCall(DSGetSlepcSC(svd->ds,&sc));
@@ -462,9 +462,9 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
     PetscCall(MatGetSize(svd->OPb,&P,NULL));
     maxnsol = PetscMin(maxnsol,P);
   }
-  if (svd->ncv!=PETSC_DEFAULT) { /* ncv set */
+  if (svd->ncv!=PETSC_DETERMINE) { /* ncv set */
     PetscCheck(svd->ncv>=svd->nsv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nsv");
-  } else if (svd->mpd!=PETSC_DEFAULT) { /* mpd set */
+  } else if (svd->mpd!=PETSC_DETERMINE) { /* mpd set */
     svd->ncv = PetscMin(maxnsol,svd->nsv+svd->mpd);
   } else { /* neither set: defaults depend on nsv being small or large */
     if (svd->nsv<500) svd->ncv = PetscMin(maxnsol,PetscMax(2*svd->nsv,10));
@@ -473,7 +473,7 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
       svd->ncv = PetscMin(maxnsol,svd->nsv+svd->mpd);
     }
   }
-  if (svd->mpd==PETSC_DEFAULT) svd->mpd = svd->ncv;
+  if (svd->mpd==PETSC_DETERMINE) svd->mpd = svd->ncv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

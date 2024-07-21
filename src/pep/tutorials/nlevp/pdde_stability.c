@@ -118,7 +118,7 @@ int main(int argc,char **argv)
   PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
   PetscCall(PEPSetOperators(pep,NMAT,A));
   PetscCall(PEPSetEigenvalueComparison(pep,MyEigenSort,NULL));
-  PetscCall(PEPSetDimensions(pep,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(PEPSetDimensions(pep,4,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(PEPSetFromOptions(pep));
   PetscCall(PEPSolve(pep));
 

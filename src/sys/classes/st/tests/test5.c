@@ -85,7 +85,7 @@ int main (int argc,char **argv)
   PetscCall(KSPSetType(ksp,KSPPREONLY));
   PetscCall(KSPGetPC(ksp,&pc));
   PetscCall(PCSetType(pc,PCLU));
-  PetscCall(KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   PetscCall(KSPSetFromOptions(ksp));
   PetscCall(STSetKSP(st,ksp));
   PetscCall(KSPDestroy(&ksp));

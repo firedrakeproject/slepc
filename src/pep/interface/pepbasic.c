@@ -54,13 +54,13 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   PetscCall(PEPInitializePackage());
   PetscCall(SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView));
 
-  pep->max_it          = PETSC_DEFAULT;
+  pep->max_it          = PETSC_DETERMINE;
   pep->nev             = 1;
-  pep->ncv             = PETSC_DEFAULT;
-  pep->mpd             = PETSC_DEFAULT;
+  pep->ncv             = PETSC_DETERMINE;
+  pep->mpd             = PETSC_DETERMINE;
   pep->nini            = 0;
   pep->target          = 0.0;
-  pep->tol             = PETSC_DEFAULT;
+  pep->tol             = PETSC_DETERMINE;
   pep->conv            = PEP_CONV_REL;
   pep->stop            = PEP_STOP_BASIC;
   pep->which           = (PEPWhich)0;
@@ -73,8 +73,8 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->slambda         = 1.0;
   pep->refine          = PEP_REFINE_NONE;
   pep->npart           = 1;
-  pep->rtol            = PETSC_DEFAULT;
-  pep->rits            = PETSC_DEFAULT;
+  pep->rtol            = PETSC_DETERMINE;
+  pep->rits            = PETSC_DETERMINE;
   pep->scheme          = (PEPRefineScheme)0;
   pep->extract         = (PEPExtract)0;
   pep->trackall        = PETSC_FALSE;
@@ -624,7 +624,7 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
     PetscCall(PetscObjectSetOptions((PetscObject)pep->refineksp,((PetscObject)pep)->options));
     PetscCall(KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix));
     PetscCall(KSPAppendOptionsPrefix(*ksp,"pep_refine_"));
-    PetscCall(KSPSetTolerances(pep->refineksp,SlepcDefaultTol(pep->rtol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(pep->refineksp,SlepcDefaultTol(pep->rtol),PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
   *ksp = pep->refineksp;
   PetscFunctionReturn(PETSC_SUCCESS);

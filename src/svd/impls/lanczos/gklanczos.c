@@ -45,7 +45,7 @@ static PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   PetscCall(MatGetSize(svd->A,NULL,&N));
   PetscCall(SVDSetDimensions_Default(svd));
   PetscCheck(svd->ncv<=svd->nsv+svd->mpd,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
-  if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
+  if (svd->max_it==PETSC_DETERMINE) svd->max_it = PetscMax(N/svd->ncv,100);
   svd->leftbasis = PetscNot(lanczos->oneside);
   PetscCall(SVDAllocateSolution(svd,1));
   PetscCall(DSSetType(svd->ds,DSSVD));

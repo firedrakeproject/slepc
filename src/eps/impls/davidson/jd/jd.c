@@ -85,7 +85,7 @@ static PetscErrorCode EPSSetDefaultST_JD(EPS eps)
   PetscCall(STGetKSP(eps->st,&ksp));
   if (!((PetscObject)ksp)->type_name) {
     PetscCall(KSPSetType(ksp,KSPBCGSL));
-    PetscCall(KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90));
+    PetscCall(KSPSetTolerances(ksp,1e-4,PETSC_CURRENT,PETSC_CURRENT,90));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -275,6 +275,10 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
    Options Database Keys:
 +  -eps_jd_minv - number of vectors of the searching subspace after restarting
 -  -eps_jd_plusk - number of vectors saved from the previous iteration
+
+   Note:
+   PETSC_CURRENT can be used to preserve the current value of any of the
+   arguments, and PETSC_DETERMINE to set them to a default value.
 
    Level: advanced
 
@@ -597,7 +601,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   data->blocksize   = 1;
   data->initialsize = 0;
   data->minv        = 0;
-  data->plusk       = PETSC_DEFAULT;
+  data->plusk       = PETSC_DETERMINE;
   data->ipB         = PETSC_TRUE;
   data->fix         = 0.01;
   data->krylovstart = PETSC_FALSE;

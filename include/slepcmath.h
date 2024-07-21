@@ -31,7 +31,7 @@
 
 static inline PetscReal SlepcDefaultTol(PetscReal tol)
 {
-  return tol == (PetscReal)PETSC_DEFAULT ? SLEPC_DEFAULT_TOL : tol;
+  return tol == (PetscReal)PETSC_DETERMINE ? SLEPC_DEFAULT_TOL : tol;
 }
 
 /*@C

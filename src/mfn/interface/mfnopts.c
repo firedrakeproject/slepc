@@ -96,7 +96,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
     i = mfn->max_it;
     PetscCall(PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,&flg1));
-    if (!flg1) i = PETSC_DEFAULT;
+    if (!flg1) i = PETSC_DETERMINE;
     r = mfn->tol;
     PetscCall(PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",SlepcDefaultTol(mfn->tol),&r,&flg2));
     if (flg1 || flg2) PetscCall(MFNSetTolerances(mfn,r,i));
@@ -173,7 +173,10 @@ PetscErrorCode MFNGetTolerances(MFN mfn,PetscReal *tol,PetscInt *maxits)
 -  -mfn_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
+   Use PETSC_CURRENT to retain the current value of any of the parameters.
+   Use PETSC_DETERMINE for either argument to assign a default value computed
+   internally (may be different in each solver).
+   For maxits use PETSC_UMLIMITED to indicate there is no upper bound on this value.
 
    Level: intermediate
 
@@ -185,17 +188,19 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveReal(mfn,tol,2);
   PetscValidLogicalCollectiveInt(mfn,maxits,3);
-  if (tol == (PetscReal)PETSC_DEFAULT) {
-    mfn->tol = PETSC_DEFAULT;
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    mfn->tol = PETSC_DETERMINE;
     mfn->setupcalled = 0;
-  } else {
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     mfn->tol = tol;
   }
-  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    mfn->max_it = PETSC_DEFAULT;
+  if (maxits == PETSC_DETERMINE) {
+    mfn->max_it = PETSC_DETERMINE;
     mfn->setupcalled = 0;
-  } else {
+  } else if (maxits == PETSC_UNLIMITED) {
+    mfn->max_it = PETSC_INT_MAX;
+  } else if (maxits != PETSC_CURRENT) {
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     mfn->max_it = maxits;
   }
@@ -239,7 +244,7 @@ PetscErrorCode MFNGetDimensions(MFN mfn,PetscInt *ncv)
 .  -mfn_ncv <ncv> - Sets the dimension of the subspace
 
    Notes:
-   Use PETSC_DEFAULT for ncv to assign a reasonably good value, which is
+   Use PETSC_DETERMINE for ncv to assign a reasonably good value, which is
    dependent on the solution method.
 
    Level: intermediate
@@ -252,7 +257,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveInt(mfn,ncv,2);
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    mfn->ncv = PETSC_DEFAULT;
+    mfn->ncv = PETSC_DETERMINE;
   } else {
     PetscCheck(ncv>0,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     mfn->ncv = ncv;

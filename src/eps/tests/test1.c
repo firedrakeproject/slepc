@@ -68,7 +68,7 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,A,B));
   PetscCall(EPSSetProblemType(eps,EPS_GHEP));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
   PetscCall(EPSSetConvergenceTest(eps,EPS_CONV_NORM));
   PetscCall(EPSSetFromOptions(eps));
 

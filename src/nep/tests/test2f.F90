@@ -166,7 +166,7 @@
 
       nev = 1
       ncv = 12
-      PetscCallA(NEPSetDimensions(nep,nev,ncv,PETSC_DEFAULT_INTEGER,ierr))
+      PetscCallA(NEPSetDimensions(nep,nev,ncv,PETSC_DETERMINE_INTEGER,ierr))
       PetscCallA(NEPGetDimensions(nep,nev,ncv,mpd,ierr))
       if (rank .eq. 0) then
         write(*,210) nev,ncv,mpd

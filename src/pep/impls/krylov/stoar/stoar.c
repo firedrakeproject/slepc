@@ -132,7 +132,7 @@ static PetscErrorCode PEPSetUp_STOAR(PEP pep)
   } else {
     PetscCall(PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd));
     PetscCheck(ctx->lock || pep->mpd>=pep->ncv,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-    if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
+    if (pep->max_it==PETSC_DETERMINE) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
     pep->ops->solve = PEPSolve_STOAR;
     ld   = pep->ncv+2;
     PetscCall(DSSetType(pep->ds,DSGHIEP));
@@ -348,7 +348,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
   /* Get the starting Arnoldi vector */
   PetscCall(BVTensorBuildFirstColumn(ctx->V,pep->nini));
-  PetscCall(DSSetDimensions(pep->ds,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSSetDimensions(pep->ds,1,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(BVSetActiveColumns(ctx->V,0,1));
   PetscCall(DSGetMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
   PetscCall(BVGetSignature(ctx->V,vomega));
@@ -419,7 +419,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     /* Copy last column of S */
     PetscCall(BVCopyColumn(ctx->V,nv,k+l));
     PetscCall(BVSetActiveColumns(ctx->V,0,k+l));
-    PetscCall(DSSetDimensions(pep->ds,k+l,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(DSSetDimensions(pep->ds,k+l,PETSC_DETERMINE,PETSC_DETERMINE));
     PetscCall(DSGetMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
     PetscCall(BVSetSignature(ctx->V,vomega));
     PetscCall(DSRestoreMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
@@ -837,17 +837,19 @@ static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt 
   PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
-  PetscCheck(nev>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
-  ctx->nev = nev;
-  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    ctx->ncv = PETSC_DEFAULT;
-  } else {
+  if (nev != PETSC_CURRENT) {
+    PetscCheck(nev>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+    ctx->nev = nev;
+  }
+  if (ncv == PETSC_DETERMINE) {
+    ctx->ncv = PETSC_DETERMINE;
+  } else if (ncv != PETSC_CURRENT) {
     PetscCheck(ncv>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     ctx->ncv = ncv;
   }
-  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    ctx->mpd = PETSC_DEFAULT;
-  } else {
+  if (mpd == PETSC_DETERMINE) {
+    ctx->mpd = PETSC_DETERMINE;
+  } else if (mpd != PETSC_CURRENT) {
     PetscCheck(mpd>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     ctx->mpd = mpd;
   }
@@ -869,9 +871,9 @@ static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt 
 -  mpd - the maximum dimension allowed for the projected problem
 
    Options Database Key:
-+  -eps_stoar_nev <nev> - Sets the number of eigenvalues
-.  -eps_stoar_ncv <ncv> - Sets the dimension of the subspace
--  -eps_stoar_mpd <mpd> - Sets the maximum projected dimension
++  -pep_stoar_nev <nev> - Sets the number of eigenvalues
+.  -pep_stoar_ncv <ncv> - Sets the dimension of the subspace
+-  -pep_stoar_mpd <mpd> - Sets the maximum projected dimension
 
    Level: advanced
 
@@ -1060,8 +1062,8 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->lineariz = PETSC_TRUE;
   ctx->lock     = PETSC_TRUE;
   ctx->nev      = 1;
-  ctx->ncv      = PETSC_DEFAULT;
-  ctx->mpd      = PETSC_DEFAULT;
+  ctx->ncv      = PETSC_DETERMINE;
+  ctx->mpd      = PETSC_DETERMINE;
   ctx->alpha    = 1.0;
   ctx->beta     = 0.0;
   ctx->checket  = PETSC_TRUE;

@@ -785,13 +785,15 @@ static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  if (tol == (PetscReal)PETSC_DEFAULT) ctx->rtol = PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
-  else {
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    ctx->rtol = PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The tolerance must be > 0");
     ctx->rtol = tol;
   }
-  if (its == PETSC_DECIDE || its == PETSC_DEFAULT) ctx->Nit = 3;
-  else {
+  if (its == PETSC_DETERMINE) {
+    ctx->Nit = 3;
+  } else if (its != PETSC_CURRENT) {
     PetscCheck(its>=0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
     ctx->Nit = its;
   }
@@ -816,6 +818,10 @@ static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
    Notes:
    Iterative refinement of eigenpairs is currently used only in the contour
    integral method.
+
+   Use PETSC_CURRENT to retain the current value of any of the parameters.
+   Use PETSC_DETERMINE for either argument to assign a default value computed
+   internally.
 
    Level: advanced
 
@@ -950,6 +956,7 @@ static PetscErrorCode DSNEPSetSamplingSize_NEP(DS ds,PetscInt p)
   PetscFunctionBegin;
   if (p == PETSC_DECIDE || p == PETSC_DEFAULT) ctx->spls = 0;
   else {
+    PetscCheck(p>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The sample size must be > 0");
     PetscCheck(p>=20,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The sample size cannot be smaller than 20");
     ctx->spls = p;
   }

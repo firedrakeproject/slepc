@@ -28,11 +28,11 @@ static PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   EPSCheckHermitian(eps);
   EPSCheckStandard(eps);
   PetscCall(PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan));
-  if (eps->ncv!=PETSC_DEFAULT) {
+  if (eps->ncv!=PETSC_DETERMINE) {
     PetscCheck(eps->ncv>=eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
   } else eps->ncv = tr->maxlan;
-  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000,eps->n);
+  if (eps->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PetscMax(1000,eps->n);
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
   PetscCheck(eps->which==EPS_SMALLEST_REAL || eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest, largest or target real eigenvalues");

@@ -223,7 +223,7 @@ static PetscErrorCode EPSSetUp_CISS(EPS eps)
   Vec              v0;
 
   PetscFunctionBegin;
-  if (eps->ncv==PETSC_DEFAULT) {
+  if (eps->ncv==PETSC_DETERMINE) {
     eps->ncv = ctx->L_max*ctx->M;
     if (eps->ncv>eps->n) {
       eps->ncv = eps->n;
@@ -239,8 +239,8 @@ static PetscErrorCode EPSSetUp_CISS(EPS eps)
     }
   }
   ctx->L = PetscMin(ctx->L,ctx->L_max);
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = 5;
-  if (eps->mpd==PETSC_DEFAULT) eps->mpd = eps->ncv;
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = 5;
+  if (eps->mpd==PETSC_DETERMINE) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
   PetscCheck(eps->which==EPS_ALL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only computing all eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_EXTRACTION | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
@@ -662,40 +662,40 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
 
   PetscFunctionBegin;
   oN = ctx->N;
-  if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) {
+  if (ip == PETSC_DETERMINE) {
     if (ctx->N!=32) { ctx->N =32; ctx->M = ctx->N/4; }
-  } else {
+  } else if (ip != PETSC_CURRENT) {
     PetscCheck(ip>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be > 0");
     PetscCheck(ip%2==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be an even number");
     if (ctx->N!=ip) { ctx->N = ip; ctx->M = ctx->N/4; }
   }
   oL = ctx->L;
-  if (bs == PETSC_DECIDE || bs == PETSC_DEFAULT) {
+  if (bs == PETSC_DETERMINE) {
     ctx->L = 16;
-  } else {
+  } else if (bs != PETSC_CURRENT) {
     PetscCheck(bs>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
     ctx->L = bs;
   }
   oM = ctx->M;
-  if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
+  if (ms == PETSC_DETERMINE) {
     ctx->M = ctx->N/4;
-  } else {
+  } else if (ms != PETSC_CURRENT) {
     PetscCheck(ms>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be > 0");
     PetscCheck(ms<=ctx->N,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be less than or equal to the number of integration points");
     ctx->M = ms;
   }
   onpart = ctx->npart;
-  if (npart == PETSC_DECIDE || npart == PETSC_DEFAULT) {
+  if (npart == PETSC_DETERMINE) {
     ctx->npart = 1;
-  } else {
+  } else if (npart != PETSC_CURRENT) {
     PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
     PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
     ctx->npart = npart;
   }
   oLmax = ctx->L_max;
-  if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
+  if (bsmax == PETSC_DETERMINE) {
     ctx->L_max = 64;
-  } else {
+  } else if (bsmax != PETSC_CURRENT) {
     PetscCheck(bsmax>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
     ctx->L_max = PetscMax(bsmax,ctx->L);
   }
@@ -732,6 +732,9 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
 -  -eps_ciss_realmats - A and B are real
 
    Note:
+   For all integer arguments, you can use PETSC_CURRENT to keep the current value, and
+   PETSC_DETERMINE to set them to a default value.
+
    The default number of partitions is 1. This means the internal KSP object is shared
    among all processes of the EPS communicator. Otherwise, the communicator is split
    into npart communicators, so that npart KSP solves proceed simultaneously.
@@ -801,15 +804,15 @@ static PetscErrorCode EPSCISSSetThreshold_CISS(EPS eps,PetscReal delta,PetscReal
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  if (delta == (PetscReal)PETSC_DEFAULT) {
+  if (delta == (PetscReal)PETSC_DETERMINE) {
     ctx->delta = SLEPC_DEFAULT_TOL*1e-4;
-  } else {
+  } else if (delta != (PetscReal)PETSC_CURRENT) {
     PetscCheck(delta>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The delta argument must be > 0.0");
     ctx->delta = delta;
   }
-  if (spur == (PetscReal)PETSC_DEFAULT) {
+  if (spur == (PetscReal)PETSC_DETERMINE) {
     ctx->spurious_threshold = PetscSqrtReal(SLEPC_DEFAULT_TOL);
-  } else {
+  } else if (spur != (PetscReal)PETSC_CURRENT) {
     PetscCheck(spur>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
     ctx->spurious_threshold = spur;
   }
@@ -830,6 +833,10 @@ static PetscErrorCode EPSCISSSetThreshold_CISS(EPS eps,PetscReal delta,PetscReal
    Options Database Keys:
 +  -eps_ciss_delta - Sets the delta
 -  -eps_ciss_spurious_threshold - Sets the spurious threshold
+
+   Note:
+   PETSC_CURRENT can be used to preserve the current value of any of the
+   arguments, and PETSC_DETERMINE to set them to a default value.
 
    Level: advanced
 
@@ -885,15 +892,15 @@ static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt 
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  if (inner == PETSC_DEFAULT) {
+  if (inner == PETSC_DETERMINE) {
     ctx->refine_inner = 0;
-  } else {
+  } else if (inner != PETSC_CURRENT) {
     PetscCheck(inner>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The refine inner argument must be >= 0");
     ctx->refine_inner = inner;
   }
-  if (blsize == PETSC_DEFAULT) {
+  if (blsize == PETSC_DETERMINE) {
     ctx->refine_blocksize = 0;
-  } else {
+  } else if (blsize != PETSC_CURRENT) {
     PetscCheck(blsize>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The refine blocksize argument must be >= 0");
     ctx->refine_blocksize = blsize;
   }
@@ -914,6 +921,10 @@ static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt 
    Options Database Keys:
 +  -eps_ciss_refine_inner - Sets number of inner iterations
 -  -eps_ciss_refine_blocksize - Sets number of blocksize iterations
+
+   Note:
+   PETSC_CURRENT can be used to preserve the current value of any of the
+   arguments, and PETSC_DETERMINE to set them to a default of 0.
 
    Level: advanced
 
@@ -1215,7 +1226,7 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
       PetscCall(KSPAppendOptionsPrefix(contour->ksp[i],"eps_ciss_"));
       PetscCall(PetscObjectSetOptions((PetscObject)contour->ksp[i],((PetscObject)eps)->options));
       PetscCall(KSPSetErrorIfNotConverged(contour->ksp[i],PETSC_TRUE));
-      PetscCall(KSPSetTolerances(contour->ksp[i],SlepcDefaultTol(eps->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+      PetscCall(KSPSetTolerances(contour->ksp[i],SlepcDefaultTol(eps->tol),PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
       PetscCall(KSPGetPC(contour->ksp[i],&pc));
       if (nsplit) {
         PetscCall(KSPSetType(contour->ksp[i],KSPBCGS));

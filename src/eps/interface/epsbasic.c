@@ -54,14 +54,14 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscCall(EPSInitializePackage());
   PetscCall(SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView));
 
-  eps->max_it          = PETSC_DEFAULT;
+  eps->max_it          = PETSC_DETERMINE;
   eps->nev             = 1;
-  eps->ncv             = PETSC_DEFAULT;
-  eps->mpd             = PETSC_DEFAULT;
+  eps->ncv             = PETSC_DETERMINE;
+  eps->mpd             = PETSC_DETERMINE;
   eps->nini            = 0;
   eps->nds             = 0;
   eps->target          = 0.0;
-  eps->tol             = PETSC_DEFAULT;
+  eps->tol             = PETSC_DETERMINE;
   eps->conv            = EPS_CONV_REL;
   eps->stop            = EPS_STOP_BASIC;
   eps->which           = (EPSWhich)0;

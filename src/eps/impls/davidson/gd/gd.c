@@ -246,6 +246,10 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
 +  -eps_gd_minv - number of vectors of the searching subspace after restarting
 -  -eps_gd_plusk - number of vectors saved from the previous iteration
 
+   Note:
+   PETSC_CURRENT can be used to preserve the current value of any of the
+   arguments, and PETSC_DETERMINE to set them to a default value.
+
    Level: advanced
 
 .seealso: EPSGDGetRestart()
@@ -485,7 +489,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
   data->blocksize   = 1;
   data->initialsize = 0;
   data->minv        = 0;
-  data->plusk       = PETSC_DEFAULT;
+  data->plusk       = PETSC_DETERMINE;
   data->ipB         = PETSC_TRUE;
   data->fix         = 0.0;
   data->krylovstart = PETSC_FALSE;

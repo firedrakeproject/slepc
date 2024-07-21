@@ -182,7 +182,7 @@ static PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID));
 
   /* Check some constraints and set some default values */
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PETSC_MAX_INT;
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PETSC_MAX_INT;
   PetscCall(STGetMatrix(eps->st,0,&ops->A));
   if (eps->isgeneralized) {
 #if defined(SLEPC_HAVE_PRIMME3)
@@ -278,10 +278,10 @@ static PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   }
 
   /* If user sets mpd or ncv, maxBasisSize is modified */
-  if (eps->mpd!=PETSC_DEFAULT) {
+  if (eps->mpd!=PETSC_DETERMINE) {
     primme->maxBasisSize = eps->mpd;
-    if (eps->ncv!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: 'ncv' is ignored by PRIMME\n"));
-  } else if (eps->ncv!=PETSC_DEFAULT) primme->maxBasisSize = eps->ncv;
+    if (eps->ncv!=PETSC_DETERMINE) PetscCall(PetscInfo(eps,"Warning: 'ncv' is ignored by PRIMME\n"));
+  } else if (eps->ncv!=PETSC_DETERMINE) primme->maxBasisSize = eps->ncv;
 
   PetscCheck(primme_set_method(ops->method,primme)>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
 
@@ -425,7 +425,7 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
-  if (bs == PETSC_DEFAULT) ops->bs = 0;
+  if (bs == PETSC_DEFAULT || bs == PETSC_DECIDE) ops->bs = 0;
   else {
     PetscCheck(bs>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
     ops->bs = bs;

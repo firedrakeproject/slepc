@@ -101,8 +101,8 @@ int main(int argc,char **argv)
      Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_DEFAULT));
-  PetscCall(NEPSetDimensions(nep,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_CURRENT));
+  PetscCall(NEPSetDimensions(nep,1,PETSC_DETERMINE,PETSC_DETERMINE));
 
   /*
      Set solver parameters at runtime

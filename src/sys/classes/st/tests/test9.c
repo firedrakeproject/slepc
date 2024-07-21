@@ -125,7 +125,7 @@ int main(int argc,char **argv)
   mat[3] = Pd;
   PetscCall(STSetSplitPreconditioner(st,4,mat,SUBSET_NONZERO_PATTERN));
   PetscCall(STGetKSP(st,&ksp));
-  PetscCall(KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   PetscCall(STSetTransform(st,PETSC_TRUE));
   PetscCall(STSetFromOptions(st));
   PetscCall(STGetKSP(st,&ksp));

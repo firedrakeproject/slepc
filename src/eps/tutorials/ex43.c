@@ -87,7 +87,7 @@ int main(int argc,char **argv)
      Set some solver options
   */
   PetscCall(EPSSetTarget(eps,1.3));
-  PetscCall(EPSSetDimensions(eps,2,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,2,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSGetST(eps,&st));
   PetscCall(STSetType(st,STSINVERT));
 

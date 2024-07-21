@@ -81,7 +81,7 @@ int main(int argc,char **argv)
      Set solver parameters at runtime
   */
   PetscCall(SVDSetFromOptions(svd));
-  PetscCall(SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(SVDSetDimensions(svd,1,PETSC_DETERMINE,PETSC_DETERMINE));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the singular value problem

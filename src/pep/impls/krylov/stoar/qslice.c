@@ -237,7 +237,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
     PetscCall(PEPCreate(PetscObjectComm((PetscObject)pep),&pep2));
     PetscCall(PEPSetOptionsPrefix(pep2,((PetscObject)pep)->prefix));
     PetscCall(PEPAppendOptionsPrefix(pep2,"pep_eigenvalue_type_"));
-    PetscCall(PEPSetTolerances(pep2,PETSC_DEFAULT,pep->max_it/4));
+    PetscCall(PEPSetTolerances(pep2,PETSC_CURRENT,pep->max_it/4));
     PetscCall(PEPSetType(pep2,PEPTOAR));
     PetscCall(PEPSetOperators(pep2,pep->nmat,pep->A));
     PetscCall(PEPSetWhichEigenpairs(pep2,PEP_TARGET_MAGNITUDE));
@@ -485,7 +485,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   PetscCheck(pep->inta<pep->intb,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues unless you provide a computational interval with PEPSetInterval()");
   PetscCheck(pep->intb<PETSC_MAX_REAL || pep->inta>PETSC_MIN_REAL,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
   PEPCheckUnsupportedCondition(pep,PEP_FEATURE_STOPPING,PETSC_TRUE," (with spectrum slicing)");
-  if (pep->tol==(PetscReal)PETSC_DEFAULT) {
+  if (pep->tol==(PetscReal)PETSC_DETERMINE) {
 #if defined(PETSC_USE_REAL_SINGLE)
     pep->tol = SLEPC_DEFAULT_TOL;
 #else
@@ -496,7 +496,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   if (ctx->nev==1) ctx->nev = PetscMin(20,pep->n);  /* nev not set, use default value */
   PetscCheck(pep->n<=10 || ctx->nev>=10,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   pep->ops->backtransform = PEPBackTransform_Skip;
-  if (pep->max_it==PETSC_DEFAULT) pep->max_it = 100;
+  if (pep->max_it==PETSC_DETERMINE) pep->max_it = 100;
 
   /* create spectrum slicing context and initialize it */
   PetscCall(PEPQSliceResetSR(pep));
@@ -1181,7 +1181,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
     PetscCall(DSRestoreArray(pep->ds,DS_MAT_Q,&pQ));
   }
   PetscCall(BVSetActiveColumns(ctx->V,0,k+1));
-  PetscCall(DSSetDimensions(pep->ds,k+1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSSetDimensions(pep->ds,k+1,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(DSGetMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
   PetscCall(BVGetSignature(ctx->V,vomega));
   PetscCall(DSRestoreMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
@@ -1262,7 +1262,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
     PetscCall(BVCopyColumn(ctx->V,nv,k+l));
     PetscCall(BVSetActiveColumns(ctx->V,0,k+l));
     if (k+l) {
-      PetscCall(DSSetDimensions(pep->ds,k+l,PETSC_DEFAULT,PETSC_DEFAULT));
+      PetscCall(DSSetDimensions(pep->ds,k+l,PETSC_DETERMINE,PETSC_DETERMINE));
       PetscCall(DSGetMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
       PetscCall(BVSetSignature(ctx->V,vomega));
       PetscCall(DSRestoreMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));

@@ -161,7 +161,7 @@ static PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   PetscCall(MatGetSize(svd->A,&m,&n));
   PetscCall(MatGetLocalSize(svd->A,&mloc,&nloc));
   PetscCall(SVDSetDimensions_Default(svd));
-  if (svd->max_it==PETSC_DEFAULT) svd->max_it = PETSC_MAX_INT;
+  if (svd->max_it==PETSC_DETERMINE) svd->max_it = PETSC_MAX_INT;
   svd->leftbasis = PETSC_TRUE;
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
 #if !defined(SLEPC_HAVE_PRIMME2p2)
@@ -206,10 +206,10 @@ static PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   }
 
   /* If user sets mpd or ncv, maxBasisSize is modified */
-  if (svd->mpd!=PETSC_DEFAULT) {
+  if (svd->mpd!=PETSC_DETERMINE) {
     primme->maxBasisSize = svd->mpd;
-    if (svd->ncv!=PETSC_DEFAULT) PetscCall(PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n"));
-  } else if (svd->ncv!=PETSC_DEFAULT) primme->maxBasisSize = svd->ncv;
+    if (svd->ncv!=PETSC_DETERMINE) PetscCall(PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n"));
+  } else if (svd->ncv!=PETSC_DETERMINE) primme->maxBasisSize = svd->ncv;
 
   PetscCheck(primme_svds_set_method(ops->method,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,PRIMME_DEFAULT_METHOD,primme)>=0,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"PRIMME method not valid");
 
@@ -351,7 +351,7 @@ static PetscErrorCode SVDPRIMMESetBlockSize_PRIMME(SVD svd,PetscInt bs)
   SVD_PRIMME *ops = (SVD_PRIMME*)svd->data;
 
   PetscFunctionBegin;
-  if (bs == PETSC_DEFAULT) ops->bs = 0;
+  if (bs == PETSC_DEFAULT || bs == PETSC_DECIDE) ops->bs = 0;
   else {
     PetscCheck(bs>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
     ops->bs = bs;

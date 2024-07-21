@@ -286,7 +286,10 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
 -  -eps_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
+   Use PETSC_CURRENT to retain the current value of any of the parameters.
+   Use PETSC_DETERMINE for either argument to assign a default value computed
+   internally (may be different in each solver).
+   For maxits use PETSC_UMLIMITED to indicate there is no upper bound on this value.
 
    Level: intermediate
 
@@ -298,17 +301,19 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,tol,2);
   PetscValidLogicalCollectiveInt(eps,maxits,3);
-  if (tol == (PetscReal)PETSC_DEFAULT) {
-    eps->tol   = PETSC_DEFAULT;
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    eps->tol   = PETSC_DETERMINE;
     eps->state = EPS_STATE_INITIAL;
-  } else {
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     eps->tol = tol;
   }
-  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    eps->max_it = PETSC_DEFAULT;
+  if (maxits == PETSC_DETERMINE) {
+    eps->max_it = PETSC_DETERMINE;
     eps->state  = EPS_STATE_INITIAL;
-  } else {
+  } else if (maxits == PETSC_UNLIMITED) {
+    eps->max_it = PETSC_INT_MAX;
+  } else if (maxits != PETSC_CURRENT) {
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     eps->max_it = maxits;
   }
@@ -361,8 +366,9 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
 -  -eps_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Use PETSC_DEFAULT for ncv and mpd to assign a reasonably good value, which is
-   dependent on the solution method.
+   Use PETSC_DETERMINE for ncv and mpd to assign a reasonably good value, which is
+   dependent on the solution method. For any of the arguments, use PETSC_CURRENT
+   to preserve the current value.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
    to set one of them at most. Normal usage is that
@@ -388,17 +394,19 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(eps,nev,2);
   PetscValidLogicalCollectiveInt(eps,ncv,3);
   PetscValidLogicalCollectiveInt(eps,mpd,4);
-  PetscCheck(nev>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
-  eps->nev = nev;
-  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    eps->ncv = PETSC_DEFAULT;
-  } else {
+  if (nev != PETSC_CURRENT) {
+    PetscCheck(nev>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+    eps->nev = nev;
+  }
+  if (ncv == PETSC_DETERMINE) {
+    eps->ncv = PETSC_DETERMINE;
+  } else if (ncv != PETSC_CURRENT) {
     PetscCheck(ncv>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     eps->ncv = ncv;
   }
-  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    eps->mpd = PETSC_DEFAULT;
-  } else {
+  if (mpd == PETSC_DETERMINE) {
+    eps->mpd = PETSC_DETERMINE;
+  } else if (mpd != PETSC_CURRENT) {
     PetscCheck(mpd>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     eps->mpd = mpd;
   }
@@ -1058,8 +1066,8 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
    matrices to have the MatMultTranspose operation defined.
 
    The parameter 'its' is the number of iterations performed by the method. The
-   cutoff value is used only in the two-side variant. Use PETSC_DEFAULT to assign
-   a reasonably good value.
+   cutoff value is used only in the two-side variant. Use PETSC_DETERMINE to assign
+   a reasonably good value, or PETSC_CURRENT to leave the value unchanged.
 
    User-defined balancing is allowed provided that the corresponding matrix
    is set via STSetBalanceMatrix.
@@ -1088,13 +1096,13 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'");
   }
-  if (its==PETSC_DECIDE || its==PETSC_DEFAULT) eps->balance_its = 5;
-  else {
+  if (its==PETSC_DETERMINE) eps->balance_its = 5;
+  else if (its!=PETSC_CURRENT) {
     PetscCheck(its>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
     eps->balance_its = its;
   }
-  if (cutoff==(PetscReal)PETSC_DECIDE || cutoff==(PetscReal)PETSC_DEFAULT) eps->balance_cutoff = 1e-8;
-  else {
+  if (cutoff==(PetscReal)PETSC_DETERMINE) eps->balance_cutoff = 1e-8;
+  else if (cutoff!=(PetscReal)PETSC_CURRENT) {
     PetscCheck(cutoff>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of cutoff. Must be > 0");
     eps->balance_cutoff = cutoff;
   }

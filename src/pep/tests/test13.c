@@ -91,10 +91,10 @@ int main(int argc,char **argv)
   PetscCall(PEPGetRG(pep,&rg));
   PetscCall(RGSetType(rg,RGELLIPSE));
   PetscCall(RGEllipseSetParameters(rg,PetscCMPLX(-0.1,0.3),0.1,0.25));
-  PetscCall(PEPCISSSetSizes(pep,24,PETSC_DEFAULT,PETSC_DEFAULT,1,PETSC_DEFAULT,PETSC_TRUE));
+  PetscCall(PEPCISSSetSizes(pep,24,PETSC_DETERMINE,PETSC_DETERMINE,1,PETSC_DETERMINE,PETSC_TRUE));
   PetscCall(PEPCISSGetKSPs(pep,&nsolve,&ksp));
   for (i=0;i<nsolve;i++) {
-    PetscCall(KSPSetTolerances(ksp[i],1e-12,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(ksp[i],1e-12,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
     PetscCall(KSPSetType(ksp[i],KSPPREONLY));
     PetscCall(KSPGetPC(ksp[i],&pc));
     PetscCall(PCSetType(pc,PCLU));

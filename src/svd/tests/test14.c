@@ -77,7 +77,7 @@ int main(int argc,char **argv)
 
   PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
   PetscCall(SVDSetOperators(svd,A,NULL));
-  PetscCall(SVDSetTolerances(svd,PETSC_DEFAULT,1000));
+  PetscCall(SVDSetTolerances(svd,PETSC_CURRENT,1000));
   PetscCall(SVDSetFromOptions(svd));
   PetscCall(SVDSolve(svd));
   PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));

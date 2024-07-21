@@ -45,7 +45,7 @@ static PetscErrorCode NEPSetUp_Interpol(NEP nep)
   PetscFunctionBegin;
   PetscCall(NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd));
   PetscCheck(nep->ncv<=nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
-  if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (nep->max_it==PETSC_DETERMINE) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
   PetscCheck(nep->which==NEP_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_CALLBACK | NEP_FEATURE_STOPPING | NEP_FEATURE_TWOSIDED);
@@ -61,9 +61,9 @@ static PetscErrorCode NEPSetUp_Interpol(NEP nep)
   }
   PetscCall(PEPSetDimensions(ctx->pep,nep->nev,nep->ncv,nep->mpd));
   PetscCall(PEPGetTolerances(ctx->pep,&tol,&its));
-  if (tol==(PetscReal)PETSC_DEFAULT) tol = SlepcDefaultTol(nep->tol);
-  if (ctx->tol==(PetscReal)PETSC_DEFAULT) ctx->tol = tol;
-  if (its==PETSC_DEFAULT) its = nep->max_it;
+  if (tol==(PetscReal)PETSC_DETERMINE) tol = SlepcDefaultTol(nep->tol);
+  if (ctx->tol==(PetscReal)PETSC_DETERMINE) ctx->tol = tol;
+  if (its==PETSC_DETERMINE) its = nep->max_it;
   PetscCall(PEPSetTolerances(ctx->pep,tol,its));
   PetscCall(NEPGetTrackAll(nep,&trackall));
   PetscCall(PEPSetTrackAll(ctx->pep,trackall));
@@ -237,7 +237,7 @@ static PetscErrorCode NEPSetFromOptions_Interpol(NEP nep,PetscOptionItems *Petsc
   PetscOptionsHeadBegin(PetscOptionsObject,"NEP Interpol Options");
 
     PetscCall(NEPInterpolGetInterpolation(nep,&r,&i));
-    if (!i) i = PETSC_DEFAULT;
+    if (!i) i = PETSC_DETERMINE;
     PetscCall(PetscOptionsInt("-nep_interpol_interpolation_degree","Maximum degree of polynomial interpolation","NEPInterpolSetInterpolation",i,&i,&flg1));
     PetscCall(PetscOptionsReal("-nep_interpol_interpolation_tol","Tolerance for interpolation coefficients","NEPInterpolSetInterpolation",r,&r,&flg2));
     if (flg1 || flg2) PetscCall(NEPInterpolSetInterpolation(nep,r,i));
@@ -254,18 +254,18 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
-  if (tol == (PetscReal)PETSC_DEFAULT) {
-    ctx->tol   = PETSC_DEFAULT;
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    ctx->tol   = PETSC_DETERMINE;
     nep->state = NEP_STATE_INITIAL;
-  } else {
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     ctx->tol = tol;
   }
-  if (degree == PETSC_DEFAULT || degree == PETSC_DECIDE) {
+  if (degree == PETSC_DETERMINE) {
     ctx->maxdeg = 0;
     if (nep->state) PetscCall(NEPReset(nep));
     nep->state = NEP_STATE_INITIAL;
-  } else {
+  } else if (degree != PETSC_CURRENT) {
     PetscCheck(degree>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
     if (ctx->maxdeg != degree) {
       ctx->maxdeg = degree;
@@ -291,8 +291,9 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
 +  -nep_interpol_interpolation_tol <tol> - Sets the tolerance to stop computing polynomial coefficients
 -  -nep_interpol_interpolation_degree <degree> - Sets the maximum degree of interpolation
 
-   Notes:
-   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
+   Note:
+   PETSC_CURRENT can be used to preserve the current value of any of the
+   arguments, and PETSC_DETERMINE to set them to a default value.
 
    Level: advanced
 
@@ -470,7 +471,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
   PetscCall(PetscNew(&ctx));
   nep->data   = (void*)ctx;
   ctx->maxdeg = 5;
-  ctx->tol    = PETSC_DEFAULT;
+  ctx->tol    = PETSC_DETERMINE;
 
   nep->ops->solve          = NEPSolve_Interpol;
   nep->ops->setup          = NEPSetUp_Interpol;

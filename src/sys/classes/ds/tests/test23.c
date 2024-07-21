@@ -47,7 +47,7 @@ int main(int argc,char **argv)
   PetscCall(RGSetType(rg,RGELLIPSE));
   PetscCall(DSNEPSetMinimality(ds,1));
   PetscCall(DSNEPSetIntegrationPoints(ds,16));
-  PetscCall(DSNEPSetRefine(ds,PETSC_DEFAULT,2));
+  PetscCall(DSNEPSetRefine(ds,PETSC_CURRENT,2));
   PetscCall(DSNEPSetSamplingSize(ds,25));
   PetscCall(DSSetFromOptions(ds));
 

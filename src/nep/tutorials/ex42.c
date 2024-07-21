@@ -114,7 +114,7 @@ int main(int argc,char **argv)
   PetscCall(NEPCreate(PETSC_COMM_WORLD,&nep));
   PetscCall(NEPSetSplitOperator(nep,3,A,f,SUBSET_NONZERO_PATTERN));
   PetscCall(NEPSetProblemType(nep,NEP_RATIONAL));
-  PetscCall(NEPSetDimensions(nep,8,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(NEPSetDimensions(nep,8,PETSC_DETERMINE,PETSC_DETERMINE));
 
   /* set two-sided NLEIGS solver */
   PetscCall(NEPSetType(nep,NEPNLEIGS));

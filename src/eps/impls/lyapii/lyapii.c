@@ -59,11 +59,11 @@ static PetscErrorCode EPSSetUp_LyapII(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckSinvert(eps);
-  if (eps->ncv!=PETSC_DEFAULT) {
+  if (eps->ncv!=PETSC_DETERMINE) {
     PetscCheck(eps->ncv>=eps->nev+1,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
   } else eps->ncv = eps->nev+1;
-  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
+  if (eps->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
   if (!eps->which) eps->which=EPS_LARGEST_REAL;
   PetscCheck(eps->which==EPS_LARGEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION | EPS_FEATURE_TWOSIDED);
@@ -358,8 +358,8 @@ static PetscErrorCode EPSSolve_LyapII(EPS eps)
   PetscCall(EPSCreate(PETSC_COMM_SELF,&epsrr));
   PetscCall(EPSSetOptionsPrefix(epsrr,((PetscObject)eps)->prefix));
   PetscCall(EPSAppendOptionsPrefix(epsrr,"eps_lyapii_"));
-  PetscCall(EPSSetDimensions(epsrr,1,PETSC_DEFAULT,PETSC_DEFAULT));
-  PetscCall(EPSSetTolerances(epsrr,PETSC_MACHINE_EPSILON*100,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(epsrr,1,PETSC_CURRENT,PETSC_CURRENT));
+  PetscCall(EPSSetTolerances(epsrr,PETSC_MACHINE_EPSILON*100,PETSC_CURRENT));
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
@@ -527,7 +527,7 @@ static PetscErrorCode EPSSolve_LyapII(EPS eps)
 static PetscErrorCode EPSSetFromOptions_LyapII(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
-  PetscInt       k,array[2]={PETSC_DEFAULT,PETSC_DEFAULT};
+  PetscInt       k,array[2]={PETSC_DETERMINE,PETSC_DETERMINE};
   PetscBool      flg;
 
   PetscFunctionBegin;
@@ -549,17 +549,21 @@ static PetscErrorCode EPSLyapIISetRanks_LyapII(EPS eps,PetscInt rkc,PetscInt rkl
   EPS_LYAPII *ctx = (EPS_LYAPII*)eps->data;
 
   PetscFunctionBegin;
-  if (rkc==PETSC_DEFAULT) rkc = 10;
-  PetscCheck(rkc>1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The compressed rank %" PetscInt_FMT " must be larger than 1",rkc);
-  if (rkl==PETSC_DEFAULT) rkl = 3*rkc;
-  PetscCheck(rkl>=rkc,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The Lyapunov rank %" PetscInt_FMT " cannot be smaller than the compressed rank %" PetscInt_FMT,rkl,rkc);
-  if (rkc != ctx->rkc) {
-    ctx->rkc   = rkc;
-    eps->state = EPS_STATE_INITIAL;
+  if (rkc==PETSC_DETERMINE) {
+    if (ctx->rkc != 10) eps->state = EPS_STATE_INITIAL;
+    ctx->rkc = 10;
+  } else if (rkc!=PETSC_CURRENT) {
+    PetscCheck(rkc>1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The compressed rank %" PetscInt_FMT " must be larger than 1",rkc);
+    if (ctx->rkc != rkc) eps->state = EPS_STATE_INITIAL;
+    ctx->rkc = rkc;
   }
-  if (rkl != ctx->rkl) {
-    ctx->rkl   = rkl;
-    eps->state = EPS_STATE_INITIAL;
+  if (rkl==PETSC_DETERMINE) {
+    if (ctx->rkl != 3*rkc) eps->state = EPS_STATE_INITIAL;
+    ctx->rkl = 3*rkc;
+  } else if (rkl!=PETSC_CURRENT) {
+    PetscCheck(rkl>=rkc,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The Lyapunov rank %" PetscInt_FMT " cannot be smaller than the compressed rank %" PetscInt_FMT,rkl,rkc);
+    if (ctx->rkl != rkl) eps->state = EPS_STATE_INITIAL;
+    ctx->rkl = rkl;
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -578,6 +582,9 @@ static PetscErrorCode EPSLyapIISetRanks_LyapII(EPS eps,PetscInt rkc,PetscInt rkl
 .  -eps_lyapii_ranks <rkc,rkl> - Sets the rank parameters
 
    Notes:
+   PETSC_CURRENT can be used to preserve the current value of any of the
+   arguments, and PETSC_DETERMINE to set them to a default value.
+
    Lyapunov inverse iteration needs to solve a large-scale Lyapunov equation
    at each iteration of the eigensolver. For this, an iterative solver (LME)
    is used, which requires to prescribe the rank of the solution matrix X. This

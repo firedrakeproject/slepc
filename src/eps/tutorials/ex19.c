@@ -147,7 +147,7 @@ int main(int argc,char **argv)
      Set specific solver options
   */
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  PetscCall(EPSSetTolerances(eps,1e-8,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,1e-8,PETSC_CURRENT));
   PetscCall(EPSSetInitialSpace(eps,1,&v0));
 
   /*

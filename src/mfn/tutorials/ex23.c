@@ -71,7 +71,7 @@ int main(int argc,char **argv)
   PetscCall(MFNGetFN(mfn,&f));
   PetscCall(FNSetType(f,FNEXP));
   PetscCall(FNSetScale(f,t,1.0));
-  PetscCall(MFNSetTolerances(mfn,1e-07,PETSC_DEFAULT));
+  PetscCall(MFNSetTolerances(mfn,1e-07,PETSC_CURRENT));
 
   /*
      Set solver parameters at runtime

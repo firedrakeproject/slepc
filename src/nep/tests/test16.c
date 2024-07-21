@@ -84,7 +84,7 @@ int main(int argc,char **argv)
 #endif
   PetscCall(NEPSetTarget(nep,25.0));
   PetscCall(NEPSetEigenvalueComparison(nep,MyEigenSort,&target));
-  PetscCall(NEPSetTolerances(nep,PETSC_SMALL,PETSC_DEFAULT));
+  PetscCall(NEPSetTolerances(nep,PETSC_SMALL,PETSC_CURRENT));
   PetscCall(NEPSetFromOptions(nep));
   PetscCall(NEPGetTarget(nep,&target));
 

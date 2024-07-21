@@ -164,9 +164,9 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       tol = 1e-9
-      PetscCallA(NEPSetTolerances(nep,tol,PETSC_DEFAULT_INTEGER,ierr))
+      PetscCallA(NEPSetTolerances(nep,tol,PETSC_CURRENT_INTEGER,ierr))
       k = 1
-      PetscCallA(NEPSetDimensions(nep,k,PETSC_DEFAULT_INTEGER,PETSC_DEFAULT_INTEGER,ierr))
+      PetscCallA(NEPSetDimensions(nep,k,PETSC_DETERMINE_INTEGER,PETSC_DETERMINE_INTEGER,ierr))
       k = 0
       PetscCallA(NEPRIISetLagPreconditioner(nep,k,ierr))
 
