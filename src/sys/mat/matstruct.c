@@ -38,8 +38,6 @@
    block row, while the bottom block row is composed of matrices of type
    MATTRANSPOSEVIRTUAL and MATHERMITIANTRANSPOSEVIRTUAL scaled by -1.
 
-   The current intended usage is for complex matrices only.
-
    Level: intermediate
 
 .seealso: MatCreateNest(), EPSSetOperators(), EPSSetProblemType()
