@@ -266,12 +266,16 @@ def processf90interfaces(petscdir,petscarch,verbose):
   # FixDir(petscdir,os.path.join(petscdir,'include','slepc','finclude','ftn-auto-interfaces'),verbose)
   return
 
-def main(petscdir,petscarch,bfort,dir,verbose):
+def main(slepcdir,petscdir,petscarch,bfort,dir,verbose):
+  import getinterfaces
+  getinterfaces.main(os.path.join('lib','slepc','conf','bfort-petsc.txt'),os.path.join(petscdir,'include'))
+  getinterfaces.main(os.path.join('lib','slepc','conf','bfort-slepc.txt'),'include')
+
   for p in [ os.path.join(dir,'include'), os.path.join(dir,'src') ]:
     for dirpath, dirnames, filenames in os.walk(p, topdown=True):
       filenames = [i for i in filenames if not i.find('#') > -1 and os.path.splitext(i)[1] in ['.c','.h','.cxx','.cu']]
       dirnames[:] = [d for d in dirnames if d not in ['output', 'binding', 'tests', 'tutorials', 'yaml']]
-      processDir(petscdir, petscarch,bfort, verbose, dirpath, dirnames, filenames)
+      processDir(slepcdir, petscarch,bfort, verbose, dirpath, dirnames, filenames)
   return
 #
 # generatefortranstubs bfortexectuable -verbose            -----  generates fortran stubs for a directory and all its children
@@ -303,6 +307,7 @@ if __name__ ==  '__main__':
   )
 
   parser.add_argument('--slepc-dir', metavar='path', required=True, type=not_empty, help='SLEPc root directory')
+  parser.add_argument('--petsc-dir', metavar='path', required=True, type=not_empty, help='PETSc root directory')
   parser.add_argument('--petsc-arch', metavar='string', required=True, help='PETSc arch name')
   parser.add_argument('--verbose', metavar='bool', nargs='?', const=True, default=False, type=str2bool, help='verbose program output')
   parser.add_argument('--bfort', metavar='bfort_prog', nargs=1, help='path to bfort program')
@@ -317,5 +322,5 @@ if __name__ ==  '__main__':
     assert isinstance(args.bfort, (list, tuple))
     bfort_exec = args.bfort[0]
     assert isinstance(bfort_exec, str)
-    ret = main(args.slepc_dir, args.petsc_arch, bfort_exec, args.slepc_dir, args.verbose)
+    ret = main(args.slepc_dir, args.petsc_dir, args.petsc_arch, bfort_exec, args.slepc_dir, args.verbose)
   sys.exit(ret)
