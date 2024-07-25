@@ -69,7 +69,7 @@ class Sowing(package.Package):
         self.log.write('Using BFORT='+bfort)
         sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))
         import generatefortranstubs
-        generatefortranstubs.main(slepc.dir,'' if self.inplace else petsc.archname,bfort,slepc.dir,0)
+        generatefortranstubs.main(slepc.dir,petsc.dir,'' if self.inplace else petsc.archname,bfort,slepc.dir,0)
         generatefortranstubs.processf90interfaces(slepc.dir,'' if self.inplace else petsc.archname,0)
       except:
         self.log.Exit('Try configuring with --download-sowing or use a Git version of PETSc')
