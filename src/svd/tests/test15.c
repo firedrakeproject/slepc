@@ -73,7 +73,7 @@ int main(int argc,char **argv)
   PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
   PetscCall(SVDSetOperators(svd,A,B));
   PetscCall(SVDSetProblemType(svd,SVD_GENERALIZED));
-  PetscCall(SVDSetDimensions(svd,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(SVDSetDimensions(svd,4,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(SVDSetConvergenceTest(svd,SVD_CONV_NORM));
 
   PetscCall(SVDSetType(svd,SVDTRLANCZOS));
@@ -85,7 +85,7 @@ int main(int argc,char **argv)
   PetscCall(KSPSetType(ksp,KSPLSQR));
   PetscCall(KSPGetPC(ksp,&pc));
   PetscCall(PCSetType(pc,PCNONE));
-  PetscCall(KSPSetTolerances(ksp,PETSC_SMALL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(KSPSetTolerances(ksp,PETSC_SMALL,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   PetscCall(KSPSetFromOptions(ksp));
   PetscCall(SVDTRLanczosSetKSP(svd,ksp));
   PetscCall(SVDTRLanczosSetRestart(svd,0.4));

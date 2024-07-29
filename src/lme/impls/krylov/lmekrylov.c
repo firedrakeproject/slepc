@@ -39,8 +39,8 @@ static PetscErrorCode LMESetUp_Krylov(LME lme)
 
   PetscFunctionBegin;
   PetscCall(MatGetSize(lme->A,&N,NULL));
-  if (lme->ncv==PETSC_DEFAULT) lme->ncv = PetscMin(30,N);
-  if (lme->max_it==PETSC_DEFAULT) lme->max_it = 100;
+  if (lme->ncv==PETSC_DETERMINE) lme->ncv = PetscMin(30,N);
+  if (lme->max_it==PETSC_DETERMINE) lme->max_it = 100;
   PetscCall(LMEAllocateSolution(lme,1));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

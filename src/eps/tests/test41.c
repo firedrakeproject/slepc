@@ -70,7 +70,7 @@ int main(int argc,char **argv)
   PetscCall(EPSEVSLSetRange(eps,0,8));
   PetscCall(EPSEVSLSetSlices(eps,3));
   PetscCall(EPSEVSLSetDamping(eps,EPS_EVSL_DAMPING_SIGMA));
-  PetscCall(EPSEVSLSetDOSParameters(eps,EPS_EVSL_DOS_KPM,50,450,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSEVSLSetDOSParameters(eps,EPS_EVSL_DOS_KPM,50,450,PETSC_CURRENT,PETSC_CURRENT));
   PetscCall(EPSEVSLSetPolParameters(eps,4000,0.85));
   PetscCall(EPSSetFromOptions(eps));
 

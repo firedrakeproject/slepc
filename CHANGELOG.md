@@ -8,6 +8,10 @@
 
 ### Changed
 
+- Some interface functions now support `PETSC_CURRENT` to preserve the current value of
+  the arguments. This implies that `PETSC_DEFAULT` is deprecated for setting a default
+  value in those cases, and `PETSC_DETERMINE` or `PETSC_DECIDE` should be used instead.
+  This is the case of, e.g., `EPSSetDimensions()`.
 - In slepc4py now `EPS.getEigenpair()` and `EPS.getEigenvalue()` will return a real value
 instead of a complex, if the problem is of Hermitian or generalized Hermitian type.
 

@@ -28,8 +28,8 @@ static PetscErrorCode SVDSetUp_ScaLAPACK(SVD svd)
   SVDCheckDefinite(svd);
   PetscCall(MatGetSize(svd->A,&M,&N));
   svd->ncv = N;
-  if (svd->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(svd,"Warning: parameter mpd ignored\n"));
-  if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
+  if (svd->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(svd,"Warning: parameter mpd ignored\n"));
+  if (svd->max_it==PETSC_DETERMINE) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
   PetscCall(SVDAllocateSolution(svd,0));

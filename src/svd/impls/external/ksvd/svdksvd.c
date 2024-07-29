@@ -32,8 +32,8 @@ static PetscErrorCode SVDSetUp_KSVD(SVD svd)
   PetscCall(MatGetSize(svd->A,&M,&N));
   PetscCheck(M==N,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The interface to KSVD does not support rectangular matrices");
   svd->ncv = N;
-  if (svd->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(svd,"Warning: parameter mpd ignored\n"));
-  if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
+  if (svd->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(svd,"Warning: parameter mpd ignored\n"));
+  if (svd->max_it==PETSC_DETERMINE) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
   PetscCall(SVDAllocateSolution(svd,0));

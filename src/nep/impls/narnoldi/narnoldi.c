@@ -35,7 +35,7 @@ static PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   PetscFunctionBegin;
   PetscCall(NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd));
   PetscCheck(nep->ncv<=nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
-  if (nep->max_it==PETSC_DEFAULT) nep->max_it = nep->nev*nep->ncv;
+  if (nep->max_it==PETSC_DETERMINE) nep->max_it = nep->nev*nep->ncv;
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
   PetscCheck(nep->which==NEP_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_CALLBACK | NEP_FEATURE_REGION | NEP_FEATURE_TWOSIDED);
@@ -347,7 +347,7 @@ static PetscErrorCode NEPNArnoldiGetKSP_NArnoldi(NEP nep,KSP *ksp)
     PetscCall(KSPAppendOptionsPrefix(ctx->ksp,"nep_narnoldi_"));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)nep)->options));
     PetscCall(KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE));
-    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
   *ksp = ctx->ksp;
   PetscFunctionReturn(PETSC_SUCCESS);

@@ -432,12 +432,12 @@ static PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     PetscCall(EPSGetDimensions(cyclic->eps,&nev,&ncv,&mpd));
     PetscCheck(nev==1 || nev>=2*svd->nsv,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"The number of requested eigenvalues %" PetscInt_FMT " must be at least 2*%" PetscInt_FMT,nev,svd->nsv);
     nev = PetscMax(nev,2*svd->nsv);
-    if (ncv==PETSC_DEFAULT && svd->ncv!=PETSC_DEFAULT) ncv = PetscMax(3*svd->nsv,svd->ncv);
-    if (mpd==PETSC_DEFAULT && svd->mpd!=PETSC_DEFAULT) mpd = svd->mpd;
+    if (ncv==PETSC_DETERMINE && svd->ncv!=PETSC_DETERMINE) ncv = PetscMax(3*svd->nsv,svd->ncv);
+    if (mpd==PETSC_DETERMINE && svd->mpd!=PETSC_DETERMINE) mpd = svd->mpd;
     PetscCall(EPSSetDimensions(cyclic->eps,nev,ncv,mpd));
     PetscCall(EPSGetTolerances(cyclic->eps,&tol,&maxit));
-    if (tol==(PetscReal)PETSC_DEFAULT) tol = svd->tol==(PetscReal)PETSC_DEFAULT? SLEPC_DEFAULT_TOL/10.0: svd->tol;
-    if (maxit==PETSC_DEFAULT && svd->max_it!=PETSC_DEFAULT) maxit = svd->max_it;
+    if (tol==(PetscReal)PETSC_DETERMINE) tol = svd->tol==(PetscReal)PETSC_DETERMINE? SLEPC_DEFAULT_TOL/10.0: svd->tol;
+    if (maxit==PETSC_DETERMINE) maxit = svd->max_it;
     PetscCall(EPSSetTolerances(cyclic->eps,tol,maxit));
     switch (svd->conv) {
     case SVD_CONV_ABS:
@@ -504,7 +504,7 @@ static PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   PetscCall(EPSGetDimensions(cyclic->eps,NULL,&svd->ncv,&svd->mpd));
   svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
   PetscCall(EPSGetTolerances(cyclic->eps,NULL,&svd->max_it));
-  if (svd->tol==(PetscReal)PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
+  if (svd->tol==(PetscReal)PETSC_DETERMINE) svd->tol = SLEPC_DEFAULT_TOL;
 
   svd->leftbasis = PETSC_TRUE;
   PetscCall(SVDAllocateSolution(svd,0));

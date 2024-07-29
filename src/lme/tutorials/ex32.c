@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   /*
      (Optional) Set other solver options
   */
-  PetscCall(LMESetTolerances(lme,1e-07,PETSC_DEFAULT));
+  PetscCall(LMESetTolerances(lme,1e-07,PETSC_CURRENT));
 
   /*
      Set solver parameters at runtime

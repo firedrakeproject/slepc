@@ -211,7 +211,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   ctx->eps->max_it = eps->max_it;
   ctx->eps->tol = eps->tol;
   ctx->eps->purify = eps->purify;
-  if (eps->tol==(PetscReal)PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
+  if (eps->tol==(PetscReal)PETSC_DETERMINE) eps->tol = SLEPC_DEFAULT_TOL;
   PetscCall(EPSSetProblemType(ctx->eps,eps->problem_type));
   PetscCall(EPSSetUp(ctx->eps));
   ctx->eps->nconv = 0;
@@ -288,7 +288,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     PetscCheck(eps->nds==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not supported in combination with deflation space");
     EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING,PETSC_TRUE," with spectrum slicing");
     EPSCheckIgnoredCondition(eps,EPS_FEATURE_BALANCE,PETSC_TRUE," with spectrum slicing");
-    if (eps->tol==(PetscReal)PETSC_DEFAULT) {
+    if (eps->tol==(PetscReal)PETSC_DETERMINE) {
 #if defined(PETSC_USE_REAL_SINGLE)
       eps->tol = SLEPC_DEFAULT_TOL;
 #else
@@ -296,7 +296,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       eps->tol = SLEPC_DEFAULT_TOL*1e-2;
 #endif
     }
-    if (eps->max_it==PETSC_DEFAULT) eps->max_it = 100;
+    if (eps->max_it==PETSC_DETERMINE) eps->max_it = 100;
     if (ctx->nev==1) ctx->nev = PetscMin(40,eps->n);  /* nev not set, use default value */
     PetscCheck(eps->n<=10 || ctx->nev>=10,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   }

@@ -155,7 +155,7 @@ int main(int argc,char **argv)
     PetscCall(SNESGetFunctionNorm(snes,&norm0));
     /* Make the tolerance smaller than the last residual
        SNES will converge right away if the initial is setup correctly */
-    PetscCall(SNESSetTolerances(snes,norm0*1.2,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(SNESSetTolerances(snes,norm0*1.2,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
     PetscCall(EPSSolve(eps));
     /* Number of Newton iterations supposes to be zero */
     PetscCall(SNESGetIterationNumber(snes,&nits));

@@ -56,11 +56,11 @@ static PetscErrorCode EPSSetUp_FEAST(EPS eps)
   PetscCheck(size==1,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The FEAST interface is supported for sequential runs only");
   EPSCheckHermitianDefinite(eps);
   EPSCheckSinvertCayley(eps);
-  if (eps->ncv!=PETSC_DEFAULT) {
+  if (eps->ncv!=PETSC_DETERMINE) {
     PetscCheck(eps->ncv>=eps->nev+2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
-  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = 20;
+  if (eps->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = 20;
   if (!eps->which) eps->which = EPS_ALL;
   PetscCheck(eps->which==EPS_ALL && eps->inta!=eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver must be used with a computational interval");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
@@ -256,7 +256,7 @@ static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
   EPS_FEAST *ctx = (EPS_FEAST*)eps->data;
 
   PetscFunctionBegin;
-  if (npoints == PETSC_DEFAULT) ctx->npoints = 8;
+  if (npoints == PETSC_DEFAULT || npoints == PETSC_DECIDE) ctx->npoints = 8;
   else ctx->npoints = npoints;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

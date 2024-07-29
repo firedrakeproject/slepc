@@ -101,7 +101,7 @@ int main(int argc,char **argv)
   */
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_NHEP));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
 
   /*
      Set the custom comparing routine in order to obtain the eigenvalues

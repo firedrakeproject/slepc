@@ -146,7 +146,7 @@ int main(int argc,char **argv)
   */
   mpd = 40;
   PetscCall(NEPSetDimensions(nep,2*mpd,3*mpd,mpd));
-  PetscCall(NEPSetTolerances(nep,PETSC_DEFAULT,2000));
+  PetscCall(NEPSetTolerances(nep,PETSC_CURRENT,2000));
   PetscCall(PetscNew(&ctx));
   ctx->lastnconv = 0;
   ctx->nreps     = 0;

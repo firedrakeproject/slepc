@@ -56,7 +56,7 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
   PetscCall(STGetKSP(eps->st,&ksp));
   if (!((PetscObject)ksp)->type_name) {
     PetscCall(KSPSetType(ksp,KSPGMRES));
-    PetscCall(KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,5));
+    PetscCall(KSPSetTolerances(ksp,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT,5));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -362,7 +362,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
 
   /* set tolerance if not yet set */
-  if (eps->tol==(PetscReal)PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
+  if (eps->tol==(PetscReal)PETSC_DETERMINE) eps->tol = SLEPC_DEFAULT_TOL;
 
   /* set up sorting criterion */
   PetscTryTypeMethod(eps,setupsort);
@@ -638,14 +638,14 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
   PetscBool      krylov;
 
   PetscFunctionBegin;
-  if (*ncv!=PETSC_DEFAULT) { /* ncv set */
+  if (*ncv!=PETSC_DETERMINE) { /* ncv set */
     PetscCall(PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,""));
     if (krylov) {
       PetscCheck(*ncv>=nev+1 || (*ncv==nev && *ncv==eps->n),PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
     } else {
       PetscCheck(*ncv>=nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
     }
-  } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
+  } else if (*mpd!=PETSC_DETERMINE) { /* mpd set */
     *ncv = PetscMin(eps->n,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */
     if (nev<500) *ncv = PetscMin(eps->n,PetscMax(2*nev,nev+15));
@@ -654,7 +654,7 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
       *ncv = PetscMin(eps->n,nev+(*mpd));
     }
   }
-  if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
+  if (*mpd==PETSC_DETERMINE) *mpd = *ncv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

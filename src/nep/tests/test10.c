@@ -151,7 +151,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   PetscCall(NEPCreate(PETSC_COMM_WORLD,&nep));
-  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_DEFAULT));
+  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_CURRENT));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       First solve

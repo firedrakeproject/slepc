@@ -95,7 +95,7 @@ int main(int argc,char **argv)
   PetscCall(PetscNew(&ctx));
   PetscCall(KSPCreate(PETSC_COMM_WORLD,&ctx->ksp));
   PetscCall(KSPSetOperators(ctx->ksp,A,A));
-  PetscCall(KSPSetTolerances(ctx->ksp,tol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(KSPSetTolerances(ctx->ksp,tol,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   PetscCall(KSPSetFromOptions(ctx->ksp));
   ctx->B = B;
   PetscCall(MatCreateVecs(A,&ctx->w,NULL));
@@ -109,7 +109,7 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,S,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_HEP));  /* even though S is not symmetric */
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
   PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

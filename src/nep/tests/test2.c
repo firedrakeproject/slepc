@@ -114,7 +114,7 @@ int main(int argc,char **argv)
   PetscCall(NEPGetWhichEigenpairs(nep,&which));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Which = %d, target = %g\n",(int)which,(double)PetscRealPart(target)));
 
-  PetscCall(NEPSetDimensions(nep,1,12,PETSC_DEFAULT));
+  PetscCall(NEPSetDimensions(nep,1,12,PETSC_CURRENT));
   PetscCall(NEPGetDimensions(nep,&nev,&ncv,&mpd));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%" PetscInt_FMT ", ncv=%" PetscInt_FMT ", mpd=%" PetscInt_FMT "\n",nev,ncv,mpd));
 

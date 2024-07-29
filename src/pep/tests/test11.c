@@ -106,7 +106,6 @@ int main(int argc,char **argv)
   A[0] = K; A[1] = C; A[2] = M;
   PetscCall(PEPSetOperators(pep,3,A));
   PetscCall(PEPSetProblemType(pep,PEP_GENERAL));
-  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT));
 
   /*
      Define the region containing the eigenvalues of interest
@@ -126,7 +125,7 @@ int main(int argc,char **argv)
   */
   mpd = 40;
   PetscCall(PEPSetDimensions(pep,2*mpd,3*mpd,mpd));
-  PetscCall(PEPSetTolerances(pep,PETSC_DEFAULT,2000));
+  PetscCall(PEPSetTolerances(pep,SLEPC_DEFAULT_TOL,2000));
   PetscCall(PetscNew(&ctx));
   ctx->lastnconv = 0;
   ctx->nreps     = 0;

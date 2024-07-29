@@ -46,7 +46,7 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
   PetscCall(EPSSetFromOptions(eps));
 
@@ -57,7 +57,7 @@ int main(int argc,char **argv)
 
   /* Second solve */
   PetscCall(EPSGetDimensions(eps,&nev,&ncv,NULL));
-  PetscCall(EPSSetDimensions(eps,nev,ncv+2,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,nev,ncv+2,PETSC_DETERMINE));
   PetscCall(EPSSolve(eps));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," - - - Second solve, subspace of increased size - - -\n"));
   PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));

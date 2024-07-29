@@ -38,7 +38,7 @@ int main(int argc,char **argv)
   PetscCall(BVCreate(PETSC_COMM_WORLD,&X));
   PetscCall(PetscObjectSetName((PetscObject)X,"X"));
   PetscCall(BVSetSizesFromVec(X,t,k));
-  PetscCall(BVSetOrthogonalization(X,BV_ORTHOG_MGS,BV_ORTHOG_REFINE_IFNEEDED,PETSC_DEFAULT,BV_ORTHOG_BLOCK_GS));
+  PetscCall(BVSetOrthogonalization(X,BV_ORTHOG_MGS,BV_ORTHOG_REFINE_IFNEEDED,PETSC_CURRENT,BV_ORTHOG_BLOCK_GS));
   PetscCall(BVSetFromOptions(X));
 
   /* Set up viewer */

@@ -25,9 +25,9 @@ static PetscErrorCode SVDSetUp_LAPACK(SVD svd)
     PetscCall(MatGetSize(svd->OPb,&P,NULL));
     svd->ncv = PetscMin(M,PetscMin(N,P));
   }
-  if (svd->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(svd,"Warning: parameter mpd ignored\n"));
+  if (svd->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(svd,"Warning: parameter mpd ignored\n"));
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
-  if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
+  if (svd->max_it==PETSC_DETERMINE) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
   PetscCall(SVDAllocateSolution(svd,0));
   PetscCall(DSAllocate(svd->ds,PetscMax(N,PetscMax(M,P))));

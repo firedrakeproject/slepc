@@ -151,10 +151,10 @@ PetscErrorCode PEPSetUp(PEP pep)
   PetscUseTypeMethod(pep,setup);
 
   /* set tolerance if not yet set */
-  if (pep->tol==(PetscReal)PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL;
+  if (pep->tol==(PetscReal)PETSC_DETERMINE) pep->tol = SLEPC_DEFAULT_TOL;
   if (pep->refine) {
-    if (pep->rtol==(PetscReal)PETSC_DEFAULT) pep->rtol = PetscMax(pep->tol/1000,PETSC_MACHINE_EPSILON);
-    if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
+    if (pep->rtol==(PetscReal)PETSC_DETERMINE) pep->rtol = PetscMax(pep->tol/1000,PETSC_MACHINE_EPSILON);
+    if (pep->rits==PETSC_DETERMINE) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
   }
 
   /* set default extraction */
@@ -424,13 +424,13 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPSTOAR,PEPQARNOLDI,""));
   dim = (pep->nmat-1)*pep->n;
-  if (*ncv!=PETSC_DEFAULT) { /* ncv set */
+  if (*ncv!=PETSC_DETERMINE) { /* ncv set */
     if (krylov) {
       PetscCheck(*ncv>nev || (*ncv==nev && *ncv==dim),PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
     } else {
       PetscCheck(*ncv>=nev,PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
     }
-  } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
+  } else if (*mpd!=PETSC_DETERMINE) { /* mpd set */
     *ncv = PetscMin(dim,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */
     if (nev<500) *ncv = PetscMin(dim,PetscMax(2*nev,nev+15));
@@ -439,7 +439,7 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
       *ncv = PetscMin(dim,nev+(*mpd));
     }
   }
-  if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
+  if (*mpd==PETSC_DETERMINE) *mpd = *ncv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

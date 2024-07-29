@@ -57,13 +57,13 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->OP               = NULL;
   svd->OPb              = NULL;
   svd->omega            = NULL;
-  svd->max_it           = PETSC_DEFAULT;
+  svd->max_it           = PETSC_DETERMINE;
   svd->nsv              = 1;
-  svd->ncv              = PETSC_DEFAULT;
-  svd->mpd              = PETSC_DEFAULT;
+  svd->ncv              = PETSC_DETERMINE;
+  svd->mpd              = PETSC_DETERMINE;
   svd->nini             = 0;
   svd->ninil            = 0;
-  svd->tol              = PETSC_DEFAULT;
+  svd->tol              = PETSC_DETERMINE;
   svd->conv             = (SVDConv)-1;
   svd->stop             = SVD_STOP_BASIC;
   svd->which            = SVD_LARGEST;

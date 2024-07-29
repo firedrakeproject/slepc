@@ -26,14 +26,18 @@ static PetscErrorCode RGEllipseSetParameters_Ellipse(RG rg,PetscScalar center,Pe
 
   PetscFunctionBegin;
   ctx->center = center;
-  if (radius == (PetscReal)PETSC_DEFAULT) {
+  if (radius == (PetscReal)PETSC_DETERMINE) {
     ctx->radius = 1.0;
-  } else {
+  } else if (radius != (PetscReal)PETSC_CURRENT) {
     PetscCheck(radius>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
     ctx->radius = radius;
   }
-  PetscCheck(vscale>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
-  ctx->vscale = vscale;
+  if (vscale == (PetscReal)PETSC_DETERMINE) {
+    ctx->vscale = 1.0;
+  } else if (vscale != (PetscReal)PETSC_CURRENT) {
+    PetscCheck(vscale>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
+    ctx->vscale = vscale;
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -59,6 +63,9 @@ static PetscErrorCode RGEllipseSetParameters_Ellipse(RG rg,PetscScalar center,Pe
    -rg_ellipse_center 1.0+2.0i
 
    When PETSc is built with real scalars, the center is restricted to a real value.
+
+   For radius and vscale, you can use PETSC_CURRENT to keep the current value, and
+   PETSC_DETERMINE to set them to a default of 1.
 
    Level: advanced
 

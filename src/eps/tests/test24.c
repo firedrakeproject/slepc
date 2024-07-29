@@ -58,7 +58,7 @@ int main(int argc,char **argv)
   PetscCall(EPSSetType(eps,EPSLOBPCG));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
   PetscCall(EPSSetConvergenceTest(eps,EPS_CONV_ABS));
-  PetscCall(EPSSetDimensions(eps,nev,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,nev,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSLOBPCGSetBlockSize(eps,nev));
   PetscCall(EPSLOBPCGSetRestart(eps,0.7));
   PetscCall(EPSSetTolerances(eps,1e-8,1200));

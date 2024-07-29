@@ -44,10 +44,10 @@ static PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv
 
   PetscFunctionBegin;
   k = PetscMax(3*ctx->bs,((eps->nev-1)/ctx->bs+3)*ctx->bs);
-  if (*ncv!=PETSC_DEFAULT) { /* ncv set */
+  if (*ncv!=PETSC_DETERMINE) { /* ncv set */
     PetscCheck(*ncv>=k,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv is not sufficiently large");
   } else *ncv = k;
-  if (*mpd==PETSC_DEFAULT) *mpd = 3*ctx->bs;
+  if (*mpd==PETSC_DETERMINE) *mpd = 3*ctx->bs;
   else PetscCheck(*mpd==3*ctx->bs,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"This solver does not allow a value of mpd different from 3*blocksize");
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -61,7 +61,7 @@ static PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   if (!ctx->bs) ctx->bs = PetscMin(16,eps->nev);
   PetscCheck(eps->n-eps->nds>=5*ctx->bs,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The problem size is too small relative to the block size");
   PetscCall(EPSSetDimensions_LOBPCG(eps,eps->nev,&eps->ncv,&eps->mpd));
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   PetscCheck(eps->which==EPS_SMALLEST_REAL || eps->which==EPS_LARGEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real or largest real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION);
@@ -471,7 +471,7 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
 
   PetscFunctionBegin;
-  if (restart==(PetscReal)PETSC_DEFAULT) restart = 0.9;
+  if (restart==(PetscReal)PETSC_DEFAULT || restart==(PetscReal)PETSC_DECIDE) restart = 0.9;
   PetscCheck(restart>=0.1 && restart<=1.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument %g must be in the range [0.1,1.0]",(double)restart);
   if (restart != ctx->restart) {
     ctx->restart = restart;

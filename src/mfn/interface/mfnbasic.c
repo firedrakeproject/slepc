@@ -207,9 +207,9 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
 
   mfn->A               = NULL;
   mfn->fn              = NULL;
-  mfn->max_it          = PETSC_DEFAULT;
-  mfn->ncv             = PETSC_DEFAULT;
-  mfn->tol             = PETSC_DEFAULT;
+  mfn->max_it          = PETSC_DETERMINE;
+  mfn->ncv             = PETSC_DETERMINE;
+  mfn->tol             = PETSC_DETERMINE;
   mfn->errorifnotconverged = PETSC_FALSE;
 
   mfn->numbermonitors  = 0;
