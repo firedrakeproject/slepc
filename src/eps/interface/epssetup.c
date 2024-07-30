@@ -303,6 +303,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   PetscCall(EPSSetDefaultST(eps));
 
   PetscCall(STSetTransform(eps->st,PETSC_TRUE));
+  PetscCall(STSetStructured(eps->st,PETSC_FALSE));
   if (eps->useds && !eps->ds) PetscCall(EPSGetDS(eps,&eps->ds));
   if (eps->useds) PetscCall(EPSSetDSType(eps));
   if (eps->twosided) {
@@ -326,6 +327,12 @@ PetscErrorCode EPSSetUp(EPS eps)
     eps->isgeneralized = PETSC_FALSE;
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
   } else PetscCheck(nmat==1 || eps->isgeneralized,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state: the problem type does not match the number of matrices");
+
+  if (eps->isstructured) {
+    /* make sure the user has set the appropriate matrix */
+    PetscCall(STGetMatrix(eps->st,0,&A));
+    if (eps->problem_type==EPS_BSE) PetscCall(SlepcCheckMatStruct(A,SLEPC_MAT_STRUCT_BSE,NULL));
+  }
 
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
@@ -425,9 +432,13 @@ PetscErrorCode EPSSetUp(EPS eps)
    It must be called before EPSSetUp(). If it is called again after EPSSetUp() and
    the matrix sizes have changed then the EPS object is reset.
 
+   For structured eigenproblem types such as EPS_BSE (see EPSSetProblemType()), the
+   provided matrices must have been created with the corresponding helper function,
+   i.e., MatCreateBSE().
+
    Level: beginner
 
-.seealso: EPSSolve(), EPSSetUp(), EPSReset(), EPSGetST(), STGetMatrix()
+.seealso: EPSSolve(), EPSSetUp(), EPSReset(), EPSGetST(), STGetMatrix(), EPSSetProblemType()
 @*/
 PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {

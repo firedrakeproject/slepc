@@ -58,6 +58,7 @@ struct _p_ST {
   STMatMode        matmode;          /* how the transformation matrix is handled */
   MatStructure     str;              /* whether matrices have the same pattern or not */
   PetscBool        transform;        /* whether transformed matrices are computed */
+  PetscBool        structured;       /* whether the operator is structured or not */
   Vec              D;                /* diagonal matrix for balancing */
   Mat              Pmat;             /* user-provided preconditioner matrix */
   PetscBool        Pmat_set;         /* whether the user provided a preconditioner matrix or not  */

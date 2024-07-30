@@ -46,6 +46,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   PetscScalar    target;
 
   PetscFunctionBegin;
+  EPSCheckNotStructured(eps);
   /* Setup EPS options and get the problem specification */
   bs = data->blocksize;
   if (bs <= 0) bs = 1;

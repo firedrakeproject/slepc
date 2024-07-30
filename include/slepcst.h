@@ -107,6 +107,8 @@ SLEPC_EXTERN PetscErrorCode STSetBalanceMatrix(ST,Vec);
 SLEPC_EXTERN PetscErrorCode STGetBalanceMatrix(ST,Vec*);
 SLEPC_EXTERN PetscErrorCode STSetTransform(ST,PetscBool);
 SLEPC_EXTERN PetscErrorCode STGetTransform(ST,PetscBool*);
+SLEPC_EXTERN PetscErrorCode STSetStructured(ST,PetscBool);
+SLEPC_EXTERN PetscErrorCode STGetStructured(ST,PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode STSetOptionsPrefix(ST,const char*);
 SLEPC_EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);

@@ -83,6 +83,7 @@ static PetscErrorCode EPSSetUp_Power(EPS eps)
   void           *ctx;
 
   PetscFunctionBegin;
+  EPSCheckNotStructured(eps);
   if (eps->ncv!=PETSC_DETERMINE) {
     PetscCheck(eps->ncv>=eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
   } else eps->ncv = eps->nev;

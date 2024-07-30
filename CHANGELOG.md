@@ -4,6 +4,9 @@
 
 ### Added
 
+- `EPS`: added support for structured eigenvalue problems in the Krylov-Schur solver.
+  In particular, the problem type `EPS_BSE` is intended to solve eigenproblems with
+  Bethe-Salpeter structure, whose matrix has been created with `MatCreateBSE`.
 - `BV`: new function `BVGetSplitRows()` to split a `BV` row-wise using index sets.
 
 ### Changed

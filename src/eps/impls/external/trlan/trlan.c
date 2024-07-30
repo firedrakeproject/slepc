@@ -27,6 +27,7 @@ static PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   PetscFunctionBegin;
   EPSCheckHermitian(eps);
   EPSCheckStandard(eps);
+  EPSCheckNotStructured(eps);
   PetscCall(PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan));
   if (eps->ncv!=PETSC_DETERMINE) {
     PetscCheck(eps->ncv>=eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");

@@ -108,8 +108,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) PetscCall(EPSSetProblemType(eps,EPS_GNHEP));
     PetscCall(PetscOptionsBoolGroup("-eps_pos_gen_non_hermitian","Generalized non-Hermitian eigenvalue problem with positive semi-definite B","EPSSetProblemType",&flg));
     if (flg) PetscCall(EPSSetProblemType(eps,EPS_PGNHEP));
-    PetscCall(PetscOptionsBoolGroupEnd("-eps_gen_indefinite","Generalized Hermitian-indefinite eigenvalue problem","EPSSetProblemType",&flg));
+    PetscCall(PetscOptionsBoolGroup("-eps_gen_indefinite","Generalized Hermitian-indefinite eigenvalue problem","EPSSetProblemType",&flg));
     if (flg) PetscCall(EPSSetProblemType(eps,EPS_GHIEP));
+    PetscCall(PetscOptionsBoolGroupEnd("-eps_bse","Structured Bethe-Salpeter eigenvalue problem","EPSSetProblemType",&flg));
+    if (flg) PetscCall(EPSSetProblemType(eps,EPS_BSE));
 
     PetscCall(PetscOptionsBoolGroupBegin("-eps_ritz","Rayleigh-Ritz extraction","EPSSetExtraction",&flg));
     if (flg) PetscCall(EPSSetExtraction(eps,EPS_RITZ));
@@ -880,20 +882,24 @@ PetscErrorCode EPSGetStoppingTest(EPS eps,EPSStop *stop)
 .  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem
 .  -eps_pos_gen_non_hermitian - generalized non-Hermitian eigenvalue problem
    with positive semi-definite B
--  -eps_gen_indefinite - generalized Hermitian-indefinite eigenvalue problem
+.  -eps_gen_indefinite - generalized Hermitian-indefinite eigenvalue problem
+-  -eps_bse - structured Bethe-Salpeter eigenvalue problem
 
    Notes:
-   Allowed values for the problem type are Hermitian (EPS_HEP), non-Hermitian
-   (EPS_NHEP), generalized Hermitian (EPS_GHEP), generalized non-Hermitian
-   (EPS_GNHEP), generalized non-Hermitian with positive semi-definite B
-   (EPS_PGNHEP), and generalized Hermitian-indefinite (EPS_GHIEP).
-
-   This function must be used to instruct SLEPc to exploit symmetry. If no
+   This function must be used to instruct SLEPc to exploit symmetry or other
+   kind of structure. If no
    problem type is specified, by default a non-Hermitian problem is assumed
    (either standard or generalized). If the user knows that the problem is
    Hermitian (i.e. A=A^H) or generalized Hermitian (i.e. A=A^H, B=B^H, and
    B positive definite) then it is recommended to set the problem type so
    that eigensolver can exploit these properties.
+
+   If the user does not call this function, the solver will use a reasonable
+   guess.
+
+   For structured problem types such as EPS_BSE, the matrices passed in via
+   EPSSetOperators() must have been created with the corresponding helper
+   function, i.e., MatCreateBSE().
 
    Level: intermediate
 
@@ -910,31 +916,43 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_NHEP:
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_GHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_TRUE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_GNHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_PGNHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_TRUE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_GHIEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
+      break;
+    case EPS_BSE:
+      eps->isgeneralized = PETSC_FALSE;
+      eps->ishermitian = PETSC_FALSE;
+      eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_TRUE;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");

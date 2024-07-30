@@ -78,8 +78,11 @@ static PetscErrorCode STComputeOperator_Sinvert(ST st)
 
 static PetscErrorCode STSetUp_Sinvert(ST st)
 {
-  PetscInt       k,nc,nmat=st->nmat;
+  PetscInt       k,nc,nmat=st->nmat,nsub;
   PetscScalar    *coeffs=NULL;
+  PetscBool      islu;
+  KSP            *subksp;
+  PC             pc,pcsub;
 
   PetscFunctionBegin;
   if (nmat>1) PetscCall(STSetWorkVecs(st,1));
@@ -113,7 +116,34 @@ static PetscErrorCode STSetUp_Sinvert(ST st)
       }
     }
   }
-  if (st->P) PetscCall(KSPSetUp(st->ksp));
+  if (st->structured) {
+    /* ./ex55 -st_type sinvert -eps_target 0 -eps_target_magnitude
+              -st_ksp_type preonly -st_pc_type fieldsplit
+              -st_fieldsplit_0_ksp_type preonly -st_fieldsplit_0_pc_type lu
+              -st_fieldsplit_1_ksp_type preonly -st_fieldsplit_1_pc_type lu
+              -st_pc_fieldsplit_type schur -st_pc_fieldsplit_schur_fact_type full
+              -st_pc_fieldsplit_schur_precondition full */
+    PetscCall(KSPGetPC(st->ksp,&pc));
+    PetscCall(PetscObjectTypeCompare((PetscObject)pc,PCLU,&islu));
+    if (islu) {  /* assume PCLU means the user has not set any options */
+      PetscCall(KSPSetType(st->ksp,KSPPREONLY));
+      PetscCall(PCSetType(pc,PCFIELDSPLIT));
+      PetscCall(PCFieldSplitSetType(pc,PC_COMPOSITE_SCHUR));
+      PetscCall(PCFieldSplitSetSchurFactType(pc,PC_FIELDSPLIT_SCHUR_FACT_FULL));
+      PetscCall(PCFieldSplitSetSchurPre(pc,PC_FIELDSPLIT_SCHUR_PRE_FULL,NULL));
+      PetscCall(KSPSetUp(st->ksp));
+      PetscCall(PCFieldSplitGetSubKSP(pc,&nsub,&subksp));
+      PetscCall(KSPSetType(subksp[0],KSPPREONLY));
+      PetscCall(KSPGetPC(subksp[0],&pcsub));
+      PetscCall(PCSetType(pcsub,PCLU));
+      PetscCall(KSPSetType(subksp[1],KSPPREONLY));
+      PetscCall(KSPGetPC(subksp[1],&pcsub));
+      PetscCall(PCSetType(pcsub,PCLU));
+      PetscCall(PetscFree(subksp));
+    }
+  } else {
+    if (st->P) PetscCall(KSPSetUp(st->ksp));
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

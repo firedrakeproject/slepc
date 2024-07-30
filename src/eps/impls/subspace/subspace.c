@@ -65,6 +65,7 @@ static PetscErrorCode EPSSetUp_Subspace(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckDefinite(eps);
+  EPSCheckNotStructured(eps);
   if (eps->max_it==PETSC_DETERMINE) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) PetscCall(EPSSetWhichEigenpairs_Default(eps));
   if (eps->which==EPS_ALL) {
