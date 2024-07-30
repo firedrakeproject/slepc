@@ -146,6 +146,7 @@ static PetscErrorCode EPSComputeVectors_BSE_Shao(EPS eps)
   BV          U,V;
   IS          is[2];
   PetscInt    k;
+  PetscScalar lambda;
 
   PetscFunctionBegin;
   PetscCall(STGetMatrix(eps->st,0,&H));
@@ -156,7 +157,9 @@ static PetscErrorCode EPSComputeVectors_BSE_Shao(EPS eps)
     PetscCall(BVGetColumn(V,k,&v1));
     /* approx eigenvector is [    (eigr[k]*u1+v1)]
                              [conj(eigr[k]*u1-v1)]  */
-    PetscCall(VecAYPX(u1,eps->eigr[k],v1));
+    lambda = eps->eigr[k];
+    PetscCall(STBackTransform(eps->st,1,&lambda,&eps->eigi[k]));
+    PetscCall(VecAYPX(u1,lambda,v1));
     PetscCall(VecAYPX(v1,-2.0,u1));
     PetscCall(VecConjugate(v1));
     PetscCall(BVRestoreColumn(U,k,&u1));
@@ -535,7 +538,7 @@ static PetscErrorCode EPSComputeVectors_BSE_ProjectedBSE(EPS eps)
   BV          X,Y;
   IS          is[2];
   PetscInt    k;
-  PetscReal   delta1,delta2,lambda;
+  PetscScalar delta1,delta2,lambda;
 
   PetscFunctionBegin;
   PetscCall(STGetMatrix(eps->st,0,&H));
@@ -546,9 +549,10 @@ static PetscErrorCode EPSComputeVectors_BSE_ProjectedBSE(EPS eps)
   for (k=0; k<eps->nconv; k++) {
     /* approx eigenvector is [ delta1*x1 + delta2*conj(y1) ]
                              [ delta1*y1 + delta2*conj(x1) ] */
-    lambda = PetscRealPart(eps->eigr[k]);
-    delta1 = lambda+1;
-    delta2 = lambda-1;
+    lambda = eps->eigr[k];
+    PetscCall(STBackTransform(eps->st,1,&lambda,&eps->eigi[k]));
+    delta1 = lambda+1.0;
+    delta2 = lambda-1.0;
     PetscCall(BVGetColumn(X,k,&x1));
     PetscCall(BVGetColumn(Y,k,&y1));
     PetscCall(VecCopy(x1,cx1));
@@ -587,7 +591,6 @@ PetscErrorCode EPSSetUp_KrylovSchur_BSE(EPS eps)
   PetscCall(PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STSHIFT,""));
   PetscCheck(flg,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Krylov-Schur BSE only supports shift and shift-and-invert ST");
   PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&sinvert));
-  PetscCheck(!sinvert,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert not implemented yet");
   if (!eps->which) {
     if (sinvert) eps->which = EPS_TARGET_MAGNITUDE;
     else eps->which = EPS_SMALLEST_MAGNITUDE;
