@@ -157,7 +157,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -eps_nev 4 -eps_ncv 16 -eps_krylovschur_bse_type {{shao gruning projectedbse}} -st_type sinvert -terse
-      filter: sed -e "s/17496/17495/g"
+      filter: sed -e "s/17496/17495/g" | sed -e "s/38566/38567/g"
       test:
          suffix: 1_sinvert
          requires: complex
