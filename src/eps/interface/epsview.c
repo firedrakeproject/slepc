@@ -555,7 +555,7 @@ static PetscErrorCode EPSValuesView_BINARY(EPS eps,PetscViewer viewer)
 #if defined(PETSC_HAVE_HDF5)
 static PetscErrorCode EPSValuesView_HDF5(EPS eps,PetscViewer viewer)
 {
-  PetscInt       i,k,n,N,nconv;
+  PetscInt       i,n,N,nconv;
   PetscScalar    eig;
   PetscMPIInt    rank;
   Vec            v;
