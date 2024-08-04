@@ -83,6 +83,10 @@ static PetscErrorCode STSetUp_Sinvert(ST st)
   PetscBool      islu;
   KSP            *subksp;
   PC             pc,pcsub;
+  Mat            A00;
+  MatType        type;
+  PetscBool      flg;
+  char           str[64];
 
   PetscFunctionBegin;
   if (nmat>1) PetscCall(STSetWorkVecs(st,1));
@@ -131,6 +135,15 @@ static PetscErrorCode STSetUp_Sinvert(ST st)
       PetscCall(PCFieldSplitSetType(pc,PC_COMPOSITE_SCHUR));
       PetscCall(PCFieldSplitSetSchurFactType(pc,PC_FIELDSPLIT_SCHUR_FACT_FULL));
       PetscCall(PCFieldSplitSetSchurPre(pc,PC_FIELDSPLIT_SCHUR_PRE_FULL,NULL));
+      /* hack to set Mat type of Schur complement equal to A00, assumes default prefixes */
+      PetscCall(PetscOptionsHasName(((PetscObject)st)->options,((PetscObject)st)->prefix,"-st_fieldsplit_1_explicit_operator_mat_type",&flg));
+      if (!flg) {
+        PetscCall(MatNestGetSubMat(st->A[0],0,0,&A00));
+        PetscCall(MatGetType(A00,&type));
+        PetscCall(PetscSNPrintf(str,sizeof(str),"-%sst_fieldsplit_1_explicit_operator_mat_type %s",((PetscObject)st)->prefix?((PetscObject)st)->prefix:"",type));
+        PetscCall(PetscOptionsInsertString(((PetscObject)st)->options,str));
+      }
+      /* set preonly+lu on block solvers */
       PetscCall(KSPSetUp(st->ksp));
       PetscCall(PCFieldSplitGetSubKSP(pc,&nsub,&subksp));
       PetscCall(KSPSetType(subksp[0],KSPPREONLY));
