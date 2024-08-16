@@ -37,11 +37,11 @@ typedef struct {
 static PetscErrorCode NEPSetUp_RII(NEP nep)
 {
   PetscFunctionBegin;
-  if (nep->ncv!=PETSC_DEFAULT) PetscCall(PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n"));
+  if (nep->ncv!=PETSC_DETERMINE) PetscCall(PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n"));
   nep->ncv = nep->nev;
-  if (nep->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n"));
+  if (nep->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n"));
   nep->mpd = nep->nev;
-  if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (nep->max_it==PETSC_DETERMINE) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
   PetscCheck(nep->which==NEP_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_REGION | NEP_FEATURE_TWOSIDED);
@@ -157,7 +157,7 @@ static PetscErrorCode NEPSolve_RII(NEP nep)
         if (ctx->lag && !(its%ctx->lag) && its>=2*ctx->lag && perr && nep->errest[nep->nconv]>.5*perr) PetscCall(NEPDeflationSolveSetUp(extop,lambda2));
         if (!ctx->cctol) {
           ktol = PetscMax(ktol/2.0,rtol);
-          PetscCall(KSPSetTolerances(ctx->ksp,ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+          PetscCall(KSPSetTolerances(ctx->ksp,ktol,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
         }
 
         /* eigenvector correction: delta = T(sigma)\r */
@@ -241,7 +241,7 @@ static PetscErrorCode NEPRIISetMaximumIterations_RII(NEP nep,PetscInt its)
   NEP_RII *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
-  if (its==PETSC_DEFAULT) ctx->max_inner_it = 10;
+  if (its==PETSC_DEFAULT || its==PETSC_DECIDE) ctx->max_inner_it = 10;
   else {
     PetscCheck(its>0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of iterations must be >0");
     ctx->max_inner_it = its;
@@ -654,7 +654,7 @@ static PetscErrorCode NEPRIIGetKSP_RII(NEP nep,KSP *ksp)
     PetscCall(KSPAppendOptionsPrefix(ctx->ksp,"nep_rii_"));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)nep)->options));
     PetscCall(KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE));
-    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
   *ksp = ctx->ksp;
   PetscFunctionReturn(PETSC_SUCCESS);

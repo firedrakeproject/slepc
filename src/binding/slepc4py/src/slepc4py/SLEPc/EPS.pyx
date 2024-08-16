@@ -67,6 +67,7 @@ class EPSProblemType(object):
     - `PGNHEP`: Generalized Non-Hermitian eigenproblem
                 with positive definite ``B``.
     - `GHIEP`:  Generalized Hermitian-indefinite eigenproblem.
+    - `BSE`:    Structured Bethe-Salpeter eigenproblem.
     """
     HEP    = EPS_HEP
     NHEP   = EPS_NHEP
@@ -74,6 +75,7 @@ class EPSProblemType(object):
     GNHEP  = EPS_GNHEP
     PGNHEP = EPS_PGNHEP
     GHIEP  = EPS_GHIEP
+    BSE    = EPS_BSE
 
 class EPSExtraction(object):
     """
@@ -203,6 +205,18 @@ class EPSPowerShiftType(object):
     CONSTANT  = EPS_POWER_SHIFT_CONSTANT
     RAYLEIGH  = EPS_POWER_SHIFT_RAYLEIGH
     WILKINSON = EPS_POWER_SHIFT_WILKINSON
+
+class EPSKrylovSchurBSEType(object):
+    """
+    EPS Krylov-Schur method for BSE problems
+
+    - `SHAO`:         Lanczos recurrence for H square.
+    - `GRUNING`:      Lanczos recurrence for H.
+    - `PROJECTEDBSE`: Lanczos where the projected problem has BSE structure.
+    """
+    SHAO         = EPS_KRYLOVSCHUR_BSE_SHAO
+    GRUNING      = EPS_KRYLOVSCHUR_BSE_GRUNING
+    PROJECTEDBSE = EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE
 
 class EPSLanczosReorthogType(object):
     """
@@ -500,6 +514,20 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSIsPositive(self.eps, &tval) )
+        return toBool(tval)
+
+    def isStructured(self):
+        """
+        Tells whether the EPS object corresponds to a structured eigenvalue problem.
+
+        Returns
+        -------
+        flag: bool
+              True if the problem type set with `setProblemType()` was
+              structured.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSIsStructured(self.eps, &tval) )
         return toBool(tval)
 
     def getBalance(self):
@@ -1694,6 +1722,39 @@ cdef class EPS(Object):
         return val
 
     #
+
+    def setKrylovSchurBSEType(self, bse):
+        """
+        Sets the method to be used for BSE structured eigenproblems in
+        the Krylov-Schur solver.
+
+        Parameters
+        ----------
+        bse: `EPS.KrylovSchurBSEType` enumerate
+             The BSE method.
+
+        Notes
+        -----
+        This call is only relevant if the type was set to
+        `EPS.Type.KRYLOVSCHUR` with `setType()` and the problem
+        type to `EPS.ProblemType.BSE` with `setProblemType()`.
+        """
+        cdef SlepcEPSKrylovSchurBSEType val = bse
+        CHKERR( EPSKrylovSchurSetBSEType(self.eps, val) )
+
+    def getKrylovSchurBSEType(self):
+        """
+        Gets the method used for BSE structured eigenproblems in the
+        Krylov-Schur solver.
+
+        Returns
+        -------
+        bse: `EPS.KrylovSchurBSEType` enumerate
+             The BSE method.
+        """
+        cdef SlepcEPSKrylovSchurBSEType val = EPS_KRYLOVSCHUR_BSE_SHAO
+        CHKERR( EPSKrylovSchurGetBSEType(self.eps, &val) )
+        return val
 
     def setKrylovSchurRestart(self, keep):
         """

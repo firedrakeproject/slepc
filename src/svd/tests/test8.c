@@ -82,7 +82,7 @@ int main(int argc,char **argv)
 
   /* Second solve */
   PetscCall(SVDGetDimensions(svd,&nsv,&ncv,NULL));
-  PetscCall(SVDSetDimensions(svd,nsv,ncv+2,PETSC_DEFAULT));
+  PetscCall(SVDSetDimensions(svd,nsv,ncv+2,PETSC_DETERMINE));
   PetscCall(SVDSolve(svd));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," - - - Second solve, subspace of increased size - - -\n"));
   PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));

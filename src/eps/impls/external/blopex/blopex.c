@@ -109,10 +109,10 @@ static PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv
 
   PetscFunctionBegin;
   k = ((eps->nev-1)/ctx->bs+1)*ctx->bs;
-  if (*ncv!=PETSC_DEFAULT) { /* ncv set */
+  if (*ncv!=PETSC_DETERMINE) { /* ncv set */
     PetscCheck(*ncv>=k,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv is not sufficiently large");
   } else *ncv = k;
-  if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
+  if (*mpd==PETSC_DETERMINE) *mpd = *ncv;
   else PetscCall(PetscInfo(eps,"Warning: given value of mpd ignored\n"));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -125,9 +125,10 @@ static PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
+  EPSCheckNotStructured(eps);
   if (!blopex->bs) blopex->bs = PetscMin(16,eps->nev);
   PetscCall(EPSSetDimensions_BLOPEX(eps,eps->nev,&eps->ncv,&eps->mpd));
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   PetscCheck(eps->which==EPS_SMALLEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
@@ -270,7 +271,7 @@ static PetscErrorCode EPSBLOPEXSetBlockSize_BLOPEX(EPS eps,PetscInt bs)
   EPS_BLOPEX *ctx = (EPS_BLOPEX*)eps->data;
 
   PetscFunctionBegin;
-  if (bs==PETSC_DEFAULT) {
+  if (bs==PETSC_DEFAULT || bs==PETSC_DECIDE) {
     ctx->bs    = 0;
     eps->state = EPS_STATE_INITIAL;
   } else {

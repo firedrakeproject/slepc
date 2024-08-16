@@ -30,6 +30,7 @@ cdef extern from * nogil:
         EPS_GNHEP
         EPS_PGNHEP
         EPS_GHIEP
+        EPS_BSE
 
     ctypedef enum SlepcEPSExtraction "EPSExtraction":
         EPS_RITZ
@@ -128,6 +129,7 @@ cdef extern from * nogil:
     PetscErrorCode EPSIsGeneralized(SlepcEPS,PetscBool*)
     PetscErrorCode EPSIsHermitian(SlepcEPS,PetscBool*)
     PetscErrorCode EPSIsPositive(SlepcEPS,PetscBool*)
+    PetscErrorCode EPSIsStructured(SlepcEPS,PetscBool*)
     PetscErrorCode EPSSetExtraction(SlepcEPS,SlepcEPSExtraction)
     PetscErrorCode EPSGetExtraction(SlepcEPS,SlepcEPSExtraction*)
     PetscErrorCode EPSSetBalance(SlepcEPS,SlepcEPSBalance,PetscInt,PetscReal)
@@ -210,6 +212,12 @@ cdef extern from * nogil:
     PetscErrorCode EPSArnoldiSetDelayed(SlepcEPS,PetscBool)
     PetscErrorCode EPSArnoldiGetDelayed(SlepcEPS,PetscBool*)
 
+    ctypedef enum SlepcEPSKrylovSchurBSEType "EPSKrylovSchurBSEType":
+        EPS_KRYLOVSCHUR_BSE_SHAO
+        EPS_KRYLOVSCHUR_BSE_GRUNING
+        EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE
+    PetscErrorCode EPSKrylovSchurSetBSEType(SlepcEPS,SlepcEPSKrylovSchurBSEType)
+    PetscErrorCode EPSKrylovSchurGetBSEType(SlepcEPS,SlepcEPSKrylovSchurBSEType*)
     PetscErrorCode EPSKrylovSchurSetRestart(SlepcEPS,PetscReal)
     PetscErrorCode EPSKrylovSchurGetRestart(SlepcEPS,PetscReal*)
     PetscErrorCode EPSKrylovSchurSetLocking(SlepcEPS,PetscBool)

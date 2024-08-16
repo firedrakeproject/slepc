@@ -94,7 +94,7 @@ int main(int argc,char **argv)
   PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
   PetscCall(SVDSetOperators(svd,A,NULL));
   PetscCall(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
-  PetscCall(SVDSetTolerances(svd,PETSC_DEFAULT,1000));
+  PetscCall(SVDSetTolerances(svd,PETSC_CURRENT,1000));
   PetscCall(SVDSetType(svd,SVDTRLANCZOS));
   PetscCall(SVDSetStoppingTestFunction(svd,MyStoppingTest,&deadline,NULL));
   PetscCall(SVDSetFromOptions(svd));

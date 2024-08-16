@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
   PetscCall(EPSSetTarget(eps,4.8));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE));
-  PetscCall(EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,4,PETSC_DETERMINE,PETSC_DETERMINE));
 
   PetscCall(EPSSetType(eps,EPSRQCG));
   PetscCall(EPSRQCGSetReset(eps,10));

@@ -875,7 +875,7 @@ static PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   PetscFunctionBegin;
   PetscCall(NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd));
   PetscCheck(nep->ncv<=nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
-  if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (nep->max_it==PETSC_DETERMINE) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!ctx->ddmaxit) ctx->ddmaxit = LBPOINTS;
   PetscCall(RGIsTrivial(nep->rg,&istrivial));
   PetscCheck(!istrivial,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
@@ -886,8 +886,8 @@ static PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   k = ctx->ddmaxit;
   PetscCall(PetscMalloc4(k,&ctx->s,k,&ctx->xi,k,&ctx->beta,k,&ctx->D));
   nep->data = ctx;
-  if (nep->tol==(PetscReal)PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
-  if (ctx->ddtol==(PetscReal)PETSC_DEFAULT) ctx->ddtol = nep->tol/10.0;
+  if (nep->tol==(PetscReal)PETSC_DETERMINE) nep->tol = SLEPC_DEFAULT_TOL;
+  if (ctx->ddtol==(PetscReal)PETSC_DETERMINE) ctx->ddtol = nep->tol/10.0;
   if (!ctx->keep) ctx->keep = 0.5;
 
   /* Compute Leja-Bagby points and scaling values */
@@ -1165,7 +1165,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscCall(BVDuplicateResize(nep->V,PetscMax(nep->nt-1,ctx->nmat-1),&W));
 
   /* clean projected matrix (including the extra-arrow) */
-  PetscCall(DSSetDimensions(nep->ds,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSSetDimensions(nep->ds,PETSC_DETERMINE,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(DSGetMat(nep->ds,DS_MAT_A,&H));
   PetscCall(MatZeroEntries(H));
   PetscCall(DSRestoreMat(nep->ds,DS_MAT_A,&H));
@@ -1377,7 +1377,7 @@ static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
   NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  if (keep==(PetscReal)PETSC_DEFAULT) ctx->keep = 0.5;
+  if (keep==(PetscReal)PETSC_DEFAULT || keep==(PetscReal)PETSC_DECIDE) ctx->keep = 0.5;
   else {
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;
@@ -1527,18 +1527,18 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  if (tol == (PetscReal)PETSC_DEFAULT) {
-    ctx->ddtol = PETSC_DEFAULT;
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    ctx->ddtol = PETSC_DETERMINE;
     nep->state = NEP_STATE_INITIAL;
-  } else {
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     ctx->ddtol = tol;
   }
-  if (degree == PETSC_DEFAULT || degree == PETSC_DECIDE) {
+  if (degree == PETSC_DETERMINE) {
     ctx->ddmaxit = 0;
     if (nep->state) PetscCall(NEPReset(nep));
     nep->state = NEP_STATE_INITIAL;
-  } else {
+  } else if (degree != PETSC_CURRENT) {
     PetscCheck(degree>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
     if (ctx->ddmaxit != degree) {
       ctx->ddmaxit = degree;
@@ -1565,7 +1565,8 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
 -  -nep_nleigs_interpolation_degree <degree> - Sets the maximum degree of interpolation
 
    Notes:
-   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
+   PETSC_CURRENT can be used to preserve the current value of any of the
+   arguments, and PETSC_DETERMINE to set them to a default value.
 
    Level: advanced
 
@@ -1737,7 +1738,7 @@ static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,PetscInt *nsolve,KSP **ksp
       PetscCall(KSPAppendOptionsPrefix(ctx->ksp[i],"nep_nleigs_"));
       PetscCall(PetscObjectSetOptions((PetscObject)ctx->ksp[i],((PetscObject)nep)->options));
       PetscCall(KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE));
-      PetscCall(KSPSetTolerances(ctx->ksp[i],1e-3*SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+      PetscCall(KSPSetTolerances(ctx->ksp[i],1e-3*SlepcDefaultTol(nep->tol),PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
       PetscCall(KSPGetPC(ctx->ksp[i],&pc));
       if ((nep->fui==NEP_USER_INTERFACE_SPLIT && nep->P) || (nep->fui==NEP_USER_INTERFACE_CALLBACK && nep->function_pre!=nep->function)) {
         PetscCall(KSPSetType(ctx->ksp[i],KSPBCGS));
@@ -1888,7 +1889,7 @@ static PetscErrorCode NEPSetFromOptions_NLEIGS(NEP nep,PetscOptionItems *PetscOp
     if (flg1) PetscCall(NEPNLEIGSSetFullBasis(nep,b));
 
     PetscCall(NEPNLEIGSGetInterpolation(nep,&r,&i));
-    if (!i) i = PETSC_DEFAULT;
+    if (!i) i = PETSC_DETERMINE;
     PetscCall(PetscOptionsInt("-nep_nleigs_interpolation_degree","Maximum number of terms for interpolation via divided differences","NEPNLEIGSSetInterpolation",i,&i,&flg1));
     PetscCall(PetscOptionsReal("-nep_nleigs_interpolation_tol","Tolerance for interpolation via divided differences","NEPNLEIGSSetInterpolation",r,&r,&flg2));
     if (flg1 || flg2) PetscCall(NEPNLEIGSSetInterpolation(nep,r,i));
@@ -2008,7 +2009,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   PetscCall(PetscNew(&ctx));
   nep->data  = (void*)ctx;
   ctx->lock  = PETSC_TRUE;
-  ctx->ddtol = PETSC_DEFAULT;
+  ctx->ddtol = PETSC_DETERMINE;
 
   nep->useds = PETSC_TRUE;
 

@@ -404,7 +404,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
     PetscCall(KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix));
     PetscCall(KSPAppendOptionsPrefix(st->ksp,"st_"));
     PetscCall(PetscObjectSetOptions((PetscObject)st->ksp,((PetscObject)st)->options));
-    PetscCall(KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
   *ksp = st->ksp;
   PetscFunctionReturn(PETSC_SUCCESS);

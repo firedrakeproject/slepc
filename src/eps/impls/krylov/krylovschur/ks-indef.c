@@ -31,7 +31,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   PetscCall(EPSGetStartVector(eps,0,NULL));
 
   /* Extract sigma[0] from BV, computed during normalization */
-  PetscCall(DSSetDimensions(eps->ds,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSSetDimensions(eps->ds,1,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(BVSetActiveColumns(eps->V,0,1));
   PetscCall(DSGetMatAndColumn(eps->ds,DS_MAT_D,0,&D,&vomega));
   PetscCall(BVGetSignature(eps->V,vomega));

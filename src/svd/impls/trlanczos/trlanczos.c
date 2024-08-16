@@ -214,7 +214,7 @@ static PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscCall(SVDSetDimensions_Default(svd));
   PetscCheck(svd->ncv<=svd->nsv+svd->mpd,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nsv+mpd");
   PetscCheck(lanczos->lock || svd->mpd>=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-  if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
+  if (svd->max_it==PETSC_DETERMINE) svd->max_it = PetscMax(N/svd->ncv,100);
   if (!lanczos->keep) lanczos->keep = 0.5;
   svd->leftbasis = PETSC_TRUE;
   PetscCall(SVDAllocateSolution(svd,1));
@@ -1874,7 +1874,7 @@ static PetscErrorCode SVDTRLanczosGetKSP_TRLanczos(SVD svd,KSP *ksp)
     PetscCall(KSPGetPC(ctx->ksp,&pc));
     PetscCall(PCSetType(pc,PCNONE));
     PetscCall(KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE));
-    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(svd->tol)/10.0,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(svd->tol)/10.0,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
   *ksp = ctx->ksp;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -1910,7 +1910,7 @@ static PetscErrorCode SVDTRLanczosSetRestart_TRLanczos(SVD svd,PetscReal keep)
   SVD_TRLANCZOS *ctx = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  if (keep==(PetscReal)PETSC_DEFAULT) ctx->keep = 0.5;
+  if (keep==(PetscReal)PETSC_DEFAULT || keep==(PetscReal)PETSC_DECIDE) ctx->keep = 0.5;
   else {
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",(double)keep);
     ctx->keep = keep;

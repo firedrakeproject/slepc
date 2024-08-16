@@ -56,7 +56,7 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
   PetscCall(STGetKSP(eps->st,&ksp));
   if (!((PetscObject)ksp)->type_name) {
     PetscCall(KSPSetType(ksp,KSPGMRES));
-    PetscCall(KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,5));
+    PetscCall(KSPSetTolerances(ksp,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT,5));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -303,6 +303,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   PetscCall(EPSSetDefaultST(eps));
 
   PetscCall(STSetTransform(eps->st,PETSC_TRUE));
+  PetscCall(STSetStructured(eps->st,PETSC_FALSE));
   if (eps->useds && !eps->ds) PetscCall(EPSGetDS(eps,&eps->ds));
   if (eps->useds) PetscCall(EPSSetDSType(eps));
   if (eps->twosided) {
@@ -326,6 +327,12 @@ PetscErrorCode EPSSetUp(EPS eps)
     eps->isgeneralized = PETSC_FALSE;
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
   } else PetscCheck(nmat==1 || eps->isgeneralized,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state: the problem type does not match the number of matrices");
+
+  if (eps->isstructured) {
+    /* make sure the user has set the appropriate matrix */
+    PetscCall(STGetMatrix(eps->st,0,&A));
+    if (eps->problem_type==EPS_BSE) PetscCall(SlepcCheckMatStruct(A,SLEPC_MAT_STRUCT_BSE,NULL));
+  }
 
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
@@ -362,7 +369,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
 
   /* set tolerance if not yet set */
-  if (eps->tol==(PetscReal)PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
+  if (eps->tol==(PetscReal)PETSC_DETERMINE) eps->tol = SLEPC_DEFAULT_TOL;
 
   /* set up sorting criterion */
   PetscTryTypeMethod(eps,setupsort);
@@ -425,9 +432,13 @@ PetscErrorCode EPSSetUp(EPS eps)
    It must be called before EPSSetUp(). If it is called again after EPSSetUp() and
    the matrix sizes have changed then the EPS object is reset.
 
+   For structured eigenproblem types such as EPS_BSE (see EPSSetProblemType()), the
+   provided matrices must have been created with the corresponding helper function,
+   i.e., MatCreateBSE().
+
    Level: beginner
 
-.seealso: EPSSolve(), EPSSetUp(), EPSReset(), EPSGetST(), STGetMatrix()
+.seealso: EPSSolve(), EPSSetUp(), EPSReset(), EPSGetST(), STGetMatrix(), EPSSetProblemType()
 @*/
 PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {
@@ -638,14 +649,14 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
   PetscBool      krylov;
 
   PetscFunctionBegin;
-  if (*ncv!=PETSC_DEFAULT) { /* ncv set */
+  if (*ncv!=PETSC_DETERMINE) { /* ncv set */
     PetscCall(PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,""));
     if (krylov) {
       PetscCheck(*ncv>=nev+1 || (*ncv==nev && *ncv==eps->n),PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
     } else {
       PetscCheck(*ncv>=nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
     }
-  } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
+  } else if (*mpd!=PETSC_DETERMINE) { /* mpd set */
     *ncv = PetscMin(eps->n,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */
     if (nev<500) *ncv = PetscMin(eps->n,PetscMax(2*nev,nev+15));
@@ -654,7 +665,7 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
       *ncv = PetscMin(eps->n,nev+(*mpd));
     }
   }
-  if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
+  if (*mpd==PETSC_DETERMINE) *mpd = *ncv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

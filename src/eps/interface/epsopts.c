@@ -108,8 +108,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) PetscCall(EPSSetProblemType(eps,EPS_GNHEP));
     PetscCall(PetscOptionsBoolGroup("-eps_pos_gen_non_hermitian","Generalized non-Hermitian eigenvalue problem with positive semi-definite B","EPSSetProblemType",&flg));
     if (flg) PetscCall(EPSSetProblemType(eps,EPS_PGNHEP));
-    PetscCall(PetscOptionsBoolGroupEnd("-eps_gen_indefinite","Generalized Hermitian-indefinite eigenvalue problem","EPSSetProblemType",&flg));
+    PetscCall(PetscOptionsBoolGroup("-eps_gen_indefinite","Generalized Hermitian-indefinite eigenvalue problem","EPSSetProblemType",&flg));
     if (flg) PetscCall(EPSSetProblemType(eps,EPS_GHIEP));
+    PetscCall(PetscOptionsBoolGroupEnd("-eps_bse","Structured Bethe-Salpeter eigenvalue problem","EPSSetProblemType",&flg));
+    if (flg) PetscCall(EPSSetProblemType(eps,EPS_BSE));
 
     PetscCall(PetscOptionsBoolGroupBegin("-eps_ritz","Rayleigh-Ritz extraction","EPSSetExtraction",&flg));
     if (flg) PetscCall(EPSSetExtraction(eps,EPS_RITZ));
@@ -286,7 +288,10 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
 -  -eps_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
+   Use PETSC_CURRENT to retain the current value of any of the parameters.
+   Use PETSC_DETERMINE for either argument to assign a default value computed
+   internally (may be different in each solver).
+   For maxits use PETSC_UMLIMITED to indicate there is no upper bound on this value.
 
    Level: intermediate
 
@@ -298,17 +303,19 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,tol,2);
   PetscValidLogicalCollectiveInt(eps,maxits,3);
-  if (tol == (PetscReal)PETSC_DEFAULT) {
-    eps->tol   = PETSC_DEFAULT;
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    eps->tol   = PETSC_DETERMINE;
     eps->state = EPS_STATE_INITIAL;
-  } else {
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     eps->tol = tol;
   }
-  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    eps->max_it = PETSC_DEFAULT;
+  if (maxits == PETSC_DETERMINE) {
+    eps->max_it = PETSC_DETERMINE;
     eps->state  = EPS_STATE_INITIAL;
-  } else {
+  } else if (maxits == PETSC_UNLIMITED) {
+    eps->max_it = PETSC_INT_MAX;
+  } else if (maxits != PETSC_CURRENT) {
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     eps->max_it = maxits;
   }
@@ -361,8 +368,9 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
 -  -eps_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Use PETSC_DEFAULT for ncv and mpd to assign a reasonably good value, which is
-   dependent on the solution method.
+   Use PETSC_DETERMINE for ncv and mpd to assign a reasonably good value, which is
+   dependent on the solution method. For any of the arguments, use PETSC_CURRENT
+   to preserve the current value.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
    to set one of them at most. Normal usage is that
@@ -388,17 +396,19 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(eps,nev,2);
   PetscValidLogicalCollectiveInt(eps,ncv,3);
   PetscValidLogicalCollectiveInt(eps,mpd,4);
-  PetscCheck(nev>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
-  eps->nev = nev;
-  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    eps->ncv = PETSC_DEFAULT;
-  } else {
+  if (nev != PETSC_CURRENT) {
+    PetscCheck(nev>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+    eps->nev = nev;
+  }
+  if (ncv == PETSC_DETERMINE) {
+    eps->ncv = PETSC_DETERMINE;
+  } else if (ncv != PETSC_CURRENT) {
     PetscCheck(ncv>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     eps->ncv = ncv;
   }
-  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    eps->mpd = PETSC_DEFAULT;
-  } else {
+  if (mpd == PETSC_DETERMINE) {
+    eps->mpd = PETSC_DETERMINE;
+  } else if (mpd != PETSC_CURRENT) {
     PetscCheck(mpd>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     eps->mpd = mpd;
   }
@@ -872,20 +882,24 @@ PetscErrorCode EPSGetStoppingTest(EPS eps,EPSStop *stop)
 .  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem
 .  -eps_pos_gen_non_hermitian - generalized non-Hermitian eigenvalue problem
    with positive semi-definite B
--  -eps_gen_indefinite - generalized Hermitian-indefinite eigenvalue problem
+.  -eps_gen_indefinite - generalized Hermitian-indefinite eigenvalue problem
+-  -eps_bse - structured Bethe-Salpeter eigenvalue problem
 
    Notes:
-   Allowed values for the problem type are Hermitian (EPS_HEP), non-Hermitian
-   (EPS_NHEP), generalized Hermitian (EPS_GHEP), generalized non-Hermitian
-   (EPS_GNHEP), generalized non-Hermitian with positive semi-definite B
-   (EPS_PGNHEP), and generalized Hermitian-indefinite (EPS_GHIEP).
-
-   This function must be used to instruct SLEPc to exploit symmetry. If no
+   This function must be used to instruct SLEPc to exploit symmetry or other
+   kind of structure. If no
    problem type is specified, by default a non-Hermitian problem is assumed
    (either standard or generalized). If the user knows that the problem is
    Hermitian (i.e. A=A^H) or generalized Hermitian (i.e. A=A^H, B=B^H, and
    B positive definite) then it is recommended to set the problem type so
    that eigensolver can exploit these properties.
+
+   If the user does not call this function, the solver will use a reasonable
+   guess.
+
+   For structured problem types such as EPS_BSE, the matrices passed in via
+   EPSSetOperators() must have been created with the corresponding helper
+   function, i.e., MatCreateBSE().
 
    Level: intermediate
 
@@ -902,31 +916,43 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_NHEP:
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_GHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_TRUE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_GNHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_PGNHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_TRUE;
+      eps->isstructured = PETSC_FALSE;
       break;
     case EPS_GHIEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_FALSE;
+      break;
+    case EPS_BSE:
+      eps->isgeneralized = PETSC_FALSE;
+      eps->ishermitian = PETSC_FALSE;
+      eps->ispositive = PETSC_FALSE;
+      eps->isstructured = PETSC_TRUE;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
@@ -1058,8 +1084,8 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
    matrices to have the MatMultTranspose operation defined.
 
    The parameter 'its' is the number of iterations performed by the method. The
-   cutoff value is used only in the two-side variant. Use PETSC_DEFAULT to assign
-   a reasonably good value.
+   cutoff value is used only in the two-side variant. Use PETSC_DETERMINE to assign
+   a reasonably good value, or PETSC_CURRENT to leave the value unchanged.
 
    User-defined balancing is allowed provided that the corresponding matrix
    is set via STSetBalanceMatrix.
@@ -1088,13 +1114,13 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'");
   }
-  if (its==PETSC_DECIDE || its==PETSC_DEFAULT) eps->balance_its = 5;
-  else {
+  if (its==PETSC_DETERMINE) eps->balance_its = 5;
+  else if (its!=PETSC_CURRENT) {
     PetscCheck(its>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
     eps->balance_its = its;
   }
-  if (cutoff==(PetscReal)PETSC_DECIDE || cutoff==(PetscReal)PETSC_DEFAULT) eps->balance_cutoff = 1e-8;
-  else {
+  if (cutoff==(PetscReal)PETSC_DETERMINE) eps->balance_cutoff = 1e-8;
+  else if (cutoff!=(PetscReal)PETSC_CURRENT) {
     PetscCheck(cutoff>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of cutoff. Must be > 0");
     eps->balance_cutoff = cutoff;
   }

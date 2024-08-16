@@ -41,8 +41,9 @@ static PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
+  EPSCheckNotStructured(eps);
   PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   PetscCheck(eps->which==EPS_SMALLEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION);
@@ -245,7 +246,7 @@ static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
   EPS_RQCG *ctx = (EPS_RQCG*)eps->data;
 
   PetscFunctionBegin;
-  if (nrest==PETSC_DEFAULT) {
+  if (nrest==PETSC_DEFAULT || nrest==PETSC_DECIDE) {
     ctx->nrest = 0;
     eps->state = EPS_STATE_INITIAL;
   } else {

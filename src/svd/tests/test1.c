@@ -99,7 +99,7 @@ int main(int argc,char **argv)
       PetscCall(EPSSetType(eps,epstype));
     }
   }
-  PetscCall(SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(SVDSetDimensions(svd,1,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(SVDSetTolerances(svd,1e-6,1000));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -266,7 +266,7 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscAssertPointer(nconv,2);
   EPSCheckSolved(eps,1);
-  *nconv = eps->nconv;
+  PetscCall(EPS_GetActualConverged(eps,nconv));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -407,12 +407,15 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
 @*/
 PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar *eigi,Vec Vr,Vec Vi)
 {
+  PetscInt nconv;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
   EPSCheckSolved(eps,1);
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
-  PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+  PetscCall(EPS_GetActualConverged(eps,&nconv));
+  PetscCheck(i<nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
   PetscCall(EPSGetEigenvalue(eps,i,eigr,eigi));
   if (Vr || Vi) PetscCall(EPSGetEigenvector(eps,i,Vr,Vi));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -446,21 +449,35 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
 @*/
 PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar *eigi)
 {
-  PetscInt k;
+  PetscInt k,nconv;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   EPSCheckSolved(eps,1);
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
-  PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
-  k = eps->perm[i];
+  PetscCall(EPS_GetActualConverged(eps,&nconv));
+  PetscCheck(i<nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+  if (nconv==eps->nconv) {
+    k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-  if (eigr) *eigr = eps->eigr[k];
-  if (eigi) *eigi = 0;
+    if (eigr) *eigr = eps->eigr[k];
+    if (eigi) *eigi = 0;
 #else
-  if (eigr) *eigr = eps->eigr[k];
-  if (eigi) *eigi = eps->eigi[k];
+    if (eigr) *eigr = eps->eigr[k];
+    if (eigi) *eigi = eps->eigi[k];
 #endif
+  } else {
+    PetscCheck(eps->problem_type==EPS_BSE,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Problem type should be BSE");
+    /* BSE problem, even index is +lambda, odd index is -lambda */
+    k = eps->perm[i/2];
+#if defined(PETSC_USE_COMPLEX)
+    if (eigr) *eigr = (i%2)? -eps->eigr[k]: eps->eigr[k];
+    if (eigi) *eigi = 0;
+#else
+    if (eigr) *eigr = (i%2)? -eps->eigr[k]: eps->eigr[k];
+    if (eigi) *eigi = eps->eigi[k];
+#endif
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -500,7 +517,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
 @*/
 PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 {
-  PetscInt       k;
+  PetscInt nconv;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -509,10 +526,10 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Vi,4); }
   EPSCheckSolved(eps,1);
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
-  PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+  PetscCall(EPS_GetActualConverged(eps,&nconv));
+  PetscCheck(i<nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
   PetscCall(EPSComputeVectors(eps));
-  k = eps->perm[i];
-  PetscCall(BV_GetEigenvector(eps->V,k,eps->eigi[k],Vr,Vi));
+  PetscCall(EPS_GetEigenvector(eps,eps->V,i,Vr,Vi));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -551,7 +568,11 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 @*/
 PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
 {
-  PetscInt       k;
+  PetscInt    nconv;
+  PetscBool   trivial;
+  Mat         H;
+  IS          is[2];
+  Vec         v;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -559,12 +580,35 @@ PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
   if (Wr) { PetscValidHeaderSpecific(Wr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Wr,3); }
   if (Wi) { PetscValidHeaderSpecific(Wi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Wi,4); }
   EPSCheckSolved(eps,1);
-  PetscCheck(eps->twosided,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetTwoSided");
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
-  PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+  PetscCall(EPS_GetActualConverged(eps,&nconv));
+  PetscCheck(i<nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+
+  trivial = (eps->problem_type==EPS_HEP || eps->problem_type==EPS_GHEP || eps->problem_type==EPS_BSE)? PETSC_TRUE: PETSC_FALSE;
+  if (!trivial) PetscCheck(eps->twosided,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetTwoSided");
+
   PetscCall(EPSComputeVectors(eps));
-  k = eps->perm[i];
-  PetscCall(BV_GetEigenvector(eps->W,k,eps->eigi[k],Wr,Wi));
+  if (trivial) {
+    PetscCall(EPS_GetEigenvector(eps,eps->V,i,Wr,Wi));
+    if (eps->problem_type==EPS_BSE) {   /* change sign of bottom part of the vector */
+      PetscCall(STGetMatrix(eps->st,0,&H));
+      PetscCall(MatNestGetISs(H,is,NULL));
+      if (Wr) {
+        PetscCall(VecGetSubVector(Wr,is[1],&v));
+        PetscCall(VecScale(v,-1.0));
+        PetscCall(VecRestoreSubVector(Wr,is[1],&v));
+      }
+#if !defined(PETSC_USE_COMPLEX)
+      if (Wi) {
+        PetscCall(VecGetSubVector(Wi,is[1],&v));
+        PetscCall(VecScale(v,-1.0));
+        PetscCall(VecRestoreSubVector(Wi,is[1],&v));
+      }
+#endif
+    }
+  } else {
+    PetscCall(EPS_GetEigenvector(eps,eps->W,i,Wr,Wi));
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -592,13 +636,22 @@ PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
 @*/
 PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
 {
+  PetscInt nconv;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscAssertPointer(errest,3);
   EPSCheckSolved(eps,1);
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
-  PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
-  *errest = eps->errest[eps->perm[i]];
+  PetscCall(EPS_GetActualConverged(eps,&nconv));
+  PetscCheck(i<nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+  if (nconv==eps->nconv) {
+    *errest = eps->errest[eps->perm[i]];
+  } else {
+    PetscCheck(eps->problem_type==EPS_BSE,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Problem type should be BSE");
+    /* BSE problem, even index is +lambda, odd index is -lambda, assume both have same error */
+    *errest = eps->errest[eps->perm[i/2]];
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

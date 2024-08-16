@@ -57,7 +57,7 @@ static PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PEPCheckShiftSinvert(pep);
   PetscCall(PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd));
   PetscCheck(ctx->lock || pep->mpd>=pep->ncv,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-  if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
+  if (pep->max_it==PETSC_DETERMINE) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
   if (!pep->which) PetscCall(PEPSetWhichEigenpairs_Default(pep));
   PetscCheck(pep->which!=PEP_ALL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
   if (pep->problem_type!=PEP_GENERAL) PetscCall(PetscInfo(pep,"Problem type ignored, performing a non-symmetric linearization\n"));
@@ -469,7 +469,7 @@ static PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (flg) sigma = 0.0;
 
   /* clean projected matrix (including the extra-arrow) */
-  PetscCall(DSSetDimensions(pep->ds,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSSetDimensions(pep->ds,PETSC_DETERMINE,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(DSGetMat(pep->ds,DS_MAT_A,&H));
   PetscCall(MatZeroEntries(H));
   PetscCall(DSRestoreMat(pep->ds,DS_MAT_A,&H));
@@ -609,7 +609,7 @@ static PetscErrorCode PEPTOARSetRestart_TOAR(PEP pep,PetscReal keep)
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
 
   PetscFunctionBegin;
-  if (keep==(PetscReal)PETSC_DEFAULT) ctx->keep = 0.5;
+  if (keep==(PetscReal)PETSC_DEFAULT || keep==(PetscReal)PETSC_DECIDE) ctx->keep = 0.5;
   else {
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;

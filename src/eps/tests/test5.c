@@ -67,7 +67,7 @@ int main(int argc,char **argv)
   PetscCall(EPSSetOperators(eps,A,NULL));
   if (symm) PetscCall(EPSSetProblemType(eps,EPS_HEP));
   else PetscCall(EPSSetProblemType(eps,EPS_NHEP));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
   PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

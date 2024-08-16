@@ -97,7 +97,7 @@ int main(int argc,char **argv)
   PetscCall(PEPSetRG(pep,rg));
   A[0] = K; A[1] = C; A[2] = M;
   PetscCall(PEPSetOperators(pep,3,A));
-  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT));
+  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_CURRENT));
   PetscCall(PEPSetFromOptions(pep));
   PetscCall(PEPSolve(pep));
 

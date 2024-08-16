@@ -413,6 +413,7 @@ static inline PetscErrorCode BV_GetEigenvector(BV V,PetscInt k,PetscScalar eigi,
 {
   PetscFunctionBegin;
 #if defined(PETSC_USE_COMPLEX)
+  (void)eigi;
   if (Vr) PetscCall(BVCopyVec(V,k,Vr));
   if (Vi) PetscCall(VecSet(Vi,0.0));
 #else

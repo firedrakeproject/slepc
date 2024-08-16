@@ -185,3 +185,9 @@ auxiliary object.
       by the end-user for instance to define function T(.) when solving
       nonlinear eigenproblems with NEP in split form.
 
+:RG:  A component used to define a region of the complex plane such as an
+      ellipse or a rectangle. This is required by end-users in some cases
+      such as contour-integral eigensolvers.
+
+In addition to the above components, some extra functionality is provided
+in the :Sys: and :Util: sections.

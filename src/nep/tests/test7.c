@@ -82,7 +82,7 @@ int main(int argc,char **argv)
    PetscCall(KSPSetType(ksp[i],KSPBICG));
    PetscCall(KSPGetPC(ksp[i],&pc));
    PetscCall(PCSetType(pc,PCJACOBI));
-   PetscCall(KSPSetTolerances(ksp[i],tol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+   PetscCall(KSPSetTolerances(ksp[i],tol,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

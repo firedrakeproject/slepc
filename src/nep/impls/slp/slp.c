@@ -38,12 +38,12 @@ static PetscErrorCode NEPSetUp_SLP(NEP nep)
   ST             st;
 
   PetscFunctionBegin;
-  if (nep->ncv!=PETSC_DEFAULT) PetscCall(PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n"));
+  if (nep->ncv!=PETSC_DETERMINE) PetscCall(PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n"));
   nep->ncv = nep->nev;
-  if (nep->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n"));
+  if (nep->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n"));
   nep->mpd = nep->nev;
   PetscCheck(nep->ncv<=nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
-  if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (nep->max_it==PETSC_DETERMINE) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
   PetscCheck(nep->which==NEP_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_REGION);
@@ -55,8 +55,8 @@ static PetscErrorCode NEPSetUp_SLP(NEP nep)
   PetscCall(EPSSetDimensions(ctx->eps,1,PETSC_DECIDE,PETSC_DECIDE));
   PetscCall(EPSSetWhichEigenpairs(ctx->eps,EPS_LARGEST_MAGNITUDE));
   PetscCall(EPSSetTolerances(ctx->eps,SlepcDefaultTol(nep->tol)/10.0,nep->max_it));
-  if (nep->tol==(PetscReal)PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
-  if (ctx->deftol==(PetscReal)PETSC_DEFAULT) ctx->deftol = nep->tol;
+  if (nep->tol==(PetscReal)PETSC_DETERMINE) nep->tol = SLEPC_DEFAULT_TOL;
+  if (ctx->deftol==(PetscReal)PETSC_DETERMINE) ctx->deftol = nep->tol;
 
   if (nep->twosided) {
     nep->ops->solve = NEPSolve_SLP_Twosided;
@@ -276,8 +276,8 @@ static PetscErrorCode NEPSLPSetDeflationThreshold_SLP(NEP nep,PetscReal deftol)
   NEP_SLP *ctx = (NEP_SLP*)nep->data;
 
   PetscFunctionBegin;
-  if (deftol == (PetscReal)PETSC_DEFAULT) {
-    ctx->deftol = PETSC_DEFAULT;
+  if (deftol == (PetscReal)PETSC_DEFAULT || deftol == (PetscReal)PETSC_DECIDE) {
+    ctx->deftol = PETSC_DETERMINE;
     nep->state  = NEP_STATE_INITIAL;
   } else {
     PetscCheck(deftol>0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of deftol. Must be > 0");
@@ -557,7 +557,7 @@ static PetscErrorCode NEPSLPGetKSP_SLP(NEP nep,KSP *ksp)
     PetscCall(KSPAppendOptionsPrefix(ctx->ksp,"nep_slp_"));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)nep)->options));
     PetscCall(KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE));
-    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
   *ksp = ctx->ksp;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -651,7 +651,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   nep->data = (void*)ctx;
 
   nep->useds  = PETSC_TRUE;
-  ctx->deftol = PETSC_DEFAULT;
+  ctx->deftol = PETSC_DETERMINE;
 
   nep->ops->solve          = NEPSolve_SLP;
   nep->ops->setup          = NEPSetUp_SLP;

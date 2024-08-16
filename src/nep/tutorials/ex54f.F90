@@ -117,7 +117,7 @@
       PetscCallA(NEPCreate(PETSC_COMM_WORLD,nep,ierr))
       PetscCallA(NEPSetFunction(nep,A,A,MyNEPFunction,PETSC_NULL_INTEGER,ierr))
       PetscCallA(NEPSetJacobian(nep,B,MyNEPJacobian,PETSC_NULL_INTEGER,ierr))
-      PetscCallA(NEPSetDimensions(nep,nev,PETSC_DEFAULT_INTEGER,PETSC_DEFAULT_INTEGER,ierr))
+      PetscCallA(NEPSetDimensions(nep,nev,PETSC_DETERMINE_INTEGER,PETSC_DETERMINE_INTEGER,ierr))
       sigma = 1.05
       PetscCallA(NEPSetTarget(nep,sigma,ierr))
       PetscCallA(NEPSetFromOptions(nep,ierr))

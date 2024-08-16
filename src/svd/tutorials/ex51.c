@@ -178,11 +178,11 @@ int main(int argc,char **argv)
   PetscCall(SVDSetProblemType(svd,SVD_GENERALIZED));
 
   PetscCall(SVDSetType(svd,SVDTRLANCZOS));
-  PetscCall(SVDSetDimensions(svd,6,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(SVDSetDimensions(svd,6,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(SVDTRLanczosSetExplicitMatrix(svd,PETSC_TRUE));
   PetscCall(SVDTRLanczosSetScale(svd,-10));
   PetscCall(SVDTRLanczosGetKSP(svd,&ksp));
-  PetscCall(KSPSetTolerances(ksp,1e-12,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(KSPSetTolerances(ksp,1e-12,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
 
   PetscCall(SVDSetFromOptions(svd));
 

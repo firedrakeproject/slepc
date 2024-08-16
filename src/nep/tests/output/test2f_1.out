@@ -30,15 +30,15 @@ FN Object: 1 MPI process
  Problem type before changing =  0
  ... changed to  2
  Refinement:  1, tol= 0.000000001, its= 2, scheme= 3
- Which =  7, target = 1.1
- Dimensions: nev= 1, ncv=12, mpd= -2
+ Which =  7, target =  1.1
+ Dimensions: nev= 1, ncv=12, mpd=-1
  Tolerance = 0.000001, max_its = 200
  Convergence test = 0, stopping test = 0
 DS Object: 1 MPI process
   type not yet set
 RG Object: 1 MPI process
   type: interval
-  region: [-inf.,inf.]x[-inf.,inf.]
+    region: [-inf.,inf.]x[-inf.,inf.]
  Finished - converged reason = 1
  All requested eigenvalues computed up to the required tolerance:
      1.00000

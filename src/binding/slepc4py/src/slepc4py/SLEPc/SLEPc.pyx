@@ -148,6 +148,7 @@ cdef extern from "<string.h>"  nogil:
 
 include "slepcmpi.pxi"
 include "slepcsys.pxi"
+include "slepcutil.pxi"
 include "slepcst.pxi"
 include "slepcbv.pxi"
 include "slepcds.pxi"
@@ -170,6 +171,7 @@ DEFAULT   = PETSC_DEFAULT
 DETERMINE = PETSC_DETERMINE
 
 include "Sys.pyx"
+include "Util.pyx"
 include "ST.pyx"
 include "BV.pyx"
 include "DS.pyx"

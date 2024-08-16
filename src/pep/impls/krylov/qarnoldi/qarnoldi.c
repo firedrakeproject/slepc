@@ -41,7 +41,7 @@ static PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   PEPCheckShiftSinvert(pep);
   PetscCall(PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd));
   PetscCheck(ctx->lock || pep->mpd>=pep->ncv,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-  if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,4*pep->n/pep->ncv);
+  if (pep->max_it==PETSC_DETERMINE) pep->max_it = PetscMax(100,4*pep->n/pep->ncv);
   if (!pep->which) PetscCall(PEPSetWhichEigenpairs_Default(pep));
   PetscCheck(pep->which!=PEP_ALL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
 
@@ -222,7 +222,7 @@ static PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   PetscCall(VecScale(w,1.0/norm));
 
   /* clean projected matrix (including the extra-arrow) */
-  PetscCall(DSSetDimensions(pep->ds,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSSetDimensions(pep->ds,PETSC_DETERMINE,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(DSGetMat(pep->ds,DS_MAT_A,&S));
   PetscCall(MatZeroEntries(S));
   PetscCall(DSRestoreMat(pep->ds,DS_MAT_A,&S));
@@ -298,7 +298,7 @@ static PetscErrorCode PEPQArnoldiSetRestart_QArnoldi(PEP pep,PetscReal keep)
   PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
 
   PetscFunctionBegin;
-  if (keep==(PetscReal)PETSC_DEFAULT) ctx->keep = 0.5;
+  if (keep==(PetscReal)PETSC_DEFAULT || keep==(PetscReal)PETSC_DECIDE) ctx->keep = 0.5;
   else {
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;

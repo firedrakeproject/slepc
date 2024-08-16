@@ -67,7 +67,7 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,A,B));
   PetscCall(EPSSetProblemType(eps,EPS_GNHEP));
-  PetscCall(EPSSetTolerances(eps,1e-9,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,1e-9,PETSC_CURRENT));
 
   /* set CISS solver with various options */
   PetscCall(EPSSetType(eps,EPSCISS));

@@ -135,7 +135,7 @@
       z = 1.0
       PetscCallA(FNSetScale(f,t,z,ierr))
       tol = 0.0000001
-      PetscCallA(MFNSetTolerances(mfn,tol,PETSC_DEFAULT_INTEGER,ierr))
+      PetscCallA(MFNSetTolerances(mfn,tol,PETSC_CURRENT_INTEGER,ierr))
 
 !     ** Set solver parameters at runtime
       PetscCallA(MFNSetFromOptions(mfn,ierr))

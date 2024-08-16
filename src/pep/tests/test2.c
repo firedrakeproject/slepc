@@ -138,7 +138,7 @@ int main(int argc,char **argv)
   A[0] = K; A[1] = C; A[2] = M;
   PetscCall(PEPSetOperators(pep,3,A));
   PetscCall(PEPSetProblemType(pep,PEP_GENERAL));
-  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT));
+  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_CURRENT));
   if (initv) { /* initial vector */
     PetscCall(MatCreateVecs(K,&IV[0],NULL));
     PetscCall(VecSetValue(IV[0],0,-1.0,INSERT_VALUES));

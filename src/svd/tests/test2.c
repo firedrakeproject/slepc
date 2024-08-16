@@ -59,7 +59,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
   PetscCall(SVDSetOperators(svd,A,NULL));
-  PetscCall(SVDSetTolerances(svd,tol,PETSC_DEFAULT));
+  PetscCall(SVDSetTolerances(svd,tol,PETSC_CURRENT));
   PetscCall(SVDSetFromOptions(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

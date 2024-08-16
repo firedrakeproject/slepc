@@ -133,7 +133,7 @@ static PetscErrorCode PEPSetUp_JD(PEP pep)
 
   PetscFunctionBegin;
   PetscCall(PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd));
-  if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
+  if (pep->max_it==PETSC_DETERMINE) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_TARGET_MAGNITUDE;
   PetscCheck(pep->which==PEP_TARGET_MAGNITUDE || pep->which==PEP_TARGET_REAL || pep->which==PEP_TARGET_IMAGINARY,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver supports only target which, see PEPSetWhichEigenpairs()");
 
@@ -1470,7 +1470,7 @@ static PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
   PetscFunctionBegin;
-  if (keep==(PetscReal)PETSC_DEFAULT) pjd->keep = 0.5;
+  if (keep==(PetscReal)PETSC_DEFAULT || keep==(PetscReal)PETSC_DECIDE) pjd->keep = 0.5;
   else {
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     pjd->keep = keep;
@@ -1912,7 +1912,7 @@ static PetscErrorCode PEPSetDefaultST_JD(PEP pep)
   PetscCall(STGetKSP(pep->st,&ksp));
   if (!((PetscObject)ksp)->type_name) {
     PetscCall(KSPSetType(ksp,KSPBCGSL));
-    PetscCall(KSPSetTolerances(ksp,1e-5,PETSC_DEFAULT,PETSC_DEFAULT,100));
+    PetscCall(KSPSetTolerances(ksp,1e-5,PETSC_CURRENT,PETSC_CURRENT,100));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -71,6 +71,7 @@ static PetscErrorCode EPSSetUp_EVSL(EPS eps)
   PetscFunctionBegin;
   EPSCheckStandard(eps);
   EPSCheckHermitian(eps);
+  EPSCheckNotStructured(eps);
   PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
   PetscCheck(isshift,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support spectral transformations");
 
@@ -153,8 +154,8 @@ static PetscErrorCode EPSSetUp_EVSL(EPS eps)
   /* approximate number of eigenvalues wanted in each slice */
   ctx->nev = (PetscInt)(1.0 + ecount/(PetscReal)ctx->nslices) + 2;
 
-  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
+  if (eps->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = 1;
   PetscCall(EPSAllocateSolution(eps,0));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -425,27 +426,27 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
 
   PetscFunctionBegin;
   ctx->dos = dos;
-  if (nvec == PETSC_DECIDE || nvec == PETSC_DEFAULT) ctx->nvec = 80;
-  else {
+  if (nvec == PETSC_DETERMINE) ctx->nvec = 80;
+  else if (nvec != PETSC_CURRENT) {
     PetscCheck(nvec>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The nvec argument must be > 0");
     ctx->nvec = nvec;
   }
   switch (dos) {
     case EPS_EVSL_DOS_KPM:
-      if (deg == PETSC_DECIDE || deg == PETSC_DEFAULT) ctx->deg = 300;
-      else {
+      if (deg == PETSC_DETERMINE) ctx->deg = 300;
+      else if (deg != PETSC_CURRENT) {
         PetscCheck(deg>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The deg argument must be > 0");
         ctx->deg = deg;
       }
       break;
     case EPS_EVSL_DOS_LANCZOS:
-      if (steps == PETSC_DECIDE || steps == PETSC_DEFAULT) ctx->steps = 40;
-      else {
+      if (steps == PETSC_DETERMINE) ctx->steps = 40;
+      else if (steps != PETSC_CURRENT) {
         PetscCheck(steps>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The steps argument must be > 0");
         ctx->steps = steps;
       }
-      if (npoints == PETSC_DECIDE || npoints == PETSC_DEFAULT) ctx->npoints = 200;
-      else {
+      if (npoints == PETSC_DETERMINE) ctx->npoints = 200;
+      else if (npoints != PETSC_CURRENT) {
         PetscCheck(npoints>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npoints argument must be > 0");
         ctx->npoints = npoints;
       }
@@ -481,6 +482,9 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
    methods, kernel polynomial method (KPM) or Lanczos. Some parameters for
    these methods can be set by the user with this function, with some of
    them being relevant for one of the methods only.
+
+   For the integer argumens, you can use PETSC_CURRENT to keep the current
+   value, and PETSC_DETERMINE to set them to a reasonable default.
 
    Level: intermediate
 
@@ -545,13 +549,13 @@ static PetscErrorCode EPSEVSLSetPolParameters_EVSL(EPS eps,PetscInt max_deg,Pets
   EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
 
   PetscFunctionBegin;
-  if (max_deg == PETSC_DECIDE || max_deg == PETSC_DEFAULT) ctx->max_deg = 10000;
-  else {
+  if (max_deg == PETSC_DETERMINE) ctx->max_deg = 10000;
+  else if (max_deg != PETSC_CURRENT) {
     PetscCheck(max_deg>2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The max_deg argument must be > 2");
     ctx->max_deg = max_deg;
   }
-  if (thresh == (PetscReal)PETSC_DECIDE || thresh == (PetscReal)PETSC_DEFAULT) ctx->thresh = 0.8;
-  else {
+  if (thresh == (PetscReal)PETSC_DETERMINE) ctx->thresh = 0.8;
+  else if (thresh != (PetscReal)PETSC_CURRENT) {
     PetscCheck(thresh>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The thresh argument must be > 0.0");
     ctx->thresh = thresh;
   }
@@ -573,6 +577,10 @@ static PetscErrorCode EPSEVSLSetPolParameters_EVSL(EPS eps,PetscInt max_deg,Pets
    Options Database Keys:
 +  -eps_evsl_pol_max_deg <d> - set maximum polynomial degree
 -  -eps_evsl_pol_thresh <t> - set the threshold
+
+   Note:
+   PETSC_CURRENT can be used to preserve the current value of any of the
+   arguments, and PETSC_DETERMINE to set them to a default value.
 
    Level: intermediate
 

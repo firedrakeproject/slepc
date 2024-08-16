@@ -5,7 +5,7 @@ Lyapunov equation, N=100 (10x10 grid)
  Equation type changed to 0
  LME prefix is currently: check_myprefix_
  Solver being used: krylov
- Tolerance: -2., max iterations: 100
+ Tolerance: -1., max iterations: 100
  Subspace dimension: 21
  Erroring out if convergence fails
   Error estimates for check_myprefix_ solve.

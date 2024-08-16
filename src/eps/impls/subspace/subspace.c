@@ -53,7 +53,7 @@ static PetscErrorCode EPSSetUp_Subspace_Filter(EPS eps)
     PetscCall(STFilterSetRange(eps->st,rleft,rright));
     ctx->estimatedrange = PETSC_TRUE;
   }
-  if (eps->ncv==PETSC_DEFAULT && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
+  if (eps->ncv==PETSC_DETERMINE && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
   PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
   PetscCheck(eps->ncv<=eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -65,7 +65,8 @@ static PetscErrorCode EPSSetUp_Subspace(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckDefinite(eps);
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  EPSCheckNotStructured(eps);
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) PetscCall(EPSSetWhichEigenpairs_Default(eps));
   if (eps->which==EPS_ALL) {
     PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt));

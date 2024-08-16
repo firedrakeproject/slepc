@@ -669,7 +669,7 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
       PetscCall(VecCompSetSubVecs(data->friends,s,NULL));
 
       /* Solve the correction equation */
-      PetscCall(KSPSetTolerances(data->ksp,tol,PETSC_DEFAULT,PETSC_DEFAULT,maxits));
+      PetscCall(KSPSetTolerances(data->ksp,tol,PETSC_CURRENT,PETSC_CURRENT,maxits));
       PetscCall(KSPSolve(data->ksp,kr_comp,D_comp));
       PetscCall(KSPGetIterationNumber(data->ksp,&lits));
 

@@ -33,8 +33,8 @@ static PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 
   PetscFunctionBegin;
   PetscCall(MatGetSize(mfn->A,&N,NULL));
-  if (mfn->ncv==PETSC_DEFAULT) mfn->ncv = PetscMin(30,N);
-  if (mfn->max_it==PETSC_DEFAULT) mfn->max_it = 100;
+  if (mfn->ncv==PETSC_DETERMINE) mfn->ncv = PetscMin(30,N);
+  if (mfn->max_it==PETSC_DETERMINE) mfn->max_it = 100;
   PetscCall(MFNAllocateSolution(mfn,1));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

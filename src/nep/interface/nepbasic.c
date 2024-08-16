@@ -51,21 +51,21 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscCall(NEPInitializePackage());
   PetscCall(SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView));
 
-  nep->max_it          = PETSC_DEFAULT;
+  nep->max_it          = PETSC_DETERMINE;
   nep->nev             = 1;
-  nep->ncv             = PETSC_DEFAULT;
-  nep->mpd             = PETSC_DEFAULT;
+  nep->ncv             = PETSC_DETERMINE;
+  nep->mpd             = PETSC_DETERMINE;
   nep->nini            = 0;
   nep->target          = 0.0;
-  nep->tol             = PETSC_DEFAULT;
+  nep->tol             = PETSC_DETERMINE;
   nep->conv            = NEP_CONV_REL;
   nep->stop            = NEP_STOP_BASIC;
   nep->which           = (NEPWhich)0;
   nep->problem_type    = (NEPProblemType)0;
   nep->refine          = NEP_REFINE_NONE;
   nep->npart           = 1;
-  nep->rtol            = PETSC_DEFAULT;
-  nep->rits            = PETSC_DEFAULT;
+  nep->rtol            = PETSC_DETERMINE;
+  nep->rits            = PETSC_DETERMINE;
   nep->scheme          = (NEPRefineScheme)0;
   nep->trackall        = PETSC_FALSE;
   nep->twosided        = PETSC_FALSE;
@@ -576,7 +576,7 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
     PetscCall(PetscObjectSetOptions((PetscObject)nep->refineksp,((PetscObject)nep)->options));
     PetscCall(KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix));
     PetscCall(KSPAppendOptionsPrefix(*ksp,"nep_refine_"));
-    PetscCall(KSPSetTolerances(nep->refineksp,SlepcDefaultTol(nep->rtol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(nep->refineksp,SlepcDefaultTol(nep->rtol),PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
   *ksp = nep->refineksp;
   PetscFunctionReturn(PETSC_SUCCESS);

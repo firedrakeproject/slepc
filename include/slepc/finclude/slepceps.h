@@ -32,6 +32,7 @@
 #define EPSConv                PetscEnum
 #define EPSStop                PetscEnum
 #define EPSPowerShiftType      PetscEnum
+#define EPSKrylovSchurBSEType  PetscEnum
 #define EPSLanczosReorthogType PetscEnum
 #define EPSPRIMMEMethod        PetscEnum
 #define EPSCISSQuadRule        PetscEnum

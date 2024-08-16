@@ -33,7 +33,7 @@ PetscErrorCode SpectralRadius(Mat A,PetscReal *rho)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_NHEP));
-  PetscCall(EPSSetDimensions(eps,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,1,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE));
   PetscCall(EPSSetFromOptions(eps));
   PetscCall(EPSSolve(eps));

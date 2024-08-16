@@ -80,7 +80,7 @@ int main(int argc,char **argv)
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  PetscCall(EPSSetDimensions(eps,nev,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,nev,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSSetFromOptions(eps));
 
   PetscCall(EPSSolve(eps));

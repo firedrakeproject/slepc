@@ -664,15 +664,15 @@ static PetscErrorCode DSGSVDSetDimensions_GSVD(DS ds,PetscInt m,PetscInt p)
 
   PetscFunctionBegin;
   DSCheckAlloc(ds,1);
-  if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
+  if (m == PETSC_DETERMINE) {
     ctx->m = ds->ld;
-  } else {
+  } else if (m != PETSC_CURRENT) {
     PetscCheck(m>0 && m<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
     ctx->m = m;
   }
-  if (p==PETSC_DECIDE || p==PETSC_DEFAULT) {
+  if (p == PETSC_DETERMINE) {
     ctx->p = ds->n;
-  } else {
+  } else if (p != PETSC_CURRENT) {
     PetscCheck(p>0 && p<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of p. Must be between 1 and ld");
     ctx->p = p;
   }
@@ -693,6 +693,9 @@ static PetscErrorCode DSGSVDSetDimensions_GSVD(DS ds,PetscInt m,PetscInt p)
    This call is complementary to DSSetDimensions(), to provide two dimensions
    that are specific to this DS type. The number of rows for the first matrix (A)
    is set by DSSetDimensions().
+
+   Use PETSC_CURRENT to leave any of the values unchanged. Use PETSC_DETERMINE
+   to set m to the leading dimension and p to the number of columns of B.
 
    Level: intermediate
 

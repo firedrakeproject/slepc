@@ -32,8 +32,8 @@ static PetscErrorCode MFNSetUp_Expokit(MFN mfn)
 
   PetscFunctionBegin;
   PetscCall(MatGetSize(mfn->A,&N,NULL));
-  if (mfn->ncv==PETSC_DEFAULT) mfn->ncv = PetscMin(30,N);
-  if (mfn->max_it==PETSC_DEFAULT) mfn->max_it = 100;
+  if (mfn->ncv==PETSC_DETERMINE) mfn->ncv = PetscMin(30,N);
+  if (mfn->max_it==PETSC_DETERMINE) mfn->max_it = 100;
   PetscCall(MFNAllocateSolution(mfn,2));
 
   PetscCall(PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp));

@@ -75,7 +75,7 @@ int main(int argc,char **argv)
   PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
   PetscCall(SVDSetOperators(svd,A,NULL));
   PetscCall(SVDSetType(svd,SVDRANDOMIZED));
-  PetscCall(SVDSetDimensions(svd,2,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(SVDSetDimensions(svd,2,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(SVDSetConvergenceTest(svd,SVD_CONV_MAXIT));
   PetscCall(SVDSetTolerances(svd,tol,1));   /* maxit=1 to disable outer iteration */
   PetscCall(SVDSetFromOptions(svd));

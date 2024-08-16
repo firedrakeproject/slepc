@@ -14,6 +14,38 @@
 
 #include <slepc/private/stimpl.h>
 
+/*
+   Special STApply() for the BSE structured matrix
+
+       H = [ R  C; -C^H -R^T ].
+
+   Assumes that H is a MATNEST and x,y are VECNEST.
+
+   Only the upper part of the product y=H*x is computed.
+
+       y1 = R*x1+C*x2
+
+   The bottom part of the input vector x2 should normally contain
+   either conj(x1) or -conj(x1).
+   The bottom part of the output vector y2 is not referenced.
+*/
+static PetscErrorCode STApply_Shift_BSE(ST st,Vec x,Vec y)
+{
+  Mat   H,R,C;
+  Vec   x1,x2,y1;
+
+  PetscFunctionBegin;
+  H = st->T[0];
+  PetscCall(MatNestGetSubMat(H,0,0,&R));
+  PetscCall(MatNestGetSubMat(H,0,1,&C));
+  PetscCall(VecNestGetSubVec(x,0,&x1));
+  PetscCall(VecNestGetSubVec(x,1,&x2));
+  PetscCall(VecNestGetSubVec(y,0,&y1));
+  PetscCall(MatMult(C,x2,y1));
+  PetscCall(MatMultAdd(R,x1,y1,y1));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 static PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt j;
@@ -100,6 +132,7 @@ static PetscErrorCode STSetUp_Shift(ST st)
     }
   }
   if (st->P) PetscCall(KSPSetUp(st->ksp));
+  if (st->structured) st->ops->apply = STApply_Shift_BSE;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

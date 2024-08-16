@@ -80,7 +80,8 @@ typedef enum { EPS_HEP=1,
                EPS_NHEP,
                EPS_GNHEP,
                EPS_PGNHEP,
-               EPS_GHIEP } EPSProblemType;
+               EPS_GHIEP,
+               EPS_BSE   } EPSProblemType;
 
 /*E
     EPSExtraction - Determines the type of extraction technique employed
@@ -268,6 +269,7 @@ SLEPC_EXTERN PetscErrorCode EPSSetArbitrarySelection(EPS,PetscErrorCode (*func)(
 SLEPC_EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSIsPositive(EPS,PetscBool*);
+SLEPC_EXTERN PetscErrorCode EPSIsStructured(EPS,PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode EPSSetTrackAll(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSGetTrackAll(EPS,PetscBool*);
@@ -337,6 +339,21 @@ SLEPC_EXTERN PetscErrorCode EPSPowerGetSNES(EPS,SNES*);
 SLEPC_EXTERN PetscErrorCode EPSArnoldiSetDelayed(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSArnoldiGetDelayed(EPS,PetscBool*);
 
+/*E
+    EPSKrylovSchurBSEType - the method to be used in the Krylov-Schur solver
+    for the case of BSE structured eigenproblems
+
+    Level: advanced
+
+.seealso: EPSKrylovSchurSetBSEType(), EPSKrylovSchurGetBSEType()
+E*/
+typedef enum { EPS_KRYLOVSCHUR_BSE_SHAO,
+               EPS_KRYLOVSCHUR_BSE_GRUNING,
+               EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE } EPSKrylovSchurBSEType;
+SLEPC_EXTERN const char *EPSKrylovSchurBSETypes[];
+
+SLEPC_EXTERN PetscErrorCode EPSKrylovSchurSetBSEType(EPS,EPSKrylovSchurBSEType);
+SLEPC_EXTERN PetscErrorCode EPSKrylovSchurGetBSEType(EPS,EPSKrylovSchurBSEType*);
 SLEPC_EXTERN PetscErrorCode EPSKrylovSchurSetRestart(EPS,PetscReal);
 SLEPC_EXTERN PetscErrorCode EPSKrylovSchurGetRestart(EPS,PetscReal*);
 SLEPC_EXTERN PetscErrorCode EPSKrylovSchurSetLocking(EPS,PetscBool);

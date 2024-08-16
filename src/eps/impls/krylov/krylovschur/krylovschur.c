@@ -70,7 +70,7 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   EPSCheckStandardCondition(eps,PETSC_TRUE," with polynomial filter");
   PetscCheck(eps->intb<PETSC_MAX_REAL || eps->inta>PETSC_MIN_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
   EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION,PETSC_TRUE," with polynomial filter");
-  if (eps->tol==(PetscReal)PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
+  if (eps->tol==(PetscReal)PETSC_DETERMINE) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
   PetscCall(STFilterSetInterval(eps->st,eps->inta,eps->intb));
   if (!ctx->estimatedrange) {
     PetscCall(STFilterGetRange(eps->st,&rleft,&rright));
@@ -83,10 +83,10 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
     PetscCall(STFilterSetRange(eps->st,rleft,rright));
     ctx->estimatedrange = PETSC_TRUE;
   }
-  if (eps->ncv==PETSC_DEFAULT && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
+  if (eps->ncv==PETSC_DETERMINE && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
   PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
   PetscCheck(eps->ncv<=eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -104,10 +104,13 @@ static PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt));
     if (isfilt) PetscCall(EPSSetUp_KrylovSchur_Filter(eps));
     else PetscCall(EPSSetUp_KrylovSchur_Slice(eps));
+  } else if (eps->isstructured) {
+    PetscCall(EPSSetUp_KrylovSchur_BSE(eps));
+    PetscFunctionReturn(PETSC_SUCCESS);
   } else {
     PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
     PetscCheck(eps->ncv<=eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
-    if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+    if (eps->max_it==PETSC_DETERMINE) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
     if (!eps->which) PetscCall(EPSSetWhichEigenpairs_Default(eps));
   }
   PetscCheck(ctx->lock || eps->mpd>=eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
@@ -338,7 +341,7 @@ static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal kee
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
-  if (keep==(PetscReal)PETSC_DEFAULT) ctx->keep = 0.5;
+  if (keep==(PetscReal)PETSC_DEFAULT || keep==(PetscReal)PETSC_DECIDE) ctx->keep = 0.5;
   else {
     PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",(double)keep);
     ctx->keep = keep;
@@ -668,17 +671,19 @@ static PetscErrorCode EPSKrylovSchurSetDimensions_KrylovSchur(EPS eps,PetscInt n
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
-  PetscCheck(nev>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
-  ctx->nev = nev;
-  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    ctx->ncv = PETSC_DEFAULT;
-  } else {
+  if (nev != PETSC_CURRENT) {
+    PetscCheck(nev>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+    ctx->nev = nev;
+  }
+  if (ncv == PETSC_DETERMINE) {
+    ctx->ncv = PETSC_DETERMINE;
+  } else if (ncv != PETSC_CURRENT) {
     PetscCheck(ncv>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     ctx->ncv = ncv;
   }
-  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    ctx->mpd = PETSC_DEFAULT;
-  } else {
+  if (mpd == PETSC_DETERMINE) {
+    ctx->mpd = PETSC_DETERMINE;
+  } else if (mpd != PETSC_CURRENT) {
     PetscCheck(mpd>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     ctx->mpd = mpd;
   }
@@ -703,6 +708,10 @@ static PetscErrorCode EPSKrylovSchurSetDimensions_KrylovSchur(EPS eps,PetscInt n
 +  -eps_krylovschur_nev <nev> - Sets the number of eigenvalues
 .  -eps_krylovschur_ncv <ncv> - Sets the dimension of the subspace
 -  -eps_krylovschur_mpd <mpd> - Sets the maximum projected dimension
+
+   Note:
+   Use PETSC_DETERMINE for ncv and mpd to assign a default value. For any
+   of the arguments, use PETSC_CURRENT to preserve the current value.
 
    Level: advanced
 
@@ -1345,13 +1354,94 @@ PetscErrorCode EPSKrylovSchurGetKSP(EPS eps,KSP *ksp)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-static PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOptionsObject)
+static PetscErrorCode EPSKrylovSchurSetBSEType_KrylovSchur(EPS eps,EPSKrylovSchurBSEType bse)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscBool       flg,lock,b,f1,f2,f3,isfilt;
-  PetscReal       keep;
-  PetscInt        i,j,k;
-  KSP             ksp;
+
+  PetscFunctionBegin;
+  switch (bse) {
+    case EPS_KRYLOVSCHUR_BSE_SHAO:
+    case EPS_KRYLOVSCHUR_BSE_GRUNING:
+    case EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE:
+      if (ctx->bse != bse) {
+        ctx->bse = bse;
+        eps->state = EPS_STATE_INITIAL;
+      }
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid BSE type");
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   EPSKrylovSchurSetBSEType - Sets the method to be used for BSE structured eigenproblems
+   in the Krylov-Schur solver.
+
+   Logically Collective
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  bse - the BSE method
+
+   Options Database Key:
+.  -eps_krylovschur_bse_type - Sets the BSE type (either 'shao', 'gruning', or 'projectedbse')
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurGetBSEType(), EPSKrylovSchurBSEType, MatCreateBSE()
+@*/
+PetscErrorCode EPSKrylovSchurSetBSEType(EPS eps,EPSKrylovSchurBSEType bse)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,bse,2);
+  PetscTryMethod(eps,"EPSKrylovSchurSetBSEType_C",(EPS,EPSKrylovSchurBSEType),(eps,bse));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode EPSKrylovSchurGetBSEType_KrylovSchur(EPS eps,EPSKrylovSchurBSEType *bse)
+{
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  *bse = ctx->bse;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   EPSKrylovSchurGetBSEType - Gets the method used for BSE structured eigenproblems
+   in the Krylov-Schur solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  bse - the BSE method
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetBSEType(), EPSKrylovSchurBSEType, MatCreateBSE()
+@*/
+PetscErrorCode EPSKrylovSchurGetBSEType(EPS eps,EPSKrylovSchurBSEType *bse)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscAssertPointer(bse,2);
+  PetscUseMethod(eps,"EPSKrylovSchurGetBSEType_C",(EPS,EPSKrylovSchurBSEType*),(eps,bse));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOptionsObject)
+{
+  EPS_KRYLOVSCHUR       *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscBool             flg,lock,b,f1,f2,f3,isfilt;
+  PetscReal             keep;
+  PetscInt              i,j,k;
+  KSP                   ksp;
+  EPSKrylovSchurBSEType bse;
 
   PetscFunctionBegin;
   PetscOptionsHeadBegin(PetscOptionsObject,"EPS Krylov-Schur Options");
@@ -1376,6 +1466,9 @@ static PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *Pe
     PetscCall(PetscOptionsInt("-eps_krylovschur_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&j,&f2));
     PetscCall(PetscOptionsInt("-eps_krylovschur_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&k,&f3));
     if (f1 || f2 || f3) PetscCall(EPSKrylovSchurSetDimensions(eps,i,j,k));
+
+    PetscCall(PetscOptionsEnum("-eps_krylovschur_bse_type","Method for BSE structured eigenproblems","EPSKrylovSchurSetBSEType",EPSKrylovSchurBSETypes,(PetscEnum)ctx->bse,(PetscEnum*)&bse,&flg));
+    if (flg) PetscCall(EPSKrylovSchurSetBSEType(eps,bse));
 
   PetscOptionsHeadEnd();
 
@@ -1405,6 +1498,7 @@ static PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   if (isascii) {
     PetscCall(PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep)));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-"));
+    if (eps->problem_type==EPS_BSE) PetscCall(PetscViewerASCIIPrintf(viewer,"  BSE method: %s\n",EPSKrylovSchurBSETypes[ctx->bse]));
     if (eps->which==EPS_ALL) {
       PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt));
       if (isfilt) PetscCall(PetscViewerASCIIPrintf(viewer,"  using filtering to extract all eigenvalues in an interval\n"));
@@ -1458,6 +1552,8 @@ static PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommMats_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurUpdateSubcommMats_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetKSP_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetBSEType_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetBSEType_C",NULL));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -1489,8 +1585,8 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   eps->data   = (void*)ctx;
   ctx->lock   = PETSC_TRUE;
   ctx->nev    = 1;
-  ctx->ncv    = PETSC_DEFAULT;
-  ctx->mpd    = PETSC_DEFAULT;
+  ctx->ncv    = PETSC_DETERMINE;
+  ctx->mpd    = PETSC_DETERMINE;
   ctx->npart  = 1;
   ctx->detect = PETSC_FALSE;
   ctx->global = PETSC_TRUE;
@@ -1525,5 +1621,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommMats_C",EPSKrylovSchurGetSubcommMats_KrylovSchur));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurUpdateSubcommMats_C",EPSKrylovSchurUpdateSubcommMats_KrylovSchur));
   PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetKSP_C",EPSKrylovSchurGetKSP_KrylovSchur));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetBSEType_C",EPSKrylovSchurSetBSEType_KrylovSchur));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetBSEType_C",EPSKrylovSchurGetBSEType_KrylovSchur));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

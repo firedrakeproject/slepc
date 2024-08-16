@@ -133,10 +133,10 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscUseTypeMethod(nep,setup);
 
   /* set tolerance if not yet set */
-  if (nep->tol==(PetscReal)PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
+  if (nep->tol==(PetscReal)PETSC_DETERMINE) nep->tol = SLEPC_DEFAULT_TOL;
   if (nep->refine) {
-    if (nep->rtol==(PetscReal)PETSC_DEFAULT) nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
-    if (nep->rits==(PetscReal)PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
+    if (nep->rtol==(PetscReal)PETSC_DETERMINE) nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
+    if (nep->rits==(PetscReal)PETSC_DETERMINE) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
   }
 
   /* fill sorting criterion context */
@@ -266,9 +266,9 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec is[])
 PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
   PetscFunctionBegin;
-  if (*ncv!=PETSC_DEFAULT) { /* ncv set */
+  if (*ncv!=PETSC_DETERMINE) { /* ncv set */
     PetscCheck(*ncv>=nev,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
-  } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
+  } else if (*mpd!=PETSC_DETERMINE) { /* mpd set */
     *ncv = PetscMin(nep->n,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */
     if (nev<500) *ncv = PetscMin(nep->n,PetscMax(2*nev,nev+15));
@@ -277,7 +277,7 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
       *ncv = PetscMin(nep->n,nev+(*mpd));
     }
   }
-  if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
+  if (*mpd==PETSC_DETERMINE) *mpd = *ncv;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
