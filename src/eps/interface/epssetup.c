@@ -390,6 +390,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* process deflation and initial vectors */
   if (eps->nds<0) {
+    PetscCheck(!eps->isstructured,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Deflation space is not supported in structured eigenproblems");
     k = -eps->nds;
     PetscCall(BVInsertConstraints(eps->V,&k,eps->defl));
     PetscCall(SlepcBasisDestroy_Private(&eps->nds,&eps->defl));
