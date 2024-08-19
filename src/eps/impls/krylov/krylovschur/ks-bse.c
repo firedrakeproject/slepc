@@ -90,7 +90,7 @@ static PetscErrorCode EPSBSELanczos_Shao(EPS eps,BV U,BV V,PetscReal *alpha,Pets
 
   /* Normalize initial vector */
   if (k==0) {
-    PetscCall(EPSGetStartVector(eps,0,NULL));
+    if (eps->nini==0) PetscCall(BVSetRandomColumn(eps->V,0));
     PetscCall(BVGetColumn(U,0,&x));
     PetscCall(BVGetColumn(V,0,&y));
     PetscCall(VecCopy(x,w));
@@ -261,7 +261,7 @@ static PetscErrorCode EPSBSELanczos_Gruning(EPS eps,BV U,BV V,BV HU,BV HV,PetscR
   PetscCall(BVRestoreColumn(V,0,&v));
 
   /* Normalize initial vector */
-  if (k==0) PetscCall(EPSGetStartVector(eps,0,NULL));
+  if (k==0 && eps->nini==0) PetscCall(BVSetRandomColumn(eps->V,0));
 
   /* y = Hmult(v1,1) */
   PetscCall(BVGetColumn(U,k,&x));
@@ -483,7 +483,7 @@ static PetscErrorCode EPSBSELanczos_ProjectedBSE(EPS eps,BV X,BV Y,Vec v,PetscRe
 
   /* Normalize initial vector */
   if (k==0) {
-    PetscCall(EPSGetStartVector(eps,0,NULL));
+    if (eps->nini==0) PetscCall(BVSetRandomColumn(eps->V,0));
     PetscCall(BVGetColumn(X,0,&x));
     /* v = Hmult(u,1) */
     PetscCall(BVGetColumn(Y,0,&y));
