@@ -463,6 +463,7 @@ PetscErrorCode DSSetCompact(DS ds,PetscBool comp)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveBool(ds,comp,2);
+  if (ds->compact != comp && ds->ld) PetscTryTypeMethod(ds,setcompact,comp);
   ds->compact = comp;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

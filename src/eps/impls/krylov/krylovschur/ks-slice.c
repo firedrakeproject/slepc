@@ -761,10 +761,11 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
       PetscCall(BVCopyVec(eps->V,eps->nconv+i,v));
       PetscCall(BVRestoreColumn(sr->Vnext,k,&v));
       k++;
-      if (k>=sr->nS/2)break;
+      if (k>=sr->nS/2) break;
     }
   }
   /* Copy to DS */
+  PetscCall(DSSetCompact(eps->ds,PETSC_FALSE));  /* make sure DS_MAT_A is allocated */
   PetscCall(DSGetArray(eps->ds,DS_MAT_A,&A));
   PetscCall(PetscArrayzero(A,ld*ld));
   for (i=0;i<k;i++) {
@@ -879,7 +880,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     PetscCall(BVSetActiveColumns(eps->V,eps->nconv,nv));
 
     /* Solve projected problem and compute residual norm estimates */
-    if (eps->its == 1 && l > 0) {/* After rational update */
+    if (eps->its == 1 && l > 0) { /* After rational update, DS_MAT_A is available */
       PetscCall(DSGetArray(eps->ds,DS_MAT_A,&A));
       PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&a));
       b = a + ld;
@@ -1198,7 +1199,7 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   }
 
   /* For rational Krylov */
-  if (sr->nS>0 && (sr->sPrev == sr->sPres->neighb[0] || sr->sPrev == sr->sPres->neighb[1])) PetscCall(EPSPrepareRational(eps));
+  if (!sr->sPres->rep && sr->nS>0 && (sr->sPrev == sr->sPres->neighb[0] || sr->sPrev == sr->sPres->neighb[1])) PetscCall(EPSPrepareRational(eps));
   eps->nconv = 0;
   /* Get rid of temporary Vnext */
   PetscCall(BVDestroy(&eps->V));
