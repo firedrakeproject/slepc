@@ -678,7 +678,9 @@ static PetscErrorCode DSDestroy_HSVD(DS ds)
    Used DS matrices:
 +  DS_MAT_A - problem matrix
 .  DS_MAT_T - upper bidiagonal matrix
--  DS_MAT_D - diagonal matrix (signature)
+.  DS_MAT_D - diagonal matrix (signature)
+.  DS_MAT_U - left singular vectors
+-  DS_MAT_V - right singular vectors
 
    Implemented methods:
 .  0 - Cross product A'*Omega*A

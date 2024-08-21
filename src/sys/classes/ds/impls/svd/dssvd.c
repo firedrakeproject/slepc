@@ -529,7 +529,9 @@ static PetscErrorCode DSDestroy_SVD(DS ds)
 
    Used DS matrices:
 +  DS_MAT_A - problem matrix
--  DS_MAT_T - upper bidiagonal matrix
+.  DS_MAT_T - upper bidiagonal matrix
+.  DS_MAT_U - left singular vectors
+-  DS_MAT_V - right singular vectors
 
    Implemented methods:
 .  0 - Divide and Conquer (_bdsdc or _gesdd)

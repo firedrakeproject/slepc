@@ -790,7 +790,10 @@ static PetscErrorCode DSDestroy_GSVD(DS ds)
 +  DS_MAT_A - first problem matrix
 .  DS_MAT_B - second problem matrix
 .  DS_MAT_T - first upper bidiagonal matrix (if compact storage is selected)
--  DS_MAT_D - second upper bidiagonal matrix (if compact storage is selected)
+.  DS_MAT_D - second upper bidiagonal matrix (if compact storage is selected)
+.  DS_MAT_U - (upper) left generalized singular vectors
+.  DS_MAT_V - (lower) left generalized singular vectors
+-  DS_MAT_X - right generalized singular vectors
 
    Implemented methods:
 .  0 - Lapack (_ggsvd3 if available, or _ggsvd)
