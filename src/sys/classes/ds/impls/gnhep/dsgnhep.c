@@ -670,7 +670,8 @@ static PetscErrorCode DSTruncate_GNHEP(DS ds,PetscInt n,PetscBool trim)
    generalized (real) Schur form
 
    Implemented methods:
-.  0 - QZ iteration (_gges)
++  0 - QZ iteration (_gges)
+-  1 - blocked QZ iteration (_gges3, if available)
 
 .seealso: DSCreate(), DSSetType(), DSType
 M*/

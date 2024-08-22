@@ -251,6 +251,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   PetscCheck(r,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
   PetscTryTypeMethod(ds,destroy);
+  PetscCall(DSReset(ds));
   PetscCall(PetscMemzero(ds->ops,sizeof(struct _DSOps)));
 
   PetscCall(PetscObjectChangeTypeName((PetscObject)ds,type));
@@ -462,6 +463,7 @@ PetscErrorCode DSSetCompact(DS ds,PetscBool comp)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveBool(ds,comp,2);
+  if (ds->compact != comp && ds->ld) PetscTryTypeMethod(ds,setcompact,comp);
   ds->compact = comp;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

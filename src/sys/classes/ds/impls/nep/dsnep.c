@@ -1282,6 +1282,7 @@ static PetscErrorCode DSMatGetSize_NEP(DS ds,DSMatType t,PetscInt *rows,PetscInt
 
    Used DS matrices:
 +  DS_MAT_Ex - coefficient matrices of the split form of T(lambda)
+.  DS_MAT_X  - eigenvectors
 .  DS_MAT_A  - (workspace) T(lambda) evaluated at a given lambda (SLP only)
 .  DS_MAT_B  - (workspace) T'(lambda) evaluated at a given lambda (SLP only)
 .  DS_MAT_Q  - (workspace) left Hankel matrix (contour only)

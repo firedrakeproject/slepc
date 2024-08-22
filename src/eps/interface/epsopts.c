@@ -1024,7 +1024,10 @@ PetscErrorCode EPSSetExtraction(EPS eps,EPSExtraction extr)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,extr,2);
-  eps->extraction = extr;
+  if (eps->extraction != extr) {
+    eps->state      = EPS_STATE_INITIAL;
+    eps->extraction = extr;
+  }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

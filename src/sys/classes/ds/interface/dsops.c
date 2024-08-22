@@ -1098,13 +1098,13 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscCall(PetscInfo(ds,"Translating with alpha=%g\n",(double)PetscRealPart(alpha)));
+  PetscCall(DSSetCompact(ds,PETSC_FALSE));
   PetscCall(PetscLogEventBegin(DS_Other,ds,0,0,0));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   PetscUseTypeMethod(ds,transrks,alpha);
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
-  ds->state   = DS_STATE_RAW;
-  ds->compact = PETSC_FALSE;
+  ds->state = DS_STATE_RAW;
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
