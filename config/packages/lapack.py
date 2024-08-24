@@ -59,11 +59,11 @@ class Lapack(package.Package):
   def Check(self,slepcconf,slepcvars,petsc):
 
     # LAPACK standard functions
-    l = ['laev2','gehrd','lanhs','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl']
+    l = ['laev2','gehrd','lanhs','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl','bdsqr','gebrd']
 
     # LAPACK functions with different real and complex names
     if petsc.scalar == 'real':
-      l += ['orghr','sytrd','orgtr']
+      l += ['orghr','sytrd','orgtr','ormbr']
       if petsc.precision == 'single':
         prefix = 's'
       elif petsc.precision == '__float128':
@@ -71,7 +71,7 @@ class Lapack(package.Package):
       else:
         prefix = 'd'
     else:
-      l += ['unghr','hetrd','ungtr']
+      l += ['unghr','hetrd','ungtr','unmbr']
       if petsc.precision == 'single':
         prefix = 'c'
       elif petsc.precision == '__float128':
@@ -83,7 +83,7 @@ class Lapack(package.Package):
     functions = [prefix + i for i in l]
 
     # in this case, the real name represents both versions
-    namesubst = {'unghr':'orghr','hetrd':'sytrd','ungtr':'orgtr'}
+    namesubst = {'unghr':'orghr','hetrd':'sytrd','ungtr':'orgtr','unmbr':'ormbr'}
 
     # LAPACK functions which are always used in real version
     l = ['stevr','bdsdc','lag2','lasv2','lartg','laed4','lamrg']

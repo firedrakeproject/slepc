@@ -122,12 +122,15 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
+      args: -ds_method {{0 1}}
       suffix: 1
+      filter: grep -v "solving the problem"
       requires: !single
 
    test:
       suffix: 2
-      args: -extrarow
+      args: -extrarow -ds_method {{0 1}}
+      filter: grep -v "solving the problem"
       requires: !single
 
 TEST*/

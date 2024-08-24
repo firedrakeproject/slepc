@@ -75,6 +75,11 @@ BLAS_EXTERN void     LAPACKgehrd_(const PetscBLASInt*,const PetscBLASInt*,const 
 #else
 #define LAPACKgehrd_(a,b,c,d,e,f,g,h,i) PetscMissingLapack("GEHRD",a,b,c,d,e,f,g,h,i);
 #endif
+#if !defined(SLEPC_MISSING_LAPACK_GEBRD)
+BLAS_EXTERN void     LAPACKgebrd_(const PetscBLASInt*,const PetscBLASInt*,PetscScalar*,const PetscBLASInt*,PetscReal*,PetscReal*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKgebrd_(a,b,c,d,e,f,g,h,i,j,k) PetscMissingLapack("GEBRD",a,b,c,d,e,f,g,h,i,j,k);
+#endif
 #if !defined(SLEPC_MISSING_LAPACK_LARFG)
 BLAS_EXTERN void     LAPACKlarfg_(const PetscBLASInt*,PetscScalar*,PetscScalar*,const PetscBLASInt*,PetscScalar*);
 #else
@@ -149,6 +154,11 @@ BLAS_EXTERN void     LAPACKtrsyl_(const char*,const char*,const PetscBLASInt*,co
 #else
 #define LAPACKtrsyl_(a,b,c,d,e,f,g,h,i,j,k,l,m) PetscMissingLapack("TRSYL",a,b,c,d,e,f,g,h,i,j,k,l,m);
 #endif
+#if !defined(SLEPC_MISSING_LAPACK_BDSQR)
+BLAS_EXTERN void     LAPACKbdsqr_(const char*,const PetscBLASInt*,const PetscBLASInt*,const PetscBLASInt*,const PetscBLASInt*,PetscReal*,PetscReal*,PetscScalar*,const PetscBLASInt*,PetscScalar*,const PetscBLASInt*,PetscScalar*,const PetscBLASInt*,PetscReal*,PetscBLASInt*);
+#else
+#define LAPACKbdsqr_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) PetscMissingLapack("BDSQR",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o);
+#endif
 
 /* subroutines in which we use only the real version, do not care whether they have different name */
 #if !defined(SLEPC_MISSING_LAPACK_STEVR)
@@ -169,6 +179,11 @@ BLAS_EXTERN SlepcLRT LAPACKlamc3_(PetscReal*,PetscReal*);
 BLAS_EXTERN void     LAPACKorgtr_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #else
 #define LAPACKorgtr_(a,b,c,d,e,f,g,h) PetscMissingLapack("ORGTR",a,b,c,d,e,f,g,h);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_ORMBR)
+BLAS_EXTERN void     LAPACKormbr_(const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKormbr_(a,b,c,d,e,f,g,h,i,j,k,l,m,n) PetscMissingLapack("ORMBR",a,b,c,d,e,f,g,h,i,j,k,l,m,n);
 #endif
 #if !defined(SLEPC_MISSING_LAPACK_SYTRD)
 BLAS_EXTERN void     LAPACKsytrd_(const char*,const PetscBLASInt*,PetscScalar*,const PetscBLASInt*,PetscReal*,PetscReal*,PetscScalar*,PetscScalar*,const PetscBLASInt*,PetscBLASInt*);
