@@ -19,7 +19,7 @@ typedef struct {
 static PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
-  PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  if (!ds->compact) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_U));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_V));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
@@ -62,7 +62,9 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds)
 
   PetscFunctionBegin;
   PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheck(ds->compact,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Must have compact storage");
   /* switch from compact (arrow) to dense storage */
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_A],&A));
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
   PetscCall(PetscArrayzero(A,ld*ld));
@@ -471,6 +473,7 @@ static PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
   m1 = m-l;
   off = l+l*ld;
+  if (ds->compact) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_V],&V));
@@ -713,6 +716,13 @@ static PetscErrorCode DSDestroy_SVD(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+static PetscErrorCode DSSetCompact_SVD(DS ds,PetscBool comp)
+{
+  PetscFunctionBegin;
+  if (!comp) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 /*MC
    DSSVD - Dense Singular Value Decomposition.
 
@@ -735,7 +745,7 @@ static PetscErrorCode DSDestroy_SVD(DS ds)
    be interpreted in this case as an extra column.
 
    Used DS matrices:
-+  DS_MAT_A - problem matrix
++  DS_MAT_A - problem matrix (used only if compact=false)
 .  DS_MAT_T - upper bidiagonal matrix
 .  DS_MAT_U - left singular vectors
 -  DS_MAT_V - right singular vectors
@@ -760,13 +770,14 @@ SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->solve[0]      = DSSolve_SVD_QR;
   ds->ops->solve[1]      = DSSolve_SVD_DC;
   ds->ops->sort          = DSSort_SVD;
-#if !defined(PETSC_HAVE_MPIUNI)
-  ds->ops->synchronize   = DSSynchronize_SVD;
-#endif
   ds->ops->truncate      = DSTruncate_SVD;
   ds->ops->update        = DSUpdateExtraRow_SVD;
   ds->ops->destroy       = DSDestroy_SVD;
   ds->ops->matgetsize    = DSMatGetSize_SVD;
+#if !defined(PETSC_HAVE_MPIUNI)
+  ds->ops->synchronize   = DSSynchronize_SVD;
+#endif
+  ds->ops->setcompact    = DSSetCompact_SVD;
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDSetDimensions_C",DSSVDSetDimensions_SVD));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDGetDimensions_C",DSSVDGetDimensions_SVD));
   PetscFunctionReturn(PETSC_SUCCESS);
