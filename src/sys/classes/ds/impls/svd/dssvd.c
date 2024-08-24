@@ -19,7 +19,7 @@ typedef struct {
 static PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
-  PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  if (!ds->compact) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_U));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_V));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
@@ -62,7 +62,9 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds)
 
   PetscFunctionBegin;
   PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheck(ds->compact,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Must have compact storage");
   /* switch from compact (arrow) to dense storage */
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_A],&A));
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
   PetscCall(PetscArrayzero(A,ld*ld));
@@ -86,12 +88,17 @@ static PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
   PetscViewerFormat format;
   PetscInt          i,j,r,c,m=ctx->m,rows,cols;
   PetscReal         *T,value;
+  const char        *methodname[] = {
+                     "Implicit zero-shift QR for bidiagonals (_bdsqr)",
+                     "Divide and Conquer (_bdsdc or _gesdd)"
+  };
+  const int         nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
-  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(PETSC_SUCCESS);
-  if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     PetscCall(PetscViewerASCIIPrintf(viewer,"number of columns: %" PetscInt_FMT "\n",m));
+    if (ds->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]));
     PetscFunctionReturn(PETSC_SUCCESS);
   }
   PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
@@ -247,6 +254,208 @@ static PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+/*
+  DSArrowBidiag reduces a real square arrowhead matrix of the form
+
+                [ d 0 0 0 e ]
+                [ 0 d 0 0 e ]
+            A = [ 0 0 d 0 e ]
+                [ 0 0 0 d e ]
+                [ 0 0 0 0 d ]
+
+  to upper bidiagonal form
+
+                [ d e 0 0 0 ]
+                [ 0 d e 0 0 ]
+   B = Q'*A*P = [ 0 0 d e 0 ],
+                [ 0 0 0 d e ]
+                [ 0 0 0 0 d ]
+
+  where P,Q are orthogonal matrices. Uses plane rotations with a bulge chasing scheme.
+  On input, P and Q must be initialized to the identity matrix.
+*/
+static PetscErrorCode DSArrowBidiag(PetscBLASInt n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt ldq,PetscScalar *P,PetscBLASInt ldp)
+{
+  PetscBLASInt i,j,j2,one=1;
+  PetscReal    c,s,ct,st,off,temp0,temp1,temp2;
+
+  PetscFunctionBegin;
+  if (n<=2) PetscFunctionReturn(PETSC_SUCCESS);
+
+  for (j=0;j<n-2;j++) {
+
+    /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
+    temp0 = e[j+1];
+    PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp0,&e[j],&c,&s,&e[j+1]));
+    s = -s;
+
+    /* Apply rotation to Q */
+    j2 = j+2;
+    PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+j*ldq,&one,Q+(j+1)*ldq,&one,&c,&s));
+
+    /* Apply rotation to diagonal elements, eliminate newly introduced entry A(j+1,j) */
+    temp0 = d[j+1];
+    temp1 = c*temp0;
+    temp2 = -s*d[j];
+    PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp1,&temp2,&ct,&st,&d[j+1]));
+    st = -st;
+    e[j] = -c*st*d[j] + s*ct*temp0;
+    d[j] = c*ct*d[j] + s*st*temp0;
+
+    /* Apply rotation to P */
+    PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,P+j*ldp,&one,P+(j+1)*ldp,&one,&ct,&st));
+
+    /* Chase newly introduced off-diagonal entry to the top left corner */
+    for (i=j-1;i>=0;i--) {
+
+      /* Upper bulge */
+      off   = -st*e[i];
+      e[i]  = ct*e[i];
+      temp0 = e[i+1];
+      PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp0,&off,&c,&s,&e[i+1]));
+      s = -s;
+      PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+i*ldq,&one,Q+(i+1)*ldq,&one,&c,&s));
+
+      /* Lower bulge */
+      temp0 = d[i+1];
+      temp1 = -s*e[i] + c*temp0;
+      temp2 = c*e[i] + s*temp0;
+      off   = -s*d[i];
+      PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp1,&off,&ct,&st,&d[i+1]));
+      st = -st;
+      e[i] = -c*st*d[i] + ct*temp2;
+      d[i] = c*ct*d[i] + st*temp2;
+      PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,P+i*ldp,&one,P+(i+1)*ldp,&one,&ct,&st));
+    }
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*
+   Reduce to bidiagonal form by means of DSArrowBidiag.
+*/
+static PetscErrorCode DSIntermediate_SVD(DS ds)
+{
+  DS_SVD        *ctx = (DS_SVD*)ds->data;
+  PetscInt      i,j;
+  PetscBLASInt  n1 = 0,n2,m2,lwork,info,l = 0,n = 0,m = 0,nm,ld,off;
+  PetscScalar   *A,*U,*V,*W,*work,*tauq,*taup;
+  PetscReal     *d,*e;
+
+  PetscFunctionBegin;
+  PetscCall(PetscBLASIntCast(ds->n,&n));
+  PetscCall(PetscBLASIntCast(ctx->m,&m));
+  PetscCall(PetscBLASIntCast(ds->l,&l));
+  PetscCall(PetscBLASIntCast(ds->ld,&ld));
+  PetscCall(PetscBLASIntCast(PetscMax(0,ds->k-l+1),&n1)); /* size of leading block, excl. locked */
+  n2 = n-l;     /* n2 = n1 + size of trailing block */
+  m2 = m-l;
+  off = l+l*ld;
+  nm = PetscMin(n,m);
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  e = d+ld;
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_V],&V));
+  PetscCall(PetscArrayzero(U,ld*ld));
+  for (i=0;i<n;i++) U[i+i*ld] = 1.0;
+  PetscCall(PetscArrayzero(V,ld*ld));
+  for (i=0;i<m;i++) V[i+i*ld] = 1.0;
+
+  if (ds->compact) {
+
+    if (ds->state<DS_STATE_INTERMEDIATE) PetscCall(DSArrowBidiag(n1,d+l,e+l,U+off,ld,V+off,ld));
+
+  } else {
+
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+    for (i=0;i<l;i++) { d[i] = PetscRealPart(A[i+i*ld]); e[i] = 0.0; }
+
+    if (ds->state<DS_STATE_INTERMEDIATE) {
+      lwork = (m+n)*16;
+      PetscCall(DSAllocateWork_Private(ds,2*nm+ld*ld+lwork,0,0));
+      tauq = ds->work;
+      taup = ds->work+nm;
+      W    = ds->work+2*nm;
+      work = ds->work+2*nm+ld*ld;
+      for (j=0;j<m;j++) PetscCall(PetscArraycpy(W+j*ld,A+j*ld,n));
+      PetscCallBLAS("LAPACKgebrd",LAPACKgebrd_(&n2,&m2,W+off,&ld,d+l,e+l,tauq,taup,work,&lwork,&info));
+      SlepcCheckLapackInfo("gebrd",info);
+      PetscCallBLAS("LAPACKormbr",LAPACKormbr_("Q","L","N",&n2,&n2,&m2,W+off,&ld,tauq,U+off,&ld,work,&lwork,&info));
+      SlepcCheckLapackInfo("ormbr",info);
+      PetscCallBLAS("LAPACKormbr",LAPACKormbr_("P","R","N",&m2,&m2,&n2,W+off,&ld,taup,V+off,&ld,work,&lwork,&info));
+      SlepcCheckLapackInfo("ormbr",info);
+    } else {
+      /* copy bidiagonal to d,e */
+      for (i=l;i<nm;i++)   d[i] = PetscRealPart(A[i+i*ld]);
+      for (i=l;i<nm-1;i++) e[i] = PetscRealPart(A[i+(i+1)*ld]);
+    }
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  }
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode DSSolve_SVD_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
+{
+  DS_SVD         *ctx = (DS_SVD*)ds->data;
+  PetscInt       i,j;
+  PetscBLASInt   n1,m1,info,l = 0,n = 0,m = 0,nm,ld,off,zero=0;
+  PetscScalar    *A,*U,*V,*Vt;
+  PetscReal      *d,*e;
+
+  PetscFunctionBegin;
+  PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCall(PetscBLASIntCast(ds->n,&n));
+  PetscCall(PetscBLASIntCast(ctx->m,&m));
+  PetscCall(PetscBLASIntCast(ds->l,&l));
+  PetscCall(PetscBLASIntCast(ds->ld,&ld));
+  n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
+  m1 = m-l;
+  nm = PetscMin(n1,m1);
+  off = l+l*ld;
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  e = d+ld;
+
+  /* Reduce to bidiagonal form */
+  PetscCall(DSIntermediate_SVD(ds));
+
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_V],&V));
+
+  /* solve bidiagonal SVD problem */
+  for (i=0;i<l;i++) wr[i] = d[i];
+  PetscCall(DSAllocateWork_Private(ds,ld*ld,4*n1,0));
+  Vt = ds->work;
+  for (i=l;i<m;i++) {
+    for (j=l;j<m;j++) {
+      Vt[i+j*ld] = PetscConj(V[j+i*ld]);  /* Lapack expects transposed VT */
+    }
+  }
+  PetscCallBLAS("LAPACKbdsqr",LAPACKbdsqr_(n>=m?"U":"L",&nm,&m1,&n1,&zero,d+l,e+l,Vt+off,&ld,U+off,&ld,NULL,&ld,ds->rwork,&info));
+  SlepcCheckLapackInfo("bdsqr",info);
+  for (i=l;i<m;i++) {
+    for (j=l;j<m;j++) {
+      V[i+j*ld] = PetscConj(Vt[j+i*ld]);  /* transpose VT returned by Lapack */
+    }
+  }
+  for (i=l;i<PetscMin(ds->n,ctx->m);i++) wr[i] = d[i];
+
+  /* create diagonal matrix as a result */
+  if (ds->compact) PetscCall(PetscArrayzero(e,n-1));
+  else {
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+    for (i=l;i<m;i++) PetscCall(PetscArrayzero(A+l+i*ld,n-l));
+    for (i=l;i<PetscMin(ds->n,ctx->m);i++) A[i+i*ld] = d[i];
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  }
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 static PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_SVD         *ctx = (DS_SVD*)ds->data;
@@ -264,6 +473,7 @@ static PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
   m1 = m-l;
   off = l+l*ld;
+  if (ds->compact) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_V],&V));
@@ -506,6 +716,13 @@ static PetscErrorCode DSDestroy_SVD(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+static PetscErrorCode DSSetCompact_SVD(DS ds,PetscBool comp)
+{
+  PetscFunctionBegin;
+  if (!comp) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 /*MC
    DSSVD - Dense Singular Value Decomposition.
 
@@ -528,13 +745,14 @@ static PetscErrorCode DSDestroy_SVD(DS ds)
    be interpreted in this case as an extra column.
 
    Used DS matrices:
-+  DS_MAT_A - problem matrix
++  DS_MAT_A - problem matrix (used only if compact=false)
 .  DS_MAT_T - upper bidiagonal matrix
 .  DS_MAT_U - left singular vectors
 -  DS_MAT_V - right singular vectors
 
    Implemented methods:
-.  0 - Divide and Conquer (_bdsdc or _gesdd)
++  0 - Implicit zero-shift QR for bidiagonals (_bdsqr)
+-  1 - Divide and Conquer (_bdsdc or _gesdd)
 
 .seealso: DSCreate(), DSSetType(), DSType, DSSVDSetDimensions()
 M*/
@@ -549,15 +767,17 @@ SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->allocate      = DSAllocate_SVD;
   ds->ops->view          = DSView_SVD;
   ds->ops->vectors       = DSVectors_SVD;
-  ds->ops->solve[0]      = DSSolve_SVD_DC;
+  ds->ops->solve[0]      = DSSolve_SVD_QR;
+  ds->ops->solve[1]      = DSSolve_SVD_DC;
   ds->ops->sort          = DSSort_SVD;
-#if !defined(PETSC_HAVE_MPIUNI)
-  ds->ops->synchronize   = DSSynchronize_SVD;
-#endif
   ds->ops->truncate      = DSTruncate_SVD;
   ds->ops->update        = DSUpdateExtraRow_SVD;
   ds->ops->destroy       = DSDestroy_SVD;
   ds->ops->matgetsize    = DSMatGetSize_SVD;
+#if !defined(PETSC_HAVE_MPIUNI)
+  ds->ops->synchronize   = DSSynchronize_SVD;
+#endif
+  ds->ops->setcompact    = DSSetCompact_SVD;
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDSetDimensions_C",DSSVDSetDimensions_SVD));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDGetDimensions_C",DSSVDGetDimensions_SVD));
   PetscFunctionReturn(PETSC_SUCCESS);

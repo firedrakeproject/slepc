@@ -81,6 +81,9 @@
 #if !defined(SLEPC_MISSING_LAPACK_ORGTR)
 #define LAPACKorgtr_ PETSCBLAS(orgtr,ORGTR)
 #endif
+#if !defined(SLEPC_MISSING_LAPACK_ORMBR)
+#define LAPACKormbr_ PETSCBLAS(ormbr,ORMBR)
+#endif
 #if !defined(SLEPC_MISSING_LAPACK_SYTRD)
 #define LAPACKsytrd_ PETSCBLAS(sytrd,SYTRD)
 #endif
@@ -89,6 +92,9 @@
 #else
 #if !defined(SLEPC_MISSING_LAPACK_ORGTR)
 #define LAPACKorgtr_ PETSCBLAS(ungtr,UNGTR)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_ORMBR)
+#define LAPACKormbr_ PETSCBLAS(unmbr,UNMBR)
 #endif
 #if !defined(SLEPC_MISSING_LAPACK_SYTRD)
 #define LAPACKsytrd_ PETSCBLAS(hetrd,HETRD)
@@ -137,6 +143,12 @@
 #endif
 #if !defined(SLEPC_MISSING_LAPACK_LASCL)
 #define LAPACKlascl_ PETSCBLAS(lascl,LASCL)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_BDSQR)
+#define LAPACKbdsqr_ PETSCBLAS(bdsqr,BDSQR)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_GEBRD)
+#define LAPACKgebrd_ PETSCBLAS(gebrd,GEBRD)
 #endif
 
 #if defined(PETSC_HAVE_COMPLEX)

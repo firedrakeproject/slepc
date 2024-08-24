@@ -103,17 +103,21 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
+      args: -ds_method {{0 1}}
       suffix: 1
+      filter: grep -v "solving the problem"
       requires: !single
 
    test:
-      args: -l 0 -k 0
+      args: -l 0 -k 0 -ds_method {{0 1}}
       suffix: 2
+      filter: grep -v "solving the problem"
       requires: !single
 
    test:
-      args: -extrarow
+      args: -extrarow -ds_method {{0 1}}
       suffix: 3
+      filter: grep -v "solving the problem"
       requires: !single
 
 TEST*/

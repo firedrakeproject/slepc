@@ -255,7 +255,6 @@ PetscErrorCode DSArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,PetscScal
       d[i+1] += p;
       d[i] -= p;
       e[i] = -e[i] - c*temp;
-      j2 = j+2;
       PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
     }
   }
