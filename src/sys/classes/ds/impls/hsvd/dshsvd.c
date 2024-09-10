@@ -286,7 +286,6 @@ static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     perm = ds->iwork+iwu;
     iwu += n;
     cmplx = ds->iwork+iwu;
-    iwu += n;
     dd = ds->rwork+rwu;
     rwu += ld;
     ee = ds->rwork+rwu;
@@ -332,9 +331,7 @@ static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     perm = ds->iwork+iwu;
     iwu += n;
     cmplx = ds->iwork+iwu;
-    iwu += n;
     dd = ds->rwork+rwu;
-    rwu += ld;
     for (j=l;j<m;j++) {
       for (i=0;i<n;i++) ds->work[i] = Omega[i]*A[i+j*ld];
       PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&m,&sone,A,&ld,ds->work,&incx,&szero,V+j*ld,&incx));
@@ -343,6 +340,7 @@ static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* compute eigenvalues */
     lwork = (n+6)*ld;
 #if defined(PETSC_USE_COMPLEX)
+    rwu += ld;
     PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,ds->rwork+rwu,&info));
 #else
     PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,&info));

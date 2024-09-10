@@ -89,6 +89,7 @@ endif
 
 concatlang = $(foreach lang, $(langs), $(srcs-$(1).$(lang):%.$(lang)=$(OBJDIR)/%.o))
 srcs.o := $(foreach pkg, $(pkgs), $(call concatlang,$(pkg)))
+srcs.tidy := $(foreach pkg, $(pkgs), $(srcs-$(pkg).c:%.c=$(OBJDIR)/%.tidy))
 concatlangsrc = $(foreach lang, $(langs), $(srcs-$(1).$(lang)))
 csrc := $(foreach pkg, $(pkgs),  $(srcs-$(pkg).c))
 showcsrc:
@@ -222,6 +223,12 @@ else
 endif
 	-@$(GFORTRAN_DEP_CLEANUP)
 
+# Only works with ./configure --with-mpi=0 since clang-tidy cannot find MPI include files (love MPI compiler wrappers, the worse thing to come from MPI)
+$(OBJDIR)/%.tidy : %.c | $$(@D)/.DIR
+	@clang-tidy --checks='clang-diagnostic-*,-clang-analyzer-*,-clang-analyzer-security.insecureAPI.rand,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,clang-analyzer-deadcode.DeadStores,bugprone-too-small-loop-variable'  $(abspath $<) -- ${CCPPFLAGS}
+
+clang-tidy: $(srcs.tidy)
+
 # Hack: manual dependencies on object files
 $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
@@ -238,7 +245,7 @@ $(OBJDIR)/src/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmo
 # all sources should get recompiled when slepcvariables changes (i.e when configure is rerun or when slepcvariables is manually edited.)
 $(srcs.o) : $(slepcvariables)
 
-.PHONY: clean all print
+.PHONY: clean all print clang-tidy
 
 clean:
 	${RM} -r $(OBJDIR) $(LIBDIR)/libslepc* $(MODDIR)/slepc*.mod $(MPIUNI_MOD) $(generated)
