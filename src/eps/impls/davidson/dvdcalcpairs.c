@@ -415,7 +415,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   PetscFunctionBegin;
   PetscCall(BVSetActiveColumns(d->eps->V,0,d->eps->nconv));
   PetscCall(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSHEP,&symm));
-  if (symm) PetscFunctionReturn(PETSC_SUCCESS);
+  if (symm || !d->eps->nconv) PetscFunctionReturn(PETSC_SUCCESS);
   PetscCall(DSSetDimensions(d->eps->ds,d->eps->nconv,0,0));
   PetscCall(DSGetMat(d->eps->ds,DS_MAT_A,&A));
   PetscCall(MatDenseGetSubMatrix(d->H,0,d->eps->nconv,0,d->eps->nconv,&H0));
