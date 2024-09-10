@@ -161,7 +161,7 @@ static PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   PetscCall(MatGetSize(svd->A,&m,&n));
   PetscCall(MatGetLocalSize(svd->A,&mloc,&nloc));
   PetscCall(SVDSetDimensions_Default(svd));
-  if (svd->max_it==PETSC_DETERMINE) svd->max_it = PETSC_MAX_INT;
+  if (svd->max_it==PETSC_DETERMINE) svd->max_it = PETSC_INT_MAX;
   svd->leftbasis = PETSC_TRUE;
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
 #if !defined(SLEPC_HAVE_PRIMME2p2)

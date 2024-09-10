@@ -183,7 +183,7 @@ static PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID));
 
   /* Check some constraints and set some default values */
-  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PETSC_MAX_INT;
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PETSC_INT_MAX;
   PetscCall(STGetMatrix(eps->st,0,&ops->A));
   if (eps->isgeneralized) {
 #if defined(SLEPC_HAVE_PRIMME3)
