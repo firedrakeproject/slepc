@@ -261,7 +261,7 @@ cdef class RG(Object):
             for i in range(n): ar[i] = asScalar(a[i])
         cdef tmp3 = allocate(<size_t>n*sizeof(PetscInt),<void**>&inside)
         CHKERR( RGCheckInside(self.rg, <PetscInt>n, ar, ai, inside) )
-        return array_i(n, inside)
+        return array_i(<PetscInt>n, inside)
 
     def computeContour(self, n):
         """

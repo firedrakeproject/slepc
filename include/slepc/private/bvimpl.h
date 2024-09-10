@@ -469,9 +469,9 @@ static inline PetscErrorCode BV_SetDefaultLD(BV bv,PetscInt nloc)
   if (bv->ld) {   /* set by user */
     PetscCheck(bv->ld>=nloc,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The leading dimension %" PetscInt_FMT " should be larger or equal to the local number of rows %" PetscInt_FMT,bv->ld,nloc);
   } else {
-    align  = PetscMax(PETSC_MEMALIGN,16);   /* assume that CUDA requires 16-byte alignment */
-    bytes  = (nloc*sizeof(PetscScalar) + align - 1) & ~(align - 1);
-    bv->ld = bytes/sizeof(PetscScalar);
+    align = PetscMax(PETSC_MEMALIGN,16);   /* assume that CUDA requires 16-byte alignment */
+    bytes = (nloc*sizeof(PetscScalar) + align - 1) & ~(align - 1);
+    PetscCall(PetscIntCast(bytes/sizeof(PetscScalar),&bv->ld));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }

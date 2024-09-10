@@ -94,7 +94,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
   switch (*event) {
     case primme_event_outer_iteration:
       /* Update SVD */
-      svd->its = primme->stats.numOuterIterations;
+      PetscCallVoid(PetscIntCast(primme->stats.numOuterIterations,&svd->its));
       if (numConverged) svd->nconv = *numConverged;
       k = 0;
       if (lockedSvals && numLocked) for (i=0; i<*numLocked && k<svd->ncv; i++) svd->sigma[k++] = ((PetscReal*)lockedSvals)[i];
@@ -171,14 +171,14 @@ static PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   /* Transfer SLEPc options to PRIMME options */
   primme_svds_free(primme);
   primme_svds_initialize(primme);
-  primme->m             = m;
-  primme->n             = n;
-  primme->mLocal        = mloc;
-  primme->nLocal        = nloc;
-  primme->numSvals      = svd->nsv;
+  primme->m             = (PRIMME_INT)m;
+  primme->n             = (PRIMME_INT)n;
+  primme->mLocal        = (PRIMME_INT)mloc;
+  primme->nLocal        = (PRIMME_INT)nloc;
+  primme->numSvals      = (int)svd->nsv;
   primme->matrix        = ops;
   primme->commInfo      = svd;
-  primme->maxMatvecs    = svd->max_it;
+  primme->maxMatvecs    = (PRIMME_INT)svd->max_it;
 #if !defined(SLEPC_HAVE_PRIMME2p2)
   primme->eps           = SlepcDefaultTol(svd->tol);
 #endif
@@ -194,7 +194,7 @@ static PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   primme->convTestFun   = convTestFun;
   primme->monitorFun    = monitorFun;
 #endif
-  if (ops->bs > 0) primme->maxBlockSize = ops->bs;
+  if (ops->bs > 0) primme->maxBlockSize = (int)ops->bs;
 
   switch (svd->which) {
     case SVD_LARGEST:
@@ -207,15 +207,15 @@ static PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 
   /* If user sets mpd or ncv, maxBasisSize is modified */
   if (svd->mpd!=PETSC_DETERMINE) {
-    primme->maxBasisSize = svd->mpd;
+    primme->maxBasisSize = (int)svd->mpd;
     if (svd->ncv!=PETSC_DETERMINE) PetscCall(PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n"));
-  } else if (svd->ncv!=PETSC_DETERMINE) primme->maxBasisSize = svd->ncv;
+  } else if (svd->ncv!=PETSC_DETERMINE) primme->maxBasisSize = (int)svd->ncv;
 
   PetscCheck(primme_svds_set_method(ops->method,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,PRIMME_DEFAULT_METHOD,primme)>=0,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"PRIMME method not valid");
 
-  svd->mpd = primme->maxBasisSize;
-  svd->ncv = (primme->locking?svd->nsv:0)+primme->maxBasisSize;
-  ops->bs  = primme->maxBlockSize;
+  svd->mpd = (PetscInt)primme->maxBasisSize;
+  svd->ncv = (PetscInt)(primme->locking?svd->nsv:0)+primme->maxBasisSize;
+  ops->bs  = (PetscInt)primme->maxBlockSize;
 
   /* Set workspace */
   PetscCall(SVDAllocateSolution(svd,0));
@@ -235,7 +235,7 @@ static PetscErrorCode SVDSolve_PRIMME(SVD svd)
   PetscFunctionBegin;
   /* Reset some parameters left from previous runs */
   ops->primme.aNorm    = 0.0;
-  ops->primme.initSize = svd->nini;
+  ops->primme.initSize = (int)svd->nini;
   ops->primme.iseed[0] = -1;
   ops->primme.iseed[1] = -1;
   ops->primme.iseed[2] = -1;
@@ -264,9 +264,9 @@ static PetscErrorCode SVDSolve_PRIMME(SVD svd)
 
   PetscCall(PetscFree(svecs));
 
-  svd->nconv  = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
+  svd->nconv  = ops->primme.initSize >= 0 ? (PetscInt)ops->primme.initSize : 0;
   svd->reason = svd->nconv >= svd->nsv ? SVD_CONVERGED_TOL: SVD_DIVERGED_ITS;
-  svd->its    = ops->primme.stats.numOuterIterations;
+  PetscCall(PetscIntCast(ops->primme.stats.numOuterIterations,&svd->its));
 
   /* Process PRIMME error code */
   if (ierrprimme != 0) {
