@@ -76,7 +76,12 @@ def FixDir(petscdir,petscarch,parentdir,dir,verbose):
   bfortsubmansec = 'unknown'
   cnames = []
   hnames = []
-  for f in os.listdir(dir):
+  files = os.listdir(dir)
+  if not files:
+    # empty "ftn-auto" dir - remove it
+    os.rmdir(dir)
+    return
+  for f in files:
     ext = os.path.splitext(f)[1]
     if ext == '.c' or ext == '.cxx':
       FixFile(os.path.join(dir, f))
@@ -125,10 +130,6 @@ def FixDir(petscdir,petscarch,parentdir,dir,verbose):
   ff = open(os.path.join(dir, 'makefile'), 'w')
   ff.write(outbuf)
   ff.close()
-
-  # if dir is empty - remove it
-  if os.path.exists(dir) and os.path.isdir(dir) and os.listdir(dir) == []:
-    os.rmdir(dir)
 
   # save Fortran interface file generated (it is merged with others in a post-processing step)
   for filename in [f for f in os.listdir(parentdir) if re.match(r'f90module[0-9]+.f90', f)]:
@@ -274,7 +275,7 @@ def main(slepcdir,petscdir,petscarch,bfort,dir,verbose):
   for p in [ os.path.join(dir,'include'), os.path.join(dir,'src') ]:
     for dirpath, dirnames, filenames in os.walk(p, topdown=True):
       filenames = [i for i in filenames if not i.find('#') > -1 and os.path.splitext(i)[1] in ['.c','.h','.cxx','.cu']]
-      dirnames[:] = [d for d in dirnames if d not in ['output', 'binding', 'tests', 'tutorials', 'yaml']]
+      dirnames[:] = [d for d in dirnames if d not in ['ftn-auto', 'ftn-custom', 'output', 'binding', 'tests', 'tutorials', 'yaml']]
       processDir(slepcdir, petscarch,bfort, verbose, dirpath, dirnames, filenames)
   return
 #
