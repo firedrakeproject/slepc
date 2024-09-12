@@ -432,9 +432,9 @@ static inline void MyAxpby(PetscInt n,PetscScalar a,PetscScalar x[],PetscScalar 
 /* Apply plane rotation on rows i1, i2 of A */
 static PetscErrorCode RotateRows(XMat A,PetscInt i1,PetscInt i2,PetscReal c,PetscReal s,PetscInt *nzloc,PetscInt *iwork,PetscScalar *swork)
 {
-  PetscInt     M,N,Istart,Iend,nc,nc1,nc2,*vj1,*vj2,*vjj1,*vjj2,*iworkx=iwork;
+  PetscInt     M,N,Istart,Iend,nc,nc1,nc2,*vj1=NULL,*vj2=NULL,*vjj1=NULL,*vjj2=NULL,*iworkx=iwork;
   PetscBLASInt nc_,one=1;
-  PetscScalar  *va1,*va2,*vaa1,*vaa2,*sworkx=swork;
+  PetscScalar  *va1=NULL,*va2=NULL,*vaa1=NULL,*vaa2=NULL,*sworkx=swork;
   PetscBool    i1mine, i2mine;
 #ifdef TIMING
   PetscReal    t,t0;
