@@ -277,7 +277,7 @@ PetscErrorCode CreateSquareMesh(MPI_Comm comm,DM *dm)
   PetscMPIInt    size;
 
   PetscFunctionBegin;
-  PetscCall(DMPlexCreateBoxMesh(comm,dim,PETSC_FALSE,cells,NULL,NULL,NULL,PETSC_TRUE,dm));
+  PetscCall(DMPlexCreateBoxMesh(comm,dim,PETSC_FALSE,cells,NULL,NULL,NULL,PETSC_TRUE,0,PETSC_TRUE,dm));
   PetscCall(DMSetFromOptions(*dm));
   PetscCall(DMSetUp(*dm));
   PetscCallMPI(MPI_Comm_size(comm,&size));
