@@ -230,7 +230,7 @@ PetscErrorCode BVDotQuadrature(BV Y,BV V,PetscScalar *Mu,PetscInt M,PetscInt L,P
   for (i=0;i<2*M*L*L;i++) temp2[i] /= sub_size;
   PetscCall(PetscMPIIntCast(2*M*L*L,&count));
   PetscCall(PetscSubcommGetParent(subcomm,&parent));
-  PetscCall(MPIU_Allreduce(temp2,Mu,count,MPIU_SCALAR,MPIU_SUM,parent));
+  PetscCallMPI(MPIU_Allreduce(temp2,Mu,count,MPIU_SCALAR,MPIU_SUM,parent));
   PetscCall(PetscFree3(temp,temp2,ppk));
   PetscCall(MatDestroy(&H));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -337,7 +337,7 @@ static PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *pA,P
     else PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,Q1,&lda,Q1,&ldb,&beta,pA,&ldc));
     PetscCall(PetscArrayzero(temp2,ml*ml));
     PetscCall(PetscMPIIntCast(ml*ml,&len));
-    PetscCall(MPIU_Allreduce(pA,temp2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)S)));
+    PetscCallMPI(MPIU_Allreduce(pA,temp2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)S)));
 
     PetscCall(PetscBLASIntCast(ml,&m));
     n = m; lda = m; lwork = 5*m, ldu = 1; ldvt = 1;

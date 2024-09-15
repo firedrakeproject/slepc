@@ -401,7 +401,7 @@ static PetscErrorCode Orthog_ProjectedBSE(Vec hx,Vec hy,BV X,BV Y,PetscInt j,Pet
   /* c1 = c1 + X^* hx */
   PetscCall(MatMultHermitianTransposeAdd(MXl,hxl,c1,c1));
   PetscCall(VecGetArray(c1,&cx1));
-  PetscCall(MPIU_Allreduce(MPI_IN_PLACE,cx1,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)hx)));
+  PetscCallMPI(MPIU_Allreduce(MPI_IN_PLACE,cx1,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)hx)));
   PetscCall(VecRestoreArray(c1,&cx1));
   /* c2 = -(Y^T hx) */
   PetscCall(MatMultTranspose(MYl,hxl,c2));
@@ -409,7 +409,7 @@ static PetscErrorCode Orthog_ProjectedBSE(Vec hx,Vec hy,BV X,BV Y,PetscInt j,Pet
   /* c2 = c2 + X^T hy */
   PetscCall(MatMultTransposeAdd(MXl,hyl,c2,c2));
   PetscCall(VecGetArray(c2,&cx2));
-  PetscCall(MPIU_Allreduce(MPI_IN_PLACE,cx2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)hx)));
+  PetscCallMPI(MPIU_Allreduce(MPI_IN_PLACE,cx2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)hx)));
   PetscCall(VecRestoreArray(c2,&cx2));
   PetscCall(VecRestoreLocalVector(hx,hxl));
   PetscCall(VecRestoreLocalVector(hy,hyl));
