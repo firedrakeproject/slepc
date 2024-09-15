@@ -119,9 +119,41 @@ class Polar(package.Package):
         fprintf(stderr, "#\n");'''
     newcode2 = r'''if (verbose && myrank_mpi == 0 ) {
         fprintf(stderr, "#\n");'''
+    oldcode3 = r'''        pxerbla_( ictxt_all, "PDGEZOLOPD", &(int){-1*info[0]} ); '''
+    newcode3 = r'''        pxerbla_( &ictxt_all, "PDGEZOLOPD", &(int){-1*info[0]} ); '''
+    with open(fname,'r') as file:
+      sourcecode = file.read()
+    sourcecode = sourcecode.replace(oldcode1,newcode1).replace(oldcode2,newcode2).replace(oldcode3,newcode3)
+    with open(fname,'w') as file:
+      file.write(sourcecode)
+
+    # Patch include files
+    fname = os.path.join(builddir,'include','myscalapack.h')
+    oldcode1 = '''#define descinit_ descinit'''
+    newcode1 = '''#define descinit_ descinit
+#define pdgemr2d_ pdgemr2d
+'''
+    oldcode2 = r'''extern int numroc_( int *n, int *nb, int *iproc, int *isrcproc, int *nprocs);'''
+    newcode2 = r'''extern int numroc_( int *n, int *nb, int *iproc, int *isrcproc, int *nprocs);
+extern void pdgemr2d_(int *m, int *n, double *a, int *ia, int *ja, int *desca, double *b, int *ib, int *jb, int *descb, int *ictxt );
+extern void Cblacs_gridmap(int *ConTxt, int *usermap, int ldup, int nprow0, int npcol0);
+extern int Csys2blacs_handle(MPI_Comm SysCtxt);
+'''
     with open(fname,'r') as file:
       sourcecode = file.read()
     sourcecode = sourcecode.replace(oldcode1,newcode1).replace(oldcode2,newcode2)
+    with open(fname,'w') as file:
+      file.write(sourcecode)
+
+    fname = os.path.join(builddir,'include','polar.h')
+    oldcode1 = r'''int mellipke( double alpha,  
+              double *k, double *e);'''
+    newcode1 = r'''int mellipke( double alpha,  
+              double *k, double *e);
+int choosem(double con, int *m);'''
+    with open(fname,'r') as file:
+      sourcecode = file.read()
+    sourcecode = sourcecode.replace(oldcode1,newcode1)
     with open(fname,'w') as file:
       file.write(sourcecode)
 
