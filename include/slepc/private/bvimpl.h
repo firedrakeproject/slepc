@@ -120,6 +120,7 @@ struct _p_BV {
 static inline PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
 {
   PetscReal      absal,realp;
+  const char     *msg;
 
   PetscFunctionBegin;
   absal = PetscAbsScalar(alpha);
@@ -131,7 +132,8 @@ static inline PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
   if (PetscUnlikely(bv->indef)) {
     *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
   } else {
-    PetscCheck(realp>-bv->deftol,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: indefinite matrix %g",(double)realp);
+    msg = bv->matrix? "The inner product is not well defined: indefinite matrix %g": "Invalid inner product: %g";
+    PetscCheck(realp>-bv->deftol,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,msg,(double)realp);
     *res = (realp<0.0)? 0.0: PetscSqrtReal(realp);
   }
   PetscFunctionReturn(PETSC_SUCCESS);
