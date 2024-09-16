@@ -245,10 +245,10 @@ static PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *
   PetscCall(DSAllocateWork_Private(ds,lwork+2*n,0,liwork+n));
   beta      = ds->work;
   work      = ds->work + n;
-  lwork     = ds->lwork - n;
+  PetscCall(PetscBLASIntCast(ds->lwork-n,&lwork));
   selection = ds->iwork;
   iwork     = ds->iwork + n;
-  liwork    = ds->liwork - n;
+  PetscCall(PetscBLASIntCast(ds->liwork-n,&liwork));
   /* Compute the selected eigenvalue to be in the leading position */
   PetscCall(DSSortEigenvalues_Private(ds,rr,ri,ds->perm,PETSC_FALSE));
   PetscCall(PetscArrayzero(selection,n));

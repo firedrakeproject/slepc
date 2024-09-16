@@ -222,8 +222,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 
 static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa,PetscReal *bb,PetscReal *dd,PetscScalar *uu,PetscBLASInt ld)
 {
-  PetscBLASInt   j2,one=1;
-  PetscInt       its,nits,nstop,jj,ntop,nbot,ntry;
+  PetscBLASInt   j2,one=1,its,nits,nstop,jj,ntop,nbot,ntry;
   PetscReal      htr,det,dis,dif,tn,kt,c,s,tr,dt;
   PetscBool      flag=PETSC_FALSE;
 
@@ -286,7 +285,7 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
 PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscInt          i,off;
-  PetscBLASInt      n1,ld = 0;
+  PetscBLASInt      n,l,n1,ld = 0;
   const PetscScalar *A,*B;
   PetscScalar       *Q;
   PetscReal         *d,*e,*s;
@@ -296,7 +295,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscAssertPointer(wi,3);
 #endif
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
-  n1  = ds->n - ds->l;
+  PetscCall(PetscBLASIntCast(ds->n-ds->l,&n1));
   off = ds->l + ds->l*ld;
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
   PetscCall(DSGetArrayReal(ds,DS_MAT_D,&s));
@@ -334,7 +333,9 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Reduce to pseudotriadiagonal form */
   PetscCall(DSIntermediate_GHIEP(ds));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
-  PetscCall(HZIteration(ds->n,ds->l,d,e,s,Q,ld));
+  PetscCall(PetscBLASIntCast(ds->n,&n));
+  PetscCall(PetscBLASIntCast(ds->l,&l));
+  PetscCall(HZIteration(n,l,d,e,s,Q,ld));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
