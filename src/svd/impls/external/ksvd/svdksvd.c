@@ -56,7 +56,7 @@ static PetscErrorCode SVDSolve_KSVD(SVD svd)
   PetscScalar    *work,minlwork;
   PetscBLASInt   info,lwork=-1,*iwork,liwork=-1,minliwork,one=1;
   PetscInt       M,N,m,n,mn;
-  char           *eigen;
+  const char     *eigen;
 #if defined(PETSC_USE_COMPLEX)
   PetscBLASInt   lrwork;
   PetscReal      *rwork,dummy;
@@ -144,7 +144,6 @@ static PetscErrorCode SVDView_KSVD(SVD svd,PetscViewer viewer)
 {
   PetscBool      isascii;
   SVD_KSVD       *ctx = (SVD_KSVD*)svd->data;
-  PetscMPIInt    rank;
 
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
