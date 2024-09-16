@@ -74,3 +74,4 @@ docs/manual/slepc.pdf
 pkg.gitcommit
 bfort-petsc.txt
 bfort-slepc.txt
+**/f90module*.f90

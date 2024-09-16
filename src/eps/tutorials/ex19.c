@@ -259,7 +259,7 @@ int main(int argc,char **argv)
          args: -eps_type lobpcg -eps_tol 1e-7
       test:
          suffix: 1_blopex
-         args: -eps_type blopex -eps_tol 1e-7 -eps_blopex_blocksize 4
+         args: -eps_type blopex -eps_tol 1e-7 -eps_blopex_blocksize 4 -st_ksp_type preonly
          requires: blopex
 
 TEST*/
