@@ -129,7 +129,7 @@ static PetscErrorCode NEPSimpleNRefGatherEigenpair(NEP nep,NEPSimpNRefctx *ctx,P
 
   PetscFunctionBegin;
   PetscCallMPI(MPI_Comm_size(comm,&nproc));
-  p = (nproc/nep->npart)*(sc+1)+PetscMin(sc+1,nproc%nep->npart)-1;
+  PetscCall(PetscMPIIntCast((nproc/nep->npart)*(sc+1)+PetscMin(sc+1,nproc%nep->npart)-1,&p));
   if (nep->npart>1) {
     /* Communicate convergence successful */
     PetscCallMPI(MPI_Bcast(fail,1,MPIU_INT,p,comm));

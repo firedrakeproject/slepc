@@ -274,10 +274,10 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
   liwork = 1;
   PetscCall(DSAllocateWork_Private(ds,lwork,0,liwork+n));
   work = ds->work;
-  lwork = ds->lwork;
+  PetscCall(PetscBLASIntCast(ds->lwork,&lwork));
   selection = ds->iwork;
   iwork = ds->iwork + n;
-  liwork = ds->liwork - n;
+  PetscCall(PetscBLASIntCast(ds->liwork-n,&liwork));
 #else
   lwork = 1;
   PetscCall(DSAllocateWork_Private(ds,lwork,0,n));

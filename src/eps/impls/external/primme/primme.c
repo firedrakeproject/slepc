@@ -88,7 +88,7 @@ static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblo
   switch (*event) {
     case primme_event_outer_iteration:
       /* Update EPS */
-      eps->its = primme->stats.numOuterIterations;
+      PetscCallVoid(PetscIntCast(primme->stats.numOuterIterations,&eps->its));
       eps->nconv = primme->initSize;
       k=0;
       if (lockedEvals && numLocked) for (i=0; i<*numLocked && k<eps->ncv; i++) eps->eigr[k++] = ((PetscReal*)lockedEvals)[i];
@@ -183,7 +183,7 @@ static PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID));
 
   /* Check some constraints and set some default values */
-  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PETSC_MAX_INT;
+  if (eps->max_it==PETSC_DETERMINE) eps->max_it = PETSC_INT_MAX;
   PetscCall(STGetMatrix(eps->st,0,&ops->A));
   if (eps->isgeneralized) {
 #if defined(SLEPC_HAVE_PRIMME3)
@@ -204,9 +204,9 @@ static PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Transfer SLEPc options to PRIMME options */
   primme_free(primme);
   primme_initialize(primme);
-  primme->n                             = eps->n;
-  primme->nLocal                        = eps->nloc;
-  primme->numEvals                      = eps->nev;
+  primme->n                             = (PRIMME_INT)eps->n;
+  primme->nLocal                        = (PRIMME_INT)eps->nloc;
+  primme->numEvals                      = (int)eps->nev;
   primme->matrix                        = ops;
   primme->matrixMatvec                  = matrixMatvec_PRIMME;
 #if defined(SLEPC_HAVE_PRIMME3)
@@ -216,7 +216,7 @@ static PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   }
 #endif
   primme->commInfo                      = eps;
-  primme->maxOuterIterations            = eps->max_it;
+  primme->maxOuterIterations            = (PRIMME_INT)eps->max_it;
 #if !defined(SLEPC_HAVE_PRIMME2p2)
   primme->eps                           = SlepcDefaultTol(eps->tol);
 #endif
@@ -232,7 +232,7 @@ static PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->convTestFun                   = convTestFun;
   primme->monitorFun                    = monitorFun;
 #endif
-  if (ops->bs > 0) primme->maxBlockSize = ops->bs;
+  if (ops->bs > 0) primme->maxBlockSize = (int)ops->bs;
 
   switch (eps->which) {
     case EPS_LARGEST_REAL:
@@ -280,15 +280,15 @@ static PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   /* If user sets mpd or ncv, maxBasisSize is modified */
   if (eps->mpd!=PETSC_DETERMINE) {
-    primme->maxBasisSize = eps->mpd;
+    primme->maxBasisSize = (int)eps->mpd;
     if (eps->ncv!=PETSC_DETERMINE) PetscCall(PetscInfo(eps,"Warning: 'ncv' is ignored by PRIMME\n"));
-  } else if (eps->ncv!=PETSC_DETERMINE) primme->maxBasisSize = eps->ncv;
+  } else if (eps->ncv!=PETSC_DETERMINE) primme->maxBasisSize = (int)eps->ncv;
 
   PetscCheck(primme_set_method(ops->method,primme)>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
 
-  eps->mpd = primme->maxBasisSize;
-  eps->ncv = (primme->locking?eps->nev:0)+primme->maxBasisSize;
-  ops->bs  = primme->maxBlockSize;
+  eps->mpd = (PetscInt)primme->maxBasisSize;
+  eps->ncv = (PetscInt)(primme->locking?eps->nev:0)+primme->maxBasisSize;
+  ops->bs  = (PetscInt)primme->maxBlockSize;
 
   /* Set workspace */
   PetscCall(EPSAllocateSolution(eps,0));
@@ -322,13 +322,13 @@ static PetscErrorCode EPSSolve_PRIMME(EPS eps)
   /* Force PRIMME to stop by absolute error */
   ops->primme.aNorm    = 1.0;
 #endif
-  ops->primme.initSize = eps->nini;
+  ops->primme.initSize = (int)eps->nini;
   ops->primme.iseed[0] = -1;
   ops->primme.iseed[1] = -1;
   ops->primme.iseed[2] = -1;
   ops->primme.iseed[3] = -1;
   PetscCall(BVGetLeadingDimension(eps->V,&ld));
-  ops->primme.ldevecs  = ld;
+  ops->primme.ldevecs  = (PRIMME_INT)ld;
 
   /* Call PRIMME solver */
   PetscCall(BVGetArray(eps->V,&a));
@@ -339,9 +339,9 @@ static PetscErrorCode EPSSolve_PRIMME(EPS eps)
   PetscCall(PetscFree2(evals,rnorms));
   PetscCall(BVRestoreArray(eps->V,&a));
 
-  eps->nconv  = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
+  eps->nconv  = ops->primme.initSize >= 0 ? (PetscInt)ops->primme.initSize : 0;
   eps->reason = eps->nconv >= eps->nev ? EPS_CONVERGED_TOL: EPS_DIVERGED_ITS;
-  eps->its    = ops->primme.stats.numOuterIterations;
+  PetscCall(PetscIntCast(ops->primme.stats.numOuterIterations,&eps->its));
 
   /* Process PRIMME error code */
   switch (ierrprimme) {

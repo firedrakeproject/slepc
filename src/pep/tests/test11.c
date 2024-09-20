@@ -171,7 +171,7 @@ PetscErrorCode MyStoppingTest(PEP pep,PetscInt its,PetscInt max_it,PetscInt ncon
 
   PetscFunctionBeginUser;
   /* check usual termination conditions, but ignoring the case nconv>=nev */
-  PetscCall(PEPStoppingBasic(pep,its,max_it,nconv,PETSC_MAX_INT,reason,NULL));
+  PetscCall(PEPStoppingBasic(pep,its,max_it,nconv,PETSC_INT_MAX,reason,NULL));
   if (*reason==PEP_CONVERGED_ITERATING) {
     /* check if nconv is the same as before */
     if (nconv==ctx->lastnconv) ctx->nreps++;

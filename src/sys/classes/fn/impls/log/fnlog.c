@@ -440,7 +440,7 @@ static PetscErrorCode gauss_legendre(PetscBLASInt n,PetscScalar *x,PetscScalar *
 static PetscErrorCode pade_approx(PetscBLASInt n,PetscScalar *T,PetscScalar *L,PetscBLASInt ld,PetscInt m,PetscScalar *work)
 {
   PetscScalar    *K,*W,*nodes,*wts;
-  PetscBLASInt   *ipiv,info;
+  PetscBLASInt   *ipiv,info,mm;
   PetscInt       i,j,k;
 
   PetscFunctionBegin;
@@ -449,7 +449,8 @@ static PetscErrorCode pade_approx(PetscBLASInt n,PetscScalar *T,PetscScalar *L,P
   nodes = work+2*n*n;
   wts   = work+2*n*n+m;
   ipiv  = (PetscBLASInt*)(work+2*n*n+2*m);
-  PetscCall(gauss_legendre(m,nodes,wts,L));
+  PetscCall(PetscBLASIntCast(m,&mm));
+  PetscCall(gauss_legendre(mm,nodes,wts,L));
   /* Convert from [-1,1] to [0,1] */
   for (i=0;i<m;i++) {
     nodes[i] = (nodes[i]+1.0)/2.0;
