@@ -140,7 +140,7 @@ int main(int argc,char **argv)
   PetscBool      split=PETSC_TRUE;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
   PetscCall(PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL));

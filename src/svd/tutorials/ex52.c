@@ -30,7 +30,7 @@ int main(int argc,char **argv)
   PetscBool      flg,terse,skiporth=PETSC_FALSE,transpose=PETSC_FALSE;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load matrix that defines the hyperbolic singular value problem

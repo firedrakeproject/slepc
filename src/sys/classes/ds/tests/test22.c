@@ -25,7 +25,7 @@ int main(int argc,char **argv)
   PetscBool      verbose,test_dsview,extrarow;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD with compact storage - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n,n));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));

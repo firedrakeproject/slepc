@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   PetscBool      verbose,extrarow,reorthog,flg;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   m = n;
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type HSVD with compact storage - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n,m));

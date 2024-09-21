@@ -22,7 +22,7 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-maxbw",&maxbw,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-nblks",&nblks,NULL));
   n = maxbw*nblks;

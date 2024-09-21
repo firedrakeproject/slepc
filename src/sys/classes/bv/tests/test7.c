@@ -27,7 +27,7 @@ int main(int argc,char **argv)
   BVMatMultType  vmm;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-rep",&rep,NULL));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));

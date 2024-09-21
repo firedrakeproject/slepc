@@ -42,7 +42,7 @@ int main(int argc,char **argv)
   PetscScalar    target,targett,ats[2];
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nPEP example that checks definite property, n=%" PetscInt_FMT "\n\n",n));

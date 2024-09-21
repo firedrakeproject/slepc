@@ -38,7 +38,7 @@ int main(int argc,char **argv)
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT,N));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n\n"));
