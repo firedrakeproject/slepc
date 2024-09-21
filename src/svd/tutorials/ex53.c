@@ -353,8 +353,8 @@ static PetscErrorCode ColitNextRow(ColsNzIter iter,PetscInt *i,PetscScalar **pai
 
 static PetscErrorCode SendrecvRow(XMat A,PetscInt nc1,const PetscInt vj1[],const PetscScalar va1[],PetscInt i2,PetscInt *nc2,PetscInt vj2[],PetscScalar va2[])
 {
-  PetscInt    rank,*ranges,N=A->N;
-  PetscMPIInt naux;
+  PetscInt    *ranges,N=A->N;
+  PetscMPIInt rank,naux,len1,len2;
   MPI_Status  st;
 
   PetscFunctionBeginUser;
@@ -364,8 +364,10 @@ static PetscErrorCode SendrecvRow(XMat A,PetscInt nc1,const PetscInt vj1[],const
   rank=0;
   while (ranges[rank+1]<=i2) rank++;
   /* Send row i1, receive row i2 */
-  PetscCallMPI(MPI_Sendrecv(vj1,nc1,MPIU_INT,rank,0,vj2,N,MPIU_INT,rank,0,A->comm,&st));
-  PetscCallMPI(MPI_Sendrecv(va1,nc1,MPIU_SCALAR,rank,0,va2,N,MPIU_SCALAR,rank,0,A->comm,MPI_STATUS_IGNORE));
+  PetscCall(PetscMPIIntCast(nc1,&len1));
+  PetscCall(PetscMPIIntCast(N,&len2));
+  PetscCallMPI(MPI_Sendrecv(vj1,len1,MPIU_INT,rank,0,vj2,len2,MPIU_INT,rank,0,A->comm,&st));
+  PetscCallMPI(MPI_Sendrecv(va1,len1,MPIU_SCALAR,rank,0,va2,len2,MPIU_SCALAR,rank,0,A->comm,MPI_STATUS_IGNORE));
   PetscCallMPI(MPI_Get_count(&st,MPIU_INT,&naux));
   *nc2 = (PetscInt)naux;
   PetscFunctionReturn(PETSC_SUCCESS);
