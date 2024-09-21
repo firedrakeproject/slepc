@@ -229,7 +229,7 @@ static PetscErrorCode Orthog_Gruning(Vec x,BV U,BV V,BV HU,BV HV,PetscInt j,Pets
 static PetscErrorCode OrthogonalizeVector_Gruning(Vec x,BV U,BV V,BV HU,BV HV,PetscInt j,PetscScalar *h,PetscBool s,PetscBool *breakdown)
 {
   PetscFunctionBegin;
-  PetscCall(PetscArrayzero(h,2*j));
+  PetscCall(PetscArrayzero(h,4*j));
   /* Orthogonalize twice */
   PetscCall(Orthog_Gruning(x,U,V,HU,HV,j,h,h+2*j,s,breakdown));
   PetscCall(Orthog_Gruning(x,U,V,HU,HV,j,h,h+2*j,s,breakdown));
