@@ -563,11 +563,12 @@ static PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar ei
 {
   DS_GSVD        *ctx = (DS_GSVD*)ds->data;
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
-  PetscMPIInt    m=ctx->m,rank,off=0,size,n,ldn,ld3;
+  PetscMPIInt    m,rank,off=0,size,n,ldn,ld3;
   PetscScalar    *A,*U,*V,*X;
   PetscReal      *T;
 
   PetscFunctionBegin;
+  PetscCall(PetscMPIIntCast(ctx->m,&m));
   if (ds->compact) kr = 3*ld;
   else k = 2*(m-l)*ld;
   if (ds->state>DS_STATE_RAW) k += 3*(m-l)*ld;
