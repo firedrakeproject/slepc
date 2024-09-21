@@ -346,10 +346,10 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
 */
 PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscInt ldq_,PetscScalar *R,PetscInt ldr)
 {
-  PetscInt       level,plevel,nlevels,powtwo,lda,worklen;
-  PetscBLASInt   m,n,ldq,i,j,k,l,s = 0,nb,sz,lwork,info;
+  PetscInt       level,plevel,nlevels,lda,worklen;
+  PetscBLASInt   m,n,ldq,i,j,k,l,nb,sz,lwork,info;
   PetscScalar    *tau,*work,*A=NULL,*QQ=NULL,*Qhalf,*C=NULL,one=1.0,zero=0.0;
-  PetscMPIInt    rank,size,count,stride;
+  PetscMPIInt    rank,size,count,stride,powtwo,s = 0;
   MPI_Datatype   tmat;
 
   PetscFunctionBegin;
@@ -363,7 +363,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size));
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)bv),&rank));
   nlevels = (PetscInt)PetscCeilReal(PetscLog2Real((PetscReal)size));
-  powtwo  = PetscPowInt(2,(PetscInt)PetscFloorReal(PetscLog2Real((PetscReal)size)));
+  PetscCall(PetscMPIIntCast(PetscPowInt(2,(PetscInt)PetscFloorReal(PetscLog2Real((PetscReal)size))),&powtwo));
   worklen = n+n*nb;
   if (nlevels) worklen += n*lda+n*lda*nlevels+n*lda;
   PetscCall(BVAllocateWork_Private(bv,worklen));
@@ -409,7 +409,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
     for (level=nlevels;level>=1;level--) {
 
       plevel = PetscPowInt(2,level);
-      PetscCall(PetscBLASIntCast(plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel,&s));
+      PetscCall(PetscMPIIntCast(plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel,&s));
 
       /* Stack triangular matrices */
       if (rank<s && s<size) {  /* send top part, receive bottom part */
@@ -452,7 +452,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
     /* Accumulate orthogonal matrices */
     for (level=1;level<=nlevels;level++) {
       plevel = PetscPowInt(2,level);
-      PetscCall(PetscBLASIntCast(plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel,&s));
+      PetscCall(PetscMPIIntCast(plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel,&s));
       Qhalf = (rank<s)? QQ+(level-1)*n*lda: QQ+(level-1)*n*lda+n;
       if (level<nlevels) {
         PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,QQ+level*n*lda,&l,Qhalf,&l,&zero,C,&l));

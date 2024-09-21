@@ -341,7 +341,10 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       PetscCall(PetscSubcommGetChild(ctx->subc,&child));
       if ((sr->dir>0&&ctx->subc->color==0)||(sr->dir<0&&ctx->subc->color==ctx->npart-1)) sr->inertia0 = sr_loc->inertia0;
       PetscCallMPI(MPI_Comm_rank(child,&rank));
-      if (!rank) PetscCallMPI(MPI_Bcast(&sr->inertia0,1,MPIU_INT,(sr->dir>0)?0:ctx->npart-1,ctx->commrank));
+      if (!rank) {
+        PetscCall(PetscMPIIntCast((sr->dir>0)?0:ctx->npart-1,&aux));
+        PetscCallMPI(MPI_Bcast(&sr->inertia0,1,MPIU_INT,aux,ctx->commrank));
+      }
       PetscCallMPI(MPI_Bcast(&sr->inertia0,1,MPIU_INT,0,child));
       PetscCall(PetscFree(ctx->nconv_loc));
       PetscCall(PetscMalloc1(ctx->npart,&ctx->nconv_loc));
@@ -415,17 +418,20 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       PetscCallMPI(MPI_Comm_rank(child,&rank));
       if (!rank) {
         if (sr->inertia0!=-1 && ((sr->dir>0 && ctx->subc->color>0) || (sr->dir<0 && ctx->subc->color<ctx->npart-1))) { /* send inertia0 to neighbour0 */
-          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
-          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+          PetscCall(PetscMPIIntCast(ctx->subc->color-sr->dir,&aux));
+          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,aux,0,ctx->commrank,&req));
+          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,aux,0,ctx->commrank,&req));
         }
         if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)|| (sr->dir<0 && ctx->subc->color>0)) { /* receive inertia1 from neighbour1 */
-          PetscCallMPI(MPI_Recv(&sr->inertia1,1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE));
-          PetscCallMPI(MPI_Recv(&sr->int1,1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE));
+          PetscCall(PetscMPIIntCast(ctx->subc->color+sr->dir,&aux));
+          PetscCallMPI(MPI_Recv(&sr->inertia1,1,MPIU_INT,aux,0,ctx->commrank,MPI_STATUS_IGNORE));
+          PetscCallMPI(MPI_Recv(&sr->int1,1,MPIU_REAL,aux,0,ctx->commrank,MPI_STATUS_IGNORE));
         }
         if (sr->inertia0==-1 && !(sr->dir>0 && ctx->subc->color==ctx->npart-1) && !(sr->dir<0 && ctx->subc->color==0)) {
           sr->inertia0 = sr->inertia1; sr->int0 = sr->int1;
-          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
-          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+          PetscCall(PetscMPIIntCast(ctx->subc->color-sr->dir,&aux));
+          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,aux,0,ctx->commrank,&req));
+          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,aux,0,ctx->commrank,&req));
         }
       }
       if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)||(sr->dir<0 && ctx->subc->color>0)) {
@@ -440,8 +446,9 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       PetscCheck(zeros==0,((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
       if (!rank && sr->inertia0==-1) {
         sr->inertia0 = sr->inertia1; sr->int0 = sr->int1;
-        PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
-        PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+        PetscCall(PetscMPIIntCast(ctx->subc->color-sr->dir,&aux));
+        PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,aux,0,ctx->commrank,&req));
+        PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,aux,0,ctx->commrank,&req));
       }
       if (sr->hasEnd) {
         sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
@@ -678,8 +685,8 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
     PetscCall(PetscMPIIntCast(eps->nconv,&aux));
     PetscCallMPI(MPI_Bcast(eps->eigr,aux,MPIU_SCALAR,0,child));
     PetscCallMPI(MPI_Bcast(eps->perm,aux,MPIU_INT,0,child));
-    PetscCallMPI(MPI_Bcast(ctx->shifts,ctx->nshifts,MPIU_REAL,0,child));
     PetscCall(PetscMPIIntCast(ctx->nshifts,&aux));
+    PetscCallMPI(MPI_Bcast(ctx->shifts,aux,MPIU_REAL,0,child));
     PetscCallMPI(MPI_Bcast(ctx->inertias,aux,MPIU_INT,0,child));
     PetscCallMPI(MPI_Bcast(&eps->its,1,MPIU_INT,0,child));
   }
