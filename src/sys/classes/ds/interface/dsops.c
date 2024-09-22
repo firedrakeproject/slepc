@@ -416,7 +416,7 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 @*/
 PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 {
-  PetscInt  rows,cols;
+  PetscInt  rows=0,cols=0;
   PetscBool flg;
 
   PetscFunctionBegin;
