@@ -208,7 +208,7 @@ int main(int argc,char **argv)
 
    testset:
       output_file: output/test7_2.out
-      filter: grep -v "Using method"
+      filter: grep -v "Using method" | sed -e "s/error: -0\./error: 0./"
       args: -m 34 -n 38 -k 9
       nsize: 2
       test:

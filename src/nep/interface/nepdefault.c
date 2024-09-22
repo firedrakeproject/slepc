@@ -90,7 +90,7 @@ PetscErrorCode NEPConvergedRelative(NEP nep,PetscScalar eigr,PetscScalar eigi,Pe
 
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
-  *errest = res/w;
+  *errest = (w!=0.0)? res/w: PETSC_MAX_REAL;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
