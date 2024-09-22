@@ -283,12 +283,12 @@ int main(int argc,char **argv)
 
    testset:
       args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr
-      nsize: 9
+      nsize: 7
       output_file: output/test11_12.out
       test:
          suffix: 12
          args: -bv_type {{vecs contiguous svec mat}shared output}
-         requires: !single !defined(PETSCTEST_VALGRIND)
+         requires: double !defined(PETSCTEST_VALGRIND)
       test:
          suffix: 12_cuda
          TODO: too many processes accessing the GPU

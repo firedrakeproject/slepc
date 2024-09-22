@@ -29,7 +29,7 @@ PetscErrorCode SVDConvergedAbsolute(SVD svd,PetscReal sigma,PetscReal res,PetscR
 PetscErrorCode SVDConvergedRelative(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscFunctionBegin;
-  *errest = res/sigma;
+  *errest = (sigma!=0.0)? res/sigma: PETSC_MAX_REAL;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

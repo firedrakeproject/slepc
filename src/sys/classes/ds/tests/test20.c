@@ -98,5 +98,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
+      filter: sed -e "s/-0\./0./"
 
 TEST*/
