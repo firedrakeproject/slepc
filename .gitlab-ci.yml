@@ -158,9 +158,9 @@ gnu-c-py:
 gnu-c99-mlib-static:
   extends: .stage-1
   tags:
-    - linux-suse, name:igai
+    - linux-ubuntu, name:satet
   variables:
-    PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 --CFLAGS=-std=c99
+    PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 COPTFLAGS="-O -march=native -std=c99"
     TEST_SEARCH: eps_tests-test10_1
 
 gnu-lint:
@@ -387,7 +387,7 @@ gnu-c-complex-multilib:
     - .stage-2
     - .linux_test
   tags:
-    - linux-ubuntu, name:maat
+    - linux-ubuntu, name:satet
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --download-metis --download-parmetis --download-scalapack --with-cxx-dialect=17
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa --with-fortran-bindings-inplace
@@ -420,7 +420,7 @@ pip-install:
   extends: .test
   stage: stage-2
   tags:
-    - pip, name:jepri
+    - pip, name:satet
   before_script:
     - date
     - hostname
@@ -622,10 +622,10 @@ gnu-c:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, name:maat
+    - linux-ubuntu, name:satet
   variables:
     PETSC_CONFIG_OPTS: --download-superlu_dist --download-elemental --download-metis --download-parmetis --with-petsc4py --download-c2html --download-cmake
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --with-evsl-dir=/usr/local/opt/evsl-mar21 --download-blopex --with-slepc4py
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.9.1 --with-primme-dir=/usr/local/opt/primme-3.2 --with-evsl-dir=/usr/local/opt/evsl-nov21 --download-blopex --with-slepc4py
     SLEPC4PY: 1
     BUILD_DOCS: 1
     PKG_CONFIG: 1
@@ -678,7 +678,7 @@ gnu-cxx-complex-int64:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, name:sejmet
+    - linux-ubuntu, name:satet
   variables:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --with-petsc4py --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps --download-suitesparse --download-cmake
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-slepc4py --download-primme --download-hpddm
@@ -710,11 +710,10 @@ gnu-c-complex-coverage:
     - .stage-3
     - .linux_test
   tags:
-    - name:hapy
+    - name:jepri
   variables:
-    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-scalar-type=complex --with-debugging=1 --with-coverage=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.9.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
     COVERAGE: 1
 
 intel-c-complex-int64-mkl:
@@ -845,9 +844,8 @@ gnu-c-complex128:
     - .stage-3
     - .linux_test
   tags:
-    - name:hapy
+    - name:satet
   variables:
-    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
