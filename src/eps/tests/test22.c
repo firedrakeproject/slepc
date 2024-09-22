@@ -153,8 +153,8 @@ int main(int argc,char **argv)
           re = kr;
           im = ki;
 #endif
-          if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
-          if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
+          if (im!=0.0 && PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
+          if (re!=0.0 && PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
           if (im!=0.0) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%.5f%+.5fi",(double)re,(double)im));
           else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%.5f",(double)re));
           if (8*i+j+1<nev) PetscCall(PetscPrintf(PETSC_COMM_WORLD,", "));

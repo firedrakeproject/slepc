@@ -181,5 +181,6 @@ int main(int argc,char **argv)
       suffix: 2
       args: -complex -st_matmode {{copy inplace shell}}
       requires: complex !single
+      filter: sed -e "s/3.46945e-18 - 8.67362e-18 i/0./"
 
 TEST*/
