@@ -118,15 +118,16 @@ int main(int argc,char **argv)
          requires: cuda
 
    testset:
-      args: -n 10 -m 11 -eps_target 0.2 -eps_harmonic -eps_nev 2 -eps_ncv 8 -terse
-      requires: !single
+      args: -n 10 -m 11 -eps_target 0.2 -eps_harmonic -eps_nev 2 -terse
       filter: sed -e "s/[+-]0\.0*i//g"
       output_file: output/test18_2.out
       test:
          suffix: 2_gd
-         args: -eps_type gd
+         args: -eps_type gd -eps_ncv 8
+         requires: !single
       test:
          suffix: 2_jd
-         args: -eps_type jd -st_ksp_type bcgs
+         args: -eps_type jd -st_ksp_type bcgs -eps_ncv 10
+         requires: double
 
 TEST*/
