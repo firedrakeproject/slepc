@@ -128,7 +128,7 @@ static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,Pet
 static PetscErrorCode PEPQArnoldi(PEP pep,Mat A,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
 {
   PetscInt           i,j,l,m = *M,ldh;
-  PetscBLASInt       jj;
+  PetscBLASInt       jj,ldhh;
   Vec                t = pep->work[2],u = pep->work[3];
   BVOrthogRefineType refinement;
   PetscReal          norm=0.0,onorm,eta;
@@ -157,26 +157,27 @@ static PetscErrorCode PEPQArnoldi(PEP pep,Mat A,PetscInt k,PetscInt *M,Vec v,Vec
 
     /* orthogonalize */
     PetscCall(PetscBLASIntCast(j,&jj));
+    PetscCall(PetscBLASIntCast(ldh,&ldhh));
     switch (refinement) {
       case BV_ORTHOG_REFINE_NEVER:
-        PetscCall(PEPQArnoldiCGS(pep,H,ldh,H+ldh*j,jj,pep->V,t,v,w,NULL,&norm,work));
+        PetscCall(PEPQArnoldiCGS(pep,H,ldhh,H+ldh*j,jj,pep->V,t,v,w,NULL,&norm,work));
         *breakdown = PETSC_FALSE;
         break;
       case BV_ORTHOG_REFINE_ALWAYS:
-        PetscCall(PEPQArnoldiCGS(pep,H,ldh,H+ldh*j,jj,pep->V,t,v,w,NULL,NULL,work));
-        PetscCall(PEPQArnoldiCGS(pep,H,ldh,c,jj,pep->V,t,v,w,&onorm,&norm,work));
+        PetscCall(PEPQArnoldiCGS(pep,H,ldhh,H+ldh*j,jj,pep->V,t,v,w,NULL,NULL,work));
+        PetscCall(PEPQArnoldiCGS(pep,H,ldhh,c,jj,pep->V,t,v,w,&onorm,&norm,work));
         for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
         break;
       case BV_ORTHOG_REFINE_IFNEEDED:
-        PetscCall(PEPQArnoldiCGS(pep,H,ldh,H+ldh*j,jj,pep->V,t,v,w,&onorm,&norm,work));
+        PetscCall(PEPQArnoldiCGS(pep,H,ldhh,H+ldh*j,jj,pep->V,t,v,w,&onorm,&norm,work));
         /* ||q|| < eta ||h|| */
         l = 1;
         while (l<3 && norm < eta * onorm) {
           l++;
           onorm = norm;
-          PetscCall(PEPQArnoldiCGS(pep,H,ldh,c,jj,pep->V,t,v,w,NULL,&norm,work));
+          PetscCall(PEPQArnoldiCGS(pep,H,ldhh,c,jj,pep->V,t,v,w,NULL,&norm,work));
           for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         }
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
