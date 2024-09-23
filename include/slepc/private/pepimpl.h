@@ -91,12 +91,12 @@ struct _p_PEP {
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-  PetscErrorCode (*convergeduser)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-  PetscErrorCode (*convergeddestroy)(void*);
-  PetscErrorCode (*stopping)(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*);
-  PetscErrorCode (*stoppinguser)(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*);
-  PetscErrorCode (*stoppingdestroy)(void*);
+  PEPConvergenceTestFn *converged;
+  PEPConvergenceTestFn *convergeduser;
+  PetscErrorCode       (*convergeddestroy)(void*);
+  PEPStoppingTestFn    *stopping;
+  PEPStoppingTestFn    *stoppinguser;
+  PetscErrorCode       (*stoppingdestroy)(void*);
   void           *convergedctx;
   void           *stoppingctx;
   PetscErrorCode (*monitor[MAXPEPMONITORS])(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);

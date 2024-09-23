@@ -19,6 +19,43 @@
 /* SUBMANSEC = sys */
 
 /*S
+  SlepcEigenvalueComparisonFn - A prototype of an eigenvalue comparison function that would be passed to EPSSetEigenvalueComparison() and analogue functions in other solver types
+
+  Calling Sequence:
++   ar     - real part of the 1st eigenvalue
+.   ai     - imaginary part of the 1st eigenvalue
+.   br     - real part of the 2nd eigenvalue
+.   bi     - imaginary part of the 2nd eigenvalue
+.   res    - [output] result of comparison
+-   ctx    - [optional] user-defined context for private data for the
+             eigenvalue comparison routine (may be NULL)
+
+  Level: advanced
+
+.seealso: EPSSetEigenvalueComparison()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(SlepcEigenvalueComparisonFn)(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx);
+
+/*S
+  SlepcArbitrarySelectionFn - A prototype of an arbitrary selection function that would be passed to EPSSetArbitrarySelection() and analogue functions in other solver types
+
+  Calling Sequence:
++   er     - real part of the current eigenvalue approximation
+.   ei     - imaginary part of the current eigenvalue approximation
+.   xr     - real part of the current eigenvector approximation
+.   xi     - imaginary part of the current eigenvector approximation
+.   rr     - result of evaluation (real part)
+.   ri     - result of evaluation (imaginary part)
+-   ctx    - [optional] user-defined context for private data for the
+             arbitrary selection routine (may be NULL)
+
+  Level: advanced
+
+.seealso: EPSSetArbitrarySelection()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(SlepcArbitrarySelectionFn)(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar *ri,void *ctx);
+
+/*S
     SlepcSC - Data structure (C struct) for storing information about
         the sorting criterion used by different eigensolver objects.
 
@@ -55,7 +92,7 @@ struct _n_SlepcSC {
   PetscErrorCode (*map)(PetscObject,PetscInt,PetscScalar*,PetscScalar*);
   PetscObject    mapobj;
   /* comparison function such as SlepcCompareLargestMagnitude */
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  SlepcEigenvalueComparisonFn *comparison;
   void           *comparisonctx;
   /* optional region for filtering */
   RG             rg;

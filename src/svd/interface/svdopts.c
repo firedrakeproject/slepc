@@ -332,17 +332,9 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
-.  conv    - a pointer to the convergence test function
-.  ctx     - context for private data for the convergence routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of conv:
-$  PetscErrorCode conv(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
-+   svd    - singular value solver context obtained from SVDCreate()
-.   sigma  - computed singular value
-.   res    - residual norm associated to the singular triplet
-.   errest - (output) computed error estimate
--   ctx    - optional context, as set by SVDSetConvergenceTestFunction()
+.  conv    - the convergence test function, see SVDConvergenceTestFn for the calling sequence
+.  ctx     - context for private data for the convergence routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    If the error estimate returned by the convergence test function is less than
@@ -352,7 +344,7 @@ $  PetscErrorCode conv(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,v
 
 .seealso: SVDSetConvergenceTest(), SVDSetTolerances()
 @*/
-PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*conv)(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,SVDConvergenceTestFn *conv,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -456,19 +448,9 @@ PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
-.  stop    - pointer to the stopping test function
-.  ctx     - context for private data for the stopping routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of stop:
-$  PetscErrorCode stop(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx)
-+   svd    - singular value solver context obtained from SVDCreate()
-.   its    - current number of iterations
-.   max_it - maximum number of iterations
-.   nconv  - number of currently converged singular triplets
-.   nsv    - number of requested singular triplets
-.   reason - (output) result of the stopping test
--   ctx    - optional context, as set by SVDSetStoppingTestFunction()
+.  stop    - the stopping test function, see SVDStoppingTestFn for the calling sequence
+.  ctx     - context for private data for the stopping routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    Normal usage is to first call the default routine SVDStoppingBasic() and then
@@ -480,7 +462,7 @@ $  PetscErrorCode stop(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,Petsc
 
 .seealso: SVDSetStoppingTest(), SVDStoppingBasic()
 @*/
-PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*stop)(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode SVDSetStoppingTestFunction(SVD svd,SVDStoppingTestFn *stop,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
