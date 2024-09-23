@@ -150,7 +150,7 @@ static inline PetscErrorCode BV_IPMatMult(BV bv,Vec x)
     if (PetscUnlikely(!bv->Bx)) PetscCall(MatCreateVecs(bv->matrix,&bv->Bx,NULL));
     PetscCall(MatMult(bv->matrix,x,bv->Bx));
     PetscCall(PetscObjectGetId((PetscObject)x,&bv->xid));
-    PetscCall(PetscObjectStateGet((PetscObject)x,&bv->xstate));
+    PetscCall(VecGetState(x,&bv->xstate));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }

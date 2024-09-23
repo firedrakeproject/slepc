@@ -473,10 +473,10 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscCall(DSAllocate(eps->ds,dssz));
   /* keep state of subcomm matrices to check that the user does not modify them */
   PetscCall(EPSGetOperators(eps,&A,&B));
-  PetscCall(PetscObjectStateGet((PetscObject)A,&ctx->Astate));
+  PetscCall(MatGetState(A,&ctx->Astate));
   PetscCall(PetscObjectGetId((PetscObject)A,&ctx->Aid));
   if (B) {
-    PetscCall(PetscObjectStateGet((PetscObject)B,&ctx->Bstate));
+    PetscCall(MatGetState(B,&ctx->Bstate));
     PetscCall(PetscObjectGetId((PetscObject)B,&ctx->Bid));
   } else {
     ctx->Bstate=0;
@@ -1251,10 +1251,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     }
     /* Check that the user did not modify subcomm matrices */
     PetscCall(EPSGetOperators(eps,&A,&B));
-    PetscCall(PetscObjectStateGet((PetscObject)A,&Astate));
+    PetscCall(MatGetState(A,&Astate));
     PetscCall(PetscObjectGetId((PetscObject)A,&Aid));
     if (B) {
-      PetscCall(PetscObjectStateGet((PetscObject)B,&Bstate));
+      PetscCall(MatGetState(B,&Bstate));
       PetscCall(PetscObjectGetId((PetscObject)B,&Bid));
     }
     PetscCheck(Astate==ctx->Astate && (!B || Bstate==ctx->Bstate) && Aid==ctx->Aid && (!B || Bid==ctx->Bid),PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Subcomm matrices have been modified by user");

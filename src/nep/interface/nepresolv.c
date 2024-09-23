@@ -41,7 +41,7 @@ static PetscErrorCode MatMult_Resolvent(Mat M,Vec v,Vec r)
   if (((PetscObject)v)->id != ctx->vid || ((PetscObject)v)->state != ctx->vstate) {
     PetscCall(PetscArrayzero(ctx->dots_avail,ctx->nep->nconv));
     PetscCall(PetscObjectGetId((PetscObject)v,&ctx->vid));
-    PetscCall(PetscObjectStateGet((PetscObject)v,&ctx->vstate));
+    PetscCall(VecGetState(v,&ctx->vstate));
   }
   PetscCall(VecSet(r,0.0));
   for (i=0;i<nep->nconv;i++) {
