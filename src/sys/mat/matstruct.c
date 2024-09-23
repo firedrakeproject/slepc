@@ -47,7 +47,6 @@ PetscErrorCode MatCreateBSE(Mat R,Mat C,Mat *H)
   PetscInt       Mr,Mc,Nr,Nc,mr,mc,nr,nc;
   Mat            block[4] = { R, C, NULL, NULL };
   SlepcMatStruct mctx;
-  PetscContainer container;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(R,MAT_CLASSID,1);
@@ -76,10 +75,6 @@ PetscErrorCode MatCreateBSE(Mat R,Mat C,Mat *H)
 
   PetscCall(PetscNew(&mctx));
   mctx->cookie = SLEPC_MAT_STRUCT_BSE;
-  PetscCall(PetscContainerCreate(PetscObjectComm((PetscObject)R),&container));
-  PetscCall(PetscContainerSetPointer(container,mctx));
-  PetscCall(PetscContainerSetUserDestroy(container,PetscContainerUserDestroyDefault));
-  PetscCall(PetscObjectCompose((PetscObject)*H,"SlepcMatStruct",(PetscObject)container));
-  PetscCall(PetscContainerDestroy(&container));
+  PetscCall(PetscObjectContainerCompose((PetscObject)*H,"SlepcMatStruct",mctx,PetscContainerUserDestroyDefault));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
