@@ -561,8 +561,6 @@ PetscErrorCode EPSComputeVectors_Slice(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
-
 static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
@@ -607,8 +605,8 @@ static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts
     v = (*shifts)[i];
     for (j=i+1;j<*n;j++) {
       if (v > (*shifts)[j]) {
-        SWAP((*shifts)[i],(*shifts)[j],tmpr);
-        SWAP((*inertias)[i],(*inertias)[j],tmpi);
+        SlepcSwap((*shifts)[i],(*shifts)[j],tmpr);
+        SlepcSwap((*inertias)[i],(*inertias)[j],tmpi);
         v = (*shifts)[i];
       }
     }

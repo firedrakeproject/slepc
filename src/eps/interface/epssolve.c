@@ -24,8 +24,6 @@ PetscErrorCode EPSComputeVectors(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
-
 static PetscErrorCode EPSComputeValues(EPS eps)
 {
   PetscBool      injective,iscomp,isfilter;
@@ -73,7 +71,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
           for (i=0;i<eps->nconv;i++) {
             if (PetscRealPart(eps->eigr[eps->perm[i]])<eps->inta || PetscRealPart(eps->eigr[eps->perm[i]])>eps->intb) {
               eps->nconv--;
-              if (i<eps->nconv) { SWAP(eps->perm[i],eps->perm[eps->nconv],aux); i--; }
+              if (i<eps->nconv) { SlepcSwap(eps->perm[i],eps->perm[eps->nconv],aux); i--; }
             }
           }
           if (nconv0>eps->nconv) PetscCall(PetscInfo(eps,"Discarded %" PetscInt_FMT " computed eigenvalues lying outside the interval\n",nconv0-eps->nconv));

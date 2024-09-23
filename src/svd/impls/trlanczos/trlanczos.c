@@ -200,8 +200,6 @@ static PetscErrorCode MatCreateVecs_Z(Mat Z,Vec *right,Vec *left)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
-
 static PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
   PetscInt       M,N,P,m,n,p;
@@ -221,8 +219,8 @@ static PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   if (svd->isgeneralized) {
     PetscCall(MatGetSize(svd->B,&P,NULL));
     if (lanczos->bidiag == SVD_TRLANCZOS_GBIDIAG_LOWER && ((svd->which==SVD_LARGEST && P<=N) || (svd->which==SVD_SMALLEST && M>N && P<=N))) {
-      SWAP(svd->A,svd->B,aux);
-      SWAP(svd->AT,svd->BT,aux);
+      SlepcSwap(svd->A,svd->B,aux);
+      SlepcSwap(svd->AT,svd->BT,aux);
       svd->swapped = PETSC_TRUE;
     } else svd->swapped = PETSC_FALSE;
 
@@ -1599,7 +1597,7 @@ static PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscCall(BVRestoreMat(svd->V,&V));
 
   /* Finish computing left singular vectors and move them to its place */
-  if (svd->swapped) SWAP(U1,U2,UU);
+  if (svd->swapped) SlepcSwap(U1,U2,UU);
   switch (lanczos->bidiag) {
     case SVD_TRLANCZOS_GBIDIAG_SINGLE:
       PetscCall(SVDLeftSingularVectors_Single(svd,U1,U2));
