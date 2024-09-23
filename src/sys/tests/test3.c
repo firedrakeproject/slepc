@@ -18,7 +18,7 @@ int main(int argc,char **argv)
   PetscBool      has,flg;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetString(NULL,NULL,"-pkg",pkg,sizeof(pkg),NULL));
   PetscCall(SlepcHasExternalPackage(pkg,&has));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "SLEPc has %s? %s\n",pkg,PetscBools[has]));

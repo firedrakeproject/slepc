@@ -560,7 +560,7 @@ int main(int argc,char **argv)
 #endif
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&P,&flgp));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-q",&Q,&flgq));

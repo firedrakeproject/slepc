@@ -19,7 +19,7 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Checking SLEPc version.\n"));
 
   PetscCall(SlepcGetVersion(version,sizeof(version)));

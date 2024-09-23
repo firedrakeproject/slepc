@@ -88,7 +88,7 @@ int main(int argc,char **argv)
   PetscRandom    rctx;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   N = n*n;

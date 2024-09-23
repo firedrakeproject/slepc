@@ -43,7 +43,7 @@ int main(int argc,char **argv)
   EPS            eps;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   PetscCall(PetscOptionsGetString(NULL,NULL,"-type",svdtype,sizeof(svdtype),NULL));

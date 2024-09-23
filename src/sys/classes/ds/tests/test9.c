@@ -46,7 +46,7 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a System of type GHEP - dimension %" PetscInt_FMT ".\n",n));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));

@@ -33,7 +33,7 @@ int main(int argc,char **argv)
   MFNConvergedReason reason;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   PetscCall(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));

@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   PetscScalar    center,cr[NPOINTS],ci[NPOINTS];
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(RGCreate(PETSC_COMM_WORLD,&rg));
 
   PetscCall(RGSetType(rg,RGRING));

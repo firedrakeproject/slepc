@@ -29,7 +29,7 @@ int main(int argc,char **argv)
   MFNConvergedReason reason;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(t*A)*e, loaded from file\n\n"));
