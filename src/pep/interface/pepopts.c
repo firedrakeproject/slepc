@@ -762,18 +762,9 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
 
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
-.  conv    - a pointer to the convergence test function
-.  ctx     - context for private data for the convergence routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of conv:
-$  PetscErrorCode conv(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
-+   pep    - eigensolver context obtained from PEPCreate()
-.   eigr   - real part of the eigenvalue
-.   eigi   - imaginary part of the eigenvalue
-.   res    - residual norm associated to the eigenpair
-.   errest - (output) computed error estimate
--   ctx    - optional context, as set by PEPSetConvergenceTestFunction()
+.  conv    - convergence test function, see PEPConvergenceTestFn for the calling sequence
+.  ctx     - context for private data for the convergence routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    If the error estimate returned by the convergence test function is less than
@@ -783,7 +774,7 @@ $  PetscErrorCode conv(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,P
 
 .seealso: PEPSetConvergenceTest(), PEPSetTolerances()
 @*/
-PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*conv)(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PEPConvergenceTestFn *conv,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -881,19 +872,9 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
 
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
-.  stop    - pointer to the stopping test function
-.  ctx     - context for private data for the stopping routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of stop:
-$  PetscErrorCode stop(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx)
-+   pep    - eigensolver context obtained from PEPCreate()
-.   its    - current number of iterations
-.   max_it - maximum number of iterations
-.   nconv  - number of currently converged eigenpairs
-.   nev    - number of requested eigenpairs
-.   reason - (output) result of the stopping test
--   ctx    - optional context, as set by PEPSetStoppingTestFunction()
+.  stop    - stopping test function, see PEPStoppingTestFn for the calling sequence
+.  ctx     - context for private data for the stopping routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    Normal usage is to first call the default routine PEPStoppingBasic() and then
@@ -905,7 +886,7 @@ $  PetscErrorCode stop(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,Petsc
 
 .seealso: PEPSetStoppingTest(), PEPStoppingBasic()
 @*/
-PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*stop)(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PEPStoppingTestFn *stop,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);

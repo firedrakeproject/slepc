@@ -1311,8 +1311,6 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
-
 static PetscErrorCode PEPQSliceGetInertias(PEP pep,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
   PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
@@ -1358,8 +1356,8 @@ static PetscErrorCode PEPQSliceGetInertias(PEP pep,PetscInt *n,PetscReal **shift
     v = (*shifts)[i];
     for (j=i+1;j<*n;j++) {
       if (v > (*shifts)[j]) {
-        SWAP((*shifts)[i],(*shifts)[j],tmpr);
-        SWAP((*inertias)[i],(*inertias)[j],tmpi);
+        SlepcSwap((*shifts)[i],(*shifts)[j],tmpr);
+        SlepcSwap((*inertias)[i],(*inertias)[j],tmpi);
         v = (*shifts)[i];
       }
     }

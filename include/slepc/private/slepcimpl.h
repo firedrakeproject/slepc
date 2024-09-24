@@ -17,6 +17,9 @@
 
 SLEPC_INTERN PetscBool SlepcBeganPetsc;
 
+/* SlepcSwap - swap two variables a,b of the same type using a temporary variable t */
+#define SlepcSwap(a,b,t) do {t=a;a=b;b=t;} while (0)
+
 /*MC
     SlepcHeaderCreate - Creates a SLEPc object
 

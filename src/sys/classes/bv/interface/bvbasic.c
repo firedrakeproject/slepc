@@ -1124,7 +1124,7 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   PetscCheck(l!=-1,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVRestoreColumn for one of the previously fetched columns");
   PetscUseTypeMethod(bv,getcolumn,j,v);
   bv->ci[l] = j;
-  PetscCall(PetscObjectStateGet((PetscObject)bv->cv[l],&bv->st[l]));
+  PetscCall(VecGetState(bv->cv[l],&bv->st[l]));
   PetscCall(PetscObjectGetId((PetscObject)bv->cv[l],&bv->id[l]));
   *v = bv->cv[l];
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -1166,7 +1166,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   l = (j==bv->ci[0])? 0: 1;
   PetscCall(PetscObjectGetId((PetscObject)*v,&id));
   PetscCheck(id==bv->id[l],PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same Vec that was obtained with BVGetColumn");
-  PetscCall(PetscObjectStateGet((PetscObject)*v,&st));
+  PetscCall(VecGetState(*v,&st));
   if (st!=bv->st[l]) PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscUseTypeMethod(bv,restorecolumn,j,v);
   bv->ci[l] = -bv->nc-1;

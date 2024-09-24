@@ -89,16 +89,16 @@ struct _p_NEP {
   PetscBool      twosided;         /* whether to compute left eigenvectors (two-sided solver) */
 
   /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*computefunction)(NEP,PetscScalar,Mat,Mat,void*);
-  PetscErrorCode (*computejacobian)(NEP,PetscScalar,Mat,void*);
-  void           *functionctx;
-  void           *jacobianctx;
-  PetscErrorCode (*converged)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-  PetscErrorCode (*convergeduser)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-  PetscErrorCode (*convergeddestroy)(void*);
-  PetscErrorCode (*stopping)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
-  PetscErrorCode (*stoppinguser)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
-  PetscErrorCode (*stoppingdestroy)(void*);
+  NEPFunctionFn        *computefunction;
+  NEPJacobianFn        *computejacobian;
+  void                 *functionctx;
+  void                 *jacobianctx;
+  NEPConvergenceTestFn *converged;
+  NEPConvergenceTestFn *convergeduser;
+  PetscErrorCode       (*convergeddestroy)(void*);
+  NEPStoppingTestFn    *stopping;
+  NEPStoppingTestFn    *stoppinguser;
+  PetscErrorCode      (*stoppingdestroy)(void*);
   void           *convergedctx;
   void           *stoppingctx;
   PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);

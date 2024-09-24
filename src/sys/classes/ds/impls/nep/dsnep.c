@@ -22,7 +22,7 @@ typedef struct {
   RG             rg;                 /* region for contour integral */
   PetscLayout    map;                /* used to distribute work among MPI processes */
   void           *computematrixctx;
-  PetscErrorCode (*computematrix)(DS,PetscScalar,PetscBool,DSMatType,void*);
+  DSNEPMatrixFunctionFn *computematrix;
 } DS_NEP;
 
 /*
@@ -1026,7 +1026,7 @@ PetscErrorCode DSNEPGetSamplingSize(DS ds,PetscInt *p)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx)
+static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,DSNEPMatrixFunctionFn *fun,void *ctx)
 {
   DS_NEP *dsctx = (DS_NEP*)ds->data;
 
@@ -1044,16 +1044,8 @@ static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*f
 
    Input Parameters:
 +  ds  - the direct solver context
-.  fun - a pointer to the user function
+.  fun - matrix function evaluation routine, see DSNEPMatrixFunctionFn for the calling sequence
 -  ctx - a context pointer (the last parameter to the user function)
-
-   Calling sequence of fun:
-$  PetscErrorCode fun(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
-+   ds     - the direct solver object
-.   lambda - point where T(lambda) or T'(lambda) must be evaluated
-.   deriv  - if true compute T'(lambda), otherwise compute T(lambda)
-.   mat    - the DS matrix where the result must be stored
--   ctx    - optional context, as set by DSNEPSetComputeMatrixFunction()
 
    Note:
    The result is computed as T(lambda) = sum_i E_i*f_i(lambda), and similarly
@@ -1063,15 +1055,15 @@ $  PetscErrorCode fun(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,voi
 
 .seealso: DSNEPGetComputeMatrixFunction()
 @*/
-PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx),void *ctx)
+PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,DSNEPMatrixFunctionFn *fun,void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*),(ds,fun,ctx));
+  PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,DSNEPMatrixFunctionFn*,void*),(ds,fun,ctx));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-static PetscErrorCode DSNEPGetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (**fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void **ctx)
+static PetscErrorCode DSNEPGetComputeMatrixFunction_NEP(DS ds,DSNEPMatrixFunctionFn **fun,void **ctx)
 {
   DS_NEP *dsctx = (DS_NEP*)ds->data;
 
@@ -1098,11 +1090,11 @@ static PetscErrorCode DSNEPGetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (**
 
 .seealso: DSNEPSetComputeMatrixFunction()
 @*/
-PetscErrorCode DSNEPGetComputeMatrixFunction(DS ds,PetscErrorCode (**fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void **ctx)
+PetscErrorCode DSNEPGetComputeMatrixFunction(DS ds,DSNEPMatrixFunctionFn **fun,void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscUseMethod(ds,"DSNEPGetComputeMatrixFunction_C",(DS,PetscErrorCode (**)(DS,PetscScalar,PetscBool,DSMatType,void*),void**),(ds,fun,ctx));
+  PetscUseMethod(ds,"DSNEPGetComputeMatrixFunction_C",(DS,DSNEPMatrixFunctionFn**,void**),(ds,fun,ctx));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

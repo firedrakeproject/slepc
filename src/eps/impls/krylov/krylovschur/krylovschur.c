@@ -1127,8 +1127,8 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
 
   /* Update stored matrix state */
   subctx = (EPS_KRYLOVSCHUR*)ctx->eps->data;
-  PetscCall(PetscObjectStateGet((PetscObject)A,&subctx->Astate));
-  if (B) PetscCall(PetscObjectStateGet((PetscObject)B,&subctx->Bstate));
+  PetscCall(MatGetState(A,&subctx->Astate));
+  if (B) PetscCall(MatGetState(B,&subctx->Bstate));
 
   /* Update matrices in the parent communicator if requested by user */
   if (globalup) {
@@ -1147,8 +1147,8 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
         PetscCall(MatCreateMPIMatConcatenateSeqMat(((PetscObject)Bg)->comm,ctx->submatb[0],PETSC_DECIDE,MAT_REUSE_MATRIX,&Bg));
       }
     }
-    PetscCall(PetscObjectStateGet((PetscObject)Ag,&ctx->Astate));
-    if (Bg) PetscCall(PetscObjectStateGet((PetscObject)Bg,&ctx->Bstate));
+    PetscCall(MatGetState(Ag,&ctx->Astate));
+    if (Bg) PetscCall(MatGetState(Bg,&ctx->Bstate));
   }
   PetscCall(EPSSetOperators(eps,Ag,Bg));
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -1228,10 +1228,10 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *childeps)
     PetscCall(EPSSetOptionsPrefix(ctx->eps,prefix));
     PetscCall(EPSSetOperators(ctx->eps,A,B));
   } else {
-    PetscCall(PetscObjectStateGet((PetscObject)A,&Astate));
+    PetscCall(MatGetState(A,&Astate));
     PetscCall(PetscObjectGetId((PetscObject)A,&Aid));
     if (B) {
-      PetscCall(PetscObjectStateGet((PetscObject)B,&Bstate));
+      PetscCall(MatGetState(B,&Bstate));
       PetscCall(PetscObjectGetId((PetscObject)B,&Bid));
     }
     if (!ctx->subc) {

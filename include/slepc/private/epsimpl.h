@@ -100,13 +100,13 @@ struct _p_EPS {
   PetscBool      twosided;         /* whether to compute left eigenvectors (two-sided solver) */
 
   /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-  PetscErrorCode (*convergeduser)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-  PetscErrorCode (*convergeddestroy)(void*);
-  PetscErrorCode (*stopping)(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*);
-  PetscErrorCode (*stoppinguser)(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*);
-  PetscErrorCode (*stoppingdestroy)(void*);
-  PetscErrorCode (*arbitrary)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*);
+  EPSConvergenceTestFn      *converged;
+  EPSConvergenceTestFn      *convergeduser;
+  PetscErrorCode            (*convergeddestroy)(void*);
+  EPSStoppingTestFn         *stopping;
+  EPSStoppingTestFn         *stoppinguser;
+  PetscErrorCode            (*stoppingdestroy)(void*);
+  SlepcArbitrarySelectionFn *arbitrary;
   void           *convergedctx;
   void           *stoppingctx;
   void           *arbitraryctx;
