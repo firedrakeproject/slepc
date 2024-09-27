@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/bvimpl.h>
-#include <slepccublas.h>
+#include <slepccupmblas.h>
 
 #define BLOCKSIZE 64
 

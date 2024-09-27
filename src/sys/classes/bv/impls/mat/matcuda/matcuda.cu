@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/bvimpl.h>
-#include <slepccublas.h>
+#include <slepccupmblas.h>
 #include "../src/sys/classes/bv/impls/mat/bvmat.h"
 
 PetscErrorCode BVMult_Mat_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
