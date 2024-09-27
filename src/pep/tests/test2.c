@@ -351,4 +351,18 @@ int main(int argc,char **argv)
       requires: complex double
       args: -pep_type ciss -rg_type ellipse -rg_ellipse_center -48.5 -rg_ellipse_radius 1.5 -pep_ciss_delta 1e-10
 
+   testset:
+      args: -pep_nev 4 -initv -mat_type aijhipsparse
+      output_file: output/test2_1.out
+      requires: hip !single
+      test:
+         suffix: 15_hip
+         args: -pep_type {{toar linear}}
+      test:
+         suffix: 15_hip_qarnoldi
+         args: -pep_type qarnoldi -bv_orthog_refine never
+      test:
+         suffix: 15_hip_linear_gd
+         args: -pep_type linear -pep_linear_eps_type gd -pep_linear_explicitmatrix
+
 TEST*/

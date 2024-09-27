@@ -180,4 +180,19 @@ int main(int argc,char **argv)
       nsize: 2
       args: -svd_type trlanczos -svd_ncv 14 -svd_monitor_cancel -ds_parallel synchronized
 
+   testset:
+      args: -svd_monitor_cancel -mat_type aijhipsparse
+      requires: hip !single
+      filter: grep -v "Transpose mode" | sed -e "s/seqaijhipsparse/seqaij/"
+      output_file: output/test4_1.out
+      test:
+         suffix: 4_hip_lanczos
+         args: -svd_type lanczos
+      test:
+         suffix: 4_hip_trlanczos
+         args: -svd_type trlanczos -svd_ncv 12
+      test:
+         suffix: 4_hip_cross
+         args: -svd_type cross
+
 TEST*/

@@ -110,6 +110,10 @@ int main(int argc,char **argv)
          suffix: 1_cuda
          args: -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 1_hip
+         args: -mat_type aijhipsparse
+         requires: hip
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -mfn_type {{krylov expokit}}
@@ -121,5 +125,9 @@ int main(int argc,char **argv)
          suffix: 2_cuda
          args: -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 2_hip
+         args: -mat_type aijhipsparse
+         requires: hip
 
 TEST*/

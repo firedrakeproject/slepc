@@ -117,5 +117,9 @@ int main(int argc,char **argv)
          suffix: 2_cuda
          args: -eps_type subspace -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 2_hip
+         args: -eps_type subspace -mat_type aijhipsparse
+         requires: hip
 
 TEST*/

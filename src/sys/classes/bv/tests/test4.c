@@ -179,6 +179,10 @@ int main(int argc,char **argv)
          args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
       test:
+         suffix: 1_hip
+         args: -bv_type {{svec mat}} -vec_type hip
+         requires: hip
+      test:
          suffix: 2
          args: -bv_type {{vecs contiguous svec mat}shared output} -trans
 

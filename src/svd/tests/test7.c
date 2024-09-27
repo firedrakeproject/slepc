@@ -114,10 +114,16 @@ int main(int argc,char **argv)
       suffix: 1
       args: -log_exclude svd
 
-   test:
-      suffix: 2_cuda
-      args: -log_exclude svd -mat_type aijcusparse
-      requires: cuda
+   testset:
+      args: -log_exclude svd
       output_file: output/test7_1.out
+      test:
+         suffix: 2_cuda
+         args: -mat_type aijcusparse
+         requires: cuda
+      test:
+         suffix: 2_hip
+         args: -mat_type aijhipsparse
+         requires: hip
 
 TEST*/

@@ -8,6 +8,7 @@
   In particular, the problem type `EPS_BSE` is intended to solve eigenproblems with
   Bethe-Salpeter structure, whose matrix has been created with `MatCreateBSE`.
 - `BV`: new function `BVGetSplitRows()` to split a `BV` row-wise using index sets.
+- Added support for AMD GPUs via HIP and ROCm, see section 8.3 of the Users Manual.
 
 ### Changed
 

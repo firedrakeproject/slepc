@@ -363,6 +363,12 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 #else
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
 #endif
+    } else if (bv->hip) {
+#if defined(PETSC_HAVE_HIP)
+      PetscCall(VecCreateSeqHIP(PETSC_COMM_SELF,m,&v));
+#else
+      SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
+#endif
     } else PetscCall(VecCreateSeq(PETSC_COMM_SELF,m,&v));
     if (copy) {
       PetscCall(VecGetArray(v,&array));
@@ -1360,7 +1366,7 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
 @*/
 PetscErrorCode BVCreateVecEmpty(BV bv,Vec *v)
 {
-  PetscBool  standard,cuda,mpi;
+  PetscBool  standard,cuda,hip,mpi;
   PetscInt   N,nloc,bs;
 
   PetscFunctionBegin;
@@ -1370,8 +1376,9 @@ PetscErrorCode BVCreateVecEmpty(BV bv,Vec *v)
 
   PetscCall(PetscStrcmpAny(bv->vtype,&standard,VECSEQ,VECMPI,""));
   PetscCall(PetscStrcmpAny(bv->vtype,&cuda,VECSEQCUDA,VECMPICUDA,""));
-  if (standard || cuda) {
-    PetscCall(PetscStrcmpAny(bv->vtype,&mpi,VECMPI,VECMPICUDA,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&hip,VECSEQHIP,VECMPIHIP,""));
+  if (standard || cuda || hip) {
+    PetscCall(PetscStrcmpAny(bv->vtype,&mpi,VECMPI,VECMPICUDA,VECMPIHIP,""));
     PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
     PetscCall(PetscLayoutGetSize(bv->map,&N));
     PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
@@ -1379,6 +1386,11 @@ PetscErrorCode BVCreateVecEmpty(BV bv,Vec *v)
 #if defined(PETSC_HAVE_CUDA)
       if (mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));
       else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv),bs,N,NULL,v));
+#endif
+    } else if (hip) {
+#if defined(PETSC_HAVE_HIP)
+      if (mpi) PetscCall(VecCreateMPIHIPWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));
+      else PetscCall(VecCreateSeqHIPWithArray(PetscObjectComm((PetscObject)bv),bs,N,NULL,v));
 #endif
     } else {
       if (mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));

@@ -203,6 +203,10 @@ int main(int argc,char **argv)
          args: -bv_type {{svec mat}} -mat_type aijcusparse -bv_matmult vecs
          requires: cuda
       test:
+         suffix: 1_hip
+         args: -bv_type {{svec mat}} -mat_type aijhipsparse -bv_matmult vecs
+         requires: hip
+      test:
          suffix: 1_mat
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult mat
 
@@ -218,6 +222,10 @@ int main(int argc,char **argv)
          suffix: 2_cuda
          args: -bv_type {{svec mat}} -mat_type aijcusparse -bv_matmult vecs
          requires: cuda
+      test:
+         suffix: 2_hip
+         args: -bv_type {{svec mat}} -mat_type aijhipsparse -bv_matmult vecs
+         requires: hip
       test:
          suffix: 2_mat
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult mat

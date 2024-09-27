@@ -122,8 +122,12 @@ int main(int argc,char **argv)
          suffix: 1
          requires: !single
       test:
-         suffix: 2_cuda
+         suffix: 1_cuda
          args: -mat_type aijcusparse
          requires: cuda !single
+      test:
+         suffix: 1_hip
+         args: -mat_type aijhipsparse
+         requires: hip !single
 
 TEST*/

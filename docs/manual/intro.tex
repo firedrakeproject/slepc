@@ -218,7 +218,7 @@ Additionally, \petsc's configuration script provides a very long list of options
 \item Add \Verb!--with-64-bit-indices=1! to use 8 byte integers (\texttt{long long}) for indexing in vectors and matrices. This is only needed when working with over roughly 2 billion unknowns.
 \item Build static libraries, \Verb!--with-shared-libraries=0!. This is generally not recommended, since shared libraries produce smaller executables and the run time overhead is small.
 \item Error-checking code can be disabled with \Verb!--with-debugging=0!, but this is only recommended in production runs of well-tested applications.
-\item Enable GPU computing setting \Verb!--with-cuda=1!; see \S\ref{sec:gpu} for details.
+\item Enable GPU computing setting \Verb!--with-cuda=1! or \Verb!--with-hip=1!; see \S\ref{sec:gpu} for details.
 \item The option \Verb!--with-mpi=0! allows building \petsc and \slepc without MPI support (only sequential).
 \end{itemize}
 

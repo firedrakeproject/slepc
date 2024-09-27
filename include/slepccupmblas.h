@@ -8,13 +8,15 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 /*
-   Macro definitions to use CUBLAS functionality
+   Macro definitions to use cuBLAS and hipBLAS functionality
 */
 
 #pragma once
 
 #include <petscdevice.h>
 #include <petsc/private/petsclegacycupmblas.h>
+
+#if defined(PETSC_HAVE_CUDA)
 
 /* complex single */
 #if defined(PETSC_USE_COMPLEX)
@@ -49,3 +51,24 @@
 #define cublasXCgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)  cublasZgemm((a),(b),(c),(d),(e),(f),(const cuDoubleComplex *)(g),(const cuDoubleComplex *)(h),(i),(const cuDoubleComplex *)(j),(k),(const cuDoubleComplex *)(l),(cuDoubleComplex *)(m),(n))
 #define cublasXCscal(a,b,c,d,e)                    cublasZscal((a),(b),(const cuDoubleComplex *)(c),(cuDoubleComplex *)(d),(e))
 #endif
+
+#endif // PETSC_HAVE_CUDA
+
+#if defined(PETSC_HAVE_HIP)
+
+/* complex single */
+#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_REAL_SINGLE)
+#define hipblasXdotc(a,b,c,d,e,f,g) hipblasCdotc((a),(b),(const hipComplex *)(c),(d),(const hipComplex *)(e),(f),(hipComplex *)(g))
+#else /* complex double */
+#define hipblasXdotc(a,b,c,d,e,f,g) hipblasZdotc((a),(b),(const hipDoubleComplex *)(c),(d),(const hipDoubleComplex *)(e),(f),(hipDoubleComplex *)(g))
+#endif
+#else /* real single */
+#if defined(PETSC_USE_REAL_SINGLE)
+#define hipblasXdotc hipblasSdot
+#else /* real double */
+#define hipblasXdotc hipblasDdot
+#endif
+#endif
+
+#endif // PETSC_HAVE_HIP

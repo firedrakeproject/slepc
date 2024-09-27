@@ -196,6 +196,10 @@ int main(int argc,char **argv)
          suffix: 1_ciss_cuda
          args: -mat_type aijcusparse -st_pc_factor_mat_solver_type cusparse
          requires: cuda
+      test:
+         suffix: 1_ciss_hip
+         args: -mat_type aijhipsparse -st_pc_factor_mat_solver_type hipsparse
+         requires: hip
 
    testset:
       requires: !single
@@ -317,5 +321,37 @@ int main(int argc,char **argv)
       suffix: 10_feast
       args: -n 25 -eps_type feast -eps_interval .95,1.1 -eps_conv_rel -eps_tol 1e-6
       requires: feast
+
+   testset:
+      args: -n 18 -eps_nev 4 -eps_max_it 1500 -mat_type aijhipsparse
+      requires: hip !single
+      output_file: output/test1_1.out
+      test:
+         suffix: 11
+         args: -eps_type {{krylovschur arnoldi gd jd}}
+      test:
+         suffix: 11_subspace
+         args: -eps_type subspace -eps_conv_rel
+      test:
+         suffix: 11_ks_sinvert
+         args: -st_type sinvert -eps_target 22
+      test:
+         suffix: 11_lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog full
+      test:
+         suffix: 11_ciss
+         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -st_pc_factor_mat_solver_type hipsparse
+         output_file: output/test1_1_ciss.out
+
+   testset:
+      args: -n 18 -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type sor -mat_type aijhipsparse
+      requires: hip
+      output_file: output/test1_5.out
+      test:
+         suffix: 12_rqcg
+         args: -eps_type rqcg
+      test:
+         suffix: 12_lobpcg
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 3
 
 TEST*/

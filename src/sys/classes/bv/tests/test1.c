@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   const PetscScalar *pX;
   PetscReal         nrm;
   PetscViewer       view;
-  PetscBool         verbose,matcuda,testlda=PETSC_FALSE;
+  PetscBool         verbose,matcuda,mathip,testlda=PETSC_FALSE;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
@@ -32,6 +32,7 @@ int main(int argc,char **argv)
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-matcuda",&matcuda));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-mathip",&mathip));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-testlda",&testlda));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BV with %" PetscInt_FMT " columns of dimension %" PetscInt_FMT ".\n",k,n));
 
@@ -82,6 +83,7 @@ int main(int argc,char **argv)
   /* Create Mat */
   PetscCall(MatCreate(PETSC_COMM_SELF,&Q));
   if (matcuda && PetscDefined(HAVE_CUDA)) PetscCall(MatSetType(Q,MATSEQDENSECUDA));
+  else if (mathip && PetscDefined(HAVE_HIP)) PetscCall(MatSetType(Q,MATSEQDENSEHIP));
   else PetscCall(MatSetType(Q,MATSEQDENSE));
   PetscCall(MatSetSizes(Q,k,l,k,l));
   if (testlda) PetscCall(MatDenseSetLDA(Q,k+2));
@@ -118,6 +120,7 @@ int main(int argc,char **argv)
   /* Test BVDot */
   PetscCall(MatCreate(PETSC_COMM_SELF,&M));
   if (matcuda && PetscDefined(HAVE_CUDA)) PetscCall(MatSetType(M,MATSEQDENSECUDA));
+  else if (mathip && PetscDefined(HAVE_HIP)) PetscCall(MatSetType(M,MATSEQDENSEHIP));
   else PetscCall(MatSetType(M,MATSEQDENSE));
   PetscCall(MatSetSizes(M,l,k,l,k));
   if (testlda) PetscCall(MatDenseSetLDA(M,l+2));
@@ -187,7 +190,7 @@ int main(int argc,char **argv)
    testset:
       args: -bv_type svec -vec_type cuda -verbose
       requires: cuda
-      output_file: output/test1_1_svec_cuda.out
+      output_file: output/test1_1_svec_gpu.out
       test:
          suffix: 1_svec_cuda
       test:
@@ -198,13 +201,36 @@ int main(int argc,char **argv)
    testset:
       args: -bv_type mat -vec_type cuda -verbose
       requires: cuda
-      output_file: output/test1_1_mat_cuda.out
+      output_file: output/test1_1_mat_gpu.out
       filter: sed -e "s/seqdensecuda/seqdense/"
       test:
          suffix: 1_mat_cuda
       test:
          suffix: 1_mat_cuda_mat
          args: -matcuda
+
+   testset:
+      args: -bv_type svec -vec_type hip -verbose
+      requires: hip
+      output_file: output/test1_1_svec_gpu.out
+      filter: sed -e "s/seqhip/seqcuda/" | sed -e "s/HIP/CUDA/"
+      test:
+         suffix: 1_svec_hip
+      test:
+         suffix: 1_svec_hip_mat
+         args: -mathip
+         filter: sed -e "s/seqdensehip/seqdense/"
+
+   testset:
+      args: -bv_type mat -vec_type hip -verbose
+      requires: hip
+      output_file: output/test1_1_mat_gpu.out
+      filter: sed -e "s/seqdensehip/seqdense/" | sed -e "s/HIP/CUDA/"
+      test:
+         suffix: 1_mat_hip
+      test:
+         suffix: 1_mat_hip_mat
+         args: -mathip
 
    test:
       args: -bv_type {{vecs contiguous svec mat}separate output} -verbose -testlda
@@ -214,7 +240,7 @@ int main(int argc,char **argv)
    testset:
       args: -bv_type svec -vec_type cuda -verbose -testlda
       requires: cuda
-      output_file: output/test1_1_svec_cuda.out
+      output_file: output/test1_1_svec_gpu.out
       test:
          suffix: 2_svec_cuda
       test:
@@ -225,12 +251,34 @@ int main(int argc,char **argv)
    testset:
       args: -bv_type mat -vec_type cuda -verbose -testlda
       requires: cuda
-      output_file: output/test1_1_mat_cuda.out
+      output_file: output/test1_1_mat_gpu.out
       filter: sed -e "s/seqdensecuda/seqdense/"
       test:
          suffix: 2_mat_cuda
       test:
          suffix: 2_mat_cuda_mat
          args: -matcuda
+
+   testset:
+      args: -bv_type svec -vec_type hip -verbose -testlda
+      requires: hip
+      output_file: output/test1_1_svec_gpu.out
+      test:
+         suffix: 2_svec_hip
+      test:
+         suffix: 2_svec_hip_mat
+         args: -mathip
+         filter: sed -e "s/seqdensehip/seqdense/"
+
+   testset:
+      args: -bv_type mat -vec_type hip -verbose -testlda
+      requires: hip
+      output_file: output/test1_1_mat_gpu.out
+      filter: sed -e "s/seqdensehip/seqdense/" | sed -e "s/HIP/CUDA/"
+      test:
+         suffix: 2_mat_hip
+      test:
+         suffix: 2_mat_hip_mat
+         args: -mathip
 
 TEST*/

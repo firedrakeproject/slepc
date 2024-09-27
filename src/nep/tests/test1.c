@@ -253,12 +253,18 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
          suffix: 1
          requires: !single complex
 
-   test:
-      suffix: 2_cuda
-      args: -nep_type {{rii slp}} -nep_target 21 -mat_type aijcusparse -terse
-      requires: cuda !single
+   testset:
+      args: -nep_type {{rii slp}} -nep_target 21 -terse
       filter: sed -e "s/[+-]0\.0*i//"
       output_file: output/test3_1.out
+      test:
+         suffix: 2_cuda
+         args: -mat_type aijcusparse
+         requires: cuda !single
+      test:
+         suffix: 2_hip
+         args: -mat_type aijhipsparse
+         requires: hip !single
 
    testset:
       args: -nep_type slp -nep_two_sided -nep_target 21 -terse -nep_view_vectors ::ascii_info

@@ -182,6 +182,10 @@ int main(int argc,char **argv)
          args: -eps_type {{krylovschur subspace}} -st_type filter -st_filter_degree 200 -mat_type aijcusparse
          requires: cuda
       test:
+         suffix: 4_filter_hip
+         args: -eps_type {{krylovschur subspace}} -st_type filter -st_filter_degree 200 -mat_type aijhipsparse
+         requires: hip
+      test:
          suffix: 4_evsl
          args: -eps_type evsl
          requires: evsl

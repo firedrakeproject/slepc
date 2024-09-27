@@ -182,6 +182,10 @@ int main(int argc,char **argv)
          args: -mat_type aijcusparse
          requires: cuda
       test:
+         suffix: 2_hip
+         args: -mat_type aijhipsparse
+         requires: hip
+      test:
          suffix: 3
          args: -nep_view_values draw
          requires: x

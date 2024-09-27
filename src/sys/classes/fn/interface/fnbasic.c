@@ -698,7 +698,7 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
     PetscValidHeaderSpecific(B,MAT_CLASSID,3);
     PetscValidType(B,3);
   } else inplace = PETSC_TRUE;
-  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);
+  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);   //SlepcMatCheckSeq(A);
   PetscCall(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   if (!inplace) {
@@ -837,7 +837,7 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   PetscValidType(fn,1);
   PetscValidType(A,2);
   PetscValidType(v,3);
-  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);
+  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);   //SlepcMatCheckSeq(A);
   PetscCall(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));

@@ -193,6 +193,10 @@ int main(int argc,char **argv)
          args: -bv_type {{svec mat}} -mat_type aijcusparse
          requires: cuda
       test:
+         suffix: 1_hip
+         args: -bv_type {{svec mat}} -mat_type aijhipsparse
+         requires: hip
+      test:
          suffix: 2
          nsize: 2
          args: -bv_type {{vecs contiguous svec mat}shared output}

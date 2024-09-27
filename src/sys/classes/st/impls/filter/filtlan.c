@@ -1146,6 +1146,7 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
     PetscCall(MatShellSetOperation(*G,MATOP_MULT,(void(*)(void))MatMult_FILTLAN));
     PetscCall(MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSE,MATDENSE));
     PetscCall(MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSECUDA,MATDENSECUDA));
+    PetscCall(MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSEHIP,MATDENSEHIP));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }

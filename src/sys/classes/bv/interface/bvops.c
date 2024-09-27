@@ -65,7 +65,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscCheckSameTypeAndComm(Y,1,X,4);
   PetscCheck(X!=Y,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
   if (Q) {
-    PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
+    SlepcMatCheckSeq(Q);
     PetscCall(MatGetSize(Q,&m,&n));
     PetscCheck(m>=X->k,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,X->k);
     PetscCheck(n>=Y->k,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,Y->k);
@@ -229,7 +229,7 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidType(Q,2);
-  PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
+  SlepcMatCheckSeq(Q);
 
   PetscCheck(s>=V->l && s<=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,s,V->l,V->m);
   PetscCheck(e>=V->l && e<=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,e,V->l,V->m);
@@ -277,7 +277,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidType(Q,2);
-  PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
+  SlepcMatCheckSeq(Q);
 
   PetscCheck(s>=V->l && s<=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,s,V->l,V->m);
   PetscCheck(e>=V->l && e<=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,e,V->l,V->m);

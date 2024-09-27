@@ -161,11 +161,16 @@ int main(int argc,char **argv)
          args: -eps_type jd -eps_jd_krylov_start -eps_ncv 18
 
    testset:
-      args: -eps_nev 4 -mat_type aijcusparse
-      requires: cuda !single
+      args: -eps_nev 4 -eps_type {{krylovschur arnoldi gd jd}}
+      requires: !single
       output_file: output/test2_1.out
       test:
          suffix: 4_cuda
-         args: -eps_type {{krylovschur arnoldi gd jd}}
+         requires: cuda
+         args: -mat_type aijcusparse
+      test:
+         suffix: 4_hip
+         requires: hip
+         args: -mat_type aijhipsparse
 
 TEST*/
