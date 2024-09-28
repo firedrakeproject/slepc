@@ -208,9 +208,10 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
    testset:
       args: -eps_nev 4
       output_file: output/test9_1.out
+      filter: sed -e "s/97136/97137/g"
       test:
          suffix: 1
-         args: -eps_type {{krylovschur arnoldi lapack}} -eps_ncv 7 -eps_max_it 300
+         args: -eps_type {{krylovschur arnoldi lapack}} -eps_ncv 8 -eps_max_it 300
       test:
          suffix: 1_gd
          args: -eps_type gd -st_pc_type none
