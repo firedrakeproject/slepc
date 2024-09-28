@@ -121,6 +121,10 @@ int main(int argc,char **argv)
          suffix: 1_cuda
          args: -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 1_hip
+         args: -mat_type aijhipsparse
+         requires: hip
 
    test:
       suffix: 3

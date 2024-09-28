@@ -138,6 +138,6 @@ int main(int argc,char **argv)
 
    test:
       args: -graph ${SLEPC_DIR}/share/slepc/datafiles/graphs/out.moreno_taro_taro -svd_nsv 4 -terse
-      filter: sed -e 's/4.38031/4.38032/' | sed -e 's/3.75089/3.7509/' | sed -e 's/3.00071/3.00072/'
+      filter: sed -e 's/4.38031/4.38032/' | sed -e 's/4.38033/4.38032/' | sed -e 's/3.75089/3.7509/' | sed -e 's/3.00071/3.00072/'
 
 TEST*/

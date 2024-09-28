@@ -318,7 +318,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
 
 #if defined(PETSC_HAVE_CUDA)
 #include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
-#include <slepccublas.h>
+#include <slepccupmblas.h>
 
 /*
  * Matrix square root by Newton-Schulz iteration. CUDA version.

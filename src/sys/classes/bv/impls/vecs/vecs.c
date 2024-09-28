@@ -540,7 +540,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   }
 
   /* Default version of BVMultInPlace */
-  PetscCall(PetscStrcmpAny(bv->vtype,&isgpu,VECSEQCUDA,VECMPICUDA,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&isgpu,VECSEQCUDA,VECMPICUDA,VECSEQHIP,VECMPIHIP,""));
   ctx->vmip = isgpu? 1: 0;
 
   /* Default BVMatMult method */

@@ -173,5 +173,9 @@ int main(int argc,char **argv)
          suffix: 1_cuda
          args: -bv_type {{vecs svec mat}} -vec_type cuda
          requires: cuda
+      test:
+         suffix: 1_hip
+         args: -bv_type {{vecs svec mat}} -vec_type hip
+         requires: hip
 
 TEST*/

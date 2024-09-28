@@ -411,10 +411,11 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->data = (void*)ctx;
 
   PetscCall(PetscStrcmpAny(bv->vtype,&bv->cuda,VECSEQCUDA,VECMPICUDA,""));
-  PetscCall(PetscStrcmpAny(bv->vtype,&ctx->mpi,VECMPI,VECMPICUDA,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&bv->hip,VECSEQHIP,VECMPIHIP,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&ctx->mpi,VECMPI,VECMPICUDA,VECMPIHIP,""));
 
   PetscCall(PetscStrcmp(bv->vtype,VECSEQ,&seq));
-  PetscCheck(seq || ctx->mpi || bv->cuda,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVSVEC does not support the requested vector type: %s",bv->vtype);
+  PetscCheck(seq || ctx->mpi || bv->cuda || bv->hip,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVSVEC does not support the requested vector type: %s",bv->vtype);
 
   PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
   PetscCall(PetscLayoutGetSize(bv->map,&N));
@@ -437,6 +438,16 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
       if (ctx->mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
       else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,NULL,&ctx->v));
       PetscCall(VecCUDAPlaceArray(ctx->v,ptr));
+#endif
+    } else if (bv->hip) {
+#if defined(PETSC_HAVE_HIP)
+      PetscCall(VecHIPGetArrayRead(vpar,&array));
+      if (bv->issplit>0) ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      else ptr = (bv->issplit==1)? array: array-lsplit;
+      PetscCall(VecHIPRestoreArrayRead(vpar,&array));
+      if (ctx->mpi) PetscCall(VecCreateMPIHIPWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,PETSC_DECIDE,NULL,&ctx->v));
+      else PetscCall(VecCreateSeqHIPWithArray(PetscObjectComm((PetscObject)bv),bs,tlocal,NULL,&ctx->v));
+      PetscCall(VecHIPPlaceArray(ctx->v,ptr));
 #endif
     } else {
       PetscCall(VecGetArrayRead(vpar,&array));
@@ -498,6 +509,30 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->restoresplitrows = BVRestoreSplitRows_Svec_CUDA;
     bv->ops->getmat           = BVGetMat_Svec_CUDA;
     bv->ops->restoremat       = BVRestoreMat_Svec_CUDA;
+#endif
+  } else if (bv->hip) {
+#if defined(PETSC_HAVE_HIP)
+    bv->ops->mult             = BVMult_Svec_HIP;
+    bv->ops->multvec          = BVMultVec_Svec_HIP;
+    bv->ops->multinplace      = BVMultInPlace_Svec_HIP;
+    bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Svec_HIP;
+    bv->ops->dot              = BVDot_Svec_HIP;
+    bv->ops->dotvec           = BVDotVec_Svec_HIP;
+    bv->ops->dotvec_local     = BVDotVec_Local_Svec_HIP;
+    bv->ops->scale            = BVScale_Svec_HIP;
+    bv->ops->norm             = BVNorm_Svec_HIP;
+    bv->ops->norm_local       = BVNorm_Local_Svec_HIP;
+    bv->ops->normalize        = BVNormalize_Svec_HIP;
+    bv->ops->matmult          = BVMatMult_Svec_HIP;
+    bv->ops->copy             = BVCopy_Svec_HIP;
+    bv->ops->copycolumn       = BVCopyColumn_Svec_HIP;
+    bv->ops->resize           = BVResize_Svec_HIP;
+    bv->ops->getcolumn        = BVGetColumn_Svec_HIP;
+    bv->ops->restorecolumn    = BVRestoreColumn_Svec_HIP;
+    bv->ops->restoresplit     = BVRestoreSplit_Svec_HIP;
+    bv->ops->restoresplitrows = BVRestoreSplitRows_Svec_HIP;
+    bv->ops->getmat           = BVGetMat_Svec_HIP;
+    bv->ops->restoremat       = BVRestoreMat_Svec_HIP;
 #endif
   } else {
     bv->ops->mult             = BVMult_Svec;

@@ -80,8 +80,8 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
   PetscInt         i,M,N,m,n,Istart,Iend;
   VecType          vtype;
   Mat              Zm,Zn;
-#if defined(PETSC_HAVE_CUDA)
-  PetscBool        cuda;
+#if defined(PETSC_HAVE_CUDA) || defined(PETSC_HAVE_HIP)
+  PetscBool        gpu;
   const PetscInt   *ranges;
   PetscMPIInt      size;
 #endif
@@ -120,15 +120,19 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
     PetscCall(MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cyclic));
     PetscCall(MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_Cyclic));
 #if defined(PETSC_HAVE_CUDA)
-    PetscCall(PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,""));
-    if (cuda) PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cyclic_CUDA));
+    PetscCall(PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&gpu,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,""));
+    if (gpu) PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cyclic_CUDA));
+    else
+#elif defined(PETSC_HAVE_HIP)
+    PetscCall(PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&gpu,MATSEQAIJHIPSPARSE,MATMPIAIJHIPSPARSE,""));
+    if (gpu) PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cyclic_HIP));
     else
 #endif
       PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cyclic));
     PetscCall(MatGetVecType(A,&vtype));
     PetscCall(MatSetVecType(*C,vtype));
-#if defined(PETSC_HAVE_CUDA)
-    if (cuda) {
+#if defined(PETSC_HAVE_CUDA) || defined(PETSC_HAVE_HIP)
+    if (gpu) {
       /* check alignment of bottom block */
       PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ctx->x1),&size));
       PetscCall(VecGetOwnershipRanges(ctx->x1,&ranges));
@@ -262,8 +266,8 @@ static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
   PetscInt         i,M,N,m,n,Istart,Iend;
   VecType          vtype;
   Mat              Id,Zm,Zn,ATA;
-#if defined(PETSC_HAVE_CUDA)
-  PetscBool        cuda;
+#if defined(PETSC_HAVE_CUDA) || defined(PETSC_HAVE_HIP)
+  PetscBool        gpu;
   const PetscInt   *ranges;
   PetscMPIInt      size;
 #endif
@@ -319,15 +323,19 @@ static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
     PetscCall(MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_ECross));
     PetscCall(MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_ECross));
 #if defined(PETSC_HAVE_CUDA)
-    PetscCall(PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,""));
-    if (cuda) PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_ECross_CUDA));
+    PetscCall(PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&gpu,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,""));
+    if (gpu) PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_ECross_CUDA));
+    else
+#elif defined(PETSC_HAVE_HIP)
+    PetscCall(PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&gpu,MATSEQAIJHIPSPARSE,MATMPIAIJHIPSPARSE,""));
+    if (gpu) PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_ECross_HIP));
     else
 #endif
       PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_ECross));
     PetscCall(MatGetVecType(A,&vtype));
     PetscCall(MatSetVecType(*C,vtype));
-#if defined(PETSC_HAVE_CUDA)
-    if (cuda) {
+#if defined(PETSC_HAVE_CUDA) || defined(PETSC_HAVE_HIP)
+    if (gpu) {
       /* check alignment of bottom block */
       PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ctx->x1),&size));
       PetscCall(VecGetOwnershipRanges(ctx->x1,&ranges));

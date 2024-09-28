@@ -156,9 +156,22 @@ SLEPC_INTERN PetscErrorCode SlepcCitationsInitialize(void);
 SLEPC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);
 SLEPC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
 
-/* Definitions needed to work with CUDA kernels */
+/* Macro to check a sequential Mat (including GPU) */
+#if !defined(PETSC_USE_DEBUG)
+#define SlepcMatCheckSeq(h) do {(void)(h);} while (0)
+#else
 #if defined(PETSC_HAVE_CUDA)
-#include <petscdevice_cuda.h>
+#define SlepcMatCheckSeq(h) do { PetscCheckTypeNames((h),MATSEQDENSE,MATSEQDENSECUDA); } while (0)
+#elif defined(PETSC_HAVE_HIP)
+#define SlepcMatCheckSeq(h) do { PetscCheckTypeNames((h),MATSEQDENSE,MATSEQDENSEHIP); } while (0)
+#else
+#define SlepcMatCheckSeq(h) do { PetscCheckTypeName((h),MATSEQDENSE); } while (0)
+#endif
+#endif
+
+/* Definitions needed to work with GPU kernels */
+#if defined(PETSC_HAVE_CUPM)
+#include <petscdevice_cupm.h>
 
 #define X_AXIS 0
 #define Y_AXIS 1
@@ -170,12 +183,21 @@ SLEPC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
 
 static inline PetscErrorCode SlepcKernelSetGrid1D(PetscInt rows,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount)
 {
-  int                   card;
+  int card;
+#if defined(PETSC_HAVE_CUDA)
   struct cudaDeviceProp devprop;
+#elif defined(PETSC_HAVE_HIP)
+  hipDeviceProp_t devprop;
+#endif
 
   PetscFunctionBegin;
+#if defined(PETSC_HAVE_CUDA)
   PetscCallCUDA(cudaGetDevice(&card));
   PetscCallCUDA(cudaGetDeviceProperties(&devprop,card));
+#elif defined(PETSC_HAVE_HIP)
+  PetscCallHIP(hipGetDevice(&card));
+  PetscCallHIP(hipGetDeviceProperties(&devprop,card));
+#endif
   *dimGrid_xcount = 1;
 
   /* X axis */
@@ -192,12 +214,21 @@ static inline PetscErrorCode SlepcKernelSetGrid1D(PetscInt rows,dim3 *dimGrid,di
 
 static inline PetscErrorCode SlepcKernelSetGrid2DTiles(PetscInt rows,PetscInt cols,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount,PetscInt *dimGrid_ycount)
 {
-  int                   card;
+  int card;
+#if defined(PETSC_HAVE_CUDA)
   struct cudaDeviceProp devprop;
+#elif defined(PETSC_HAVE_HIP)
+  hipDeviceProp_t devprop;
+#endif
 
   PetscFunctionBegin;
+#if defined(PETSC_HAVE_CUDA)
   PetscCallCUDA(cudaGetDevice(&card));
   PetscCallCUDA(cudaGetDeviceProperties(&devprop,card));
+#elif defined(PETSC_HAVE_HIP)
+  PetscCallHIP(hipGetDevice(&card));
+  PetscCallHIP(hipGetDeviceProperties(&devprop,card));
+#endif
   *dimGrid_xcount = *dimGrid_ycount = 1;
 
   /* X axis */

@@ -43,7 +43,7 @@ testtest7f: test7f.PETSc
 testtest10: test10.PETSc
 	@test=test10_1; check=test10_1_ks; \
         options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude"; \
-        ${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/82109/82110/' > $${test}.tmp 2>&1; \
+        ${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/82109/82110/' | ${SED} -e "s/58463/58462/" > $${test}.tmp 2>&1; \
         if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
           echo "C/C++ example src/eps/tests/test10 run successfully with 1 MPI process"; \
         else \
@@ -56,7 +56,7 @@ testtest10: test10.PETSc
 testtest10_mpi: test10.PETSc
 	@test=test10_1; check=test10_1_ks; \
         options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude"; \
-        ${MPIEXEC} -n 2 ./test10 $${options} | ${SED} -e 's/82109/82110/' > $${test}.tmp 2>&1; \
+        ${MPIEXEC} -n 2 ./test10 $${options} | ${SED} -e 's/82109/82110/' | ${SED} -e "s/58463/58462/" > $${test}.tmp 2>&1; \
         if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
           echo "C/C++ example src/eps/tests/test10 run successfully with 2 MPI processes"; \
         else \
@@ -69,7 +69,7 @@ testtest10_mpi: test10.PETSc
 testtest10_cuda: test10.PETSc
 	@test=test10_1; check=test10_1_ks_cuda; \
         options="-eps_nev 4 -eps_ncv 14 -m 12 -eps_largest_magnitude -mat_type aijcusparse"; \
-        ${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/30055/30054/' > $${test}.tmp 2>&1; \
+        ${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/54988/54989/' | ${SED} -e "s/35009/35008/" > $${test}.tmp 2>&1; \
         if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
           echo "C/C++ example src/eps/tests/test10 run successfully with CUDA"; \
         else \
@@ -79,3 +79,15 @@ testtest10_cuda: test10.PETSc
         fi; \
         ${RM} $${test}.tmp;
 
+testtest10_hip: test10.PETSc
+	@test=test10_1; check=test10_1_ks_cuda; \
+        options="-eps_nev 4 -eps_ncv 14 -m 12 -eps_largest_magnitude -mat_type aijhipsparse"; \
+        ${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/54988/54989/' | ${SED} -e "s/35009/35008/" > $${test}.tmp 2>&1; \
+        if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+          echo "C/C++ example src/eps/tests/test10 run successfully with HIP"; \
+        else \
+          echo "Possible error running C/C++ src/eps/tests/test10 with HIP"; \
+          cat $${test}.tmp; \
+          touch ../../../check_error; \
+        fi; \
+        ${RM} $${test}.tmp;

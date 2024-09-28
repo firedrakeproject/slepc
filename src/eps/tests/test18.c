@@ -116,6 +116,14 @@ int main(int argc,char **argv)
          suffix: 2_cuda_ks_gnhep
          args: -eps_gen_non_hermitian -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 2_hip_ks
+         args: -mat_type aijhipsparse
+         requires: hip
+      test:
+         suffix: 2_hip_ks_gnhep
+         args: -eps_gen_non_hermitian -mat_type aijhipsparse
+         requires: hip
 
    testset:
       args: -n 10 -m 11 -eps_target 0.2 -eps_harmonic -eps_nev 2 -terse

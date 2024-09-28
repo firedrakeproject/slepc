@@ -216,7 +216,7 @@ PetscErrorCode VecCheckOrthonormality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Ma
 @*/
 PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
 {
-  PetscBool      standard,cuda,mpi;
+  PetscBool      standard,cuda,hip,mpi;
   PetscInt       N,nloc,bs;
 
   PetscFunctionBegin;
@@ -226,8 +226,9 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
 
   PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&standard,VECSEQ,VECMPI,""));
   PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&cuda,VECSEQCUDA,VECMPICUDA,""));
-  if (standard || cuda) {
-    PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&mpi,VECMPI,VECMPICUDA,""));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&hip,VECSEQHIP,VECMPIHIP,""));
+  if (standard || cuda || hip) {
+    PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&mpi,VECMPI,VECMPICUDA,VECMPIHIP,""));
     PetscCall(VecGetLocalSize(v,&nloc));
     PetscCall(VecGetSize(v,&N));
     PetscCall(VecGetBlockSize(v,&bs));
@@ -235,6 +236,11 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
 #if defined(PETSC_HAVE_CUDA)
       if (mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
       else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
+#endif
+    } else if (hip) {
+#if defined(PETSC_HAVE_HIP)
+      if (mpi) PetscCall(VecCreateMPIHIPWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
+      else PetscCall(VecCreateSeqHIPWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
 #endif
     } else {
       if (mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));

@@ -134,7 +134,7 @@ class ArgDB:
     for s in strings:
       value,found = self.PopString(s)
       if found: petscopts.append(s)
-    bools = ['with-fortran-bindings','with-64-bit-indices','with-shared-libraries','with-single-library','with-debugging','with-cuda','with-mpi','with-openmp']
+    bools = ['with-fortran-bindings','with-64-bit-indices','with-shared-libraries','with-single-library','with-debugging','with-cuda','with-hip','with-mpi','with-openmp']
     for s in bools:
       value,found = self.PopBool(s)
       if found: petscopts.append(s)

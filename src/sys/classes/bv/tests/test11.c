@@ -230,6 +230,10 @@ int main(int argc,char **argv)
          suffix: 1_cuda
          args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
+      test:
+         suffix: 1_hip
+         args: -bv_type {{svec mat}} -vec_type hip
+         requires: hip
 
    testset:
       args: -withb -bv_orthog_block {{gs chol svqb}}
@@ -242,6 +246,10 @@ int main(int argc,char **argv)
          suffix: 4_cuda
          args: -bv_type {{svec mat}} -vec_type cuda -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 4_hip
+         args: -bv_type {{svec mat}} -vec_type hip -mat_type aijhipsparse
+         requires: hip
 
    testset:
       args: -resid -bv_orthog_block {{gs chol tsqr tsqrchol svqb}}
@@ -254,6 +262,10 @@ int main(int argc,char **argv)
          suffix: 6_cuda
          args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
+      test:
+         suffix: 6_hip
+         args: -bv_type {{svec mat}} -vec_type hip
+         requires: hip
 
    testset:
       args: -resid -withb -bv_orthog_block {{gs chol svqb}}
@@ -266,6 +278,10 @@ int main(int argc,char **argv)
          suffix: 9_cuda
          args: -bv_type {{svec mat}} -vec_type cuda -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 9_hip
+         args: -bv_type {{svec mat}} -vec_type hip -mat_type aijhipsparse
+         requires: hip
 
    testset:
       args: -bv_orthog_block tsqr
@@ -280,6 +296,11 @@ int main(int argc,char **argv)
          TODO: too many processes accessing the GPU
          args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda !defined(PETSCTEST_VALGRIND)
+      test:
+         suffix: 11_hip
+         TODO: too many processes accessing the GPU
+         args: -bv_type {{svec mat}} -vec_type hip
+         requires: hip !defined(PETSCTEST_VALGRIND)
 
    testset:
       args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr
@@ -294,5 +315,10 @@ int main(int argc,char **argv)
          TODO: too many processes accessing the GPU
          args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda !single !defined(PETSCTEST_VALGRIND)
+      test:
+         suffix: 12_hip
+         TODO: too many processes accessing the GPU
+         args: -bv_type {{svec mat}} -vec_type hip
+         requires: hip !single !defined(PETSCTEST_VALGRIND)
 
 TEST*/

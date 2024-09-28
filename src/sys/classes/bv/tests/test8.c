@@ -107,6 +107,10 @@ int main(int argc,char **argv)
          args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
       test:
+         suffix: 1_hip
+         args: -bv_type {{svec mat}} -vec_type hip
+         requires: hip
+      test:
          suffix: 2
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_orthog_refine never
          requires: !single
@@ -120,5 +124,9 @@ int main(int argc,char **argv)
          suffix: 4_cuda
          args: -bv_type {{svec mat}} -vec_type cuda -bv_orthog_type mgs
          requires: cuda
+      test:
+         suffix: 4_hip
+         args: -bv_type {{svec mat}} -vec_type hip -bv_orthog_type mgs
+         requires: hip
 
 TEST*/

@@ -153,11 +153,14 @@ int main(int argc,char **argv)
       test:
          suffix: 1
          args: -bv_type {{vecs contiguous svec mat}shared output}
-
       test:
          suffix: 1_cuda
          args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
+      test:
+         suffix: 1_hip
+         args: -bv_type {{svec mat}} -vec_type hip
+         requires: hip
 
    testset:
       nsize: 2
@@ -169,5 +172,9 @@ int main(int argc,char **argv)
          suffix: 2_cuda
          args: -nc 2 -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
+      test:
+         suffix: 2_hip
+         args: -nc 2 -bv_type {{svec mat}} -vec_type hip
+         requires: hip
 
 TEST*/
