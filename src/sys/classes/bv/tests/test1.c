@@ -219,7 +219,7 @@ int main(int argc,char **argv)
       test:
          suffix: 1_svec_hip_mat
          args: -mathip
-         filter: sed -e "s/seqdensehip/seqdense/"
+         filter: sed -e "s/seqhip/seqcuda/" | sed -e "s/seqdensehip/seqdense/" | sed -e "s/HIP/CUDA/"
 
    testset:
       args: -bv_type mat -vec_type hip -verbose
@@ -265,10 +265,11 @@ int main(int argc,char **argv)
       output_file: output/test1_1_svec_gpu.out
       test:
          suffix: 2_svec_hip
+         filter: sed -e "s/seqhip/seqcuda/" | sed -e "s/HIP/CUDA/"
       test:
          suffix: 2_svec_hip_mat
          args: -mathip
-         filter: sed -e "s/seqdensehip/seqdense/"
+         filter: sed -e "s/seqhip/seqcuda/" | sed -e "s/seqdensehip/seqdense/" | sed -e "s/HIP/CUDA/"
 
    testset:
       args: -bv_type mat -vec_type hip -verbose -testlda

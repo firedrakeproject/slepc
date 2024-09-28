@@ -423,12 +423,12 @@ gnu-cxx-int64:
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-3.2
 
 #
-# Special job in stage-2 to check pip install.
+# Special job in stage-3 to check pip install.
 #
 
 pip-install:
   extends: .test
-  stage: stage-2
+  stage: stage-3
   tags:
     - pip, name:satet
   before_script:
