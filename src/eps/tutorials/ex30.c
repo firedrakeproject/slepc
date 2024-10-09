@@ -51,7 +51,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",N));
@@ -250,7 +250,7 @@ PetscErrorCode MyStoppingTest(EPS eps,PetscInt its,PetscInt max_it,PetscInt ncon
 
   PetscFunctionBeginUser;
   /* check usual termination conditions, but ignoring the case nconv>=nev */
-  PetscCall(EPSStoppingBasic(eps,its,max_it,nconv,PETSC_MAX_INT,reason,NULL));
+  PetscCall(EPSStoppingBasic(eps,its,max_it,nconv,PETSC_INT_MAX,reason,NULL));
   if (*reason==EPS_CONVERGED_ITERATING) {
     /* check if nconv is the same as before */
     if (nconv==ctx->lastnconv) ctx->nreps++;

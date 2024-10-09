@@ -43,7 +43,7 @@ int main(int argc,char **argv)
   EPS            eps;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   PetscCall(PetscOptionsGetString(NULL,NULL,"-type",svdtype,sizeof(svdtype),NULL));
@@ -99,7 +99,7 @@ int main(int argc,char **argv)
       PetscCall(EPSSetType(eps,epstype));
     }
   }
-  PetscCall(SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(SVDSetDimensions(svd,1,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(SVDSetTolerances(svd,1e-6,1000));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

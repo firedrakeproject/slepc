@@ -101,7 +101,7 @@ class Ksvd(package.Package):
 
     # Patch pdgeqsvd.c to use the API of recent ELPA
     fname = os.path.join(builddir,'src','pdgeqsvd.c')
-    oldcode = '''int useQr, THIS_REAL_ELPA_KERNEL_API;
+    oldcode1 = '''int useQr, THIS_REAL_ELPA_KERNEL_API;
         int mpi_comm_rows, mpi_comm_cols;
         int mpierr = elpa_get_communicators(MPI_Comm_c2f(MPI_COMM_WORLD), myrow, mycol, &mpi_comm_rows, &mpi_comm_cols);
         useQr = 0;
@@ -111,7 +111,7 @@ class Ksvd(package.Package):
                                             mloc, nb, nloc, 
                                             mpi_comm_rows, mpi_comm_cols, MPI_Comm_c2f(MPI_COMM_WORLD),
                                             THIS_REAL_ELPA_KERNEL_API, useQr);'''
-    newcode = '''elpa_t handle;
+    newcode1 = '''elpa_t handle;
         int error_elpa;
         if (elpa_init(20200417) != ELPA_OK) {
           fprintf(stderr, "Error: ELPA API version not supported");
@@ -131,9 +131,13 @@ class Ksvd(package.Package):
         elpa_eigenvectors(handle,U,S,VT,&error_elpa);  assert(error_elpa == ELPA_OK);
         elpa_deallocate(handle, &error_elpa); assert(error_elpa == ELPA_OK);
         elpa_uninit(&error_elpa); assert(error_elpa == ELPA_OK);'''
+    oldcode2 = r'''#include "ksvd.h"'''
+    newcode2 = r'''#include "ksvd.h"
+int pdgeqdwh(char *jobh,int m,int n,double *A,int iA,int jA,int *descA,double *H,int iH,int jH,int *descH,double *Work1,int lWork1,double *Work2,int lWork2,int *info);
+int pdgezolopd(char *jobh,int m,int n,double *A,int iA,int jA,int *descA,double *H,int iH,int jH,int *descH,double *Work1,int lWork1,double *Work2,int lWork2,int *info);'''
     with open(fname,'r') as file:
       sourcecode = file.read()
-    sourcecode = sourcecode.replace(oldcode,newcode)
+    sourcecode = sourcecode.replace(oldcode1,newcode1).replace(oldcode2,newcode2)
     with open(fname,'w') as file:
       file.write(sourcecode)
 
@@ -155,6 +159,14 @@ class Ksvd(package.Package):
     (result,output) = self.RunCommand('cd '+incdir+' && '+petsc.sedinplace+' '+'-e "/myscalapack.h/d" -e "/flops.h/d" ksvd.h')
     if result:
       self.log.Exit('Problem when patching include file ksvd.h')
+    fname = os.path.join(incdir,'ksvd.h')
+    oldcode1 = r'''int pdgeqsvd( char *jobu, char *jobvt, char *eigtype, '''
+    newcode1 = r'''int pdgeqsvd( const char *jobu, const char *jobvt, const char *eigtype,'''
+    with open(fname,'r') as file:
+      sourcecode = file.read()
+    sourcecode = sourcecode.replace(oldcode1,newcode1)
+    with open(fname,'w') as file:
+      file.write(sourcecode)
 
     # Check build
     code = self.SampleCode(petsc)

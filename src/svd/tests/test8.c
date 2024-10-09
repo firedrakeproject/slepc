@@ -38,7 +38,7 @@ int main(int argc,char **argv)
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT,N));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n\n"));
@@ -82,7 +82,7 @@ int main(int argc,char **argv)
 
   /* Second solve */
   PetscCall(SVDGetDimensions(svd,&nsv,&ncv,NULL));
-  PetscCall(SVDSetDimensions(svd,nsv,ncv+2,PETSC_DEFAULT));
+  PetscCall(SVDSetDimensions(svd,nsv,ncv+2,PETSC_DETERMINE));
   PetscCall(SVDSolve(svd));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," - - - Second solve, subspace of increased size - - -\n"));
   PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));

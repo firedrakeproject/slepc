@@ -22,7 +22,7 @@ int main(int argc,char **argv)
   PetscRandom    myrand;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%" PetscInt_FMT "\n\n",n));
@@ -72,7 +72,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
   PetscCall(EPSSetOperators(eps,A1,NULL));
   PetscCall(EPSSetFromOptions(eps));
 

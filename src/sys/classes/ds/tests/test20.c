@@ -22,7 +22,7 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GNHEP - dimension %" PetscInt_FMT ".\n",n));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -98,5 +98,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
+      filter: sed -e "s/-0\./0./"
 
 TEST*/

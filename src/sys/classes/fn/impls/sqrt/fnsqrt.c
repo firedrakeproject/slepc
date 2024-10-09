@@ -189,7 +189,7 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
 
 #if defined(PETSC_HAVE_CUDA)
 #include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
-#include <slepccublas.h>
+#include <slepccupmblas.h>
 
 #if defined(PETSC_HAVE_MAGMA)
 #include <slepcmagma.h>

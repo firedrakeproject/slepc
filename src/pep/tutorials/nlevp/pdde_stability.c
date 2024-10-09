@@ -57,7 +57,7 @@ int main(int argc,char **argv)
   PetscBool      flg,terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 #if !defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires complex scalars");
 #endif
@@ -118,7 +118,7 @@ int main(int argc,char **argv)
   PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
   PetscCall(PEPSetOperators(pep,NMAT,A));
   PetscCall(PEPSetEigenvalueComparison(pep,MyEigenSort,NULL));
-  PetscCall(PEPSetDimensions(pep,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(PEPSetDimensions(pep,4,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(PEPSetFromOptions(pep));
   PetscCall(PEPSolve(pep));
 

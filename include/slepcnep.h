@@ -184,10 +184,43 @@ SLEPC_EXTERN PetscErrorCode NEPValuesViewFromOptions(NEP);
 SLEPC_EXTERN PetscErrorCode NEPVectorsView(NEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPVectorsViewFromOptions(NEP);
 
-SLEPC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,Mat,void*),void*);
-SLEPC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,Mat,void*),void**);
-SLEPC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,void*),void*);
-SLEPC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,void*),void**);
+/*S
+  NEPFunctionFn - A prototype of a NEP function evaluation function that would be passed to NEPSetFunction()
+
+  Calling Sequence:
++   nep    - eigensolver context obtained from NEPCreate()
+.   lambda - the scalar argument where T(.) must be evaluated
+.   T      - matrix that will contain T(lambda)
+.   P      - [optional] different matrix to build the preconditioner
+-   ctx    - [optional] user-defined context for private data for the
+             function evaluation routine (may be NULL)
+
+  Level: beginner
+
+.seealso: NEPSetFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(NEPFunctionFn)(NEP nep,PetscScalar lambda,Mat T,Mat P,void *ctx);
+
+/*S
+  NEPJacobianFn - A prototype of a NEP Jacobian evaluation function that would be passed to NEPSetJacobian()
+
+  Calling Sequence:
++   nep    - eigensolver context obtained from NEPCreate()
+.   lambda - the scalar argument where T'(.) must be evaluated
+.   J      - matrix that will contain T'(lambda)
+-   ctx    - [optional] user-defined context for private data for the
+             Jacobian evaluation routine (may be NULL)
+
+  Level: beginner
+
+.seealso: NEPSetJacobian()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(NEPJacobianFn)(NEP nep,PetscScalar lambda,Mat J,void *ctx);
+
+SLEPC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,NEPFunctionFn*,void*);
+SLEPC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,NEPFunctionFn**,void**);
+SLEPC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,NEPJacobianFn*,void*);
+SLEPC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,NEPJacobianFn**,void**);
 PETSC_DEPRECATED_FUNCTION(3, 12, 0, "NEPSetFunction() and NEPSetJacobian()", ) static inline PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*fun)(NEP,PetscScalar,PetscInt,Mat,void*),void *ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
 PETSC_DEPRECATED_FUNCTION(3, 12, 0, "NEPGetFunction() and NEPGetJacobian()", ) static inline PetscErrorCode NEPGetDerivatives(NEP nep,Mat *A,PetscErrorCode (**fun)(NEP,PetscScalar,PetscInt,Mat,void*),void **ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
 SLEPC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat[],FN[],MatStructure);
@@ -206,13 +239,11 @@ SLEPC_EXTERN PetscErrorCode NEPGetDS(NEP,DS*);
 SLEPC_EXTERN PetscErrorCode NEPRefineGetKSP(NEP,KSP*);
 SLEPC_EXTERN PetscErrorCode NEPSetTolerances(NEP,PetscReal,PetscInt);
 SLEPC_EXTERN PetscErrorCode NEPGetTolerances(NEP,PetscReal*,PetscInt*);
-SLEPC_EXTERN PetscErrorCode NEPSetConvergenceTestFunction(NEP,PetscErrorCode (*)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
 SLEPC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,NEPConv);
 SLEPC_EXTERN PetscErrorCode NEPGetConvergenceTest(NEP,NEPConv*);
 SLEPC_EXTERN PetscErrorCode NEPConvergedAbsolute(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode NEPConvergedRelative(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode NEPConvergedNorm(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-SLEPC_EXTERN PetscErrorCode NEPSetStoppingTestFunction(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
 SLEPC_EXTERN PetscErrorCode NEPSetStoppingTest(NEP,NEPStop);
 SLEPC_EXTERN PetscErrorCode NEPGetStoppingTest(NEP,NEPStop*);
 SLEPC_EXTERN PetscErrorCode NEPStoppingBasic(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
@@ -245,8 +276,6 @@ SLEPC_EXTERN PetscErrorCode NEPSetTwoSided(NEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPGetTwoSided(NEP,PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode NEPApplyResolvent(NEP,RG,PetscScalar,Vec,Vec);
-
-SLEPC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 SLEPC_EXTERN PetscErrorCode NEPSetTrackAll(NEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPGetTrackAll(NEP,PetscBool*);
@@ -285,6 +314,47 @@ SLEPC_EXTERN PetscErrorCode NEPMonitorRegister(const char[],PetscViewerType,Pets
 
 SLEPC_EXTERN PetscErrorCode NEPSetWorkVecs(NEP,PetscInt);
 SLEPC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
+
+/*S
+  NEPConvergenceTestFn - A prototype of a NEP convergence test function that would be passed to NEPSetConvergenceTestFunction()
+
+  Calling Sequence:
++   nep    - eigensolver context obtained from NEPCreate()
+.   eigr   - real part of the eigenvalue
+.   eigi   - imaginary part of the eigenvalue
+.   res    - residual norm associated to the eigenpair
+.   errest - [output] computed error estimate
+-   ctx    - [optional] user-defined context for private data for the
+             convergence test routine (may be NULL)
+
+  Level: advanced
+
+.seealso: NEPSetConvergenceTestFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(NEPConvergenceTestFn)(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx);
+
+/*S
+  NEPStoppingTestFn - A prototype of a NEP stopping test function that would be passed to NEPSetStoppingTestFunction()
+
+  Calling Sequence:
++   nep    - eigensolver context obtained from NEPCreate()
+.   its    - current number of iterations
+.   max_it - maximum number of iterations
+.   nconv  - number of currently converged eigenpairs
+.   nev    - number of requested eigenpairs
+.   reason - [output] result of the stopping test
+-   ctx    - [optional] user-defined context for private data for the
+             stopping test routine (may be NULL)
+
+  Level: advanced
+
+.seealso: NEPSetStoppingTestFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(NEPStoppingTestFn)(NEP nep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx);
+
+SLEPC_EXTERN PetscErrorCode NEPSetConvergenceTestFunction(NEP,NEPConvergenceTestFn*,void*,PetscErrorCode (*)(void*));
+SLEPC_EXTERN PetscErrorCode NEPSetStoppingTestFunction(NEP,NEPStoppingTestFn*,void*,PetscErrorCode (*)(void*));
+SLEPC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,SlepcEigenvalueComparisonFn*,void*);
 
 /* --------- options specific to particular eigensolvers -------- */
 

@@ -247,8 +247,26 @@ SLEPC_EXTERN PetscErrorCode DSNEPSetSamplingSize(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSNEPGetSamplingSize(DS,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSNEPSetRG(DS,RG);
 SLEPC_EXTERN PetscErrorCode DSNEPGetRG(DS,RG*);
-SLEPC_EXTERN PetscErrorCode DSNEPSetComputeMatrixFunction(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*);
-SLEPC_EXTERN PetscErrorCode DSNEPGetComputeMatrixFunction(DS,PetscErrorCode (**)(DS,PetscScalar,PetscBool,DSMatType,void*),void**);
+
+/*S
+  DSNEPMatrixFunctionFn - A prototype of a DSNEP compute matrix function that would be passed to DSNEPSetComputeMatrixFunction()
+
+  Calling Sequence:
++   ds     - the direct solver object
+.   lambda - point where T(lambda) or T'(lambda) must be evaluated
+.   deriv  - if true compute T'(lambda), otherwise compute T(lambda)
+.   mat    - the DS matrix where the result must be stored
+-   ctx    - [optional] user-defined context for private data for the
+             matrix evaluation routine (may be `NULL`)
+
+  Level: developer
+
+.seealso: DSNEPSetComputeMatrixFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(DSNEPMatrixFunctionFn)(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx);
+
+SLEPC_EXTERN PetscErrorCode DSNEPSetComputeMatrixFunction(DS,DSNEPMatrixFunctionFn*,void*);
+SLEPC_EXTERN PetscErrorCode DSNEPGetComputeMatrixFunction(DS,DSNEPMatrixFunctionFn**,void**);
 
 SLEPC_EXTERN PetscFunctionList DSList;
 SLEPC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));

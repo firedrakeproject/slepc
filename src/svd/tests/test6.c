@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   PetscBool      flg,expmat;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
@@ -117,5 +117,9 @@ int main(int argc,char **argv)
          suffix: 2_cuda
          args: -eps_type subspace -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 2_hip
+         args: -eps_type subspace -mat_type aijhipsparse
+         requires: hip
 
 TEST*/

@@ -241,13 +241,11 @@ SLEPC_EXTERN PetscErrorCode PEPRefineGetKSP(PEP,KSP*);
 
 SLEPC_EXTERN PetscErrorCode PEPSetTolerances(PEP,PetscReal,PetscInt);
 SLEPC_EXTERN PetscErrorCode PEPGetTolerances(PEP,PetscReal*,PetscInt*);
-SLEPC_EXTERN PetscErrorCode PEPSetConvergenceTestFunction(PEP,PetscErrorCode (*)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
 SLEPC_EXTERN PetscErrorCode PEPSetConvergenceTest(PEP,PEPConv);
 SLEPC_EXTERN PetscErrorCode PEPGetConvergenceTest(PEP,PEPConv*);
 SLEPC_EXTERN PetscErrorCode PEPConvergedAbsolute(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode PEPConvergedRelative(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode PEPConvergedNorm(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-SLEPC_EXTERN PetscErrorCode PEPSetStoppingTestFunction(PEP,PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
 SLEPC_EXTERN PetscErrorCode PEPSetStoppingTest(PEP,PEPStop);
 SLEPC_EXTERN PetscErrorCode PEPGetStoppingTest(PEP,PEPStop*);
 SLEPC_EXTERN PetscErrorCode PEPStoppingBasic(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*);
@@ -275,7 +273,6 @@ SLEPC_EXTERN PetscErrorCode PEPGetIterationNumber(PEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode PEPSetInitialSpace(PEP,PetscInt,Vec[]);
 SLEPC_EXTERN PetscErrorCode PEPSetWhichEigenpairs(PEP,PEPWhich);
 SLEPC_EXTERN PetscErrorCode PEPGetWhichEigenpairs(PEP,PEPWhich*);
-SLEPC_EXTERN PetscErrorCode PEPSetEigenvalueComparison(PEP,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 SLEPC_EXTERN PetscErrorCode PEPSetTrackAll(PEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode PEPGetTrackAll(PEP,PetscBool*);
@@ -312,6 +309,47 @@ SLEPC_EXTERN PetscErrorCode PEPMonitorRegister(const char[],PetscViewerType,Pets
 
 SLEPC_EXTERN PetscErrorCode PEPSetWorkVecs(PEP,PetscInt);
 SLEPC_EXTERN PetscErrorCode PEPAllocateSolution(PEP,PetscInt);
+
+/*S
+  PEPConvergenceTestFn - A prototype of a PEP convergence test function that would be passed to PEPSetConvergenceTestFunction()
+
+  Calling Sequence:
++   pep    - eigensolver context obtained from PEPCreate()
+.   eigr   - real part of the eigenvalue
+.   eigi   - imaginary part of the eigenvalue
+.   res    - residual norm associated to the eigenpair
+.   errest - [output] computed error estimate
+-   ctx    - [optional] user-defined context for private data for the
+             convergence test routine (may be NULL)
+
+  Level: advanced
+
+.seealso: PEPSetConvergenceTestFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(PEPConvergenceTestFn)(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx);
+
+/*S
+  PEPStoppingTestFn - A prototype of a PEP stopping test function that would be passed to PEPSetStoppingTestFunction()
+
+  Calling Sequence:
++   pep    - eigensolver context obtained from PEPCreate()
+.   its    - current number of iterations
+.   max_it - maximum number of iterations
+.   nconv  - number of currently converged eigenpairs
+.   nev    - number of requested eigenpairs
+.   reason - [output] result of the stopping test
+-   ctx    - [optional] user-defined context for private data for the
+             stopping test routine (may be NULL)
+
+  Level: advanced
+
+.seealso: PEPSetStoppingTestFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(PEPStoppingTestFn)(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx);
+
+SLEPC_EXTERN PetscErrorCode PEPSetConvergenceTestFunction(PEP,PEPConvergenceTestFn*,void*,PetscErrorCode (*)(void*));
+SLEPC_EXTERN PetscErrorCode PEPSetStoppingTestFunction(PEP,PEPStoppingTestFn*,void*,PetscErrorCode (*)(void*));
+SLEPC_EXTERN PetscErrorCode PEPSetEigenvalueComparison(PEP,SlepcEigenvalueComparisonFn*,void*);
 
 /* --------- options specific to particular eigensolvers -------- */
 

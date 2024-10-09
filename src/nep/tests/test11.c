@@ -47,7 +47,7 @@ int main(int argc,char **argv)
   PetscBool         flg,terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n\n",n,(double)tau));
@@ -114,15 +114,15 @@ int main(int argc,char **argv)
 
   /* Customize nonlinear solver; set runtime options */
   PetscCall(NEPSetType(nep,NEPCISS));
-  PetscCall(NEPSetDimensions(nep,1,24,PETSC_DEFAULT));
-  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_DEFAULT));
+  PetscCall(NEPSetDimensions(nep,1,24,PETSC_DETERMINE));
+  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_CURRENT));
   PetscCall(NEPGetRG(nep,&rg));
   PetscCall(RGSetType(rg,RGELLIPSE));
   PetscCall(RGEllipseSetParameters(rg,10.0,9.5,0.1));
-  PetscCall(NEPCISSSetSizes(nep,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,1,PETSC_DEFAULT,PETSC_TRUE));
+  PetscCall(NEPCISSSetSizes(nep,PETSC_DETERMINE,PETSC_DETERMINE,PETSC_DETERMINE,1,PETSC_DETERMINE,PETSC_TRUE));
   PetscCall(NEPCISSGetKSPs(nep,&nsolve,&ksp));
   for (i=0;i<nsolve;i++) {
-    PetscCall(KSPSetTolerances(ksp[i],1e-12,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(ksp[i],1e-12,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
     PetscCall(KSPSetType(ksp[i],KSPBCGS));
     PetscCall(KSPGetPC(ksp[i],&pc));
     PetscCall(PCSetType(pc,PCSOR));

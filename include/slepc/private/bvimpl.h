@@ -104,7 +104,8 @@ struct _p_BV {
   PetscRandom        rand;         /* random number generator */
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */
   Mat                Aget;         /* matrix returned for BVGetMat() */
-  PetscBool          cuda;         /* true if GPU must be used */
+  PetscBool          cuda;         /* true if NVIDIA GPU must be used */
+  PetscBool          hip;          /* true if AMD GPU must be used */
   PetscBool          sfocalled;    /* setfromoptions has been called */
   PetscScalar        *work;
   PetscInt           lwork;
@@ -120,6 +121,7 @@ struct _p_BV {
 static inline PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
 {
   PetscReal      absal,realp;
+  const char     *msg;
 
   PetscFunctionBegin;
   absal = PetscAbsScalar(alpha);
@@ -131,7 +133,8 @@ static inline PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
   if (PetscUnlikely(bv->indef)) {
     *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
   } else {
-    PetscCheck(realp>-bv->deftol,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: indefinite matrix %g",(double)realp);
+    msg = bv->matrix? "The inner product is not well defined: indefinite matrix %g": "Invalid inner product: %g";
+    PetscCheck(realp>-bv->deftol,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,msg,(double)realp);
     *res = (realp<0.0)? 0.0: PetscSqrtReal(realp);
   }
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -148,7 +151,7 @@ static inline PetscErrorCode BV_IPMatMult(BV bv,Vec x)
     if (PetscUnlikely(!bv->Bx)) PetscCall(MatCreateVecs(bv->matrix,&bv->Bx,NULL));
     PetscCall(MatMult(bv->matrix,x,bv->Bx));
     PetscCall(PetscObjectGetId((PetscObject)x,&bv->xid));
-    PetscCall(PetscObjectStateGet((PetscObject)x,&bv->xstate));
+    PetscCall(VecGetState(x,&bv->xstate));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -190,6 +193,12 @@ static inline PetscErrorCode BV_AllocateSignature(BV bv)
     if (bv->cuda) {
 #if defined(PETSC_HAVE_CUDA)
       PetscCall(VecCreateSeqCUDA(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega));
+#else
+      SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
+#endif
+    } else if (bv->hip) {
+#if defined(PETSC_HAVE_HIP)
+      PetscCall(VecCreateSeqHIP(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega));
 #else
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
 #endif
@@ -413,6 +422,7 @@ static inline PetscErrorCode BV_GetEigenvector(BV V,PetscInt k,PetscScalar eigi,
 {
   PetscFunctionBegin;
 #if defined(PETSC_USE_COMPLEX)
+  (void)eigi;
   if (Vr) PetscCall(BVCopyVec(V,k,Vr));
   if (Vi) PetscCall(VecSet(Vi,0.0));
 #else
@@ -466,9 +476,9 @@ static inline PetscErrorCode BV_SetDefaultLD(BV bv,PetscInt nloc)
   if (bv->ld) {   /* set by user */
     PetscCheck(bv->ld>=nloc,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The leading dimension %" PetscInt_FMT " should be larger or equal to the local number of rows %" PetscInt_FMT,bv->ld,nloc);
   } else {
-    align  = PetscMax(PETSC_MEMALIGN,16);   /* assume that CUDA requires 16-byte alignment */
-    bytes  = (nloc*sizeof(PetscScalar) + align - 1) & ~(align - 1);
-    bv->ld = bytes/sizeof(PetscScalar);
+    align = PetscMax(PETSC_MEMALIGN,16);   /* assume that CUDA requires 16-byte alignment */
+    bytes = (nloc*sizeof(PetscScalar) + align - 1) & ~(align - 1);
+    PetscCall(PetscIntCast(bytes/sizeof(PetscScalar),&bv->ld));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -545,7 +555,82 @@ SLEPC_INTERN PetscErrorCode BV_StoreCoefficients_CUDA(BV,PetscInt,PetscScalar*,P
 #define BV_ApplySignature(a,b,c,d)    ((a)->cuda?BV_ApplySignature_CUDA:BV_ApplySignature_Default)((a),(b),(c),(d))
 #define BV_SquareRoot(a,b,c,d)        ((a)->cuda?BV_SquareRoot_CUDA:BV_SquareRoot_Default)((a),(b),(c),(d))
 #define BV_StoreCoefficients(a,b,c,d) ((a)->cuda?BV_StoreCoefficients_CUDA:BV_StoreCoefficients_Default)((a),(b),(c),(d))
-#else
+
+#elif defined(PETSC_HAVE_HIP)
+#include <petscdevice_cupm.h>
+/*
+   BV_MatDenseHIPGetArrayRead - if Q is MATSEQDENSE it will allocate memory on the
+   GPU and copy the contents; otherwise, calls MatDenseHIPGetArrayRead()
+*/
+static inline PetscErrorCode BV_MatDenseHIPGetArrayRead(BV bv,Mat Q,const PetscScalar **d_q)
+{
+  const PetscScalar *q;
+  PetscInt          ldq,mq;
+  PetscCuBLASInt    ldq_=0;
+  PetscBool         matiship;
+
+  PetscFunctionBegin;
+  (void)bv; // avoid unused parameter warning
+  PetscCall(MatGetSize(Q,NULL,&mq));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
+  PetscCall(PetscHipBLASIntCast(ldq,&ldq_));
+  PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSEHIP,&matiship));
+  if (matiship) PetscCall(MatDenseHIPGetArrayRead(Q,d_q));
+  else {
+    PetscCall(MatDenseGetArrayRead(Q,&q));
+    PetscCallHIP(hipMalloc((void**)d_q,ldq*mq*sizeof(PetscScalar)));
+    PetscCallHIP(hipMemcpy((void*)*d_q,q,ldq*mq*sizeof(PetscScalar),hipMemcpyHostToDevice));
+    PetscCall(PetscLogCpuToGpu(ldq*mq*sizeof(PetscScalar)));
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*
+   BV_MatDenseHIPRestoreArrayRead - restores the pointer obtained with BV_MatDenseHIPGetArrayRead(),
+   freeing the GPU memory in case of MATSEQDENSE
+*/
+static inline PetscErrorCode BV_MatDenseHIPRestoreArrayRead(BV bv,Mat Q,const PetscScalar **d_q)
+{
+  PetscBool matiship;
+
+  PetscFunctionBegin;
+  (void)bv; // avoid unused parameter warning
+  PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSEHIP,&matiship));
+  if (matiship) PetscCall(MatDenseHIPRestoreArrayRead(Q,d_q));
+  else {
+    PetscCall(MatDenseRestoreArrayRead(Q,NULL));
+    PetscCallHIP(hipFree((void*)*d_q));
+    *d_q = NULL;
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+SLEPC_INTERN PetscErrorCode BVMult_BLAS_HIP(BV,PetscInt,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscInt,const PetscScalar*,PetscInt,PetscScalar,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode BVMultVec_BLAS_HIP(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscInt,const PetscScalar*,PetscScalar,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BVMultInPlace_BLAS_HIP(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscInt,const PetscScalar*,PetscInt,PetscBool);
+SLEPC_INTERN PetscErrorCode BVAXPY_BLAS_HIP(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscInt,PetscScalar,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode BVDot_BLAS_HIP(BV,PetscInt,PetscInt,PetscInt,const PetscScalar*,PetscInt,const PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscBool);
+SLEPC_INTERN PetscErrorCode BVDotVec_BLAS_HIP(BV,PetscInt,PetscInt,const PetscScalar*,PetscInt,const PetscScalar*,PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVScale_BLAS_HIP(BV,PetscInt,PetscScalar*,PetscScalar);
+SLEPC_INTERN PetscErrorCode BVNorm_BLAS_HIP(BV,PetscInt,const PetscScalar*,PetscReal*);
+SLEPC_INTERN PetscErrorCode BVNormalize_BLAS_HIP(BV,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*);
+
+SLEPC_INTERN PetscErrorCode BV_CleanCoefficients_HIP(BV,PetscInt,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BV_AddCoefficients_HIP(BV,PetscInt,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BV_SetValue_HIP(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar);
+SLEPC_INTERN PetscErrorCode BV_SquareSum_HIP(BV,PetscInt,PetscScalar*,PetscReal*);
+SLEPC_INTERN PetscErrorCode BV_ApplySignature_HIP(BV,PetscInt,PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BV_SquareRoot_HIP(BV,PetscInt,PetscScalar*,PetscReal*);
+SLEPC_INTERN PetscErrorCode BV_StoreCoefficients_HIP(BV,PetscInt,PetscScalar*,PetscScalar*);
+#define BV_CleanCoefficients(a,b,c)   ((a)->hip?BV_CleanCoefficients_HIP:BV_CleanCoefficients_Default)((a),(b),(c))
+#define BV_AddCoefficients(a,b,c,d)   ((a)->hip?BV_AddCoefficients_HIP:BV_AddCoefficients_Default)((a),(b),(c),(d))
+#define BV_SetValue(a,b,c,d,e)        ((a)->hip?BV_SetValue_HIP:BV_SetValue_Default)((a),(b),(c),(d),(e))
+#define BV_SquareSum(a,b,c,d)         ((a)->hip?BV_SquareSum_HIP:BV_SquareSum_Default)((a),(b),(c),(d))
+#define BV_ApplySignature(a,b,c,d)    ((a)->hip?BV_ApplySignature_HIP:BV_ApplySignature_Default)((a),(b),(c),(d))
+#define BV_SquareRoot(a,b,c,d)        ((a)->hip?BV_SquareRoot_HIP:BV_SquareRoot_Default)((a),(b),(c),(d))
+#define BV_StoreCoefficients(a,b,c,d) ((a)->hip?BV_StoreCoefficients_HIP:BV_StoreCoefficients_Default)((a),(b),(c),(d))
+
+#else /* CPU */
 #define BV_CleanCoefficients(a,b,c)   BV_CleanCoefficients_Default((a),(b),(c))
 #define BV_AddCoefficients(a,b,c,d)   BV_AddCoefficients_Default((a),(b),(c),(d))
 #define BV_SetValue(a,b,c,d,e)        BV_SetValue_Default((a),(b),(c),(d),(e))

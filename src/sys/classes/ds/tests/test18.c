@@ -15,18 +15,19 @@ static char help[] = "Test DSSynchronize() on a NHEP.\n\n";
 PetscErrorCode CheckArray(PetscScalar *A,const char *label,PetscInt k)
 {
   PetscInt       j;
-  PetscMPIInt    p,size,rank;
+  PetscMPIInt    p,size,rank,k_;
   PetscScalar    dif,*buf;
   PetscReal      error;
 
   PetscFunctionBeginUser;
   PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
-  if (rank) PetscCallMPI(MPI_Send(A,k,MPIU_SCALAR,0,111,PETSC_COMM_WORLD));
+  PetscCall(PetscMPIIntCast(k,&k_));
+  if (rank) PetscCallMPI(MPI_Send(A,k_,MPIU_SCALAR,0,111,PETSC_COMM_WORLD));
   else {
     PetscCall(PetscMalloc1(k,&buf));
     for (p=1;p<size;p++) {
-      PetscCallMPI(MPI_Recv(buf,k,MPIU_SCALAR,p,111,PETSC_COMM_WORLD,MPI_STATUS_IGNORE));
+      PetscCallMPI(MPI_Recv(buf,k_,MPIU_SCALAR,p,111,PETSC_COMM_WORLD,MPI_STATUS_IGNORE));
       dif = 0.0;
       for (j=0;j<k;j++) dif += A[j]-buf[j];
       error = PetscAbsScalar(dif);
@@ -47,7 +48,7 @@ int main(int argc,char **argv)
   PetscMPIInt    size;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n));
 

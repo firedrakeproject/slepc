@@ -361,3 +361,59 @@ PetscErrorCode STGetTransform(ST st,PetscBool *flg)
   *flg = st->transform;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
+
+/*@
+   STSetStructured - Sets a flag to indicate that the application of the
+   operator must be done taking into account its structure.
+
+   Logically Collective
+
+   Input Parameters:
++  st  - the spectral transformation context
+-  flg - the boolean flag
+
+   Note:
+   This flag is intended for the case of structured eigenproblems. It is set
+   internally by the solver, the user should not modify its value.
+
+   Level: developer
+
+.seealso: STApply(), STGetStructured()
+@*/
+PetscErrorCode STSetStructured(ST st,PetscBool flg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveBool(st,flg,2);
+  if (st->structured != flg) {
+    st->structured = flg;
+    st->state      = ST_STATE_INITIAL;
+    st->opready    = PETSC_FALSE;
+  }
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+/*@
+   STGetStructured - Gets a flag that indicates if the application of the
+   operator is done using its structure.
+
+   Not Collective
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  flg - the flag
+
+   Level: developer
+
+.seealso: STSetStructured()
+@*/
+PetscErrorCode STGetStructured(ST st,PetscBool *flg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscAssertPointer(flg,2);
+  *flg = st->structured;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}

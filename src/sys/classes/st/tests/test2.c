@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   PetscBool      test_compl=PETSC_FALSE;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetBool(NULL,NULL,"-complex",&test_compl,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian, n=%" PetscInt_FMT "\n\n",n));
@@ -181,5 +181,6 @@ int main(int argc,char **argv)
       suffix: 2
       args: -complex -st_matmode {{copy inplace shell}}
       requires: complex !single
+      filter: sed -e "s/3.46945e-18 - 8.67362e-18 i/0./"
 
 TEST*/

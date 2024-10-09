@@ -1,15 +1,24 @@
 # Changelog of SLEPc versions
 
-## [unreleased]
+## [3.22] - 2024-09-29
 
 ### Added
 
+- `EPS`: added support for structured eigenvalue problems in the Krylov-Schur solver.
+  In particular, the problem type `EPS_BSE` is intended to solve eigenproblems with
+  Bethe-Salpeter structure, whose matrix has been created with `MatCreateBSE()`.
 - `BV`: new function `BVGetSplitRows()` to split a `BV` row-wise using index sets.
+- Added support for AMD GPUs via HIP and ROCm, see section 8.3 of the Users Manual.
 
 ### Changed
 
+- Some interface functions now support `PETSC_CURRENT` to preserve the current value of
+  the arguments. This implies that `PETSC_DEFAULT` is deprecated for setting a default
+  value in those cases, and `PETSC_DETERMINE` or `PETSC_DECIDE` should be used instead.
+  This is the case of, e.g., `EPSSetDimensions()`.
+- `DS`: various improvements including optimization of memory usage.
 - In slepc4py now `EPS.getEigenpair()` and `EPS.getEigenvalue()` will return a real value
-instead of a complex, if the problem is of Hermitian or generalized Hermitian type.
+  instead of a complex, if the problem is of Hermitian or generalized Hermitian type.
 
 ## [3.21] - 2024-03-30
 
@@ -470,7 +479,8 @@ instead of a complex, if the problem is of Hermitian or generalized Hermitian ty
 - Classical and modified Gram-Schmidt orthogonalization use iterative refinement, with user options
   for parameter adjustment.
 
-[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.21...main
+[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.22...main
+[3.22]: https://gitlab.com/slepc/slepc/compare/v3.21...v3.22
 [3.21]: https://gitlab.com/slepc/slepc/compare/v3.20...v3.21
 [3.20]: https://gitlab.com/slepc/slepc/compare/v3.19...v3.20
 [3.19]: https://gitlab.com/slepc/slepc/compare/v3.18...v3.19

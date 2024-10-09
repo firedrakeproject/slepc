@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   PetscBool      flag,terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
@@ -116,17 +116,26 @@ int main(int argc,char **argv)
          suffix: 2_cuda_ks_gnhep
          args: -eps_gen_non_hermitian -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 2_hip_ks
+         args: -mat_type aijhipsparse
+         requires: hip
+      test:
+         suffix: 2_hip_ks_gnhep
+         args: -eps_gen_non_hermitian -mat_type aijhipsparse
+         requires: hip
 
    testset:
-      args: -n 10 -m 11 -eps_target 0.2 -eps_harmonic -eps_nev 2 -eps_ncv 11 -terse
-      requires: !single
+      args: -n 10 -m 11 -eps_target 0.2 -eps_harmonic -eps_nev 2 -terse
       filter: sed -e "s/[+-]0\.0*i//g"
       output_file: output/test18_2.out
       test:
          suffix: 2_gd
-         args: -eps_type gd
+         args: -eps_type gd -eps_ncv 8
+         requires: !single
       test:
          suffix: 2_jd
-         args: -eps_type jd -st_ksp_type bcgs
+         args: -eps_type jd -st_ksp_type bcgs -eps_ncv 10
+         requires: double
 
 TEST*/

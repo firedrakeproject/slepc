@@ -32,13 +32,13 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
 \bibitem[{Balay {\em et~al.\/}(2024)Balay, Abhyankar, Adams, Benson, Brown, Brune,
   Buschelman, Constantinescu, Dalcin, Dener, Eijkhout, Faibussowitsch, Gropp, Hapla, Isaac, Jolivet,
   Karpeyev, Kaushik, Knepley, Kong, Kruger, May, McInnes, Mills, Mitchell, Munson,
-  Roman, Rupp, Sanan, Sarich, Smith, Zampini, Zhang, Zhang, and Zhang}]{Balay:PUM}
+  Roman, Rupp, Sanan, Sarich, Smith, Suh, Zampini, Zhang, Zhang, and Zhang}]{Balay:PUM}
 Balay, S., S.~Abhyankar, M.~F.~Adams, S.~Benson, J.~Brown, P.~Brune, K.~Buschelman,
   E.~Constantinescu, L.~Dalcin, A.~Dener, V.~Eijkhout, J.~Faibussowitsch, W.~D.~Gropp, V.~Hapla,
   T.~Isaac, P.~Jolivet, D.~Karpeyev, D.~Kaushik, M.~G.~Knepley, F.~Kong, S.~Kruger, D.~A.~May,
   L.~C. McInnes, R.~T. Mills, L.~Mitchell, T.~Munson, J.~E. Roman, K.~Rupp, P.~Sanan,
-  J.~Sarich, B.~F.~Smith, S.~Zampini, H.~Zhang, H.~Zhang, and J.~Zhang (2024).
-\newblock {PETSc/TAO} Users Manual Revision 3.21.
+  J.~Sarich, B.~F.~Smith, H.~Suh, S.~Zampini, H.~Zhang, H.~Zhang, and J.~Zhang (2024).
+\newblock {PETSc/TAO} Users Manual Revision 3.22.
 \newblock Argonne Technical Memorandum ANL-21/39.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and
@@ -269,6 +269,11 @@ Saad, Y. (1992).
 \newblock {\em Numerical Methods for Large Eigenvalue Problems: Theory and
   Algorithms\/}.
 \newblock John Wiley and Sons, New York.
+
+\bibitem[{Sangalli(2019)}]{Sangalli:2019:MBP}
+Sangalli, D., et~al. (2019).
+\newblock Many-body perturbation theory calculations using the yambo code.
+\newblock {\em J. Condens. Matter Phys.\/}, 31(32):325902.
 
 \bibitem[{Scott(1982)}]{Scott:1982:AIO}
 Scott, D.~S. (1982).

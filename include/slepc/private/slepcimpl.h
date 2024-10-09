@@ -17,6 +17,9 @@
 
 SLEPC_INTERN PetscBool SlepcBeganPetsc;
 
+/* SlepcSwap - swap two variables a,b of the same type using a temporary variable t */
+#define SlepcSwap(a,b,t) do {t=a;a=b;b=t;} while (0)
+
 /*MC
     SlepcHeaderCreate - Creates a SLEPc object
 
@@ -49,6 +52,39 @@ struct _n_SlepcConvMon {
   void     *ctx;
   PetscInt oldnconv;  /* previous value of nconv */
 };
+
+/* context for structured eigenproblem matrices created via MatCreateXXX */
+struct _n_SlepcMatStruct {
+  PetscInt cookie;    /* identify which structured matrix */
+};
+typedef struct _n_SlepcMatStruct* SlepcMatStruct;
+
+#define SLEPC_MAT_STRUCT_BSE 88101
+
+/*
+  SlepcCheckMatStruct - Check that a given Mat is a structured matrix of the wanted type.
+
+  Returns true/false in flg if it is given, otherwise yields an error if the check fails.
+  If cookie==0 it will check for any type.
+*/
+static inline PetscErrorCode SlepcCheckMatStruct(Mat A,PetscInt cookie,PetscBool *flg)
+{
+  PetscContainer container;
+  SlepcMatStruct mctx;
+
+  PetscFunctionBegin;
+  if (flg) *flg = PETSC_FALSE;
+  PetscCall(PetscObjectQuery((PetscObject)A,"SlepcMatStruct",(PetscObject*)&container));
+  if (flg && !container) PetscFunctionReturn(PETSC_SUCCESS);
+  PetscCheck(container,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_WRONG,"The Mat is not a structured matrix");
+  if (cookie) {
+    PetscCall(PetscContainerGetPointer(container,(void**)&mctx));
+    if (flg && (!mctx || mctx->cookie!=cookie)) PetscFunctionReturn(PETSC_SUCCESS);
+    PetscCheck(mctx && mctx->cookie==cookie,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_WRONG,"The type of structured matrix is different from the expected one");
+  }
+  if (flg) *flg = PETSC_TRUE;
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
 
 /*
   SlepcPrintEigenvalueASCII - Print an eigenvalue on an ASCII viewer.
@@ -120,9 +156,22 @@ SLEPC_INTERN PetscErrorCode SlepcCitationsInitialize(void);
 SLEPC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);
 SLEPC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
 
-/* Definitions needed to work with CUDA kernels */
+/* Macro to check a sequential Mat (including GPU) */
+#if !defined(PETSC_USE_DEBUG)
+#define SlepcMatCheckSeq(h) do {(void)(h);} while (0)
+#else
 #if defined(PETSC_HAVE_CUDA)
-#include <petscdevice_cuda.h>
+#define SlepcMatCheckSeq(h) do { PetscCheckTypeNames((h),MATSEQDENSE,MATSEQDENSECUDA); } while (0)
+#elif defined(PETSC_HAVE_HIP)
+#define SlepcMatCheckSeq(h) do { PetscCheckTypeNames((h),MATSEQDENSE,MATSEQDENSEHIP); } while (0)
+#else
+#define SlepcMatCheckSeq(h) do { PetscCheckTypeName((h),MATSEQDENSE); } while (0)
+#endif
+#endif
+
+/* Definitions needed to work with GPU kernels */
+#if defined(PETSC_HAVE_CUPM)
+#include <petscdevice_cupm.h>
 
 #define X_AXIS 0
 #define Y_AXIS 1
@@ -134,12 +183,21 @@ SLEPC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
 
 static inline PetscErrorCode SlepcKernelSetGrid1D(PetscInt rows,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount)
 {
-  int                   card;
+  int card;
+#if defined(PETSC_HAVE_CUDA)
   struct cudaDeviceProp devprop;
+#elif defined(PETSC_HAVE_HIP)
+  hipDeviceProp_t devprop;
+#endif
 
   PetscFunctionBegin;
+#if defined(PETSC_HAVE_CUDA)
   PetscCallCUDA(cudaGetDevice(&card));
   PetscCallCUDA(cudaGetDeviceProperties(&devprop,card));
+#elif defined(PETSC_HAVE_HIP)
+  PetscCallHIP(hipGetDevice(&card));
+  PetscCallHIP(hipGetDeviceProperties(&devprop,card));
+#endif
   *dimGrid_xcount = 1;
 
   /* X axis */
@@ -156,12 +214,21 @@ static inline PetscErrorCode SlepcKernelSetGrid1D(PetscInt rows,dim3 *dimGrid,di
 
 static inline PetscErrorCode SlepcKernelSetGrid2DTiles(PetscInt rows,PetscInt cols,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount,PetscInt *dimGrid_ycount)
 {
-  int                   card;
+  int card;
+#if defined(PETSC_HAVE_CUDA)
   struct cudaDeviceProp devprop;
+#elif defined(PETSC_HAVE_HIP)
+  hipDeviceProp_t devprop;
+#endif
 
   PetscFunctionBegin;
+#if defined(PETSC_HAVE_CUDA)
   PetscCallCUDA(cudaGetDevice(&card));
   PetscCallCUDA(cudaGetDeviceProperties(&devprop,card));
+#elif defined(PETSC_HAVE_HIP)
+  PetscCallHIP(hipGetDevice(&card));
+  PetscCallHIP(hipGetDeviceProperties(&devprop,card));
+#endif
   *dimGrid_xcount = *dimGrid_ycount = 1;
 
   /* X axis */

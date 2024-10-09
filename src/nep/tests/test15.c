@@ -59,7 +59,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n\n",n,(double)tau));
@@ -146,7 +146,7 @@ int main(int argc,char **argv)
   */
   mpd = 40;
   PetscCall(NEPSetDimensions(nep,2*mpd,3*mpd,mpd));
-  PetscCall(NEPSetTolerances(nep,PETSC_DEFAULT,2000));
+  PetscCall(NEPSetTolerances(nep,PETSC_CURRENT,2000));
   PetscCall(PetscNew(&ctx));
   ctx->lastnconv = 0;
   ctx->nreps     = 0;
@@ -195,7 +195,7 @@ PetscErrorCode MyStoppingTest(NEP nep,PetscInt its,PetscInt max_it,PetscInt ncon
 
   PetscFunctionBeginUser;
   /* check usual termination conditions, but ignoring the case nconv>=nev */
-  PetscCall(NEPStoppingBasic(nep,its,max_it,nconv,PETSC_MAX_INT,reason,NULL));
+  PetscCall(NEPStoppingBasic(nep,its,max_it,nconv,PETSC_INT_MAX,reason,NULL));
   if (*reason==NEP_CONVERGED_ITERATING) {
     /* check if nconv is the same as before */
     if (nconv==ctx->lastnconv) ctx->nreps++;

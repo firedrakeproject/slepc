@@ -113,11 +113,11 @@ static PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScal
 */
 static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,PetscReal *s,PetscScalar* Q,PetscInt ldq,PetscBool flip,PetscReal *d,PetscReal *e,PetscInt *perm_,PetscScalar *work,PetscReal *rwork,PetscBLASInt *iwork)
 {
-  PetscInt       i,j,k,*ii,*jj,i0=0,ik=0,tmp,type;
+  PetscInt       i,j,k,*ii,*jj,i0=0,ik=0,type;
   PetscInt       nwu=0;
   PetscReal      *ss,cond=1.0,cs,sn,r;
   PetscScalar    tau,t,*AA;
-  PetscBLASInt   n0,n1,ni,inc=1,m,n_,lda_,ldq_,*perm;
+  PetscBLASInt   n0,n1,ni,inc=1,m,n_,lda_,ldq_,*perm,tmp;
   PetscBool      breakdown = PETSC_TRUE;
 
   PetscFunctionBegin;
@@ -143,19 +143,19 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
     /* Classify (and flip) A and s according to sign */
     if (flip) {
       for (i=0;i<n;i++) {
-        perm[i] = n-1-perm_[i];
+        PetscCall(PetscBLASIntCast(n-1-perm_[i],&perm[i]));
         if (perm[i]==0) i0 = i;
         if (perm[i]==k) ik = i;
       }
     } else {
       for (i=0;i<n;i++) {
-        perm[i] = perm_[i];
+        PetscCall(PetscBLASIntCast(perm_[i],&perm[i]));
         if (perm[i]==0) i0 = i;
         if (perm[i]==k) ik = i;
       }
     }
     perm[ik] = 0;
-    perm[i0] = k;
+    PetscCall(PetscBLASIntCast(k,&perm[i0]));
     i=1;
     while (i<n-1 && s[perm[i-1]]==s[perm[0]]) {
       if (s[perm[i]]!=s[perm[0]]) {
@@ -486,7 +486,8 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
 */
 PetscErrorCode DSPseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown,PetscScalar *work)
 {
-  PetscInt       i,j,n,n0,n1,np,idx0,idx1,sz=1,k=0,t1,t2,nwu=0;
+  PetscInt       i,j,n,n0,n1,np,idx0,idx1,sz=1,k=0,nwu=0;
+  PetscBLASInt   t1,t2;
   PetscScalar    *col1,*col2;
   PetscBool      exg=PETSC_FALSE,ok=PETSC_FALSE;
 
@@ -505,8 +506,8 @@ PetscErrorCode DSPseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscR
   for (i=0;i<n;i++) {
     if (s[i]==s[0]) {
       s[n0] = s[0];
-      perm[n0++] = i;
-    } else perm[n1++] = i;
+      PetscCall(PetscBLASIntCast(i,&perm[n0++]));
+    } else PetscCall(PetscBLASIntCast(i,&perm[n1++]));
   }
   for (i=n0;i<n;i++) s[i] = -s[0];
   n1 -= n0;
@@ -521,7 +522,7 @@ PetscErrorCode DSPseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscR
     PetscCall(PetscArrayzero(V+i*ldv,n));
     V[perm[i]+i*ldv] = 1.0;
   }
-  for (i=0;i<n;i++) perm[i] = i;
+  for (i=0;i<n;i++) PetscCall(PetscBLASIntCast(i,&perm[i]));
   j = 0;
   while (j<n-k) {
     if (cmplxEig[j]==0) sz=1;

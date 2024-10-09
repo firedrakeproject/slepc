@@ -97,7 +97,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   BVCheckSizes(Y,2);
   PetscValidType(M,3);
   PetscCheckSameTypeAndComm(X,1,Y,2);
-  PetscCheckTypeNames(M,MATSEQDENSE,MATSEQDENSECUDA);
+  SlepcMatCheckSeq(M);
 
   PetscCall(MatGetSize(M,&m,&n));
   PetscCheck(m>=Y->k,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,Y->k);
@@ -1113,7 +1113,7 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   BVCheckSizes(Y,3);
   PetscValidType(M,4);
   PetscCheckSameTypeAndComm(X,1,Y,3);
-  PetscCheckTypeNames(M,MATSEQDENSE,MATSEQDENSECUDA);
+  SlepcMatCheckSeq(M);
 
   PetscCall(MatGetSize(M,&m,&n));
   PetscCall(MatDenseGetLDA(M,&ldm));

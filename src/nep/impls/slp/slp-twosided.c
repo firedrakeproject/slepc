@@ -73,7 +73,7 @@ static PetscErrorCode MatDestroy_SLPTS(Mat M)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#if defined(PETSC_HAVE_CUDA)
+#if defined(PETSC_HAVE_CUDA) || defined(PETSC_HAVE_HIP)
 static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
 {
   NEP_SLPTS_MATSHELL *ctx;
@@ -102,7 +102,7 @@ static PetscErrorCode NEPSLPSetUpEPSMat(NEP nep,Mat F,Mat J,PetscBool left,Mat *
   if (left) PetscCall(MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Left));
   else PetscCall(MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Right));
   PetscCall(MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_SLPTS));
-#if defined(PETSC_HAVE_CUDA)
+#if defined(PETSC_HAVE_CUDA) || defined(PETSC_HAVE_HIP)
   PetscCall(MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_SLPTS));
 #endif
   *M = Mshell;

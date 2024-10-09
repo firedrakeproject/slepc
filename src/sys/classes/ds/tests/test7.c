@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   PetscBool      verbose,extrarow;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   k = PetscMin(n,m);
@@ -122,12 +122,15 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
+      args: -ds_method {{0 1}}
       suffix: 1
+      filter: grep -v "solving the problem"
       requires: !single
 
    test:
       suffix: 2
-      args: -extrarow
+      args: -extrarow -ds_method {{0 1}}
+      filter: grep -v "solving the problem"
       requires: !single
 
 TEST*/

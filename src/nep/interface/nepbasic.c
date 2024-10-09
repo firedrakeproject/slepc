@@ -51,21 +51,21 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscCall(NEPInitializePackage());
   PetscCall(SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView));
 
-  nep->max_it          = PETSC_DEFAULT;
+  nep->max_it          = PETSC_DETERMINE;
   nep->nev             = 1;
-  nep->ncv             = PETSC_DEFAULT;
-  nep->mpd             = PETSC_DEFAULT;
+  nep->ncv             = PETSC_DETERMINE;
+  nep->mpd             = PETSC_DETERMINE;
   nep->nini            = 0;
   nep->target          = 0.0;
-  nep->tol             = PETSC_DEFAULT;
+  nep->tol             = PETSC_DETERMINE;
   nep->conv            = NEP_CONV_REL;
   nep->stop            = NEP_STOP_BASIC;
   nep->which           = (NEPWhich)0;
   nep->problem_type    = (NEPProblemType)0;
   nep->refine          = NEP_REFINE_NONE;
   nep->npart           = 1;
-  nep->rtol            = PETSC_DEFAULT;
-  nep->rits            = PETSC_DEFAULT;
+  nep->rtol            = PETSC_DETERMINE;
+  nep->rits            = PETSC_DETERMINE;
   nep->scheme          = (NEPRefineScheme)0;
   nep->trackall        = PETSC_FALSE;
   nep->twosided        = PETSC_FALSE;
@@ -576,7 +576,7 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
     PetscCall(PetscObjectSetOptions((PetscObject)nep->refineksp,((PetscObject)nep)->options));
     PetscCall(KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix));
     PetscCall(KSPAppendOptionsPrefix(*ksp,"nep_refine_"));
-    PetscCall(KSPSetTolerances(nep->refineksp,SlepcDefaultTol(nep->rtol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(nep->refineksp,SlepcDefaultTol(nep->rtol),PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
   *ksp = nep->refineksp;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -653,24 +653,16 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
 .  A   - Function matrix
 .  B   - preconditioner matrix (usually same as A)
 .  fun - Function evaluation routine (if NULL then NEP retains any
-         previously set value)
+         previously set value), see NEPFunctionFn for the calling sequence
 -  ctx - [optional] user-defined context for private data for the Function
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
-
-   Calling sequence of fun:
-$  PetscErrorCode fun(NEP nep,PetscScalar lambda,Mat T,Mat P,void *ctx)
-+  nep    - the NEP context
-.  lambda - the scalar argument where T(.) must be evaluated
-.  T      - matrix that will contain T(lambda)
-.  P      - (optional) different matrix to build the preconditioner
--  ctx    - (optional) user-defined context, as set by NEPSetFunction()
 
    Level: beginner
 
 .seealso: NEPGetFunction(), NEPSetJacobian()
 @*/
-PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP nep,PetscScalar lambda,Mat T,Mat P,void *ctx),void *ctx)
+PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,NEPFunctionFn *fun,void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -718,7 +710,7 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP nep,
 
 .seealso: NEPSetFunction()
 @*/
-PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,PetscScalar,Mat,Mat,void*),void **ctx)
+PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,NEPFunctionFn **fun,void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -740,23 +732,16 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
 +  nep - the NEP context
 .  A   - Jacobian matrix
 .  jac - Jacobian evaluation routine (if NULL then NEP retains any
-         previously set value)
+         previously set value), see NEPJacobianFn for the calling sequence
 -  ctx - [optional] user-defined context for private data for the Jacobian
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
-
-   Calling sequence of jac:
-$  PetscErrorCode jac(NEP nep,PetscScalar lambda,Mat J,void *ctx)
-+  nep    - the NEP context
-.  lambda - the scalar argument where T'(.) must be evaluated
-.  J      - matrix that will contain T'(lambda)
--  ctx    - (optional) user-defined context, as set by NEPSetJacobian()
 
    Level: beginner
 
 .seealso: NEPSetFunction(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP nep,PetscScalar lambda,Mat J,void *ctx),void *ctx)
+PetscErrorCode NEPSetJacobian(NEP nep,Mat A,NEPJacobianFn *jac,void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -796,7 +781,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP nep,PetscS
 
 .seealso: NEPSetJacobian()
 @*/
-PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscScalar,Mat,void*),void **ctx)
+PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,NEPJacobianFn **jac,void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);

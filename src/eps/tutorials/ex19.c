@@ -91,7 +91,7 @@ int main(int argc,char **argv)
   PetscRandom    rctx;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n3-D Laplacian Eigenproblem\n\n"));
 
@@ -147,7 +147,7 @@ int main(int argc,char **argv)
      Set specific solver options
   */
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  PetscCall(EPSSetTolerances(eps,1e-8,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,1e-8,PETSC_CURRENT));
   PetscCall(EPSSetInitialSpace(eps,1,&v0));
 
   /*
@@ -259,7 +259,7 @@ int main(int argc,char **argv)
          args: -eps_type lobpcg -eps_tol 1e-7
       test:
          suffix: 1_blopex
-         args: -eps_type blopex -eps_tol 1e-7 -eps_blopex_blocksize 4
+         args: -eps_type blopex -eps_tol 1e-7 -eps_blopex_blocksize 4 -st_ksp_type preonly
          requires: blopex
 
 TEST*/

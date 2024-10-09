@@ -26,7 +26,7 @@ int main(int argc,char **argv)
   PetscBool      flg,lock;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-nini",&nini,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-ncon",&ncon,NULL));
@@ -58,7 +58,7 @@ int main(int argc,char **argv)
   PetscCall(EPSSetType(eps,EPSLOBPCG));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
   PetscCall(EPSSetConvergenceTest(eps,EPS_CONV_ABS));
-  PetscCall(EPSSetDimensions(eps,nev,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,nev,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSLOBPCGSetBlockSize(eps,nev));
   PetscCall(EPSLOBPCGSetRestart(eps,0.7));
   PetscCall(EPSSetTolerances(eps,1e-8,1200));
@@ -122,8 +122,12 @@ int main(int argc,char **argv)
          suffix: 1
          requires: !single
       test:
-         suffix: 2_cuda
+         suffix: 1_cuda
          args: -mat_type aijcusparse
          requires: cuda !single
+      test:
+         suffix: 1_hip
+         args: -mat_type aijhipsparse
+         requires: hip !single
 
 TEST*/

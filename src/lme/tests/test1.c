@@ -29,7 +29,7 @@ int main(int argc,char **argv)
   PetscViewerAndFormat *vf;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flg));
@@ -105,7 +105,7 @@ int main(int argc,char **argv)
   if (viewmatrices) PetscCall(MatView(B,PETSC_VIEWER_STDOUT_WORLD));
   PetscCall(LMEGetRHS(lme,&D));
   if (viewmatrices) PetscCall(MatView(D,PETSC_VIEWER_STDOUT_WORLD));
-  PetscCall(LMESetTolerances(lme,PETSC_DEFAULT,100));
+  PetscCall(LMESetTolerances(lme,PETSC_CURRENT,100));
   PetscCall(LMESetDimensions(lme,21));
   PetscCall(LMESetErrorIfNotConverged(lme,PETSC_TRUE));
   /* test monitors */

@@ -470,7 +470,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
 static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt)
 {
   PetscInt       tmp;
-  PetscBLASInt   m, n, k, ldA = _ldA, ldB = _ldB, ldC = _ldC;
+  PetscBLASInt   m, n, k, ldA, ldB, ldC;
   const char     *N = "N", *T = "C", *qA = N, *qB = N;
 
   PetscFunctionBegin;
@@ -478,6 +478,9 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
   PetscAssertPointer(C,1);
   PetscAssertPointer(A,5);
   PetscAssertPointer(B,10);
+  PetscCall(PetscBLASIntCast(_ldA,&ldA));
+  PetscCall(PetscBLASIntCast(_ldB,&ldB));
+  PetscCall(PetscBLASIntCast(_ldC,&ldC));
 
   /* Transpose if needed */
   if (At) tmp = rA, rA = cA, cA = tmp, qA = T;
@@ -494,7 +497,9 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
     else *C = PetscConj(*A) * PetscConj(*B);
     m = n = k = 1;
   } else {
-    m = rA; n = cB; k = cA;
+    PetscCall(PetscBLASIntCast(rA,&m));
+    PetscCall(PetscBLASIntCast(cB,&n));
+    PetscCall(PetscBLASIntCast(cA,&k));
     PetscCallBLAS("BLASgemm",BLASgemm_(qA,qB,&m,&n,&k,&a,(PetscScalar*)A,&ldA,(PetscScalar*)B,&ldB,&b,C,&ldC));
   }
 

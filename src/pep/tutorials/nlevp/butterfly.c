@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   PetscBool      terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   n = m*m;
@@ -163,7 +163,7 @@ int main(int argc,char **argv)
       timeoutfactor: 2
       test:
          suffix: ciss_hankel
-         args: -pep_ciss_extraction hankel -pep_ciss_integration_points 40
+         args: -pep_ciss_extraction hankel -pep_ciss_integration_points 60
          requires: !single
       test:
          suffix: ciss_ritz

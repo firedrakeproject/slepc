@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   PetscViewerAndFormat *vf;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Quadratic Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A[0]));
@@ -112,7 +112,7 @@ int main(int argc,char **argv)
   PetscCall(PEPGetWhichEigenpairs(pep,&which));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Which = %d, target = %g\n",(int)which,(double)PetscRealPart(target)));
 
-  PetscCall(PEPSetDimensions(pep,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(PEPSetDimensions(pep,4,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(PEPGetDimensions(pep,&nev,&ncv,&mpd));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%" PetscInt_FMT ", ncv=%" PetscInt_FMT ", mpd=%" PetscInt_FMT "\n",nev,ncv,mpd));
 
@@ -132,7 +132,7 @@ int main(int argc,char **argv)
 
   PetscCall(PEPGetST(pep,&st));
   PetscCall(STGetKSP(st,&ksp));
-  PetscCall(KSPSetTolerances(ksp,1e-8,1e-35,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(KSPSetTolerances(ksp,1e-8,1e-35,PETSC_CURRENT,PETSC_CURRENT));
   PetscCall(STView(st,NULL));
   PetscCall(PEPGetDS(pep,&ds));
   PetscCall(DSView(ds,NULL));

@@ -137,7 +137,7 @@
  170  format (' Which = ',I2,', target = ',F4.1)
 
       nev = 4
-      PetscCallA(EPSSetDimensions(eps,nev,PETSC_DEFAULT_INTEGER,PETSC_DEFAULT_INTEGER,ierr))
+      PetscCallA(EPSSetDimensions(eps,nev,PETSC_DETERMINE_INTEGER,PETSC_DETERMINE_INTEGER,ierr))
       PetscCallA(EPSGetDimensions(eps,nev,ncv,mpd,ierr))
       if (rank .eq. 0) then
         write(*,180) nev,ncv,mpd
@@ -172,7 +172,7 @@
       PetscCallA(STGetKSP(st,ksp,ierr))
       tol = 1.e-8
       tolabs = 1.e-35
-      PetscCallA(KSPSetTolerances(ksp,tol,tolabs,PETSC_DEFAULT_REAL,PETSC_DEFAULT_INTEGER,ierr))
+      PetscCallA(KSPSetTolerances(ksp,tol,tolabs,PETSC_CURRENT_REAL,PETSC_CURRENT_INTEGER,ierr))
       PetscCallA(STView(st,PETSC_NULL_VIEWER,ierr))
       PetscCallA(EPSGetDS(eps,ds,ierr))
       PetscCallA(DSView(ds,PETSC_NULL_VIEWER,ierr))

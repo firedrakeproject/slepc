@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PetscReal      norm;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
@@ -95,7 +95,7 @@ int main(int argc,char **argv)
   A[0] = K; A[1] = C; A[2] = M;
   PetscCall(PEPSetOperators(pep,3,A));
   PetscCall(PEPSetProblemType(pep,PEP_HERMITIAN));
-  PetscCall(PEPSetDimensions(pep,4,20,PETSC_DEFAULT));
+  PetscCall(PEPSetDimensions(pep,4,20,PETSC_DETERMINE));
 
   /* setup convergence test relative to the norm of M */
   PetscCall(MatNorm(M,NORM_1,&norm));

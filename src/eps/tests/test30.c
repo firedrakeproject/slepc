@@ -21,7 +21,7 @@ int main(int argc,char **argv)
   PetscInt       n=20,i,Istart,Iend,nrest;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
   PetscCall(EPSSetTarget(eps,4.8));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE));
-  PetscCall(EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,4,PETSC_DETERMINE,PETSC_DETERMINE));
 
   PetscCall(EPSSetType(eps,EPSRQCG));
   PetscCall(EPSRQCGSetReset(eps,10));

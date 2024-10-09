@@ -94,13 +94,13 @@ chk_slepcdir:
         fi
 
 allfortranstubs: deletefortranstubs
-	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch=${PETSC_ARCH} --bfort=${BFORT} --mode=generate --verbose=${V}
-	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch=${PETSC_ARCH} --mode=merge --verbose=${V}
+	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-dir=${PETSC_DIR} --petsc-arch=${PETSC_ARCH} --bfort=${BFORT} --mode=generate --verbose=${V}
+	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-dir=${PETSC_DIR} --petsc-arch=${PETSC_ARCH} --mode=merge --verbose=${V}
 
 #copy of allfortranstubs with PETSC_ARCH=''
 allfortranstubsinplace: deletefortranstubs
-	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch='' --bfort=${BFORT} --mode=generate --verbose=${V}
-	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-arch='' --mode=merge --verbose=${V}
+	@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-dir=${PETSC_DIR} --petsc-arch='' --bfort=${BFORT} --mode=generate --verbose=${V}
+	-@${PYTHON} lib/slepc/bin/maint/generatefortranstubs.py --slepc-dir=${SLEPC_DIR} --petsc-dir=${PETSC_DIR} --petsc-arch='' --mode=merge --verbose=${V}
 
 deletefortranstubs:
 	-@find src -type d -name ftn-auto* | xargs rm -rf
@@ -143,6 +143,9 @@ check_build:
          fi
 	+@if [ "`grep -E '^#define PETSC_HAVE_CUDA 1' ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h 2>/dev/null`" = "#define PETSC_HAVE_CUDA 1" ] || [ "`grep -E '^#define PETSC_HAVE_CUDA 1' ${PETSC_DIR}/include/petscconf.h 2>/dev/null`" = "#define PETSC_HAVE_CUDA 1" ]; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_cuda; \
+         fi
+	+@if [ "`grep -E '^#define PETSC_HAVE_HIP 1' ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h 2>/dev/null`" = "#define PETSC_HAVE_HIP 1" ] || [ "`grep -E '^#define PETSC_HAVE_HIP 1' ${PETSC_DIR}/include/petscconf.h 2>/dev/null`" = "#define PETSC_HAVE_HIP 1" ]; then \
+           cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_hip; \
          fi
 	+@if [ "`grep -E '^#define SLEPC_HAVE_BLOPEX 1' ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h`" = "#define SLEPC_HAVE_BLOPEX 1" ]; then \
            cd src/eps/tests >/dev/null; ${RUN_TEST} testtest5_blopex; \

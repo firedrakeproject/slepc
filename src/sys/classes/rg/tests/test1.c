@@ -24,7 +24,7 @@ int main(int argc,char **argv)
   PetscScalar    ar,ai,cr[NPOINTS],ci[NPOINTS],vr[NVERTEX],vi[NVERTEX],*pr,*pi;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(RGCreate(PETSC_COMM_WORLD,&rg));
 
   /* ellipse */

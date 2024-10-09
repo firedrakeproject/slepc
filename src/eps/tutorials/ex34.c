@@ -62,7 +62,7 @@ int main(int argc,char **argv)
   PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE,use_custom_norm=PETSC_FALSE,sign_normalization=PETSC_TRUE;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   comm = PETSC_COMM_WORLD;
   /* Create a quadrilateral mesh on domain (0,1)x(0,1) */
   PetscCall(CreateSquareMesh(comm,&dm));
@@ -155,7 +155,7 @@ int main(int argc,char **argv)
     PetscCall(SNESGetFunctionNorm(snes,&norm0));
     /* Make the tolerance smaller than the last residual
        SNES will converge right away if the initial is setup correctly */
-    PetscCall(SNESSetTolerances(snes,norm0*1.2,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(SNESSetTolerances(snes,norm0*1.2,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
     PetscCall(EPSSolve(eps));
     /* Number of Newton iterations supposes to be zero */
     PetscCall(SNESGetIterationNumber(snes,&nits));
@@ -277,7 +277,7 @@ PetscErrorCode CreateSquareMesh(MPI_Comm comm,DM *dm)
   PetscMPIInt    size;
 
   PetscFunctionBegin;
-  PetscCall(DMPlexCreateBoxMesh(comm,dim,PETSC_FALSE,cells,NULL,NULL,NULL,PETSC_TRUE,dm));
+  PetscCall(DMPlexCreateBoxMesh(comm,dim,PETSC_FALSE,cells,NULL,NULL,NULL,PETSC_TRUE,0,PETSC_TRUE,dm));
   PetscCall(DMSetFromOptions(*dm));
   PetscCall(DMSetUp(*dm));
   PetscCallMPI(MPI_Comm_size(comm,&size));

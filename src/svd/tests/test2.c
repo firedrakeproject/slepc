@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrix for which the SVD must be computed
@@ -59,7 +59,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
   PetscCall(SVDSetOperators(svd,A,NULL));
-  PetscCall(SVDSetTolerances(svd,tol,PETSC_DEFAULT));
+  PetscCall(SVDSetTolerances(svd,tol,PETSC_CURRENT));
   PetscCall(SVDSetFromOptions(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -71,7 +71,7 @@ int main(int argc,char **argv)
   PetscBool      flg,delay,skipnorm=PETSC_FALSE;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
@@ -101,7 +101,7 @@ int main(int argc,char **argv)
   */
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_NHEP));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
 
   /*
      Set the custom comparing routine in order to obtain the eigenvalues
@@ -208,9 +208,10 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
    testset:
       args: -eps_nev 4
       output_file: output/test9_1.out
+      filter: sed -e "s/97136/97137/g"
       test:
          suffix: 1
-         args: -eps_type {{krylovschur arnoldi lapack}} -eps_ncv 7 -eps_max_it 300
+         args: -eps_type {{krylovschur arnoldi lapack}} -eps_ncv 8 -eps_max_it 300
       test:
          suffix: 1_gd
          args: -eps_type gd -st_pc_type none

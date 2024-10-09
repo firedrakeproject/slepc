@@ -12,6 +12,18 @@ Development
 instead of a complex, if the problem is of Hermitian or generalized Hermitian type.
 
 
+Release 3.22.0
+==============
+
+- Update to SLEPc 3.22.0.
+
+
+Release 3.21.2
+==============
+
+- Update to SLEPc 3.21.2.
+
+
 Release 3.21.1
 ==============
 

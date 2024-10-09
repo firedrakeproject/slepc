@@ -57,7 +57,7 @@ int main(int argc,char **argv)
   MatCtx         *ctx;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%" PetscInt_FMT "%s\n\n",n,split?" (in split form)":""));
@@ -82,7 +82,7 @@ int main(int argc,char **argv)
    PetscCall(KSPSetType(ksp[i],KSPBICG));
    PetscCall(KSPGetPC(ksp[i],&pc));
    PetscCall(PCSetType(pc,PCJACOBI));
-   PetscCall(KSPSetTolerances(ksp[i],tol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+   PetscCall(KSPSetTolerances(ksp[i],tol,PETSC_CURRENT,PETSC_CURRENT,PETSC_CURRENT));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

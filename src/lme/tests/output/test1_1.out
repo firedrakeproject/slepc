@@ -108,7 +108,7 @@ row 99: (89, 1.)  (98, 1.)  (99, -4.)
 Mat Object: 1 MPI process
   type: lrc
  Solver being used: krylov
- Tolerance: -2., max iterations: 100
+ Tolerance: -1., max iterations: 100
  Subspace dimension: 21
  Erroring out if convergence fails
 LME Object: 1 MPI process

@@ -27,7 +27,7 @@ int main(int argc,char **argv)
   PetscViewer       viewer;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGNHEP problem with contour integral\n\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -67,7 +67,7 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,A,B));
   PetscCall(EPSSetProblemType(eps,EPS_GNHEP));
-  PetscCall(EPSSetTolerances(eps,1e-9,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,1e-9,PETSC_CURRENT));
 
   /* set CISS solver with various options */
   PetscCall(EPSSetType(eps,EPSCISS));
@@ -112,6 +112,10 @@ int main(int argc,char **argv)
          suffix: 1_cuda
          args: -mat_type aijcusparse -st_pc_factor_mat_solver_type cusparse
          requires: cuda double !complex !defined(PETSC_USE_64BIT_INDICES)
+      test:
+         suffix: 1_hip
+         args: -mat_type aijhipsparse -st_pc_factor_mat_solver_type hipsparse
+         requires: hip double !complex !defined(PETSC_USE_64BIT_INDICES)
 
    testset:
       args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -rg_type ellipse -rg_ellipse_center 1-0.09i -rg_ellipse_radius 0.15 -rg_ellipse_vscale 0.1
@@ -123,5 +127,9 @@ int main(int argc,char **argv)
          suffix: 2_cuda
          args: -mat_type aijcusparse -st_pc_factor_mat_solver_type cusparse
          requires: cuda double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
+      test:
+         suffix: 2_hip
+         args: -mat_type aijhipsparse -st_pc_factor_mat_solver_type hipsparse
+         requires: hip double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
 
 TEST*/

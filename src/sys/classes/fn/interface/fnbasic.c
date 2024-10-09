@@ -608,7 +608,7 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
 {
   PetscBool      set,flg,symm=PETSC_FALSE,iscuda,hasspecificmeth;
   PetscInt       m,n;
-  PetscMPIInt    size,rank;
+  PetscMPIInt    size,rank,n2;
   PetscScalar    *pF;
   Mat            M,F;
 
@@ -645,7 +645,8 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
   if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) {  /* synchronize */
     PetscCall(MatGetSize(A,&m,&n));
     PetscCall(MatDenseGetArray(F,&pF));
-    PetscCallMPI(MPI_Bcast(pF,n*n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn)));
+    PetscCall(PetscMPIIntCast(n*n,&n2));
+    PetscCallMPI(MPI_Bcast(pF,n2,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn)));
     PetscCall(MatDenseRestoreArray(F,&pF));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -697,7 +698,7 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
     PetscValidHeaderSpecific(B,MAT_CLASSID,3);
     PetscValidType(B,3);
   } else inplace = PETSC_TRUE;
-  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);
+  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);   //SlepcMatCheckSeq(A);
   PetscCall(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   if (!inplace) {
@@ -758,7 +759,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
   PetscBool      set,flg,symm=PETSC_FALSE,iscuda,hasspecificmeth;
   PetscInt       m,n;
   Mat            M;
-  PetscMPIInt    size,rank;
+  PetscMPIInt    size,rank,n_;
   PetscScalar    *pv;
 
   PetscFunctionBegin;
@@ -796,7 +797,8 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
   if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) {
     PetscCall(MatGetSize(A,&m,&n));
     PetscCall(VecGetArray(v,&pv));
-    PetscCallMPI(MPI_Bcast(pv,n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn)));
+    PetscCall(PetscMPIIntCast(n,&n_));
+    PetscCallMPI(MPI_Bcast(pv,n_,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn)));
     PetscCall(VecRestoreArray(v,&pv));
   }
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -835,7 +837,7 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   PetscValidType(fn,1);
   PetscValidType(A,2);
   PetscValidType(v,3);
-  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);
+  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);   //SlepcMatCheckSeq(A);
   PetscCall(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));

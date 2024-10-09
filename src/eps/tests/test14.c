@@ -34,7 +34,7 @@ int main(int argc,char **argv)
   PetscViewerAndFormat *vf;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
   PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
@@ -90,7 +90,7 @@ int main(int argc,char **argv)
   PetscCall(EPSGetWhichEigenpairs(eps,&which));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Which = %d, target = %g\n",(int)which,(double)PetscRealPart(target)));
 
-  PetscCall(EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,4,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSGetDimensions(eps,&nev,&ncv,&mpd));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%" PetscInt_FMT ", ncv=%" PetscInt_FMT ", mpd=%" PetscInt_FMT "\n",nev,ncv,mpd));
 
@@ -110,7 +110,7 @@ int main(int argc,char **argv)
 
   PetscCall(EPSGetST(eps,&st));
   PetscCall(STGetKSP(st,&ksp));
-  PetscCall(KSPSetTolerances(ksp,1e-8,1e-35,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(KSPSetTolerances(ksp,1e-8,1e-35,PETSC_CURRENT,PETSC_CURRENT));
   PetscCall(STView(st,NULL));
   PetscCall(EPSGetDS(eps,&ds));
   PetscCall(DSView(ds,NULL));

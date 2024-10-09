@@ -22,7 +22,7 @@ such method is to use a spectral transformation. Cheaper alternatives
 are also available.
 
 .. [1] J. E. Roman, C. Campos, L. Dalcin, E. Romero, A. Tomas.
-   SLEPc Users Manual. DSIC-II/24/02 - Revision 3.21
+   SLEPc Users Manual. DSIC-II/24/02 - Revision 3.22.
    D. Sistemas Informaticos y Computacion, Universitat Politecnica de
    Valencia. 2024.
 
@@ -185,3 +185,9 @@ auxiliary object.
       by the end-user for instance to define function T(.) when solving
       nonlinear eigenproblems with NEP in split form.
 
+:RG:  A component used to define a region of the complex plane such as an
+      ellipse or a rectangle. This is required by end-users in some cases
+      such as contour-integral eigensolvers.
+
+In addition to the above components, some extra functionality is provided
+in the :Sys: and :Util: sections.

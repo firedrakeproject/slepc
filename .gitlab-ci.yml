@@ -72,13 +72,13 @@ variables:
     - export PETSC_DIR=$PWD
     - export PETSC_ARCH=arch-$CI_JOB_NAME
     - bash -c "${PYTHON} ./configure --with-debugging=0 COPTFLAGS='-O3 -march=native' CXXOPTFLAGS='-O3 -march=native' FOPTFLAGS='-O3 -march=native' ${PETSC_CONFIG_OPTS}"
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}"
     - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
     - echo -e "section_start:`date +%s`:build_slepc\r\e[0KSLEPc configure and make"
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" check
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}"
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}" check
     - |
       if [ ! -z ${CHECKSOURCE+x} ]; then
         make checkbadSource SHELL=bash;
@@ -149,9 +149,8 @@ gnu-c-complex-nompi-int64:
 gnu-c-py:
   extends: .stage-1
   tags:
-    - name:anuket
+    - name:sejmet
   variables:
-    LOAD_MODULES: mpi/mpich-x86_64
     PETSC_CONFIG_OPTS: --with-fc=0
     TEST_SEARCH: eps_tests-test10_1
     CHECKSOURCE: 1
@@ -159,9 +158,9 @@ gnu-c-py:
 gnu-c99-mlib-static:
   extends: .stage-1
   tags:
-    - linux-suse, name:igai
+    - linux-ubuntu, name:satet
   variables:
-    PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 --CFLAGS=-std=c99
+    PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 COPTFLAGS="-O -march=native -std=c99"
     TEST_SEARCH: eps_tests-test10_1
 
 gnu-lint:
@@ -205,8 +204,8 @@ gnu-lint:
       fi
     - export PETSC_DIR=$PWD
     - export PETSC_ARCH=arch-$CI_JOB_NAME
-    - bash -c "${PYTHON} ./configure --with-debugging=0 --with-strict-petscerrorcode --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O3' ${PETSC_CONFIG_OPTS}"
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
+    - bash -c "${PYTHON} ./configure --with-debugging=0 --with-strict-petscerrorcode --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O3' --HIPOPTFLAGS='-O2' ${PETSC_CONFIG_OPTS}"
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}"
     - if [ ! -z ${SLEPC4PY+x} ]; then export PYTHONPATH=$PETSC_DIR/$PETSC_ARCH/lib:$SLEPC_DIR/$PETSC_ARCH/lib; fi
     - if [ ! -z ${INSTALL+x} ]; then make install-lib; PETSC_DIR=$INSTALL_DIR; unset PETSC_ARCH; fi
     - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
@@ -214,16 +213,16 @@ gnu-lint:
     - cd $SLEPC_DIR
     - if [ ! -z ${BUILD_DIR+x} ]; then rm -rf ${BUILD_DIR}; mkdir ${BUILD_DIR}; fi
     - bash -c "${PYTHON} ./configure ${SLEPC_CONFIG_OPTS}"
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}"
     - if [ ! -z ${INSTALL+x} ]; then make install; SLEPC_DIR=$INSTALL_DIR; fi
-    - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" check; fi
+    - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}" check; fi
     - if [ ! -z ${PKG_CONFIG+x} ]; then make check_usermakefile PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PETSC_DIR/$PETSC_ARCH/lib/pkgconfig; fi
     - if [ ! -z ${BUILD_DOCS+x} ]; then make alldoc LOC=$SLEPC_DIR; tar czf ${CI_JOB_NAME}-docs.tar.gz --exclude "*.out" --exclude "makefile*" --exclude "ftn-auto*" --exclude slepc4py docs include src; fi
     - if [ ! -z ${BUILD_DOCS+x} ] && [ ! -z ${SLEPC4PY+x} ]; then make -C src/binding/slepc4py rst2html sphinx-html sphinx-pdf PYTHON=${PYTHON}; tar czf ${CI_JOB_NAME}-docs-py.tar.gz -C src/binding/slepc4py docs; fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - if [ ! -z ${SLEPC4PY+x} ]; then make slepc4pytest; make -C src/binding/slepc4py/demo PYTHON=${PYTHON}; fi
-    - if [ -z ${DISABLE_TESTS+x} ]; then make cleantest; make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" allgtests-tap TIMEOUT=${TIMEOUT} ${TEST_OPTS}; fi
+    - if [ -z ${DISABLE_TESTS+x} ]; then make cleantest; make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}" allgtests-tap TIMEOUT=${TIMEOUT} ${TEST_OPTS}; fi
     - if [ ! -z ${COVERAGE+x} -a -z ${DISABLE_TESTS+x} ]; then lcov --capture --exclude "/usr/*" --directory $SLEPC_DIR --output-file coverage.info; genhtml coverage.info --legend --title SLEPc --output-directory coverage; tar czf ${CI_JOB_NAME}-cov.tar.gz coverage; fi
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   artifacts:
@@ -358,9 +357,8 @@ gnu-cxx-complex:
     - .stage-2
     - .linux_test
   tags:
-    - name:anuket
+    - name:sejmet
   variables:
-    LOAD_MODULES: mpi/mpich-x86_64
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.9.0 --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex
 
@@ -373,6 +371,16 @@ gnu-c-cuda:
   variables:
     LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse --with-magma-dir=/usr/local/opt/magma-2.7.1
+
+gnu-c-hip:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - gpu:amd, name:satet
+  variables:
+    LOAD_MODULES: rocm
+    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-hip --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse
 
 clang-c:
   extends:
@@ -389,7 +397,7 @@ gnu-c-complex-multilib:
     - .stage-2
     - .linux_test
   tags:
-    - linux-ubuntu, name:maat
+    - linux-ubuntu, name:satet
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --download-metis --download-parmetis --download-scalapack --with-cxx-dialect=17
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa --with-fortran-bindings-inplace
@@ -415,14 +423,14 @@ gnu-cxx-int64:
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-3.2
 
 #
-# Special job in stage-2 to check pip install.
+# Special job in stage-3 to check pip install.
 #
 
 pip-install:
   extends: .test
-  stage: stage-2
+  stage: stage-3
   tags:
-    - pip, name:jepri
+    - pip, name:satet
   before_script:
     - date
     - hostname
@@ -514,16 +522,16 @@ destdir-install:
       fi
     - export PETSC_DIR=$PWD
     - export PETSC_ARCH=arch-$CI_JOB_NAME
-    - bash -c "${PYTHON} ./configure --with-debugging=0 --with-mpi=0 --prefix=${PREFIX} COPTFLAGS=-O CXXOPTFLAGS=-O FOPTFLAGS=-O CUDAOPTFLAGS=-O1 ${PETSC_CONFIG_OPTS}"
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
+    - bash -c "${PYTHON} ./configure --with-debugging=0 --with-mpi=0 --prefix=${PREFIX} COPTFLAGS=-O CXXOPTFLAGS=-O FOPTFLAGS=-O CUDAOPTFLAGS=-O1 HIPOPTFLAGS=-O1 ${PETSC_CONFIG_OPTS}"
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}"
     - make install-lib DESTDIR=${DESTDIR}; cp -r ${DESTDIR}${PREFIX} ..; PETSC_DIR=${PREFIX}; unset PETSC_ARCH
     - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
     - echo -e "section_start:`date +%s`:build_slepc\r\e[0KSLEPc configure and make"
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure --prefix=${PREFIX}
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}"
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}"
     - make install-lib DESTDIR=${DESTDIR}; cp -r ${DESTDIR}${PREFIX} ..; SLEPC_DIR=${PREFIX}
-    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" check
+    - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" CUDAFLAGS="${MAKE_CUDAFLAGS}" HIPFLAGS="${MAKE_HIPFLAGS}" check
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
   variables:
     PYTHON: python3
@@ -549,10 +557,11 @@ intel-c-complex-mkl:
     - .stage-3
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:jepri
+    - compiler:intel, name:sejmet
   variables:
-    LOAD_MODULES: icc mpi mkl
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-cmake
+    LOAD_MODULES: compiler mpi mkl
+    MAKE_CFLAGS: -Werror -Wno-higher-precision-fp
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicx --with-fc=mpiifx --with-cxx=mpiicpx --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-cmake
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 gnu-c-cuda-complex:
@@ -623,10 +632,10 @@ gnu-c:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, name:maat
+    - linux-ubuntu, name:satet
   variables:
     PETSC_CONFIG_OPTS: --download-superlu_dist --download-elemental --download-metis --download-parmetis --with-petsc4py --download-c2html --download-cmake
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --with-evsl-dir=/usr/local/opt/evsl-mar21 --download-blopex --with-slepc4py
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.9.1 --with-primme-dir=/usr/local/opt/primme-3.2 --with-evsl-dir=/usr/local/opt/evsl-nov21 --download-blopex --with-slepc4py
     SLEPC4PY: 1
     BUILD_DOCS: 1
     PKG_CONFIG: 1
@@ -647,9 +656,9 @@ clang-c-complex:
     - .stage-3
     - .linux_test
   tags:
-    - compiler:clang, name:maat
+    - compiler:clang, name:sejmet
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=0 --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex
 
 intel-cxx-mkl:
@@ -657,10 +666,11 @@ intel-cxx-mkl:
     - .stage-3
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:maat
+    - compiler:intel, name:sejmet
   variables:
-    LOAD_MODULES: icc mpi mkl
-    PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++ --with-memalign=64
+    LOAD_MODULES: compiler mpi mkl
+    MAKE_CXXFLAGS: -Werror -Wno-deprecated
+    PETSC_CONFIG_OPTS: --with-cc=mpiicx --with-fc=mpiifx --with-cxx=mpiicpx --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++ --with-memalign=64
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 gnu-c-float128:
@@ -678,7 +688,7 @@ gnu-cxx-complex-int64:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, name:maat
+    - linux-ubuntu, name:satet
   variables:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --with-petsc4py --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps --download-suitesparse --download-cmake
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-slepc4py --download-primme --download-hpddm
@@ -710,11 +720,10 @@ gnu-c-complex-coverage:
     - .stage-3
     - .linux_test
   tags:
-    - name:hapy
+    - name:jepri
   variables:
-    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-scalar-type=complex --with-debugging=1 --with-coverage=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.9.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
     COVERAGE: 1
 
 intel-c-complex-int64-mkl:
@@ -722,10 +731,11 @@ intel-c-complex-int64-mkl:
     - .stage-3
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:anuket
+    - compiler:intel, name:sejmet
   variables:
-    LOAD_MODULES: icc mpi mkl
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-64-bit-indices --with-64-bit-blas-indices
+    LOAD_MODULES: compiler mpi mkl
+    MAKE_CFLAGS: -Werror -Wno-higher-precision-fp
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=mpiicx --with-fc=mpiifx --with-cxx=mpiicpx --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso --with-64-bit-indices --with-64-bit-blas-indices
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-sowing
 
 nvidia-c-nompi:
@@ -745,10 +755,9 @@ gnu-c-complex-valgrind:
     - .stage-3
     - .linux_test
   tags:
-    - name:anuket
+    - linux-ubuntu, compiler:clang, name:maat
   variables:
-    LOAD_MODULES: mpi/mpich-x86_64
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-shared-libraries=0 --with-scalar-type=complex --download-f2cblaslapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 intel-c-mkl-libs:
@@ -756,10 +765,10 @@ intel-c-mkl-libs:
     - .stage-3
     - .linux_test_nofflags
   tags:
-    - compiler:intel, name:anuket
+    - compiler:intel, name:sejmet
   variables:
-    LOAD_MODULES: icc mpi mkl
-    PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
+    LOAD_MODULES: compiler mpi mkl
+    PETSC_CONFIG_OPTS: --with-cc=mpiicx --with-fc=mpiifx --with-cxx=mpiicpx --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso --with-scalapack --download-mumps --download-metis --download-parmetis --download-suitesparse
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa --download-arpack --download-primme --download-blopex --download-polar --download-ksvd
 
 nvidia-c-complex-nompi:
@@ -794,7 +803,7 @@ intel-c-mkl-install:
     - compiler:intel, name:igai
   variables:
     LOAD_MODULES: icc mpi mkl
-    PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install --download-hpddm
+    PETSC_CONFIG_OPTS: --with-cc=mpiicc --with-fc=mpiifort --with-cxx=mpiicpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --prefix=../install --download-hpddm
     INSTALL: 1
 
@@ -845,9 +854,8 @@ gnu-c-complex128:
     - .stage-3
     - .linux_test
   tags:
-    - name:hapy
+    - name:satet
   variables:
-    LOAD_MODULES: mpi
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
@@ -861,4 +869,37 @@ intel-c-int64-nompi-mkl:
     LOAD_MODULES: compiler mpi mkl
     PETSC_CONFIG_OPTS: --with-cc=icx --with-fc=ifx --with-cxx=icpx --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-64-bit-indices --with-64-bit-blas-indices --with-mpi=0 --COPTFLAGS='-O -g -fp-model=precise' --CXXOPTFLAGS='-O -g -fp-model=precise' --FOPTFLAGS='-O -g -fp-model=precise'
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
+
+#gnu-c-hip-complex:   # TODO
+#  extends:
+#    - .stage-3
+#    - .linux_test
+#  tags:
+#    - gpu:amd, name:satet
+#  variables:
+#    LOAD_MODULES: rocm
+#    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-hip
+#    TEST_OPTS: -j1 -l6 query=requires queryval=hip
+
+gnu-c-hip-single:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - gpu:amd, name:satet
+  variables:
+    LOAD_MODULES: rocm
+    PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-hip
+    TEST_OPTS: query=requires queryval=hip
+
+gnu-c-hip-int64:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - gpu:amd, name:satet
+  variables:
+    LOAD_MODULES: rocm
+    PETSC_CONFIG_OPTS: --with-hip --with-64-bit-indices
+    TEST_OPTS: query=requires queryval=hip
 

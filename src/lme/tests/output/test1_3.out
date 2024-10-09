@@ -11,7 +11,7 @@ Lyapunov equation, N=100 (10x10 grid)
  Equation type set to 1
  Equation type changed to 0
  Solver being used: krylov
- Tolerance: -2., max iterations: 100
+ Tolerance: -1., max iterations: 100
  Subspace dimension: 21
  Erroring out if convergence fails
 [0] <mat:seqdense> MatConvert(): Check superclass seqdense seqdense -> 1

@@ -25,7 +25,7 @@ int main(int argc,char **argv)
   Vec            v,*X;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
@@ -61,7 +61,7 @@ int main(int argc,char **argv)
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  PetscCall(EPSSetDimensions(eps,neigs,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,neigs,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

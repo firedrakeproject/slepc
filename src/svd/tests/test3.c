@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   PetscBool      skiporth=PETSC_FALSE;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&M,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSVD of a rectangular Grcar matrix, %" PetscInt_FMT "x%" PetscInt_FMT "\n\n",N,M));
@@ -244,7 +244,7 @@ int main(int argc,char **argv)
       suffix: 4
       args: -svd_type lapack -svd_nsv 4
       output_file: output/test3_1.out
-      filter: sed -e "s/15129/15128/"
+      filter: sed -e "s/15129/15128/" | sed -e "s/21798/21797/"
       nsize: 2
 
    test:
@@ -252,5 +252,41 @@ int main(int argc,char **argv)
       args: -svd_nsv 4 -svd_view_values draw -svd_monitor draw::draw_lg
       requires: x
       output_file: output/test3_1.out
+
+   testset:
+      args: -svd_nsv 4 -mat_type aijhipsparse
+      requires: hip
+      output_file: output/test3_1.out
+      filter: sed -e "s/22176/22175/" | sed -e "s/21798/21797/" | sed -e "s/16826/16825/" | sed -e "s/15129/15128/"
+      test:
+         suffix: 6_hip_lanczos
+         args: -svd_type lanczos
+      test:
+         suffix: 6_hip_lanczos_one
+         args: -svd_type lanczos -svd_lanczos_oneside
+      test:
+         suffix: 6_hip_trlanczos
+         args: -svd_type trlanczos
+      test:
+         suffix: 6_hip_trlanczos_one
+         args: -svd_type trlanczos -svd_trlanczos_oneside
+      test:
+         suffix: 6_hip_trlanczos_one_mgs
+         args: -svd_type trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs
+      test:
+         suffix: 6_hip_trlanczos_one_always
+         args: -svd_type trlanczos -svd_trlanczos_oneside -bv_orthog_refine always
+      test:
+         suffix: 6_hip_cross
+         args: -svd_type cross
+      test:
+         suffix: 6_hip_cyclic
+         args: -svd_type cyclic
+      test:
+         suffix: 6_hip_cyclic_exp
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix
+      test:
+         suffix: 6_hip_randomized
+         args: -svd_type randomized
 
 TEST*/

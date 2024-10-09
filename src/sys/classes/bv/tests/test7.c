@@ -27,7 +27,7 @@ int main(int argc,char **argv)
   BVMatMultType  vmm;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-rep",&rep,NULL));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -203,12 +203,16 @@ int main(int argc,char **argv)
          args: -bv_type {{svec mat}} -mat_type aijcusparse -bv_matmult vecs
          requires: cuda
       test:
+         suffix: 1_hip
+         args: -bv_type {{svec mat}} -mat_type aijhipsparse -bv_matmult vecs
+         requires: hip
+      test:
          suffix: 1_mat
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult mat
 
    testset:
       output_file: output/test7_2.out
-      filter: grep -v "Using method"
+      filter: grep -v "Using method" | sed -e "s/error: -0\./error: 0./"
       args: -m 34 -n 38 -k 9
       nsize: 2
       test:
@@ -218,6 +222,10 @@ int main(int argc,char **argv)
          suffix: 2_cuda
          args: -bv_type {{svec mat}} -mat_type aijcusparse -bv_matmult vecs
          requires: cuda
+      test:
+         suffix: 2_hip
+         args: -bv_type {{svec mat}} -mat_type aijhipsparse -bv_matmult vecs
+         requires: hip
       test:
          suffix: 2_mat
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult mat

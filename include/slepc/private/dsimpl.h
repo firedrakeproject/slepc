@@ -40,6 +40,7 @@ struct _DSOps {
   PetscErrorCode (*matgetsize)(DS,DSMatType,PetscInt*,PetscInt*);
   PetscErrorCode (*hermitian)(DS,DSMatType,PetscBool*);
   PetscErrorCode (*synchronize)(DS,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*setcompact)(DS,PetscBool);
 };
 
 struct _p_DS {

@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
@@ -142,7 +142,7 @@ int main(int argc,char **argv)
    testset:
       nsize: {{1 2}}
       output_file: output/test19_1.out
-      filter: grep -v Process | grep -v Object | sed -e 's/mpi/seq/' | sed -e 's/seqcuda/seq/' | sed -e 's/seqaijcusparse/seqaij/' | sed -e 's/nc=2/nc=0/'
+      filter: grep -v Process | grep -v Object | sed -e 's/mpi/seq/' | sed -e 's/seqcuda/seq/' | sed -e 's/seqaijcusparse/seqaij/' | sed -e 's/seqhip/seq/' | sed -e 's/seqaijhipsparse/seqaij/' | sed -e 's/nc=2/nc=0/'
       test:
          suffix: 1
          args: -nc {{0 2}} -bv_type {{svec mat}}
@@ -150,5 +150,9 @@ int main(int argc,char **argv)
          suffix: 1_cuda
          args: -nc {{0 2}} -bv_type {{svec mat}} -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 1_hip
+         args: -nc {{0 2}} -bv_type {{svec mat}} -mat_type aijhipsparse
+         requires: hip
 
 TEST*/

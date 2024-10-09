@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   PetscBool      terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n\n",n,(double)tau));
@@ -129,8 +129,8 @@ int main(int argc,char **argv)
              Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_DEFAULT));
-  PetscCall(NEPSetDimensions(nep,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_CURRENT));
+  PetscCall(NEPSetDimensions(nep,1,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(NEPRIISetLagPreconditioner(nep,0));
 
   /*

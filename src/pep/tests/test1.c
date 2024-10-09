@@ -31,7 +31,7 @@ int main(int argc,char **argv)
   PC             pc;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
@@ -92,8 +92,8 @@ int main(int argc,char **argv)
   A[0] = K; A[1] = C; A[2] = M;
   PetscCall(PEPSetOperators(pep,3,A));
   PetscCall(PEPSetProblemType(pep,PEP_GENERAL));
-  PetscCall(PEPSetDimensions(pep,4,20,PETSC_DEFAULT));
-  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT));
+  PetscCall(PEPSetDimensions(pep,4,20,PETSC_DETERMINE));
+  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_CURRENT));
 
   /*
      Set solver type at runtime

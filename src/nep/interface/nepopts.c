@@ -109,7 +109,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     i = nep->npart;
     PetscCall(PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg2));
     r = nep->rtol;
-    PetscCall(PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==(PetscReal)PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg3));
+    PetscCall(PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==(PetscReal)PETSC_DETERMINE?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg3));
     j = nep->rits;
     PetscCall(PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg4));
     scheme = nep->scheme;
@@ -256,7 +256,10 @@ PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *tol,PetscInt *maxits)
 -  -nep_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
+   Use PETSC_CURRENT to retain the current value of any of the parameters.
+   Use PETSC_DETERMINE for either argument to assign a default value computed
+   internally (may be different in each solver).
+   For maxits use PETSC_UMLIMITED to indicate there is no upper bound on this value.
 
    Level: intermediate
 
@@ -268,17 +271,19 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,tol,2);
   PetscValidLogicalCollectiveInt(nep,maxits,3);
-  if (tol == (PetscReal)PETSC_DEFAULT) {
-    nep->tol   = PETSC_DEFAULT;
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    nep->tol   = PETSC_DETERMINE;
     nep->state = NEP_STATE_INITIAL;
-  } else {
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     nep->tol = tol;
   }
-  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    nep->max_it = PETSC_DEFAULT;
+  if (maxits == PETSC_DETERMINE) {
+    nep->max_it = PETSC_DETERMINE;
     nep->state  = NEP_STATE_INITIAL;
-  } else {
+  } else if (maxits == PETSC_UNLIMITED) {
+    nep->max_it = PETSC_INT_MAX;
+  } else if (maxits != PETSC_CURRENT) {
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     nep->max_it = maxits;
   }
@@ -334,8 +339,9 @@ PetscErrorCode NEPGetDimensions(NEP nep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
 -  -nep_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Use PETSC_DEFAULT for ncv and mpd to assign a reasonably good value, which is
-   dependent on the solution method.
+   Use PETSC_DETERMINE for ncv and mpd to assign a reasonably good value, which is
+   dependent on the solution method. For any of the arguments, use PETSC_CURRENT
+   to preserve the current value.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
    to set one of them at most. Normal usage is that
@@ -357,17 +363,19 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(nep,nev,2);
   PetscValidLogicalCollectiveInt(nep,ncv,3);
   PetscValidLogicalCollectiveInt(nep,mpd,4);
-  PetscCheck(nev>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
-  nep->nev = nev;
-  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    nep->ncv = PETSC_DEFAULT;
-  } else {
+  if (nev != PETSC_CURRENT) {
+    PetscCheck(nev>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+    nep->nev = nev;
+  }
+  if (ncv == PETSC_DETERMINE) {
+    nep->ncv = PETSC_DETERMINE;
+  } else if (ncv != PETSC_CURRENT) {
     PetscCheck(ncv>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     nep->ncv = ncv;
   }
-  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    nep->mpd = PETSC_DEFAULT;
-  } else {
+  if (mpd == PETSC_DETERMINE) {
+    nep->mpd = PETSC_DETERMINE;
+  } else if (mpd != PETSC_CURRENT) {
     PetscCheck(mpd>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     nep->mpd = mpd;
   }
@@ -660,18 +668,9 @@ PetscErrorCode NEPGetTwoSided(NEP nep,PetscBool *twosided)
 
    Input Parameters:
 +  nep     - nonlinear eigensolver context obtained from NEPCreate()
-.  conv    - a pointer to the convergence test function
-.  ctx     - context for private data for the convergence routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of conv:
-$  PetscErrorCode conv(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
-+   nep    - nonlinear eigensolver context obtained from NEPCreate()
-.   eigr   - real part of the eigenvalue
-.   eigi   - imaginary part of the eigenvalue
-.   res    - residual norm associated to the eigenpair
-.   errest - (output) computed error estimate
--   ctx    - optional context, as set by NEPSetConvergenceTestFunction()
+.  conv    - convergence test function, see NEPConvergenceTestFn for the calling sequence
+.  ctx     - context for private data for the convergence routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    If the error estimate returned by the convergence test function is less than
@@ -681,7 +680,7 @@ $  PetscErrorCode conv(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,P
 
 .seealso: NEPSetConvergenceTest(), NEPSetTolerances()
 @*/
-PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*conv)(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,NEPConvergenceTestFn *conv,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -778,19 +777,9 @@ PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
 
    Input Parameters:
 +  nep     - nonlinear eigensolver context obtained from NEPCreate()
-.  stop    - pointer to the stopping test function
-.  ctx     - context for private data for the stopping routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of stop:
-$  PetscErrorCode stop(NEP nep,PetscInt its,PetscInt max_its,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx)
-+   nep    - nonlinear eigensolver context obtained from NEPCreate()
-.   its    - current number of iterations
-.   max_its - maximum number of iterations
-.   nconv  - number of currently converged eigenpairs
-.   nev    - number of requested eigenpairs
-.   reason - (output) result of the stopping test
--   ctx    - optional context, as set by NEPSetStoppingTestFunction()
+.  stop    - the stopping test function, see NEPStoppingTestFn for the calling sequence
+.  ctx     - context for private data for the stopping routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    Normal usage is to first call the default routine NEPStoppingBasic() and then
@@ -802,7 +791,7 @@ $  PetscErrorCode stop(NEP nep,PetscInt its,PetscInt max_its,PetscInt nconv,Pets
 
 .seealso: NEPSetStoppingTest(), NEPStoppingBasic()
 @*/
-PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*stop)(NEP nep,PetscInt its,PetscInt max_its,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode NEPSetStoppingTestFunction(NEP nep,NEPStoppingTestFn *stop,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -984,6 +973,9 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
    solved. Possible choices are explicit, mixed block elimination (MBE),
    and Schur complement.
 
+   Use PETSC_CURRENT to retain the current value of npart, tol or its. Use
+   PETSC_DETERMINE to assign a default value.
+
    Level: intermediate
 
 .seealso: NEPGetRefine()
@@ -1005,22 +997,22 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
       PetscCall(PetscSubcommDestroy(&nep->refinesubc));
       PetscCall(KSPDestroy(&nep->refineksp));
     }
-    if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
+    if (npart == PETSC_DETERMINE) {
       nep->npart = 1;
-    } else {
+    } else if (npart != PETSC_CURRENT) {
       PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)nep),&size));
       PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
       nep->npart = npart;
     }
-    if (tol == (PetscReal)PETSC_DEFAULT || tol == (PetscReal)PETSC_DECIDE) {
-      nep->rtol = PETSC_DEFAULT;
-    } else {
+    if (tol == (PetscReal)PETSC_DETERMINE) {
+      nep->rtol = PETSC_DETERMINE;
+    } else if (tol != (PetscReal)PETSC_CURRENT) {
       PetscCheck(tol>0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       nep->rtol = tol;
     }
-    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
-      nep->rits = PETSC_DEFAULT;
-    } else {
+    if (its==PETSC_DETERMINE) {
+      nep->rits = PETSC_DETERMINE;
+    } else if (its != PETSC_CURRENT) {
       PetscCheck(its>=0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
       nep->rits = its;
     }

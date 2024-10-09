@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   PetscBool      terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL));
@@ -141,6 +141,10 @@ int main(int argc,char **argv)
          suffix: 1_cuda
          args: -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 1_hip
+         args: -mat_type aijhipsparse
+         requires: hip
 
    test:
       suffix: 2

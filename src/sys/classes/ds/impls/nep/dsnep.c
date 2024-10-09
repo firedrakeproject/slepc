@@ -22,7 +22,7 @@ typedef struct {
   RG             rg;                 /* region for contour integral */
   PetscLayout    map;                /* used to distribute work among MPI processes */
   void           *computematrixctx;
-  PetscErrorCode (*computematrix)(DS,PetscScalar,PetscBool,DSMatType,void*);
+  DSNEPMatrixFunctionFn *computematrix;
 } DS_NEP;
 
 /*
@@ -342,7 +342,7 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   }
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* communicate results */
     PetscCall(PetscMPIIntCast(k,&len));
-    PetscCall(MPIU_Allreduce(MPI_IN_PLACE,p,len,MPIU_INT,MPI_SUM,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPIU_Allreduce(MPI_IN_PLACE,p,len,MPIU_INT,MPI_SUM,PetscObjectComm((PetscObject)ds)));
     PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size));
     PetscCall(PetscLayoutGetRanges(map,&range));
     for (j=0;j<k;j++) {
@@ -455,7 +455,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* compute final S via reduction */
     PetscCall(PetscMPIIntCast(2*mid*n*p,&len));
-    PetscCall(MPIU_Allreduce(MPI_IN_PLACE,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPIU_Allreduce(MPI_IN_PLACE,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds)));
   }
   p = ctx->spls?PetscMin(ctx->spls,n):n;
   pp = p;
@@ -785,13 +785,15 @@ static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  if (tol == (PetscReal)PETSC_DEFAULT) ctx->rtol = PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
-  else {
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    ctx->rtol = PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The tolerance must be > 0");
     ctx->rtol = tol;
   }
-  if (its == PETSC_DECIDE || its == PETSC_DEFAULT) ctx->Nit = 3;
-  else {
+  if (its == PETSC_DETERMINE) {
+    ctx->Nit = 3;
+  } else if (its != PETSC_CURRENT) {
     PetscCheck(its>=0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
     ctx->Nit = its;
   }
@@ -816,6 +818,10 @@ static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
    Notes:
    Iterative refinement of eigenpairs is currently used only in the contour
    integral method.
+
+   Use PETSC_CURRENT to retain the current value of any of the parameters.
+   Use PETSC_DETERMINE for either argument to assign a default value computed
+   internally.
 
    Level: advanced
 
@@ -950,6 +956,7 @@ static PetscErrorCode DSNEPSetSamplingSize_NEP(DS ds,PetscInt p)
   PetscFunctionBegin;
   if (p == PETSC_DECIDE || p == PETSC_DEFAULT) ctx->spls = 0;
   else {
+    PetscCheck(p>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The sample size must be > 0");
     PetscCheck(p>=20,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The sample size cannot be smaller than 20");
     ctx->spls = p;
   }
@@ -1019,7 +1026,7 @@ PetscErrorCode DSNEPGetSamplingSize(DS ds,PetscInt *p)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx)
+static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,DSNEPMatrixFunctionFn *fun,void *ctx)
 {
   DS_NEP *dsctx = (DS_NEP*)ds->data;
 
@@ -1037,16 +1044,8 @@ static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*f
 
    Input Parameters:
 +  ds  - the direct solver context
-.  fun - a pointer to the user function
+.  fun - matrix function evaluation routine, see DSNEPMatrixFunctionFn for the calling sequence
 -  ctx - a context pointer (the last parameter to the user function)
-
-   Calling sequence of fun:
-$  PetscErrorCode fun(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
-+   ds     - the direct solver object
-.   lambda - point where T(lambda) or T'(lambda) must be evaluated
-.   deriv  - if true compute T'(lambda), otherwise compute T(lambda)
-.   mat    - the DS matrix where the result must be stored
--   ctx    - optional context, as set by DSNEPSetComputeMatrixFunction()
 
    Note:
    The result is computed as T(lambda) = sum_i E_i*f_i(lambda), and similarly
@@ -1056,15 +1055,15 @@ $  PetscErrorCode fun(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,voi
 
 .seealso: DSNEPGetComputeMatrixFunction()
 @*/
-PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx),void *ctx)
+PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,DSNEPMatrixFunctionFn *fun,void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*),(ds,fun,ctx));
+  PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,DSNEPMatrixFunctionFn*,void*),(ds,fun,ctx));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-static PetscErrorCode DSNEPGetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (**fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void **ctx)
+static PetscErrorCode DSNEPGetComputeMatrixFunction_NEP(DS ds,DSNEPMatrixFunctionFn **fun,void **ctx)
 {
   DS_NEP *dsctx = (DS_NEP*)ds->data;
 
@@ -1091,11 +1090,11 @@ static PetscErrorCode DSNEPGetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (**
 
 .seealso: DSNEPSetComputeMatrixFunction()
 @*/
-PetscErrorCode DSNEPGetComputeMatrixFunction(DS ds,PetscErrorCode (**fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void **ctx)
+PetscErrorCode DSNEPGetComputeMatrixFunction(DS ds,DSNEPMatrixFunctionFn **fun,void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscUseMethod(ds,"DSNEPGetComputeMatrixFunction_C",(DS,PetscErrorCode (**)(DS,PetscScalar,PetscBool,DSMatType,void*),void**),(ds,fun,ctx));
+  PetscUseMethod(ds,"DSNEPGetComputeMatrixFunction_C",(DS,DSNEPMatrixFunctionFn**,void**),(ds,fun,ctx));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -1275,6 +1274,7 @@ static PetscErrorCode DSMatGetSize_NEP(DS ds,DSMatType t,PetscInt *rows,PetscInt
 
    Used DS matrices:
 +  DS_MAT_Ex - coefficient matrices of the split form of T(lambda)
+.  DS_MAT_X  - eigenvectors
 .  DS_MAT_A  - (workspace) T(lambda) evaluated at a given lambda (SLP only)
 .  DS_MAT_B  - (workspace) T'(lambda) evaluated at a given lambda (SLP only)
 .  DS_MAT_Q  - (workspace) left Hankel matrix (contour only)

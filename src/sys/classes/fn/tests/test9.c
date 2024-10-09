@@ -19,7 +19,7 @@ int main(int argc,char **argv)
   char           strx[50],str[50];
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(FNCreate(PETSC_COMM_WORLD,&fn));
 
   /* plain logarithm log(x) */

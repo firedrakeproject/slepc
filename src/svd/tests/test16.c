@@ -38,7 +38,7 @@ int main(int argc,char **argv)
   PetscScalar    valsa[] = { 1, 2 }, valsb[] = { 2, 1 };
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL));
@@ -147,6 +147,21 @@ int main(int argc,char **argv)
          args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
       test:
          suffix: 2_trlanczos
+         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single lower}} -svd_trlanczos_ksp_rtol 1e-10
+         requires: double
+
+   testset:
+      args: -svd_nsv 3 -mat_type aijhipsparse
+      requires: hip !single
+      output_file: output/test16_1.out
+      test:
+         suffix: 2_hip_cross
+         args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
+      test:
+         suffix: 2_hip_cyclic
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
+      test:
+         suffix: 2_hip_trlanczos
          args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single lower}} -svd_trlanczos_ksp_rtol 1e-10
          requires: double
 

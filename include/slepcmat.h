@@ -21,6 +21,9 @@ SLEPC_EXTERN PetscErrorCode MatCreateTile(PetscScalar,Mat,PetscScalar,Mat,PetscS
 SLEPC_EXTERN PetscErrorCode MatCreateVecsEmpty(Mat,Vec*,Vec*);
 SLEPC_EXTERN PetscErrorCode MatNormEstimate(Mat,Vec,Vec,PetscReal*);
 
+/* Matrices for structured eigenproblems */
+SLEPC_EXTERN PetscErrorCode MatCreateBSE(Mat,Mat,Mat*);
+
 /* Deprecated functions */
 PETSC_DEPRECATED_FUNCTION(3, 6, 0, "MatCreateRedundantMatrix() followed by MatConvert()", ) static inline PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
 {

@@ -344,6 +344,7 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
     if (!st->D && st->ops->apply==STApply_Generic) {
       PetscCall(MatShellSetMatProductOperation(st->Op,MATPRODUCT_AB,NULL,MatMatMult_STOperator,NULL,MATDENSE,MATDENSE));
       PetscCall(MatShellSetMatProductOperation(st->Op,MATPRODUCT_AB,NULL,MatMatMult_STOperator,NULL,MATDENSECUDA,MATDENSECUDA));
+      PetscCall(MatShellSetMatProductOperation(st->Op,MATPRODUCT_AB,NULL,MatMatMult_STOperator,NULL,MATDENSEHIP,MATDENSEHIP));
     }
     /* make sure the shell matrix generates a vector of the same type as the problem matrices */
     PetscCall(MatCreateVecs(st->A[0],&v,NULL));

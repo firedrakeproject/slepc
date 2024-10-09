@@ -31,7 +31,7 @@ int main(int argc,char **argv)
 #endif
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NEP - dimension %" PetscInt_FMT ", tau=%g.\n",n,(double)tau));
@@ -47,7 +47,7 @@ int main(int argc,char **argv)
   PetscCall(RGSetType(rg,RGELLIPSE));
   PetscCall(DSNEPSetMinimality(ds,1));
   PetscCall(DSNEPSetIntegrationPoints(ds,16));
-  PetscCall(DSNEPSetRefine(ds,PETSC_DEFAULT,2));
+  PetscCall(DSNEPSetRefine(ds,PETSC_CURRENT,2));
   PetscCall(DSNEPSetSamplingSize(ds,25));
   PetscCall(DSSetFromOptions(ds));
 

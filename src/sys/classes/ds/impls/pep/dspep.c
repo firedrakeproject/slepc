@@ -501,6 +501,8 @@ static PetscErrorCode DSMatGetSize_PEP(DS ds,DSMatType t,PetscInt *rows,PetscInt
 
    Used DS matrices:
 +  DS_MAT_Ex - coefficients of the matrix polynomial
+.  DS_MAT_X  - right eigenvectors
+.  DS_MAT_Y  - left eigenvectors
 .  DS_MAT_A  - (workspace) first matrix of the linearization
 .  DS_MAT_B  - (workspace) second matrix of the linearization
 .  DS_MAT_W  - (workspace) right eigenvectors of the linearization

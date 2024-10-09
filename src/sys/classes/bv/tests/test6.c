@@ -24,7 +24,7 @@ int main(int argc,char **argv)
   PetscScalar    alpha;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-nc",&nc,NULL));
@@ -110,6 +110,10 @@ int main(int argc,char **argv)
          args: -bv_type {{svec mat}} -vec_type cuda
          requires: cuda
       test:
+         suffix: 1_hip
+         args: -bv_type {{svec mat}} -vec_type hip
+         requires: hip
+      test:
          suffix: 2
          nsize: 2
          args: -bv_type {{vecs contiguous svec mat}shared output}
@@ -120,5 +124,9 @@ int main(int argc,char **argv)
          suffix: 3_cuda
          args: -bv_type {{svec mat}} -vec_type cuda -bv_orthog_type mgs
          requires: cuda
+      test:
+         suffix: 3_hip
+         args: -bv_type {{svec mat}} -vec_type hip -bv_orthog_type mgs
+         requires: hip
 
 TEST*/

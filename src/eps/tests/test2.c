@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   EPSLanczosReorthogType reorth;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
@@ -51,7 +51,7 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
   PetscCall(EPSSetFromOptions(eps));
 
   /* illustrate how to extract parameters from specific solver types */
@@ -161,11 +161,16 @@ int main(int argc,char **argv)
          args: -eps_type jd -eps_jd_krylov_start -eps_ncv 18
 
    testset:
-      args: -eps_nev 4 -mat_type aijcusparse
-      requires: cuda !single
+      args: -eps_nev 4 -eps_type {{krylovschur arnoldi gd jd}}
+      requires: !single
       output_file: output/test2_1.out
       test:
          suffix: 4_cuda
-         args: -eps_type {{krylovschur arnoldi gd jd}}
+         requires: cuda
+         args: -mat_type aijcusparse
+      test:
+         suffix: 4_hip
+         requires: hip
+         args: -mat_type aijhipsparse
 
 TEST*/

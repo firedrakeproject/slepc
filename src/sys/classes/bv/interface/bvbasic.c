@@ -363,6 +363,12 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 #else
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
 #endif
+    } else if (bv->hip) {
+#if defined(PETSC_HAVE_HIP)
+      PetscCall(VecCreateSeqHIP(PETSC_COMM_SELF,m,&v));
+#else
+      SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
+#endif
     } else PetscCall(VecCreateSeq(PETSC_COMM_SELF,m,&v));
     if (copy) {
       PetscCall(VecGetArray(v,&array));
@@ -405,6 +411,9 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
    differently, they participate in the orthogonalization but the computed
    coefficients are not stored.
 
+   Use PETSC_CURRENT to leave any of the values unchanged. Use PETSC_DETERMINE
+   to set l to the minimum value (0) and k to the maximum (m).
+
    Level: intermediate
 
 .seealso: BVGetActiveColumns(), BVSetSizes()
@@ -416,15 +425,15 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
   PetscValidLogicalCollectiveInt(bv,l,2);
   PetscValidLogicalCollectiveInt(bv,k,3);
   BVCheckSizes(bv,1);
-  if (PetscUnlikely(k==PETSC_DECIDE || k==PETSC_DEFAULT)) {
+  if (PetscUnlikely(k == PETSC_DETERMINE)) {
     bv->k = bv->m;
-  } else {
+  } else if (k != PETSC_CURRENT) {
     PetscCheck(k>=0 && k<=bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k (%" PetscInt_FMT "). Must be between 0 and m (%" PetscInt_FMT ")",k,bv->m);
     bv->k = k;
   }
-  if (PetscUnlikely(l==PETSC_DECIDE || l==PETSC_DEFAULT)) {
+  if (PetscUnlikely(l == PETSC_DETERMINE)) {
     bv->l = 0;
-  } else {
+  } else if (l != PETSC_CURRENT) {
     PetscCheck(l>=0 && l<=bv->k,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l (%" PetscInt_FMT "). Must be between 0 and k (%" PetscInt_FMT ")",l,bv->k);
     bv->l = l;
   }
@@ -920,8 +929,9 @@ PetscErrorCode BVSetFromOptions(BV bv)
    Notes:
    The default settings work well for most problems.
 
-   The parameter eta should be a real value between 0 and 1 (or PETSC_DEFAULT).
-   The value of eta is used only when the refinement type is "ifneeded".
+   The parameter eta should be a real value between 0 and 1, that is used only when
+   the refinement type is "ifneeded". Use PETSC_DETERMINE to set a reasonable
+   default value. Use PETSC_CURRENT to leave the current value unchanged.
 
    When using several processors, MGS is likely to result in bad scalability.
 
@@ -957,9 +967,9 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
     default:
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown refinement type");
   }
-  if (eta == (PetscReal)PETSC_DEFAULT) {
+  if (eta == (PetscReal)PETSC_DETERMINE) {
     bv->orthog_eta = 0.7071;
-  } else {
+  } else if (eta != (PetscReal)PETSC_CURRENT) {
     PetscCheck(eta>0.0 && eta<=1.0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");
     bv->orthog_eta = eta;
   }
@@ -1120,7 +1130,7 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   PetscCheck(l!=-1,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVRestoreColumn for one of the previously fetched columns");
   PetscUseTypeMethod(bv,getcolumn,j,v);
   bv->ci[l] = j;
-  PetscCall(PetscObjectStateGet((PetscObject)bv->cv[l],&bv->st[l]));
+  PetscCall(VecGetState(bv->cv[l],&bv->st[l]));
   PetscCall(PetscObjectGetId((PetscObject)bv->cv[l],&bv->id[l]));
   *v = bv->cv[l];
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -1162,7 +1172,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   l = (j==bv->ci[0])? 0: 1;
   PetscCall(PetscObjectGetId((PetscObject)*v,&id));
   PetscCheck(id==bv->id[l],PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same Vec that was obtained with BVGetColumn");
-  PetscCall(PetscObjectStateGet((PetscObject)*v,&st));
+  PetscCall(VecGetState(*v,&st));
   if (st!=bv->st[l]) PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscUseTypeMethod(bv,restorecolumn,j,v);
   bv->ci[l] = -bv->nc-1;
@@ -1356,7 +1366,7 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
 @*/
 PetscErrorCode BVCreateVecEmpty(BV bv,Vec *v)
 {
-  PetscBool  standard,cuda,mpi;
+  PetscBool  standard,cuda,hip,mpi;
   PetscInt   N,nloc,bs;
 
   PetscFunctionBegin;
@@ -1366,8 +1376,9 @@ PetscErrorCode BVCreateVecEmpty(BV bv,Vec *v)
 
   PetscCall(PetscStrcmpAny(bv->vtype,&standard,VECSEQ,VECMPI,""));
   PetscCall(PetscStrcmpAny(bv->vtype,&cuda,VECSEQCUDA,VECMPICUDA,""));
-  if (standard || cuda) {
-    PetscCall(PetscStrcmpAny(bv->vtype,&mpi,VECMPI,VECMPICUDA,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&hip,VECSEQHIP,VECMPIHIP,""));
+  if (standard || cuda || hip) {
+    PetscCall(PetscStrcmpAny(bv->vtype,&mpi,VECMPI,VECMPICUDA,VECMPIHIP,""));
     PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
     PetscCall(PetscLayoutGetSize(bv->map,&N));
     PetscCall(PetscLayoutGetBlockSize(bv->map,&bs));
@@ -1375,6 +1386,11 @@ PetscErrorCode BVCreateVecEmpty(BV bv,Vec *v)
 #if defined(PETSC_HAVE_CUDA)
       if (mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));
       else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv),bs,N,NULL,v));
+#endif
+    } else if (hip) {
+#if defined(PETSC_HAVE_HIP)
+      if (mpi) PetscCall(VecCreateMPIHIPWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));
+      else PetscCall(VecCreateSeqHIPWithArray(PetscObjectComm((PetscObject)bv),bs,N,NULL,v));
 #endif
     } else {
       if (mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv),bs,nloc,N,NULL,v));
@@ -2177,7 +2193,7 @@ PetscErrorCode BVSetDefiniteTolerance(BV bv,PetscReal deftol)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveReal(bv,deftol,2);
-  if (deftol == (PetscReal)PETSC_DEFAULT) bv->deftol = 10*PETSC_MACHINE_EPSILON;
+  if (deftol == (PetscReal)PETSC_DEFAULT || deftol == (PetscReal)PETSC_DECIDE) bv->deftol = 10*PETSC_MACHINE_EPSILON;
   else {
     PetscCheck(deftol>0.0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of deftol. Must be > 0");
     bv->deftol = deftol;
@@ -2243,7 +2259,7 @@ PetscErrorCode BVSetLeadingDimension(BV bv,PetscInt ld)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(bv,ld,2);
   PetscCheck((bv->n<0 && bv->N<0) || !bv->ops->create,PetscObjectComm((PetscObject)bv),PETSC_ERR_ORDER,"Must call BVSetLeadingDimension() before setting the BV type and sizes");
-  if (ld == PETSC_DEFAULT) bv->ld = 0;
+  if (ld == PETSC_DEFAULT || ld == PETSC_DECIDE) bv->ld = 0;
   else {
     PetscCheck(ld>0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ld. Must be > 0");
     bv->ld = ld;

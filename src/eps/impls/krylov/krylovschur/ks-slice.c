@@ -211,7 +211,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   ctx->eps->max_it = eps->max_it;
   ctx->eps->tol = eps->tol;
   ctx->eps->purify = eps->purify;
-  if (eps->tol==(PetscReal)PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
+  if (eps->tol==(PetscReal)PETSC_DETERMINE) eps->tol = SLEPC_DEFAULT_TOL;
   PetscCall(EPSSetProblemType(ctx->eps,eps->problem_type));
   PetscCall(EPSSetUp(ctx->eps));
   ctx->eps->nconv = 0;
@@ -288,7 +288,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     PetscCheck(eps->nds==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not supported in combination with deflation space");
     EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING,PETSC_TRUE," with spectrum slicing");
     EPSCheckIgnoredCondition(eps,EPS_FEATURE_BALANCE,PETSC_TRUE," with spectrum slicing");
-    if (eps->tol==(PetscReal)PETSC_DEFAULT) {
+    if (eps->tol==(PetscReal)PETSC_DETERMINE) {
 #if defined(PETSC_USE_REAL_SINGLE)
       eps->tol = SLEPC_DEFAULT_TOL;
 #else
@@ -296,7 +296,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       eps->tol = SLEPC_DEFAULT_TOL*1e-2;
 #endif
     }
-    if (eps->max_it==PETSC_DEFAULT) eps->max_it = 100;
+    if (eps->max_it==PETSC_DETERMINE) eps->max_it = 100;
     if (ctx->nev==1) ctx->nev = PetscMin(40,eps->n);  /* nev not set, use default value */
     PetscCheck(eps->n<=10 || ctx->nev>=10,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   }
@@ -341,7 +341,10 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       PetscCall(PetscSubcommGetChild(ctx->subc,&child));
       if ((sr->dir>0&&ctx->subc->color==0)||(sr->dir<0&&ctx->subc->color==ctx->npart-1)) sr->inertia0 = sr_loc->inertia0;
       PetscCallMPI(MPI_Comm_rank(child,&rank));
-      if (!rank) PetscCallMPI(MPI_Bcast(&sr->inertia0,1,MPIU_INT,(sr->dir>0)?0:ctx->npart-1,ctx->commrank));
+      if (!rank) {
+        PetscCall(PetscMPIIntCast((sr->dir>0)?0:ctx->npart-1,&aux));
+        PetscCallMPI(MPI_Bcast(&sr->inertia0,1,MPIU_INT,aux,ctx->commrank));
+      }
       PetscCallMPI(MPI_Bcast(&sr->inertia0,1,MPIU_INT,0,child));
       PetscCall(PetscFree(ctx->nconv_loc));
       PetscCall(PetscMalloc1(ctx->npart,&ctx->nconv_loc));
@@ -415,17 +418,20 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       PetscCallMPI(MPI_Comm_rank(child,&rank));
       if (!rank) {
         if (sr->inertia0!=-1 && ((sr->dir>0 && ctx->subc->color>0) || (sr->dir<0 && ctx->subc->color<ctx->npart-1))) { /* send inertia0 to neighbour0 */
-          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
-          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+          PetscCall(PetscMPIIntCast(ctx->subc->color-sr->dir,&aux));
+          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,aux,0,ctx->commrank,&req));
+          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,aux,0,ctx->commrank,&req));
         }
         if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)|| (sr->dir<0 && ctx->subc->color>0)) { /* receive inertia1 from neighbour1 */
-          PetscCallMPI(MPI_Recv(&sr->inertia1,1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE));
-          PetscCallMPI(MPI_Recv(&sr->int1,1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE));
+          PetscCall(PetscMPIIntCast(ctx->subc->color+sr->dir,&aux));
+          PetscCallMPI(MPI_Recv(&sr->inertia1,1,MPIU_INT,aux,0,ctx->commrank,MPI_STATUS_IGNORE));
+          PetscCallMPI(MPI_Recv(&sr->int1,1,MPIU_REAL,aux,0,ctx->commrank,MPI_STATUS_IGNORE));
         }
         if (sr->inertia0==-1 && !(sr->dir>0 && ctx->subc->color==ctx->npart-1) && !(sr->dir<0 && ctx->subc->color==0)) {
           sr->inertia0 = sr->inertia1; sr->int0 = sr->int1;
-          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
-          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+          PetscCall(PetscMPIIntCast(ctx->subc->color-sr->dir,&aux));
+          PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,aux,0,ctx->commrank,&req));
+          PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,aux,0,ctx->commrank,&req));
         }
       }
       if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)||(sr->dir<0 && ctx->subc->color>0)) {
@@ -440,8 +446,9 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       PetscCheck(zeros==0,((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
       if (!rank && sr->inertia0==-1) {
         sr->inertia0 = sr->inertia1; sr->int0 = sr->int1;
-        PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
-        PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req));
+        PetscCall(PetscMPIIntCast(ctx->subc->color-sr->dir,&aux));
+        PetscCallMPI(MPI_Isend(&sr->inertia0,1,MPIU_INT,aux,0,ctx->commrank,&req));
+        PetscCallMPI(MPI_Isend(&sr->int0,1,MPIU_REAL,aux,0,ctx->commrank,&req));
       }
       if (sr->hasEnd) {
         sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
@@ -466,10 +473,10 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscCall(DSAllocate(eps->ds,dssz));
   /* keep state of subcomm matrices to check that the user does not modify them */
   PetscCall(EPSGetOperators(eps,&A,&B));
-  PetscCall(PetscObjectStateGet((PetscObject)A,&ctx->Astate));
+  PetscCall(MatGetState(A,&ctx->Astate));
   PetscCall(PetscObjectGetId((PetscObject)A,&ctx->Aid));
   if (B) {
-    PetscCall(PetscObjectStateGet((PetscObject)B,&ctx->Bstate));
+    PetscCall(MatGetState(B,&ctx->Bstate));
     PetscCall(PetscObjectGetId((PetscObject)B,&ctx->Bid));
   } else {
     ctx->Bstate=0;
@@ -554,8 +561,6 @@ PetscErrorCode EPSComputeVectors_Slice(EPS eps)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
-#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
-
 static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
@@ -600,8 +605,8 @@ static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts
     v = (*shifts)[i];
     for (j=i+1;j<*n;j++) {
       if (v > (*shifts)[j]) {
-        SWAP((*shifts)[i],(*shifts)[j],tmpr);
-        SWAP((*inertias)[i],(*inertias)[j],tmpi);
+        SlepcSwap((*shifts)[i],(*shifts)[j],tmpr);
+        SlepcSwap((*inertias)[i],(*inertias)[j],tmpi);
         v = (*shifts)[i];
       }
     }
@@ -663,7 +668,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
     PetscCall(PetscMPIIntCast(ns,&aux));
     PetscCallMPI(MPI_Allgatherv(shifts_loc,aux,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank)); /* shifts */
     PetscCallMPI(MPI_Allgatherv(inertias_loc,aux,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank)); /* inertias */
-    PetscCall(MPIU_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank));
+    PetscCallMPI(MPIU_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank));
   } else { /* subcommunicators with different size */
     if (!rank) {
       PetscCall(PetscMPIIntCast(sr_loc->numEigs,&aux));
@@ -673,13 +678,13 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
       PetscCall(PetscMPIIntCast(ns,&aux));
       PetscCallMPI(MPI_Allgatherv(shifts_loc,aux,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank)); /* shifts */
       PetscCallMPI(MPI_Allgatherv(inertias_loc,aux,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank)); /* inertias */
-      PetscCall(MPIU_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank));
+      PetscCallMPI(MPIU_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank));
     }
     PetscCall(PetscMPIIntCast(eps->nconv,&aux));
     PetscCallMPI(MPI_Bcast(eps->eigr,aux,MPIU_SCALAR,0,child));
     PetscCallMPI(MPI_Bcast(eps->perm,aux,MPIU_INT,0,child));
-    PetscCallMPI(MPI_Bcast(ctx->shifts,ctx->nshifts,MPIU_REAL,0,child));
     PetscCall(PetscMPIIntCast(ctx->nshifts,&aux));
+    PetscCallMPI(MPI_Bcast(ctx->shifts,aux,MPIU_REAL,0,child));
     PetscCallMPI(MPI_Bcast(ctx->inertias,aux,MPIU_INT,0,child));
     PetscCallMPI(MPI_Bcast(&eps->its,1,MPIU_INT,0,child));
   }
@@ -761,10 +766,11 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
       PetscCall(BVCopyVec(eps->V,eps->nconv+i,v));
       PetscCall(BVRestoreColumn(sr->Vnext,k,&v));
       k++;
-      if (k>=sr->nS/2)break;
+      if (k>=sr->nS/2) break;
     }
   }
   /* Copy to DS */
+  PetscCall(DSSetCompact(eps->ds,PETSC_FALSE));  /* make sure DS_MAT_A is allocated */
   PetscCall(DSGetArray(eps->ds,DS_MAT_A,&A));
   PetscCall(PetscArrayzero(A,ld*ld));
   for (i=0;i<k;i++) {
@@ -879,7 +885,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     PetscCall(BVSetActiveColumns(eps->V,eps->nconv,nv));
 
     /* Solve projected problem and compute residual norm estimates */
-    if (eps->its == 1 && l > 0) {/* After rational update */
+    if (eps->its == 1 && l > 0) { /* After rational update, DS_MAT_A is available */
       PetscCall(DSGetArray(eps->ds,DS_MAT_A,&A));
       PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&a));
       b = a + ld;
@@ -1198,7 +1204,7 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   }
 
   /* For rational Krylov */
-  if (sr->nS>0 && (sr->sPrev == sr->sPres->neighb[0] || sr->sPrev == sr->sPres->neighb[1])) PetscCall(EPSPrepareRational(eps));
+  if (!sr->sPres->rep && sr->nS>0 && (sr->sPrev == sr->sPres->neighb[0] || sr->sPrev == sr->sPres->neighb[1])) PetscCall(EPSPrepareRational(eps));
   eps->nconv = 0;
   /* Get rid of temporary Vnext */
   PetscCall(BVDestroy(&eps->V));
@@ -1243,10 +1249,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     }
     /* Check that the user did not modify subcomm matrices */
     PetscCall(EPSGetOperators(eps,&A,&B));
-    PetscCall(PetscObjectStateGet((PetscObject)A,&Astate));
+    PetscCall(MatGetState(A,&Astate));
     PetscCall(PetscObjectGetId((PetscObject)A,&Aid));
     if (B) {
-      PetscCall(PetscObjectStateGet((PetscObject)B,&Bstate));
+      PetscCall(MatGetState(B,&Bstate));
       PetscCall(PetscObjectGetId((PetscObject)B,&Bid));
     }
     PetscCheck(Astate==ctx->Astate && (!B || Bstate==ctx->Bstate) && Aid==ctx->Aid && (!B || Bid==ctx->Bid),PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Subcomm matrices have been modified by user");

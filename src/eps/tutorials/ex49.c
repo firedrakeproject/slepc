@@ -24,7 +24,7 @@ int main(int argc,char **argv)
   PetscBool      flag,terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
@@ -149,7 +149,7 @@ int main(int argc,char **argv)
          args: -eps_type lobpcg -st_type precond -eps_smallest_real -st_shift 0.2
 
    testset:
-      args: -eps_type ciss -eps_all -rg_type ellipse -rg_ellipse_center 0 -rg_ellipse_radius 0.34 -rg_ellipse_vscale .2 -terse
+      args: -eps_type ciss -eps_all -rg_type ellipse -rg_ellipse_center 0 -rg_ellipse_radius 0.34 -rg_ellipse_vscale .2 -st_ksp_type gmres -terse
       output_file: output/ex49_2.out
       test:
          suffix: 2

@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   PetscBool      verbose,extrarow;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   m = n;
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type SVD with compact storage - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n,m));
@@ -103,17 +103,21 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
+      args: -ds_method {{0 1}}
       suffix: 1
+      filter: grep -v "solving the problem"
       requires: !single
 
    test:
-      args: -l 0 -k 0
+      args: -l 0 -k 0 -ds_method {{0 1}}
       suffix: 2
+      filter: grep -v "solving the problem"
       requires: !single
 
    test:
-      args: -extrarow
+      args: -extrarow -ds_method {{0 1}}
       suffix: 3
+      filter: grep -v "solving the problem"
       requires: !single
 
 TEST*/

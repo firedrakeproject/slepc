@@ -397,10 +397,11 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->data = (void*)ctx;
 
   PetscCall(PetscStrcmpAny(bv->vtype,&bv->cuda,VECSEQCUDA,VECMPICUDA,""));
-  PetscCall(PetscStrcmpAny(bv->vtype,&ctx->mpi,VECMPI,VECMPICUDA,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&bv->hip,VECSEQHIP,VECMPIHIP,""));
+  PetscCall(PetscStrcmpAny(bv->vtype,&ctx->mpi,VECMPI,VECMPICUDA,VECMPIHIP,""));
 
   PetscCall(PetscStrcmp(bv->vtype,VECSEQ,&seq));
-  PetscCheck(seq || ctx->mpi || bv->cuda,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVMAT does not support the requested vector type: %s",bv->vtype);
+  PetscCheck(seq || ctx->mpi || bv->cuda || bv->hip,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVMAT does not support the requested vector type: %s",bv->vtype);
 
   PetscCall(PetscLayoutGetLocalSize(bv->map,&nloc));
   PetscCall(BV_SetDefaultLD(bv,nloc));
@@ -417,6 +418,13 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
       else ptr = (bv->issplit==1)? array: array-lsplit;
       PetscCall(MatDenseCUDARestoreArray(Apar,&array));
 #endif
+    } else if (bv->hip) {
+#if defined(PETSC_HAVE_HIP)
+      PetscCall(MatDenseHIPGetArray(Apar,&array));
+      if (bv->issplit>0) ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
+      else ptr = (bv->issplit==1)? array: array-lsplit;
+      PetscCall(MatDenseHIPRestoreArray(Apar,&array));
+#endif
     } else {
       PetscCall(MatDenseGetArray(Apar,&array));
       if (bv->issplit>0) ptr = (bv->issplit==1)? array: array+lsplit*bv->ld;
@@ -432,7 +440,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   }
 
   if (PetscUnlikely(bv->Acreate)) {
-    PetscCall(MatConvert(bv->Acreate,bv->cuda?MATDENSECUDA:MATDENSE,MAT_REUSE_MATRIX,&ctx->A));
+    PetscCall(MatConvert(bv->Acreate,bv->cuda?MATDENSECUDA:bv->hip?MATDENSEHIP:MATDENSE,MAT_REUSE_MATRIX,&ctx->A));
     PetscCall(MatDestroy(&bv->Acreate));
   }
 
@@ -461,6 +469,29 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     bv->ops->restoresplitrows = BVRestoreSplitRows_Mat_CUDA;
     bv->ops->getmat           = BVGetMat_Mat_CUDA;
     bv->ops->restoremat       = BVRestoreMat_Mat_CUDA;
+#endif
+  } else if (bv->hip) {
+#if defined(PETSC_HAVE_HIP)
+    bv->ops->mult             = BVMult_Mat_HIP;
+    bv->ops->multvec          = BVMultVec_Mat_HIP;
+    bv->ops->multinplace      = BVMultInPlace_Mat_HIP;
+    bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Mat_HIP;
+    bv->ops->dot              = BVDot_Mat_HIP;
+    bv->ops->dotvec           = BVDotVec_Mat_HIP;
+    bv->ops->dotvec_local     = BVDotVec_Local_Mat_HIP;
+    bv->ops->scale            = BVScale_Mat_HIP;
+    bv->ops->norm             = BVNorm_Mat_HIP;
+    bv->ops->norm_local       = BVNorm_Local_Mat_HIP;
+    bv->ops->normalize        = BVNormalize_Mat_HIP;
+    bv->ops->matmult          = BVMatMult_Mat_HIP;
+    bv->ops->copy             = BVCopy_Mat_HIP;
+    bv->ops->copycolumn       = BVCopyColumn_Mat_HIP;
+    bv->ops->getcolumn        = BVGetColumn_Mat_HIP;
+    bv->ops->restorecolumn    = BVRestoreColumn_Mat_HIP;
+    bv->ops->restoresplit     = BVRestoreSplit_Mat_HIP;
+    bv->ops->restoresplitrows = BVRestoreSplitRows_Mat_HIP;
+    bv->ops->getmat           = BVGetMat_Mat_HIP;
+    bv->ops->restoremat       = BVRestoreMat_Mat_HIP;
 #endif
   } else {
     bv->ops->mult             = BVMult_Mat;

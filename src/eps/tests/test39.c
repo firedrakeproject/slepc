@@ -56,7 +56,7 @@ int main(int argc,char **argv)
   PetscBool      flag,terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCheck(size>1,PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This example requires at least two processes");
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
@@ -80,7 +80,7 @@ int main(int argc,char **argv)
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  PetscCall(EPSSetDimensions(eps,nev,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,nev,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSSetFromOptions(eps));
 
   PetscCall(EPSSolve(eps));

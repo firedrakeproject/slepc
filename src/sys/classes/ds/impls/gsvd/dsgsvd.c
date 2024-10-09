@@ -563,11 +563,12 @@ static PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar ei
 {
   DS_GSVD        *ctx = (DS_GSVD*)ds->data;
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
-  PetscMPIInt    m=ctx->m,rank,off=0,size,n,ldn,ld3;
+  PetscMPIInt    m,rank,off=0,size,n,ldn,ld3;
   PetscScalar    *A,*U,*V,*X;
   PetscReal      *T;
 
   PetscFunctionBegin;
+  PetscCall(PetscMPIIntCast(ctx->m,&m));
   if (ds->compact) kr = 3*ld;
   else k = 2*(m-l)*ld;
   if (ds->state>DS_STATE_RAW) k += 3*(m-l)*ld;
@@ -664,15 +665,15 @@ static PetscErrorCode DSGSVDSetDimensions_GSVD(DS ds,PetscInt m,PetscInt p)
 
   PetscFunctionBegin;
   DSCheckAlloc(ds,1);
-  if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
+  if (m == PETSC_DETERMINE) {
     ctx->m = ds->ld;
-  } else {
+  } else if (m != PETSC_CURRENT) {
     PetscCheck(m>0 && m<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
     ctx->m = m;
   }
-  if (p==PETSC_DECIDE || p==PETSC_DEFAULT) {
+  if (p == PETSC_DETERMINE) {
     ctx->p = ds->n;
-  } else {
+  } else if (p != PETSC_CURRENT) {
     PetscCheck(p>0 && p<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of p. Must be between 1 and ld");
     ctx->p = p;
   }
@@ -693,6 +694,9 @@ static PetscErrorCode DSGSVDSetDimensions_GSVD(DS ds,PetscInt m,PetscInt p)
    This call is complementary to DSSetDimensions(), to provide two dimensions
    that are specific to this DS type. The number of rows for the first matrix (A)
    is set by DSSetDimensions().
+
+   Use PETSC_CURRENT to leave any of the values unchanged. Use PETSC_DETERMINE
+   to set m to the leading dimension and p to the number of columns of B.
 
    Level: intermediate
 
@@ -787,7 +791,10 @@ static PetscErrorCode DSDestroy_GSVD(DS ds)
 +  DS_MAT_A - first problem matrix
 .  DS_MAT_B - second problem matrix
 .  DS_MAT_T - first upper bidiagonal matrix (if compact storage is selected)
--  DS_MAT_D - second upper bidiagonal matrix (if compact storage is selected)
+.  DS_MAT_D - second upper bidiagonal matrix (if compact storage is selected)
+.  DS_MAT_U - (upper) left generalized singular vectors
+.  DS_MAT_V - (lower) left generalized singular vectors
+-  DS_MAT_X - right generalized singular vectors
 
    Implemented methods:
 .  0 - Lapack (_ggsvd3 if available, or _ggsvd)

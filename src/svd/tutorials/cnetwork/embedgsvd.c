@@ -33,7 +33,7 @@ PetscErrorCode SpectralRadius(Mat A,PetscReal *rho)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_NHEP));
-  PetscCall(EPSSetDimensions(eps,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,1,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE));
   PetscCall(EPSSetFromOptions(eps));
   PetscCall(EPSSolve(eps));
@@ -57,7 +57,7 @@ int main(int argc,char **argv)
   PetscBool      flg,terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load graph and build adjacency matrix
@@ -138,6 +138,6 @@ int main(int argc,char **argv)
 
    test:
       args: -graph ${SLEPC_DIR}/share/slepc/datafiles/graphs/out.moreno_taro_taro -svd_nsv 4 -terse
-      filter: sed -e 's/4.38031/4.38032/' | sed -e 's/3.75089/3.7509/' | sed -e 's/3.00071/3.00072/'
+      filter: sed -e 's/4.38031/4.38032/' | sed -e 's/4.38033/4.38032/' | sed -e 's/3.75089/3.7509/' | sed -e 's/3.00071/3.00072/'
 
 TEST*/

@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/bvimpl.h>
-#include <slepccublas.h>
+#include <slepccupmblas.h>
 
 #define BLOCKSIZE 64
 
@@ -165,7 +165,7 @@ PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,const P
         PetscCall(PetscLogGpuToCpu(m*n*sizeof(PetscScalar)));
       } else PetscCall(PetscArrayzero(bv->work,m*n));
       PetscCall(PetscMPIIntCast(m*n,&len));
-      PetscCall(MPIU_Allreduce(bv->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
+      PetscCallMPI(MPIU_Allreduce(bv->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
     } else {
       PetscCall(BVAllocateWork_Private(bv,2*m*n));
       CC = bv->work+m*n;
@@ -177,7 +177,7 @@ PetscErrorCode BVDot_BLAS_CUDA(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,const P
         PetscCall(PetscLogGpuToCpu(m*n*sizeof(PetscScalar)));
       } else PetscCall(PetscArrayzero(bv->work,m*n));
       PetscCall(PetscMPIIntCast(m*n,&len));
-      PetscCall(MPIU_Allreduce(bv->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
+      PetscCallMPI(MPIU_Allreduce(bv->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
       for (j=0;j<n;j++) PetscCall(PetscArraycpy(C+j*ldc,CC+j*m,m));
     }
   } else {
@@ -229,7 +229,7 @@ PetscErrorCode BVDotVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,const PetscScala
     if (!y) {
       if (use_gpu_aware_mpi) {  /* case 1: reduce on GPU using a temporary buffer */
         PetscCallCUDA(cudaMalloc((void**)&yy,k*sizeof(PetscScalar)));
-        PetscCall(MPIU_Allreduce(d_work,yy,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
+        PetscCallMPI(MPIU_Allreduce(d_work,yy,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
         PetscCallCUDA(cudaMemcpy(d_work,yy,k*sizeof(PetscScalar),cudaMemcpyDeviceToDevice));
         PetscCallCUDA(cudaFree(yy));
       } else {  /* case 2: reduce on CPU, copy result back to GPU */
@@ -237,14 +237,14 @@ PetscErrorCode BVDotVec_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,const PetscScala
         yy = bv->work+k;
         PetscCallCUDA(cudaMemcpy(bv->work,d_work,k*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
         PetscCall(PetscLogGpuToCpu(k*sizeof(PetscScalar)));
-        PetscCall(MPIU_Allreduce(bv->work,yy,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
+        PetscCallMPI(MPIU_Allreduce(bv->work,yy,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
         PetscCallCUDA(cudaMemcpy(d_work,yy,k*sizeof(PetscScalar),cudaMemcpyHostToDevice));
         PetscCall(PetscLogCpuToGpu(k*sizeof(PetscScalar)));
       }
       PetscCall(VecCUDARestoreArrayWrite(bv->buffer,&d_work));
     } else {  /* case 3: user-provided array y, reduce on CPU */
       PetscCallCUDA(cudaFree(d_work));
-      PetscCall(MPIU_Allreduce(bv->work,y,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
+      PetscCallMPI(MPIU_Allreduce(bv->work,y,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
     }
   } else {
     if (n) {

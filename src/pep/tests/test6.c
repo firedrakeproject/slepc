@@ -39,7 +39,7 @@ int main(int argc,char **argv)
   PetscBool      terse=PETSC_FALSE;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL));
@@ -97,7 +97,7 @@ int main(int argc,char **argv)
   A[0] = K; A[1] = C; A[2] = M;
   PetscCall(PEPSetOperators(pep,3,A));
   PetscCall(PEPSetProblemType(pep,PEP_GENERAL));
-  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT));
+  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_CURRENT));
   PetscCall(PEPSetFromOptions(pep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

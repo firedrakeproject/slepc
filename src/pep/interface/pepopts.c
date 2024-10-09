@@ -113,7 +113,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     PetscCall(PetscOptionsEnum("-pep_scale","Scaling strategy","PEPSetScale",PEPScaleTypes,(PetscEnum)scale,(PetscEnum*)&scale,&flg1));
     r = pep->sfactor;
     PetscCall(PetscOptionsReal("-pep_scale_factor","Scale factor","PEPSetScale",pep->sfactor,&r,&flg2));
-    if (!flg2 && r==1.0) r = PETSC_DEFAULT;
+    if (!flg2 && r==1.0) r = PETSC_DETERMINE;
     j = pep->sits;
     PetscCall(PetscOptionsInt("-pep_scale_its","Number of iterations in diagonal scaling","PEPSetScale",pep->sits,&j,&flg3));
     t = pep->slambda;
@@ -127,7 +127,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     i = pep->npart;
     PetscCall(PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg2));
     r = pep->rtol;
-    PetscCall(PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol==(PetscReal)PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:pep->rtol,&r,&flg3));
+    PetscCall(PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol==(PetscReal)PETSC_DETERMINE?SLEPC_DEFAULT_TOL/1000:pep->rtol,&r,&flg3));
     j = pep->rits;
     PetscCall(PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg4));
     scheme = pep->scheme;
@@ -282,7 +282,10 @@ PetscErrorCode PEPGetTolerances(PEP pep,PetscReal *tol,PetscInt *maxits)
 -  -pep_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
+   Use PETSC_CURRENT to retain the current value of any of the parameters.
+   Use PETSC_DETERMINE for either argument to assign a default value computed
+   internally (may be different in each solver).
+   For maxits use PETSC_UMLIMITED to indicate there is no upper bound on this value.
 
    Level: intermediate
 
@@ -294,17 +297,19 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,tol,2);
   PetscValidLogicalCollectiveInt(pep,maxits,3);
-  if (tol == (PetscReal)PETSC_DEFAULT) {
-    pep->tol   = PETSC_DEFAULT;
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    pep->tol   = PETSC_DETERMINE;
     pep->state = PEP_STATE_INITIAL;
-  } else {
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     pep->tol = tol;
   }
-  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    pep->max_it = PETSC_DEFAULT;
+  if (maxits == PETSC_DETERMINE) {
+    pep->max_it = PETSC_DETERMINE;
     pep->state  = PEP_STATE_INITIAL;
-  } else {
+  } else if (maxits == PETSC_UNLIMITED) {
+    pep->max_it = PETSC_INT_MAX;
+  } else if (maxits != PETSC_CURRENT) {
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     pep->max_it = maxits;
   }
@@ -360,8 +365,9 @@ PetscErrorCode PEPGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
 -  -pep_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Use PETSC_DEFAULT for ncv and mpd to assign a reasonably good value, which is
-   dependent on the solution method.
+   Use PETSC_DETERMINE for ncv and mpd to assign a reasonably good value, which is
+   dependent on the solution method. For any of the arguments, use PETSC_CURRENT
+   to preserve the current value.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
    to set one of them at most. Normal usage is that
@@ -386,17 +392,19 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(pep,nev,2);
   PetscValidLogicalCollectiveInt(pep,ncv,3);
   PetscValidLogicalCollectiveInt(pep,mpd,4);
-  PetscCheck(nev>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
-  pep->nev = nev;
-  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    pep->ncv = PETSC_DEFAULT;
-  } else {
+  if (nev != PETSC_CURRENT) {
+    PetscCheck(nev>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+    pep->nev = nev;
+  }
+  if (ncv == PETSC_DETERMINE) {
+    pep->ncv = PETSC_DETERMINE;
+  } else if (ncv != PETSC_CURRENT) {
     PetscCheck(ncv>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     pep->ncv = ncv;
   }
-  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    pep->mpd = PETSC_DEFAULT;
-  } else {
+  if (mpd == PETSC_DETERMINE) {
+    pep->mpd = PETSC_DETERMINE;
+  } else if (mpd != PETSC_CURRENT) {
     PetscCheck(mpd>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     pep->mpd = mpd;
   }
@@ -754,18 +762,9 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
 
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
-.  conv    - a pointer to the convergence test function
-.  ctx     - context for private data for the convergence routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of conv:
-$  PetscErrorCode conv(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
-+   pep    - eigensolver context obtained from PEPCreate()
-.   eigr   - real part of the eigenvalue
-.   eigi   - imaginary part of the eigenvalue
-.   res    - residual norm associated to the eigenpair
-.   errest - (output) computed error estimate
--   ctx    - optional context, as set by PEPSetConvergenceTestFunction()
+.  conv    - convergence test function, see PEPConvergenceTestFn for the calling sequence
+.  ctx     - context for private data for the convergence routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    If the error estimate returned by the convergence test function is less than
@@ -775,7 +774,7 @@ $  PetscErrorCode conv(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,P
 
 .seealso: PEPSetConvergenceTest(), PEPSetTolerances()
 @*/
-PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*conv)(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PEPConvergenceTestFn *conv,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -873,19 +872,9 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
 
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
-.  stop    - pointer to the stopping test function
-.  ctx     - context for private data for the stopping routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of stop:
-$  PetscErrorCode stop(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx)
-+   pep    - eigensolver context obtained from PEPCreate()
-.   its    - current number of iterations
-.   max_it - maximum number of iterations
-.   nconv  - number of currently converged eigenpairs
-.   nev    - number of requested eigenpairs
-.   reason - (output) result of the stopping test
--   ctx    - optional context, as set by PEPSetStoppingTestFunction()
+.  stop    - stopping test function, see PEPStoppingTestFn for the calling sequence
+.  ctx     - context for private data for the stopping routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    Normal usage is to first call the default routine PEPStoppingBasic() and then
@@ -897,7 +886,7 @@ $  PetscErrorCode stop(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,Petsc
 
 .seealso: PEPSetStoppingTest(), PEPStoppingBasic()
 @*/
-PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*stop)(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PEPStoppingTestFn *stop,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -1005,8 +994,9 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
    In the scalar strategy, scaling is applied to the eigenvalue, that is,
    mu = lambda/alpha is the new eigenvalue and all matrices are scaled
    accordingly. After solving the scaled problem, the original lambda is
-   recovered. Parameter 'alpha' must be positive. Use PETSC_DEFAULT to let
-   the solver compute a reasonable scaling factor.
+   recovered. Parameter 'alpha' must be positive. Use PETSC_DETERMINE to let
+   the solver compute a reasonable scaling factor, and PETSC_CURRENT to
+   retain a previously set value.
 
    In the diagonal strategy, the solver works implicitly with matrix Dl*A*Dr,
    where Dl and Dr are appropriate diagonal matrices. This improves the accuracy
@@ -1015,8 +1005,9 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
    provided, these matrices are computed internally. This option requires
    that the polynomial coefficient matrices are of MATAIJ type.
    The parameter 'its' is the number of iterations performed by the method.
-   Parameter 'lambda' must be positive. Use PETSC_DEFAULT or set lambda = 1.0 if
-   no information about eigenvalues is available.
+   Parameter 'lambda' must be positive. Use PETSC_DETERMINE or set lambda = 1.0
+   if no information about eigenvalues is available. PETSC_CURRENT can also
+   be used to leave its and lambda unchanged.
 
    Level: intermediate
 
@@ -1030,10 +1021,10 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
   pep->scale = scale;
   if (scale==PEP_SCALE_SCALAR || scale==PEP_SCALE_BOTH) {
     PetscValidLogicalCollectiveReal(pep,alpha,3);
-    if (alpha == (PetscReal)PETSC_DEFAULT || alpha == (PetscReal)PETSC_DECIDE) {
+    if (alpha == (PetscReal)PETSC_DETERMINE) {
       pep->sfactor = 0.0;
       pep->sfactor_set = PETSC_FALSE;
-    } else {
+    } else if (alpha != (PetscReal)PETSC_CURRENT) {
       PetscCheck(alpha>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
       pep->sfactor = alpha;
       pep->sfactor_set = PETSC_TRUE;
@@ -1056,10 +1047,13 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
     }
     PetscValidLogicalCollectiveInt(pep,its,6);
     PetscValidLogicalCollectiveReal(pep,lambda,7);
-    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) pep->sits = 5;
-    else pep->sits = its;
-    if (lambda == (PetscReal)PETSC_DECIDE || lambda == (PetscReal)PETSC_DEFAULT) pep->slambda = 1.0;
-    else {
+    if (its==PETSC_DETERMINE) pep->sits = 5;
+    else if (its!=PETSC_CURRENT) {
+      PetscCheck(its>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
+      pep->sits = its;
+    }
+    if (lambda == (PetscReal)PETSC_DETERMINE) pep->slambda = 1.0;
+    else if (lambda != (PetscReal)PETSC_CURRENT) {
       PetscCheck(lambda>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of lambda. Must be > 0");
       pep->slambda = lambda;
     }
@@ -1201,6 +1195,9 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
    solved. Possible choices are explicit, mixed block elimination (MBE),
    and Schur complement.
 
+   Use PETSC_CURRENT to retain the current value of npart, tol or its. Use
+   PETSC_DETERMINE to assign a default value.
+
    Level: intermediate
 
 .seealso: PEPGetRefine()
@@ -1222,22 +1219,22 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
       PetscCall(PetscSubcommDestroy(&pep->refinesubc));
       PetscCall(KSPDestroy(&pep->refineksp));
     }
-    if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
+    if (npart == PETSC_DETERMINE) {
       pep->npart = 1;
-    } else {
+    } else if (npart != PETSC_CURRENT) {
       PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)pep),&size));
       PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
       pep->npart = npart;
     }
-    if (tol == (PetscReal)PETSC_DEFAULT || tol == (PetscReal)PETSC_DECIDE) {
-      pep->rtol = PETSC_DEFAULT;
-    } else {
+    if (tol == (PetscReal)PETSC_DETERMINE) {
+      pep->rtol = PETSC_DETERMINE;
+    } else if (tol != (PetscReal)PETSC_CURRENT) {
       PetscCheck(tol>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       pep->rtol = tol;
     }
-    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
-      pep->rits = PETSC_DEFAULT;
-    } else {
+    if (its==PETSC_DETERMINE) {
+      pep->rits = PETSC_DETERMINE;
+    } else if (its != PETSC_CURRENT) {
       PetscCheck(its>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
       pep->rits = its;
     }

@@ -57,7 +57,7 @@ PetscErrorCode PEPConvergedRelative(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
 
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
-  *errest = res/w;
+  *errest = (w!=0.0)? res/w: PETSC_MAX_REAL;
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -271,7 +271,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       for (j=0;j<nz;j++) aux[cidx[j]] += PetscAbsScalar(array[j]);
       PetscCall(MatSeqAIJRestoreArray(M,&array));
     }
-    PetscCall(MPIU_Allreduce(aux,csum,n,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)pep->Dr)));
+    PetscCallMPI(MPIU_Allreduce(aux,csum,n,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)pep->Dr)));
     /* Update Dr */
     for (j=lst;j<lend;j++) {
       d = PetscLogReal(csum[j])/l2;
@@ -313,8 +313,8 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     }
     PetscCall(MatSeqAIJRestoreArray(M,&array));
     /* Compute global max and min */
-    PetscCall(MPIU_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl)));
-    PetscCall(MPIU_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl)));
+    PetscCallMPI(MPIU_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl)));
+    PetscCallMPI(MPIU_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl)));
     if (emax<=emin+2) cont = PETSC_FALSE;
   }
   PetscCall(VecRestoreArray(pep->Dr,&Dr));

@@ -29,7 +29,6 @@ static PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *
 }
 
 #define MAX_PADE 6
-#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
 
 static PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
 {
@@ -81,12 +80,12 @@ static PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
   for (k=p-1;k>0;k--) {
     if (odd) {
       PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A2,&ld,&zero,W,&ld));
-      SWAP(Q,W,aux);
+      SlepcSwap(Q,W,aux);
       for (j=0;j<n;j++) Q[j+j*ld] += c[k-1];
       odd = PETSC_FALSE;
     } else {
       PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A2,&ld,&zero,W,&ld));
-      SWAP(P,W,aux);
+      SlepcSwap(P,W,aux);
       for (j=0;j<n;j++) P[j+j*ld] += c[k-1];
       odd = PETSC_TRUE;
     }
@@ -94,7 +93,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
   }
   /*if (odd) {
     PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,As,&ld,&zero,W,&ld));
-    SWAP(Q,W,aux);
+    SlepcSwap(Q,W,aux);
     PetscCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
     PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
     SlepcCheckLapackInfo("gesv",info);
@@ -103,7 +102,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
     PetscCallBLAS("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
   } else {*/
     PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,As,&ld,&zero,W,&ld));
-    SWAP(P,W,aux);
+    SlepcSwap(P,W,aux);
     PetscCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
     PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
     SlepcCheckLapackInfo("gesv",info);
@@ -587,7 +586,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,M
         PetscCall(PetscArraycpy(RR,As,n2));
         for (j=1;j<i;j++) {
           PetscCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,RR,&n,&czero,Maux,&n));
-          SWAP(RR,Maux,aux);
+          SlepcSwap(RR,Maux,aux);
           PetscCall(SlepcLogFlopsComplex(2.0*n*n*n));
         }
         PetscCallBLAS("BLASCOMPLEXscal",BLASCOMPLEXscal_(&n2,&remainterm[iremainsize-1-i],RR,&one));
@@ -617,7 +616,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,M
         RR[j+j*n] -= rootp[i];
       }
       PetscCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,expmA,&n,&czero,Maux,&n));
-      SWAP(expmA,Maux,aux);
+      SlepcSwap(expmA,Maux,aux);
       PetscCall(PetscArraycpy(RR,As,n2));
       for (j=0;j<n;j++) {
         RR[j+j*n] -= rootq[i];
@@ -634,7 +633,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,M
         RR[j+j*n] -= rootp[i];
       }
       PetscCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,expmA,&n,&czero,Maux,&n));
-      SWAP(expmA,Maux,aux);
+      SlepcSwap(expmA,Maux,aux);
       PetscCall(SlepcLogFlopsComplex(1.0*n+2.0*n*n*n));
     }
     /* extra denominator */
@@ -661,7 +660,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,M
   /* perform repeated squaring */
   for (i=0;i<s;i++) { /* final squaring */
     PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,Ba2,&n,Ba2,&n,&szero,sMaux,&n));
-    SWAP(Ba2,sMaux,saux);
+    SlepcSwap(Ba2,sMaux,saux);
     PetscCall(PetscLogFlops(2.0*n*n*n));
   }
   if (Ba2!=Ba) {
@@ -875,7 +874,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
       }
       PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[0],&n_,P,&n_,&szero,W,&n_));
       PetscCall(PetscLogFlops(2.0*n*n*n));
-      SWAP(P,W,aux);
+      SlepcSwap(P,W,aux);
       break;
     case 13:
       /*  P = A*(Apowers[3]*(c[13]*Apowers[3] + c[11]*Apowers[2] + c[9]*Apowers[1])
@@ -922,7 +921,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   /* Squaring */
   for (j=1;j<=s;j++) {
     PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,P,&n_,P,&n_,&szero,W,&n_));
-    SWAP(P,W,aux);
+    SlepcSwap(P,W,aux);
   }
   if (P!=Ba) PetscCall(PetscArraycpy(Ba,P,n2));
   PetscCall(PetscLogFlops(2.0*n*n*n*s));
@@ -935,7 +934,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
 
 #if defined(PETSC_HAVE_CUDA)
 #include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
-#include <slepccublas.h>
+#include <slepccupmblas.h>
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 {
@@ -1003,12 +1002,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
   for (k=p-1;k>0;k--) {
     if (odd) {
       PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Q,ld,d_A2,ld,&szero,d_W,ld));
-      SWAP(d_Q,d_W,aux);
+      SlepcSwap(d_Q,d_W,aux);
       PetscCall(shift_diagonal(n,d_Q,ld,c[k-1]));
       odd = PETSC_FALSE;
     } else {
       PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_A2,ld,&szero,d_W,ld));
-      SWAP(d_P,d_W,aux);
+      SlepcSwap(d_P,d_W,aux);
       PetscCall(shift_diagonal(n,d_P,ld,c[k-1]));
       odd = PETSC_TRUE;
     }
@@ -1016,7 +1015,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
   }
   if (odd) {
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Q,ld,d_As,ld,&szero,d_W,ld));
-    SWAP(d_Q,d_W,aux);
+    SlepcSwap(d_Q,d_W,aux);
     PetscCallCUBLAS(cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one));
 
     ppQ[0] = d_Q;
@@ -1036,7 +1035,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
     PetscCallCUBLAS(cublasXscal(cublasv2handle,ld2,&smone,d_P,one));
   } else {
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_As,ld,&szero,d_W,ld));
-    SWAP(d_P,d_W,aux);
+    SlepcSwap(d_P,d_W,aux);
     PetscCallCUBLAS(cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one));
 
     ppQ[0] = d_Q;
@@ -1153,12 +1152,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
   for (k=p-1;k>0;k--) {
     if (odd) {
       PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Q,ld,d_A2,ld,&szero,d_W,ld));
-      SWAP(d_Q,d_W,aux);
+      SlepcSwap(d_Q,d_W,aux);
       PetscCall(shift_diagonal(n,d_Q,ld,c[k-1]));
       odd = PETSC_FALSE;
     } else {
       PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_A2,ld,&szero,d_W,ld));
-      SWAP(d_P,d_W,aux);
+      SlepcSwap(d_P,d_W,aux);
       PetscCall(shift_diagonal(n,d_P,ld,c[k-1]));
       odd = PETSC_TRUE;
     }
@@ -1166,7 +1165,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
   }
   if (odd) {
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Q,ld,d_As,ld,&szero,d_W,ld));
-    SWAP(d_Q,d_W,aux);
+    SlepcSwap(d_Q,d_W,aux);
     PetscCallCUBLAS(cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one));
     PetscCallMAGMA(magma_xgesv_gpu,n,n,d_Q,ld,piv,d_P,ld);
     PetscCallCUBLAS(cublasXscal(cublasv2handle,ld2,&stwo,d_P,one));
@@ -1174,7 +1173,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
     PetscCallCUBLAS(cublasXscal(cublasv2handle,ld2,&smone,d_P,one));
   } else {
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_As,ld,&szero,d_W,ld));
-    SWAP(d_P,d_W,aux);
+    SlepcSwap(d_P,d_W,aux);
     PetscCallCUBLAS(cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one));
     PetscCallMAGMA(magma_xgesv_gpu,n,n,d_Q,ld,piv,d_P,ld);
     PetscCallCUBLAS(cublasXscal(cublasv2handle,ld2,&stwo,d_P,one));
@@ -1311,7 +1310,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
       }
       PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[0],n_,d_P,n_,&szero,d_W,n_));
       PetscCall(PetscLogGpuFlops(2.0*n*n*n));
-      SWAP(d_P,d_W,aux);
+      SlepcSwap(d_P,d_W,aux);
       break;
     case 13:
       /*  P = A*(Apowers[3]*(c[13]*Apowers[3] + c[11]*Apowers[2] + c[9]*Apowers[1])
@@ -1360,7 +1359,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   /* Squaring */
   for (j=1;j<=s;j++) {
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_P,n_,d_P,n_,&szero,d_W,n_));
-    SWAP(d_P,d_W,aux);
+    SlepcSwap(d_P,d_W,aux);
   }
   PetscCall(PetscLogGpuFlops(2.0*n*n*n*s));
   PetscCall(PetscLogGpuTimeEnd());
@@ -1564,7 +1563,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
         PetscCallCUDA(cudaMemcpy(d_RR,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
         for (j=1;j<i;j++) {
           PetscCallCUBLAS(cublasXCgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&cone,d_RR,n,d_RR,n,&czero,d_Maux,n));
-          SWAP(d_RR,d_Maux,aux);
+          SlepcSwap(d_RR,d_Maux,aux);
           PetscCall(SlepcLogGpuFlopsComplex(2.0*n*n*n));
         }
         PetscCallCUBLAS(cublasXCscal(cublasv2handle,n2,&remainterm[iremainsize-1-i],d_RR,one));
@@ -1588,7 +1587,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
       PetscCallCUDA(cudaMemcpy(d_RR,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
       PetscCall(shift_Cdiagonal(n,d_RR,n,-PetscRealPartComplex(rootp[i]),-PetscImaginaryPartComplex(rootp[i])));
       PetscCallCUBLAS(cublasXCgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&cone,d_RR,n,d_expmA,n,&czero,d_Maux,n));
-      SWAP(d_expmA,d_Maux,aux);
+      SlepcSwap(d_expmA,d_Maux,aux);
       PetscCallCUDA(cudaMemcpy(d_RR,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
       PetscCall(shift_Cdiagonal(n,d_RR,n,-PetscRealPartComplex(rootq[i]),-PetscImaginaryPartComplex(rootq[i])));
       PetscCallMAGMA(magma_Cgesv_gpu,n,n,d_RR,n,piv,d_expmA,n);
@@ -1600,7 +1599,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
       PetscCallCUDA(cudaMemcpy(d_RR,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
       PetscCall(shift_Cdiagonal(n,d_RR,n,-PetscRealPartComplex(rootp[i]),-PetscImaginaryPartComplex(rootp[i])));
       PetscCallCUBLAS(cublasXCgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&cone,d_RR,n,d_expmA,n,&czero,d_Maux,n));
-      SWAP(d_expmA,d_Maux,aux);
+      SlepcSwap(d_expmA,d_Maux,aux);
       PetscCall(SlepcLogGpuFlopsComplex(1.0*n+2.0*n*n*n));
     }
     /* extra denominator */
@@ -1624,7 +1623,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   /* perform repeated squaring */
   for (i=0;i<s;i++) { /* final squaring */
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Ba2,n,d_Ba2,n,&szero,d_sMaux,n));
-    SWAP(d_Ba2,d_sMaux,saux);
+    SlepcSwap(d_Ba2,d_sMaux,saux);
     PetscCall(PetscLogGpuFlops(2.0*n*n*n));
   }
   if (d_Ba2!=d_Ba) {

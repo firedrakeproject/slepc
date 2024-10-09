@@ -80,7 +80,8 @@ typedef enum { EPS_HEP=1,
                EPS_NHEP,
                EPS_GNHEP,
                EPS_PGNHEP,
-               EPS_GHIEP } EPSProblemType;
+               EPS_GHIEP,
+               EPS_BSE   } EPSProblemType;
 
 /*E
     EPSExtraction - Determines the type of extraction technique employed
@@ -227,13 +228,11 @@ SLEPC_EXTERN PetscErrorCode EPSSetDS(EPS,DS);
 SLEPC_EXTERN PetscErrorCode EPSGetDS(EPS,DS*);
 SLEPC_EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
-SLEPC_EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
 SLEPC_EXTERN PetscErrorCode EPSSetConvergenceTest(EPS,EPSConv);
 SLEPC_EXTERN PetscErrorCode EPSGetConvergenceTest(EPS,EPSConv*);
 SLEPC_EXTERN PetscErrorCode EPSConvergedAbsolute(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode EPSConvergedRelative(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode EPSConvergedNorm(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-SLEPC_EXTERN PetscErrorCode EPSSetStoppingTestFunction(EPS,PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
 SLEPC_EXTERN PetscErrorCode EPSSetStoppingTest(EPS,EPSStop);
 SLEPC_EXTERN PetscErrorCode EPSGetStoppingTest(EPS,EPSStop*);
 SLEPC_EXTERN PetscErrorCode EPSStoppingBasic(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*);
@@ -263,11 +262,10 @@ SLEPC_EXTERN PetscErrorCode EPSSetTrueResidual(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSGetTrueResidual(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSSetPurify(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSGetPurify(EPS,PetscBool*);
-SLEPC_EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
-SLEPC_EXTERN PetscErrorCode EPSSetArbitrarySelection(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*),void*);
 SLEPC_EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSIsPositive(EPS,PetscBool*);
+SLEPC_EXTERN PetscErrorCode EPSIsStructured(EPS,PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode EPSSetTrackAll(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSGetTrackAll(EPS,PetscBool*);
@@ -309,6 +307,48 @@ SLEPC_EXTERN PetscErrorCode EPSMonitorRegister(const char[],PetscViewerType,Pets
 SLEPC_EXTERN PetscErrorCode EPSSetWorkVecs(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
 
+/*S
+  EPSConvergenceTestFn - A prototype of an EPS convergence test function that would be passed to EPSSetConvergenceTestFunction()
+
+  Calling Sequence:
++   eps    - eigensolver context obtained from EPSCreate()
+.   eigr   - real part of the eigenvalue
+.   eigi   - imaginary part of the eigenvalue
+.   res    - residual norm associated to the eigenpair
+.   errest - [output] computed error estimate
+-   ctx    - [optional] user-defined context for private data for the
+             convergence test routine (may be NULL)
+
+  Level: advanced
+
+.seealso: EPSSetConvergenceTestFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(EPSConvergenceTestFn)(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx);
+
+/*S
+  EPSStoppingTestFn - A prototype of an EPS stopping test function that would be passed to EPSSetStoppingTestFunction()
+
+  Calling Sequence:
++   eps    - eigensolver context obtained from EPSCreate()
+.   its    - current number of iterations
+.   max_it - maximum number of iterations
+.   nconv  - number of currently converged eigenpairs
+.   nev    - number of requested eigenpairs
+.   reason - [output] result of the stopping test
+-   ctx    - [optional] user-defined context for private data for the
+             stopping test routine (may be NULL)
+
+  Level: advanced
+
+.seealso: EPSSetStoppingTestFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(EPSStoppingTestFn)(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx);
+
+SLEPC_EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS,EPSConvergenceTestFn*,void*,PetscErrorCode (*)(void*));
+SLEPC_EXTERN PetscErrorCode EPSSetStoppingTestFunction(EPS,EPSStoppingTestFn*,void*,PetscErrorCode (*)(void*));
+SLEPC_EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,SlepcEigenvalueComparisonFn*,void*);
+SLEPC_EXTERN PetscErrorCode EPSSetArbitrarySelection(EPS,SlepcArbitrarySelectionFn*,void*);
+
 /* --------- options specific to particular eigensolvers -------- */
 
 /*E
@@ -337,6 +377,21 @@ SLEPC_EXTERN PetscErrorCode EPSPowerGetSNES(EPS,SNES*);
 SLEPC_EXTERN PetscErrorCode EPSArnoldiSetDelayed(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSArnoldiGetDelayed(EPS,PetscBool*);
 
+/*E
+    EPSKrylovSchurBSEType - the method to be used in the Krylov-Schur solver
+    for the case of BSE structured eigenproblems
+
+    Level: advanced
+
+.seealso: EPSKrylovSchurSetBSEType(), EPSKrylovSchurGetBSEType()
+E*/
+typedef enum { EPS_KRYLOVSCHUR_BSE_SHAO,
+               EPS_KRYLOVSCHUR_BSE_GRUNING,
+               EPS_KRYLOVSCHUR_BSE_PROJECTEDBSE } EPSKrylovSchurBSEType;
+SLEPC_EXTERN const char *EPSKrylovSchurBSETypes[];
+
+SLEPC_EXTERN PetscErrorCode EPSKrylovSchurSetBSEType(EPS,EPSKrylovSchurBSEType);
+SLEPC_EXTERN PetscErrorCode EPSKrylovSchurGetBSEType(EPS,EPSKrylovSchurBSEType*);
 SLEPC_EXTERN PetscErrorCode EPSKrylovSchurSetRestart(EPS,PetscReal);
 SLEPC_EXTERN PetscErrorCode EPSKrylovSchurGetRestart(EPS,PetscReal*);
 SLEPC_EXTERN PetscErrorCode EPSKrylovSchurSetLocking(EPS,PetscBool);

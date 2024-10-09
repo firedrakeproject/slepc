@@ -20,7 +20,7 @@ typedef struct {
 static PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
-  PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  if (!ds->compact) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_U));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_V));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
@@ -264,7 +264,7 @@ static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(PetscBLASIntCast(PetscMax(0,ds->k-ds->l+1),&n2));
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
   off = l+l*ld;
-  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  if (!ds->compact) PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
@@ -286,7 +286,6 @@ static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     perm = ds->iwork+iwu;
     iwu += n;
     cmplx = ds->iwork+iwu;
-    iwu += n;
     dd = ds->rwork+rwu;
     rwu += ld;
     ee = ds->rwork+rwu;
@@ -332,9 +331,7 @@ static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     perm = ds->iwork+iwu;
     iwu += n;
     cmplx = ds->iwork+iwu;
-    iwu += n;
     dd = ds->rwork+rwu;
-    rwu += ld;
     for (j=l;j<m;j++) {
       for (i=0;i<n;i++) ds->work[i] = Omega[i]*A[i+j*ld];
       PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&m,&sone,A,&ld,ds->work,&incx,&szero,V+j*ld,&incx));
@@ -343,6 +340,7 @@ static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* compute eigenvalues */
     lwork = (n+6)*ld;
 #if defined(PETSC_USE_COMPLEX)
+    rwu += ld;
     PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,ds->rwork+rwu,&info));
 #else
     PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,&info));
@@ -383,7 +381,7 @@ static PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
   }
 
-  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  if (!ds->compact) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
@@ -655,6 +653,13 @@ static PetscErrorCode DSDestroy_HSVD(DS ds)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+static PetscErrorCode DSSetCompact_HSVD(DS ds,PetscBool comp)
+{
+  PetscFunctionBegin;
+  if (!comp) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 /*MC
    DSHSVD - Dense Hyperbolic Singular Value Decomposition.
 
@@ -676,9 +681,11 @@ static PetscErrorCode DSDestroy_HSVD(DS ds)
    only, m=n. The extra row should be interpreted in this case as an extra column.
 
    Used DS matrices:
-+  DS_MAT_A - problem matrix
++  DS_MAT_A - problem matrix (used only if compact=false)
 .  DS_MAT_T - upper bidiagonal matrix
--  DS_MAT_D - diagonal matrix (signature)
+.  DS_MAT_D - diagonal matrix (signature)
+.  DS_MAT_U - left singular vectors
+-  DS_MAT_V - right singular vectors
 
    Implemented methods:
 .  0 - Cross product A'*Omega*A
@@ -699,13 +706,14 @@ SLEPC_EXTERN PetscErrorCode DSCreate_HSVD(DS ds)
   ds->ops->vectors        = DSVectors_HSVD;
   ds->ops->solve[0]       = DSSolve_HSVD_CROSS;
   ds->ops->sort           = DSSort_HSVD;
-#if !defined(PETSC_HAVE_MPIUNI)
-  ds->ops->synchronize    = DSSynchronize_HSVD;
-#endif
   ds->ops->truncate       = DSTruncate_HSVD;
   ds->ops->update         = DSUpdateExtraRow_HSVD;
   ds->ops->destroy        = DSDestroy_HSVD;
   ds->ops->matgetsize     = DSMatGetSize_HSVD;
+#if !defined(PETSC_HAVE_MPIUNI)
+  ds->ops->synchronize    = DSSynchronize_HSVD;
+#endif
+  ds->ops->setcompact     = DSSetCompact_HSVD;
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetDimensions_C",DSHSVDSetDimensions_HSVD));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetDimensions_C",DSHSVDGetDimensions_HSVD));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetReorthogonalize_C",DSHSVDSetReorthogonalize_HSVD));

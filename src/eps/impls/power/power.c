@@ -83,11 +83,12 @@ static PetscErrorCode EPSSetUp_Power(EPS eps)
   void           *ctx;
 
   PetscFunctionBegin;
-  if (eps->ncv!=PETSC_DEFAULT) {
+  EPSCheckNotStructured(eps);
+  if (eps->ncv!=PETSC_DETERMINE) {
     PetscCheck(eps->ncv>=eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
   } else eps->ncv = eps->nev;
-  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
-  if (eps->max_it==PETSC_DEFAULT) {
+  if (eps->mpd!=PETSC_DETERMINE) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
+  if (eps->max_it==PETSC_DETERMINE) {
     /* SNES will directly return the solution for us, and we need to do only one iteration */
     if (power->nonlinear && power->update) eps->max_it = 1;
     else eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
@@ -203,7 +204,7 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
   }
   PetscCall(VecRestoreArrayRead(x,&xx));
   if (i==last) i=N;
-  PetscCall(MPIU_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x)));
+  PetscCallMPI(MPIU_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x)));
   PetscCheck(*idx!=N,PetscObjectComm((PetscObject)x),PETSC_ERR_PLIB,"Zero vector found");
   PetscCall(VecGetLayout(x,&map));
   PetscCall(PetscLayoutFindOwner(map,*idx,p));

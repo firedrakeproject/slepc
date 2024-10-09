@@ -78,7 +78,7 @@ int main(int argc,char **argv)
   Vec            IV[2];
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL));
@@ -138,7 +138,7 @@ int main(int argc,char **argv)
   A[0] = K; A[1] = C; A[2] = M;
   PetscCall(PEPSetOperators(pep,3,A));
   PetscCall(PEPSetProblemType(pep,PEP_GENERAL));
-  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT));
+  PetscCall(PEPSetTolerances(pep,PETSC_SMALL,PETSC_CURRENT));
   if (initv) { /* initial vector */
     PetscCall(MatCreateVecs(K,&IV[0],NULL));
     PetscCall(VecSetValue(IV[0],0,-1.0,INSERT_VALUES));
@@ -350,5 +350,19 @@ int main(int argc,char **argv)
       suffix: 14
       requires: complex double
       args: -pep_type ciss -rg_type ellipse -rg_ellipse_center -48.5 -rg_ellipse_radius 1.5 -pep_ciss_delta 1e-10
+
+   testset:
+      args: -pep_nev 4 -initv -mat_type aijhipsparse
+      output_file: output/test2_1.out
+      requires: hip !single
+      test:
+         suffix: 15_hip
+         args: -pep_type {{toar linear}}
+      test:
+         suffix: 15_hip_qarnoldi
+         args: -pep_type qarnoldi -bv_orthog_refine never
+      test:
+         suffix: 15_hip_linear_gd
+         args: -pep_type linear -pep_linear_eps_type gd -pep_linear_explicitmatrix
 
 TEST*/

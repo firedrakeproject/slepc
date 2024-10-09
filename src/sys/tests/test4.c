@@ -16,12 +16,12 @@ int main(int argc,char **argv)
 {
   PetscBool pInitialized,sInitialized,pFinalized,sFinalized,skip_petsc_finalize;
 
-  PetscCall(PetscInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscInitialized(&pInitialized));
   PetscCall(SlepcInitialized(&sInitialized));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscInitialized(&pInitialized));
   PetscCall(SlepcInitialized(&sInitialized));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));

@@ -318,7 +318,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
 
 #if defined(PETSC_HAVE_CUDA)
 #include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
-#include <slepccublas.h>
+#include <slepccupmblas.h>
 
 /*
  * Matrix square root by Newton-Schulz iteration. CUDA version.
@@ -515,7 +515,6 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *d_T,
 #endif /* PETSC_HAVE_CUDA */
 
 #define ITMAX 5
-#define SWAP(a,b,t) do {t=a;a=b;b=t;} while (0)
 
 /*
    Estimate norm(A^m,1) by block 1-norm power method (required workspace is 11*n)
@@ -547,14 +546,14 @@ static PetscErrorCode SlepcNormEst1(PetscBLASInt n,PetscScalar *A,PetscInt m,Pet
     it++;
     for (j=0;j<m;j++) {  /* Y = A^m*X */
       PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&t,&n,&sone,A,&n,X,&n,&szero,Y,&n));
-      if (j<m-1) SWAP(X,Y,aux);
+      if (j<m-1) SlepcSwap(X,Y,aux);
     }
     for (j=0;j<t;j++) {  /* vals[j] = norm(Y(:,j),1) */
       vals[j] = 0.0;
       for (i=0;i<n;i++) vals[j] += PetscAbsScalar(Y[i+j*n]);
     }
     if (vals[0]<vals[1]) {
-      SWAP(vals[0],vals[1],raux);
+      SlepcSwap(vals[0],vals[1],raux);
       m1 = 1;
     } else m1 = 0;
     est = vals[0];
@@ -565,13 +564,13 @@ static PetscErrorCode SlepcNormEst1(PetscBLASInt n,PetscScalar *A,PetscInt m,Pet
     }
     est_old = est;
     if (it>ITMAX) break;
-    SWAP(S,S_old,aux);
+    SlepcSwap(S,S_old,aux);
     for (i=0;i<t*n;i++) {  /* S = sign(Y) */
       S[i] = (PetscRealPart(Y[i]) < 0.0)? -1.0: 1.0;
     }
     for (j=0;j<m;j++) {  /* Z = (A^T)^m*S */
       PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&n,&t,&n,&sone,A,&n,S,&n,&szero,Z,&n));
-      if (j<m-1) SWAP(S,Z,aux);
+      if (j<m-1) SlepcSwap(S,Z,aux);
     }
     maxzval[0] = -1; maxzval[1] = -1;
     ind[0] = 0; ind[1] = 0;
@@ -616,7 +615,7 @@ PetscErrorCode SlepcNormAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar 
       PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,A,&n,A,&n,&szero,v,&n));
       for (j=0;j<m-2;j++) {
         PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,A,&n,v,&n,&szero,w,&n));
-        SWAP(v,w,aux);
+        SlepcSwap(v,w,aux);
       }
       *nrm = LAPACKlange_("O",&n,&n,v,&n,rwork);
       PetscCall(PetscLogFlops(2.0*n*n*n*(m-1)+1.0*n*n));
@@ -633,7 +632,7 @@ PetscErrorCode SlepcNormAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar 
       for (i=0;i<n;i++) v[i] = 1.0;
       for (j=0;j<m;j++) {  /* w = A'*v */
         PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&sone,A,&n,v,&one,&szero,w,&one));
-        SWAP(v,w,aux);
+        SlepcSwap(v,w,aux);
       }
       PetscCall(PetscLogFlops(2.0*n*n*m));
       *nrm = 0.0;

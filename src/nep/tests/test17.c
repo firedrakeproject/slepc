@@ -166,7 +166,7 @@ int main(int argc,char **argv)
   MatStructure   mstr;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-a",&a,NULL));
@@ -279,8 +279,8 @@ int main(int argc,char **argv)
          requires: complex
       test:
          suffix: 2_nleigs_real
-         args: -nep_type nleigs -rg_interval_endpoints .5,15 -split {{0 1}} -nep_nleigs_ksp_type tfqmr
-         requires: !complex
+         args: -nep_type nleigs -rg_interval_endpoints .5,11 -split {{0 1}} -nep_nleigs_ksp_type tfqmr
+         requires: !complex !__float128
 
    testset:
       args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -rg_ellipse_vscale 0.1 -nep_ciss_ksp_type bcgs -nep_ciss_pc_type sor

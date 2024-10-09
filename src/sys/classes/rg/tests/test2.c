@@ -40,13 +40,13 @@ int main(int argc,char **argv)
   PetscScalar    center,cr[NPOINTS],ci[NPOINTS];
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(RGCreate(PETSC_COMM_WORLD,&rg));
 
   PetscCall(RGSetType(rg,RGRING));
   PetscCall(RGIsTrivial(rg,&triv));
   PetscCheck(triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be trivial before setting parameters");
-  PetscCall(RGRingSetParameters(rg,2,PETSC_DEFAULT,0.5,0.25,0.75,0.1));
+  PetscCall(RGRingSetParameters(rg,2,PETSC_DETERMINE,0.5,0.25,0.75,0.1));
   PetscCall(RGSetFromOptions(rg));
   PetscCall(RGIsTrivial(rg,&triv));
   PetscCheck(!triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be non-trivial after setting parameters");

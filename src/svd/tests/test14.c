@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PetscBool      flg;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
@@ -77,7 +77,7 @@ int main(int argc,char **argv)
 
   PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
   PetscCall(SVDSetOperators(svd,A,NULL));
-  PetscCall(SVDSetTolerances(svd,PETSC_DEFAULT,1000));
+  PetscCall(SVDSetTolerances(svd,PETSC_CURRENT,1000));
   PetscCall(SVDSetFromOptions(svd));
   PetscCall(SVDSolve(svd));
   PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));

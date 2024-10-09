@@ -33,7 +33,7 @@ int main(int argc,char **argv)
   PetscInt       n=30,i,Istart,Iend,nconv;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with zero diagonal, n=%" PetscInt_FMT "\n\n",n));
@@ -58,7 +58,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
   PetscCall(EPSSetFromOptions(eps));

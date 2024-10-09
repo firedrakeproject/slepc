@@ -89,7 +89,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
 
   PetscCall(DSRestoreArray(d->eps->ds,DS_MAT_X,&pX));
 
-  for (i=0,s=0;i<n;i+=s) {
+  for (i=0;i<n;i+=s) {
 #if !defined(PETSC_USE_COMPLEX)
     if (d->eigi[r_s+i] != 0.0 && i+2<=n) {
        /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0

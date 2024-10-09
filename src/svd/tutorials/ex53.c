@@ -353,8 +353,8 @@ static PetscErrorCode ColitNextRow(ColsNzIter iter,PetscInt *i,PetscScalar **pai
 
 static PetscErrorCode SendrecvRow(XMat A,PetscInt nc1,const PetscInt vj1[],const PetscScalar va1[],PetscInt i2,PetscInt *nc2,PetscInt vj2[],PetscScalar va2[])
 {
-  PetscInt    rank,*ranges,N=A->N;
-  PetscMPIInt naux;
+  PetscInt    *ranges,N=A->N;
+  PetscMPIInt rank,naux,len1,len2;
   MPI_Status  st;
 
   PetscFunctionBeginUser;
@@ -364,8 +364,10 @@ static PetscErrorCode SendrecvRow(XMat A,PetscInt nc1,const PetscInt vj1[],const
   rank=0;
   while (ranges[rank+1]<=i2) rank++;
   /* Send row i1, receive row i2 */
-  PetscCallMPI(MPI_Sendrecv(vj1,nc1,MPIU_INT,rank,0,vj2,N,MPIU_INT,rank,0,A->comm,&st));
-  PetscCallMPI(MPI_Sendrecv(va1,nc1,MPIU_SCALAR,rank,0,va2,N,MPIU_SCALAR,rank,0,A->comm,MPI_STATUS_IGNORE));
+  PetscCall(PetscMPIIntCast(nc1,&len1));
+  PetscCall(PetscMPIIntCast(N,&len2));
+  PetscCallMPI(MPI_Sendrecv(vj1,len1,MPIU_INT,rank,0,vj2,len2,MPIU_INT,rank,0,A->comm,&st));
+  PetscCallMPI(MPI_Sendrecv(va1,len1,MPIU_SCALAR,rank,0,va2,len2,MPIU_SCALAR,rank,0,A->comm,MPI_STATUS_IGNORE));
   PetscCallMPI(MPI_Get_count(&st,MPIU_INT,&naux));
   *nc2 = (PetscInt)naux;
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -432,9 +434,9 @@ static inline void MyAxpby(PetscInt n,PetscScalar a,PetscScalar x[],PetscScalar 
 /* Apply plane rotation on rows i1, i2 of A */
 static PetscErrorCode RotateRows(XMat A,PetscInt i1,PetscInt i2,PetscReal c,PetscReal s,PetscInt *nzloc,PetscInt *iwork,PetscScalar *swork)
 {
-  PetscInt     M,N,Istart,Iend,nc,nc1,nc2,*vj1,*vj2,*vjj1,*vjj2,*iworkx=iwork;
+  PetscInt     M,N,Istart,Iend,nc,nc1,nc2,*vj1=NULL,*vj2=NULL,*vjj1=NULL,*vjj2=NULL,*iworkx=iwork;
   PetscBLASInt nc_,one=1;
-  PetscScalar  *va1,*va2,*vaa1,*vaa2,*sworkx=swork;
+  PetscScalar  *va1=NULL,*va2=NULL,*vaa1=NULL,*vaa2=NULL,*sworkx=swork;
   PetscBool    i1mine, i2mine;
 #ifdef TIMING
   PetscReal    t,t0;
@@ -558,7 +560,7 @@ int main(int argc,char **argv)
 #endif
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&P,&flgp));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-q",&Q,&flgq));

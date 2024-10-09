@@ -28,7 +28,7 @@ int main(int argc,char **argv)
   Vec            v,y;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
@@ -121,10 +121,14 @@ int main(int argc,char **argv)
          suffix: 1_cuda
          args: -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 1_hip
+         args: -mat_type aijhipsparse
+         requires: hip
 
    test:
       suffix: 3
-      args: -mfn_type expokit -t 0.6 -mfn_ncv 35
+      args: -mfn_type expokit -t 0.6 -mfn_ncv 24
       requires: !__float128
 
 TEST*/

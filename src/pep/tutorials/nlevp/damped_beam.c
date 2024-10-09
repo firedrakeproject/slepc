@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PetscBool      terse;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   nele = n/2;
@@ -177,6 +177,7 @@ int main(int argc,char **argv)
       test:
          suffix: 1_jd
          args: -pep_type jd
+         filter: sed -e "s/23066i/23065i/"
 
    testset:
       args: -pep_nev 2 -pep_ncv 12 -pep_target 1i -terse

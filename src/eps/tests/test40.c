@@ -27,7 +27,7 @@ int main(int argc,char **argv)
   PetscInt       N,m=15,nev;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
@@ -49,8 +49,8 @@ int main(int argc,char **argv)
   PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_NHEP));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
-  PetscCall(EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
+  PetscCall(EPSSetDimensions(eps,4,PETSC_DETERMINE,PETSC_DETERMINE));
   PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
   PetscCall(EPSSetTwoSided(eps,PETSC_TRUE));
 

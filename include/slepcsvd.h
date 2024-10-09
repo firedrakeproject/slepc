@@ -167,14 +167,12 @@ SLEPC_EXTERN PetscErrorCode SVDSetDSType(SVD);
 SLEPC_EXTERN PetscErrorCode SVDSetUp(SVD);
 SLEPC_EXTERN PetscErrorCode SVDSolve(SVD);
 SLEPC_EXTERN PetscErrorCode SVDGetIterationNumber(SVD,PetscInt*);
-SLEPC_EXTERN PetscErrorCode SVDSetConvergenceTestFunction(SVD,PetscErrorCode (*)(SVD,PetscReal,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
 SLEPC_EXTERN PetscErrorCode SVDSetConvergenceTest(SVD,SVDConv);
 SLEPC_EXTERN PetscErrorCode SVDGetConvergenceTest(SVD,SVDConv*);
 SLEPC_EXTERN PetscErrorCode SVDConvergedAbsolute(SVD,PetscReal,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode SVDConvergedRelative(SVD,PetscReal,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode SVDConvergedNorm(SVD,PetscReal,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode SVDConvergedMaxIt(SVD,PetscReal,PetscReal,PetscReal*,void*);
-SLEPC_EXTERN PetscErrorCode SVDSetStoppingTestFunction(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
 SLEPC_EXTERN PetscErrorCode SVDSetStoppingTest(SVD,SVDStop);
 SLEPC_EXTERN PetscErrorCode SVDGetStoppingTest(SVD,SVDStop*);
 SLEPC_EXTERN PetscErrorCode SVDStoppingBasic(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*);
@@ -231,6 +229,45 @@ SLEPC_EXTERN PetscErrorCode SVDRegister(const char[],PetscErrorCode(*)(SVD));
 SLEPC_EXTERN PetscErrorCode SVDMonitorRegister(const char[],PetscViewerType,PetscViewerFormat,PetscErrorCode(*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscErrorCode(*)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode(*)(PetscViewerAndFormat**));
 
 SLEPC_EXTERN PetscErrorCode SVDAllocateSolution(SVD,PetscInt);
+
+/*S
+  SVDConvergenceTestFn - A prototype of an SVD convergence test function that would be passed to SVDSetConvergenceTestFunction()
+
+  Calling Sequence:
++   svd    - singular value solver context obtained from SVDCreate()
+.   sigma  - computed singular value
+.   res    - residual norm associated to the singular triplet
+.   errest - [output] computed error estimate
+-   ctx    - [optional] user-defined context for private data for the
+             convergence test routine (may be NULL)
+
+  Level: advanced
+
+.seealso: SVDSetConvergenceTestFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(SVDConvergenceTestFn)(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx);
+
+/*S
+  SVDStoppingTestFn - A prototype of an SVD stopping test function that would be passed to SVDSetStoppingTestFunction()
+
+  Calling Sequence:
++   svd    - singular value solver context obtained from SVDCreate()
+.   its    - current number of iterations
+.   max_it - maximum number of iterations
+.   nconv  - number of currently converged singular triplets
+.   nsv    - number of requested singular triplets
+.   reason - [output] result of the stopping test
+-   ctx    - [optional] user-defined context for private data for the
+             stopping test routine (may be NULL)
+
+  Level: advanced
+
+.seealso: SVDSetStoppingTestFunction()
+S*/
+PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(SVDStoppingTestFn)(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx);
+
+SLEPC_EXTERN PetscErrorCode SVDSetConvergenceTestFunction(SVD,SVDConvergenceTestFn*,void*,PetscErrorCode (*)(void*));
+SLEPC_EXTERN PetscErrorCode SVDSetStoppingTestFunction(SVD,SVDStoppingTestFn*,void*,PetscErrorCode (*)(void*));
 
 /* --------- options specific to particular solvers -------- */
 

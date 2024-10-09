@@ -14,7 +14,7 @@
 static PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
-  PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  if (!ds->compact) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_Q));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
   PetscCall(PetscFree(ds->perm));
@@ -255,7 +255,6 @@ PetscErrorCode DSArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,PetscScal
       d[i+1] += p;
       d[i] -= p;
       e[i] = -e[i] - c*temp;
-      j2 = j+2;
       PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
     }
   }
@@ -484,6 +483,7 @@ static PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
       Q[i+j*ld] = Qr[i+j*ld];
 #endif
   if (ds->state<DS_STATE_INTERMEDIATE) {  /* accumulate previous Q */
+    if (ds->compact) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&W));
     PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld));
@@ -728,6 +728,7 @@ static PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
   work  = ds->work;
   rwork = ds->rwork;
   ipiv  = ds->iwork;
+  if (ds->compact) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(DSSwitchFormat_HEP(ds));
 
   /* use workspace matrix W to avoid overwriting A */
@@ -813,6 +814,13 @@ static PetscErrorCode DSHermitian_HEP(DS ds,DSMatType m,PetscBool *flg)
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+static PetscErrorCode DSSetCompact_HEP(DS ds,PetscBool comp)
+{
+  PetscFunctionBegin;
+  if (!comp) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
 /*MC
    DSHEP - Dense Hermitian Eigenvalue Problem.
 
@@ -828,7 +836,7 @@ static PetscErrorCode DSHermitian_HEP(DS ds,DSMatType m,PetscBool *flg)
    storage format, the symmetric tridiagonal matrix is stored in T.
 
    Used DS matrices:
-+  DS_MAT_A - problem matrix
++  DS_MAT_A - problem matrix (used only if compact=false)
 .  DS_MAT_T - symmetric tridiagonal matrix
 -  DS_MAT_Q - orthogonal/unitary transformation that reduces to tridiagonal form
    (intermediate step) or matrix of orthogonal eigenvectors, which is equal to X
@@ -854,13 +862,14 @@ SLEPC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->solve[3]      = DSSolve_HEP_BDC;
 #endif
   ds->ops->sort          = DSSort_HEP;
-#if !defined(PETSC_HAVE_MPIUNI)
-  ds->ops->synchronize   = DSSynchronize_HEP;
-#endif
   ds->ops->truncate      = DSTruncate_HEP;
   ds->ops->update        = DSUpdateExtraRow_HEP;
   ds->ops->cond          = DSCond_HEP;
   ds->ops->transrks      = DSTranslateRKS_HEP;
   ds->ops->hermitian     = DSHermitian_HEP;
+#if !defined(PETSC_HAVE_MPIUNI)
+  ds->ops->synchronize   = DSSynchronize_HEP;
+#endif
+  ds->ops->setcompact    = DSSetCompact_HEP;
   PetscFunctionReturn(PETSC_SUCCESS);
 }

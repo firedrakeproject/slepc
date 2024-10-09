@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   PetscReal      sigma_1,sigma_n;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N));
@@ -81,7 +81,7 @@ int main(int argc,char **argv)
      Set solver parameters at runtime
   */
   PetscCall(SVDSetFromOptions(svd));
-  PetscCall(SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(SVDSetDimensions(svd,1,PETSC_DETERMINE,PETSC_DETERMINE));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the singular value problem

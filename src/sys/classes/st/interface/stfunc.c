@@ -179,6 +179,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->matmode      = ST_MATMODE_COPY;
   st->str          = UNKNOWN_NONZERO_PATTERN;
   st->transform    = PETSC_FALSE;
+  st->structured   = PETSC_FALSE;
   st->D            = NULL;
   st->Pmat         = NULL;
   st->Pmat_set     = PETSC_FALSE;
@@ -1049,6 +1050,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) PetscCall(PetscViewerASCIIPrintf(viewer,"  nonzero pattern of the matrices: %s\n",MatStructures[st->str]));
     if (st->Psplit) PetscCall(PetscViewerASCIIPrintf(viewer,"  using split preconditioner matrices with %s\n",MatStructures[st->strp]));
     if (st->transform && st->nmat>2) PetscCall(PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n"));
+    if (st->structured) PetscCall(PetscViewerASCIIPrintf(viewer,"  exploiting structure in the application of the operator\n"));
   } else if (isstring) {
     PetscCall(STGetType(st,&cstr));
     PetscCall(PetscViewerStringSPrintf(viewer," %-7.7s",cstr));

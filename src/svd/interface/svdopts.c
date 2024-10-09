@@ -94,7 +94,10 @@ PetscErrorCode SVDGetImplicitTranspose(SVD svd,PetscBool *impl)
 -  -svd_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Note:
-   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
+   Use PETSC_CURRENT to retain the current value of any of the parameters.
+   Use PETSC_DETERMINE for either argument to assign a default value computed
+   internally (may be different in each solver).
+   For maxits use PETSC_UMLIMITED to indicate there is no upper bound on this value.
 
    Level: intermediate
 
@@ -106,17 +109,19 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveReal(svd,tol,2);
   PetscValidLogicalCollectiveInt(svd,maxits,3);
-  if (tol == (PetscReal)PETSC_DEFAULT) {
-    svd->tol   = PETSC_DEFAULT;
+  if (tol == (PetscReal)PETSC_DETERMINE) {
+    svd->tol   = PETSC_DETERMINE;
     svd->state = SVD_STATE_INITIAL;
-  } else {
+  } else if (tol != (PetscReal)PETSC_CURRENT) {
     PetscCheck(tol>0.0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     svd->tol = tol;
   }
-  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    svd->max_it = PETSC_DEFAULT;
+  if (maxits == PETSC_DETERMINE) {
+    svd->max_it = PETSC_DETERMINE;
     svd->state  = SVD_STATE_INITIAL;
-  } else {
+  } else if (maxits == PETSC_UNLIMITED) {
+    svd->max_it = PETSC_INT_MAX;
+  } else if (maxits != PETSC_CURRENT) {
     PetscCheck(maxits>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     svd->max_it = maxits;
   }
@@ -170,8 +175,9 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
 -  -svd_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Use PETSC_DEFAULT for ncv and mpd to assign a reasonably good value, which is
-   dependent on the solution method and the number of singular values required.
+   Use PETSC_DETERMINE for ncv and mpd to assign a reasonably good value, which is
+   dependent on the solution method and the number of singular values required. For
+   any of the arguments, use PETSC_CURRENT to preserve the current value.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
    to set one of them at most. Normal usage is that
@@ -194,16 +200,19 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(svd,ncv,3);
   PetscValidLogicalCollectiveInt(svd,mpd,4);
   PetscCheck(nsv>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
-  svd->nsv = nsv;
-  if (ncv == PETSC_DEFAULT || ncv == PETSC_DECIDE) {
-    svd->ncv = PETSC_DEFAULT;
-  } else {
+  if (nsv != PETSC_CURRENT) {
+    PetscCheck(nsv>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
+    svd->nsv = nsv;
+  }
+  if (ncv == PETSC_DETERMINE) {
+    svd->ncv = PETSC_DETERMINE;
+  } else if (ncv != PETSC_CURRENT) {
     PetscCheck(ncv>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     svd->ncv = ncv;
   }
-  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    svd->mpd = PETSC_DEFAULT;
-  } else {
+  if (mpd == PETSC_DETERMINE) {
+    svd->mpd = PETSC_DETERMINE;
+  } else if (mpd != PETSC_CURRENT) {
     PetscCheck(mpd>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     svd->mpd = mpd;
   }
@@ -323,17 +332,9 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
-.  conv    - a pointer to the convergence test function
-.  ctx     - context for private data for the convergence routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of conv:
-$  PetscErrorCode conv(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
-+   svd    - singular value solver context obtained from SVDCreate()
-.   sigma  - computed singular value
-.   res    - residual norm associated to the singular triplet
-.   errest - (output) computed error estimate
--   ctx    - optional context, as set by SVDSetConvergenceTestFunction()
+.  conv    - the convergence test function, see SVDConvergenceTestFn for the calling sequence
+.  ctx     - context for private data for the convergence routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    If the error estimate returned by the convergence test function is less than
@@ -343,7 +344,7 @@ $  PetscErrorCode conv(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,v
 
 .seealso: SVDSetConvergenceTest(), SVDSetTolerances()
 @*/
-PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*conv)(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,SVDConvergenceTestFn *conv,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -447,19 +448,9 @@ PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
-.  stop    - pointer to the stopping test function
-.  ctx     - context for private data for the stopping routine (may be null)
--  destroy - a routine for destroying the context (may be null)
-
-   Calling sequence of stop:
-$  PetscErrorCode stop(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx)
-+   svd    - singular value solver context obtained from SVDCreate()
-.   its    - current number of iterations
-.   max_it - maximum number of iterations
-.   nconv  - number of currently converged singular triplets
-.   nsv    - number of requested singular triplets
-.   reason - (output) result of the stopping test
--   ctx    - optional context, as set by SVDSetStoppingTestFunction()
+.  stop    - the stopping test function, see SVDStoppingTestFn for the calling sequence
+.  ctx     - context for private data for the stopping routine (may be NULL)
+-  destroy - a routine for destroying the context (may be NULL)
 
    Note:
    Normal usage is to first call the default routine SVDStoppingBasic() and then
@@ -471,7 +462,7 @@ $  PetscErrorCode stop(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,Petsc
 
 .seealso: SVDSetStoppingTest(), SVDStoppingBasic()
 @*/
-PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*stop)(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode SVDSetStoppingTestFunction(SVD svd,SVDStoppingTestFn *stop,void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);

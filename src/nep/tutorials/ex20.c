@@ -52,7 +52,7 @@ int main(int argc,char **argv)
   PetscBool      draw_sol=PETSC_FALSE;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
   ctx.h = 1.0/(PetscReal)n;
@@ -101,8 +101,8 @@ int main(int argc,char **argv)
      Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_DEFAULT));
-  PetscCall(NEPSetDimensions(nep,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(NEPSetTolerances(nep,1e-9,PETSC_CURRENT));
+  PetscCall(NEPSetDimensions(nep,1,PETSC_DETERMINE,PETSC_DETERMINE));
 
   /*
      Set solver parameters at runtime

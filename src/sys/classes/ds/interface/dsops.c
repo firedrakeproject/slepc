@@ -120,6 +120,9 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
    Some DS types have additional dimensions, e.g. the number of columns
    in DSSVD. For these, you should call a specific interface function.
 
+   Use PETSC_CURRENT to leave any of the values unchanged. Use PETSC_DETERMINE
+   to set n to the leading dimension, l to the minimum value (0), and k to n/2.
+
    Level: intermediate
 
 .seealso: DSGetDimensions(), DSAllocate(), DSSVDSetDimensions()
@@ -136,24 +139,24 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
   PetscValidLogicalCollectiveInt(ds,l,3);
   PetscValidLogicalCollectiveInt(ds,k,4);
   on = ds->n; ol = ds->l; ok = ds->k;
-  if (n==PETSC_DECIDE || n==PETSC_DEFAULT) {
+  if (n == PETSC_DETERMINE) {
     ds->n = ds->extrarow? ds->ld-1: ds->ld;
-  } else {
+  } else if (n != PETSC_CURRENT) {
     PetscCheck(n>=0 && n<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 0 and ld");
     PetscCall(PetscObjectTypeCompareAny((PetscObject)ds,&issvd,DSSVD,DSGSVD,""));  /* SVD and GSVD have extra column instead of extra row */
     PetscCheck(!ds->extrarow || n<ds->ld || issvd,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"A value of n equal to ld leaves no room for extra row");
     ds->n = n;
   }
   ds->t = ds->n;   /* truncated length equal to the new dimension */
-  if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
+  if (l == PETSC_DETERMINE) {
     ds->l = 0;
-  } else {
+  } else if (l != PETSC_CURRENT) {
     PetscCheck(l>=0 && l<=ds->n,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and n");
     ds->l = l;
   }
-  if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
+  if (k == PETSC_DETERMINE) {
     ds->k = ds->n/2;
-  } else {
+  } else if (k != PETSC_CURRENT) {
     PetscCheck(k>=0 || k<=ds->n,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
     ds->k = k;
   }
@@ -413,7 +416,7 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 @*/
 PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 {
-  PetscInt  rows,cols;
+  PetscInt  rows=0,cols=0;
   PetscBool flg;
 
   PetscFunctionBegin;
@@ -1095,13 +1098,13 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscCall(PetscInfo(ds,"Translating with alpha=%g\n",(double)PetscRealPart(alpha)));
+  PetscCall(DSSetCompact(ds,PETSC_FALSE));
   PetscCall(PetscLogEventBegin(DS_Other,ds,0,0,0));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   PetscUseTypeMethod(ds,transrks,alpha);
   PetscCall(PetscFPTrapPop());
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
-  ds->state   = DS_STATE_RAW;
-  ds->compact = PETSC_FALSE;
+  ds->state = DS_STATE_RAW;
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

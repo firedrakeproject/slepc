@@ -25,7 +25,7 @@ int main(int argc,char **argv)
   char           epstype[30] = "krylovschur";
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetString(NULL,NULL,"-type",epstype,sizeof(epstype),NULL));
@@ -61,8 +61,8 @@ int main(int argc,char **argv)
   */
   PetscCall(EPSSetOperators(eps,A,NULL));
   PetscCall(EPSSetProblemType(eps,EPS_HEP));
-  PetscCall(EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT));
-  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetDimensions(eps,4,PETSC_DETERMINE,PETSC_DETERMINE));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_CURRENT));
 
   /*
      Set solver parameters at runtime

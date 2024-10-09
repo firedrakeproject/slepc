@@ -24,7 +24,7 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   PetscFunctionBeginUser;
-  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,NULL,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-kx",&kx,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-lx",&lx,NULL));
@@ -192,6 +192,10 @@ int main(int argc,char **argv)
          suffix: 1_cuda
          args: -bv_type {{svec mat}} -mat_type aijcusparse
          requires: cuda
+      test:
+         suffix: 1_hip
+         args: -bv_type {{svec mat}} -mat_type aijhipsparse
+         requires: hip
       test:
          suffix: 2
          nsize: 2
