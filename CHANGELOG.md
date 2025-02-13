@@ -1,5 +1,15 @@
 # Changelog of SLEPc versions
 
+## [unreleased]
+
+### Added
+
+- `SVD`: new support for a stopping test based on a threshold, so that it is possible
+  to compute singular values based on how they decay until a certain limit, without
+  knowing a priori how many will be finally obtained. See `SVDSetThreshold()`.
+- `EPS`: similar threshold stopping test for eigenvalues, see `EPSSetThreshold()`.
+- New interface to external package ChASE for standard Hermitian eigenproblems.
+
 ## [3.22] - 2024-09-29
 
 ### Added

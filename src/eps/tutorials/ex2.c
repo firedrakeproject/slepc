@@ -20,6 +20,8 @@ int main(int argc,char **argv)
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   EPSType        type;
+  EPSStop        stop;
+  PetscReal      thres;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j;
   PetscBool      flag,terse;
 
@@ -84,8 +86,14 @@ int main(int argc,char **argv)
   */
   PetscCall(EPSGetType(eps,&type));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
-  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(EPSGetStoppingTest(eps,&stop));
+  if (stop!=EPS_STOP_THRESHOLD) {
+    PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  } else {
+    PetscCall(EPSGetThreshold(eps,&thres,NULL));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Using threshold: %.4g\n",(double)thres));
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -116,6 +124,7 @@ int main(int argc,char **argv)
          suffix: 1
       test:
          suffix: 2
+         requires: defined(PETSC_HAVE_DYNAMIC_LIBRARIES) defined(PETSC_USE_SHARED_LIBRARIES)
          args: -library_preload
 
    testset:
@@ -189,5 +198,23 @@ int main(int argc,char **argv)
          suffix: 4_evsl
          args: -eps_type evsl
          requires: evsl
+
+   test:
+      args: -n 25 -m 24 -eps_threshold_absolute .25 -eps_smallest_magnitude -eps_ncv 10 -terse
+      suffix: 5
+      requires: !single
+
+   testset:
+      args: -n 25 -m 24 -st_type sinvert -terse
+      requires: double
+      test:
+         suffix: 6
+         args: -eps_threshold_absolute .15 -eps_target 0.01
+      test:
+         suffix: 6_rel_large
+         args: -eps_threshold_relative .98 -eps_target 8
+      test:
+         suffix: 6_rel_small
+         args: -eps_threshold_relative 3
 
 TEST*/

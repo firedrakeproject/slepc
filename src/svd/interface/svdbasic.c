@@ -58,12 +58,14 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->OPb              = NULL;
   svd->omega            = NULL;
   svd->max_it           = PETSC_DETERMINE;
-  svd->nsv              = 1;
+  svd->nsv              = 0;
   svd->ncv              = PETSC_DETERMINE;
   svd->mpd              = PETSC_DETERMINE;
   svd->nini             = 0;
   svd->ninil            = 0;
   svd->tol              = PETSC_DETERMINE;
+  svd->thres            = 0.0;
+  svd->threlative       = PETSC_FALSE;
   svd->conv             = (SVDConv)-1;
   svd->stop             = SVD_STOP_BASIC;
   svd->which            = SVD_LARGEST;
@@ -180,6 +182,8 @@ PetscErrorCode SVDDestroy(SVD *svd)
   /* just in case the initial vectors have not been used */
   PetscCall(SlepcBasisDestroy_Private(&(*svd)->nini,&(*svd)->IS));
   PetscCall(SlepcBasisDestroy_Private(&(*svd)->ninil,&(*svd)->ISL));
+  if ((*svd)->convergeddestroy) PetscCall((*(*svd)->convergeddestroy)(&(*svd)->convergedctx));
+  if ((*svd)->stoppingdestroy) PetscCall((*(*svd)->stoppingdestroy)(&(*svd)->stoppingctx));
   PetscCall(SVDMonitorCancel(*svd));
   PetscCall(PetscHeaderDestroy(svd));
   PetscFunctionReturn(PETSC_SUCCESS);

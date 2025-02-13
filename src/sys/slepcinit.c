@@ -37,7 +37,7 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
 #if (SLEPC_VERSION_RELEASE == 1)
   PetscCall(PetscSNPrintf(version,len,"SLEPc Release Version %d.%d.%d, %s",SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR,SLEPC_VERSION_SUBMINOR,SLEPC_VERSION_DATE));
 #else
-  PetscCall(PetscSNPrintf(version,len,"SLEPc Development GIT revision: %s  GIT Date: %s",SLEPC_VERSION_GIT,SLEPC_VERSION_DATE_GIT));
+  PetscCall(PetscSNPrintf(version,len,"SLEPc Development Git Revision: %s Git Date: %s",SLEPC_VERSION_GIT,SLEPC_VERSION_DATE_GIT));
 #endif
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -125,6 +125,9 @@ static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
   PetscCall(PetscStrcpy(libs,SLEPC_LIB_DIR));
   PetscCall(PetscStrlcat(libs,"/libslepc",sizeof(libs)));
   PetscCall(PetscStrlcat(libs,name,sizeof(libs)));
+#if defined(PETSC_LIB_NAME_SUFFIX)
+  PetscCall(PetscStrlcat(libs,PETSC_LIB_NAME_SUFFIX,sizeof(libs)));
+#endif
   PetscCall(PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,sizeof(dlib),found));
   if (*found) PetscCall(PetscDLLibraryAppend(PETSC_COMM_WORLD,&PetscDLLibrariesLoaded,dlib));
   PetscFunctionReturn(PETSC_SUCCESS);

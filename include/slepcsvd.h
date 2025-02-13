@@ -110,7 +110,8 @@ typedef enum { SVD_CONV_ABS,
 .seealso: SVDSetStoppingTest(), SVDSetStoppingTestFunction()
 E*/
 typedef enum { SVD_STOP_BASIC,
-               SVD_STOP_USER } SVDStop;
+               SVD_STOP_USER,
+               SVD_STOP_THRESHOLD } SVDStop;
 
 /*E
     SVDConvergedReason - Reason a singular value solver was said to
@@ -130,6 +131,23 @@ typedef enum {/* converged */
               SVD_DIVERGED_SYMMETRY_LOST       = -3,
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
 SLEPC_EXTERN const char *const*SVDConvergedReasons;
+
+/*S
+   SVDStoppingCtx - Data structure (C struct) to hold additional information to
+   be used in some stopping test functions.
+
+   Level: advanced
+
+.seealso: SVDSetStoppingTestFunction()
+S*/
+struct _n_SVDStoppingCtx {
+  PetscReal firstsv;    /* the value of the first converged singular value */
+  PetscReal lastsv;     /* the value of the last converged singular value */
+  PetscReal thres;      /* threshold set with SVDSetThreshold() */
+  PetscBool threlative; /* threshold is relative */
+  SVDWhich  which;      /* which singular values are being computed */
+};
+typedef struct _n_SVDStoppingCtx* SVDStoppingCtx;
 
 SLEPC_EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
 SLEPC_EXTERN PetscErrorCode SVDSetBV(SVD,BV,BV);
@@ -159,6 +177,8 @@ SLEPC_EXTERN PetscErrorCode SVDSetTolerances(SVD,PetscReal,PetscInt);
 SLEPC_EXTERN PetscErrorCode SVDGetTolerances(SVD,PetscReal*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode SVDSetWhichSingularTriplets(SVD,SVDWhich);
 SLEPC_EXTERN PetscErrorCode SVDGetWhichSingularTriplets(SVD,SVDWhich*);
+SLEPC_EXTERN PetscErrorCode SVDSetThreshold(SVD,PetscReal,PetscBool);
+SLEPC_EXTERN PetscErrorCode SVDGetThreshold(SVD,PetscReal*,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDSetFromOptions(SVD);
 SLEPC_EXTERN PetscErrorCode SVDSetOptionsPrefix(SVD,const char*);
 SLEPC_EXTERN PetscErrorCode SVDAppendOptionsPrefix(SVD,const char*);
@@ -176,6 +196,7 @@ SLEPC_EXTERN PetscErrorCode SVDConvergedMaxIt(SVD,PetscReal,PetscReal,PetscReal*
 SLEPC_EXTERN PetscErrorCode SVDSetStoppingTest(SVD,SVDStop);
 SLEPC_EXTERN PetscErrorCode SVDGetStoppingTest(SVD,SVDStop*);
 SLEPC_EXTERN PetscErrorCode SVDStoppingBasic(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*);
+SLEPC_EXTERN PetscErrorCode SVDStoppingThreshold(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*);
 SLEPC_EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
 SLEPC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 SLEPC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
@@ -202,7 +223,7 @@ SLEPC_EXTERN PetscErrorCode SVDSetTrackAll(SVD,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDGetTrackAll(SVD,PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);
-SLEPC_EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
+SLEPC_EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),void*,PetscCtxDestroyFn*);
 SLEPC_EXTERN PetscErrorCode SVDMonitorCancel(SVD);
 SLEPC_EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void*);
 
@@ -210,14 +231,14 @@ SLEPC_EXTERN PetscErrorCode SVDMonitorSetFromOptions(SVD,const char[],const char
 SLEPC_EXTERN PetscErrorCode SVDMonitorLGCreate(MPI_Comm,const char[],const char[],const char[],PetscInt,const char*[],int,int,int,int,PetscDrawLG*);
 SLEPC_EXTERN PetscErrorCode SVDMonitorFirst(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*);
 SLEPC_EXTERN PetscErrorCode SVDMonitorFirstDrawLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*);
-SLEPC_EXTERN PetscErrorCode SVDMonitorFirstDrawLGCreate(PetscViewer,PetscViewerFormat,void *,PetscViewerAndFormat**);
+SLEPC_EXTERN PetscErrorCode SVDMonitorFirstDrawLGCreate(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
 SLEPC_EXTERN PetscErrorCode SVDMonitorAll(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*);
 SLEPC_EXTERN PetscErrorCode SVDMonitorAllDrawLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*);
-SLEPC_EXTERN PetscErrorCode SVDMonitorAllDrawLGCreate(PetscViewer,PetscViewerFormat,void *,PetscViewerAndFormat**);
+SLEPC_EXTERN PetscErrorCode SVDMonitorAllDrawLGCreate(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
 SLEPC_EXTERN PetscErrorCode SVDMonitorConverged(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*);
-SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedCreate(PetscViewer,PetscViewerFormat,void *,PetscViewerAndFormat**);
+SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedCreate(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
 SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedDrawLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*);
-SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedDrawLGCreate(PetscViewer,PetscViewerFormat,void *,PetscViewerAndFormat**);
+SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedDrawLGCreate(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
 SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedDestroy(PetscViewerAndFormat**);
 SLEPC_EXTERN PetscErrorCode SVDMonitorConditioning(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*);
 
@@ -229,6 +250,7 @@ SLEPC_EXTERN PetscErrorCode SVDRegister(const char[],PetscErrorCode(*)(SVD));
 SLEPC_EXTERN PetscErrorCode SVDMonitorRegister(const char[],PetscViewerType,PetscViewerFormat,PetscErrorCode(*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscErrorCode(*)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode(*)(PetscViewerAndFormat**));
 
 SLEPC_EXTERN PetscErrorCode SVDAllocateSolution(SVD,PetscInt);
+SLEPC_EXTERN PetscErrorCode SVDReallocateSolution(SVD,PetscInt);
 
 /*S
   SVDConvergenceTestFn - A prototype of an SVD convergence test function that would be passed to SVDSetConvergenceTestFunction()
@@ -266,8 +288,8 @@ PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(SVDConvergenceTestFn)(SVD svd,PetscR
 S*/
 PETSC_EXTERN_TYPEDEF typedef PetscErrorCode(SVDStoppingTestFn)(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx);
 
-SLEPC_EXTERN PetscErrorCode SVDSetConvergenceTestFunction(SVD,SVDConvergenceTestFn*,void*,PetscErrorCode (*)(void*));
-SLEPC_EXTERN PetscErrorCode SVDSetStoppingTestFunction(SVD,SVDStoppingTestFn*,void*,PetscErrorCode (*)(void*));
+SLEPC_EXTERN PetscErrorCode SVDSetConvergenceTestFunction(SVD,SVDConvergenceTestFn*,void*,PetscCtxDestroyFn*);
+SLEPC_EXTERN PetscErrorCode SVDSetStoppingTestFunction(SVD,SVDStoppingTestFn*,void*,PetscCtxDestroyFn*);
 
 /* --------- options specific to particular solvers -------- */
 

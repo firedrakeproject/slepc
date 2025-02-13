@@ -31,6 +31,7 @@ class EPSType(object):
     - `ELPA`:
     - `ELEMENTAL`:
     - `EVSL`:
+    - `CHASE`:
     """
     # provided implementations
     POWER        = S_(EPSPOWER)
@@ -55,6 +56,7 @@ class EPSType(object):
     ELPA         = S_(EPSELPA)
     ELEMENTAL    = S_(EPSELEMENTAL)
     EVSL         = S_(EPSEVSL)
+    CHASE        = S_(EPSCHASE)
 
 class EPSProblemType(object):
     """
@@ -169,11 +171,13 @@ class EPSStop(object):
     """
     EPS stopping test
 
-    - `BASIC`: Default stopping test.
-    - `USER`:  User-defined stopping test.
+    - `BASIC`:     Default stopping test.
+    - `USER`:      User-defined stopping test.
+    - `THRESHOLD`: Threshold stopping test.
     """
-    BASIC = EPS_STOP_BASIC
-    USER  = EPS_STOP_USER
+    BASIC     = EPS_STOP_BASIC
+    USER      = EPS_STOP_USER
+    THRESHOLD = EPS_STOP_THRESHOLD
 
 class EPSConvergedReason(object):
     """
@@ -641,6 +645,45 @@ cdef class EPS(Object):
         """
         cdef SlepcEPSWhich val = which
         CHKERR( EPSSetWhichEigenpairs(self.eps, val) )
+
+    def getThreshold(self):
+        """
+        Gets the threshold used in the threshold stopping test.
+
+        Returns
+        -------
+        thres: float
+             The threshold.
+        rel: bool
+             Whether the threshold is relative or not.
+        """
+        cdef PetscReal rval = 0
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSGetThreshold(self.eps, &rval, &tval) )
+        return (toReal(rval), toBool(tval))
+
+    def setThreshold(self, thres, rel=False):
+        """
+        Sets the threshold used in the threshold stopping test.
+
+        Parameters
+        ----------
+        thres: float
+             The threshold.
+        rel: bool, optional
+             Whether the threshold is relative or not.
+
+        Notes
+        -----
+        This function internally sets a special stopping test based on
+        the threshold, where eigenvalues are computed in sequence
+        until one of the computed eigenvalues is below/above the
+        threshold (depending on whether largest or smallest eigenvalues
+        are computed).
+        """
+        cdef PetscReal rval = asReal(thres)
+        cdef PetscBool tval = asBool(rel)
+        CHKERR( EPSSetThreshold(self.eps, rval, tval) )
 
     def getTarget(self):
         """
@@ -1367,7 +1410,7 @@ cdef class EPS(Object):
         cdef SlepcEPSProblemType ptype
         CHKERR( EPSGetEigenvalue(self.eps, i, &sval1, &sval2) )
         CHKERR( EPSGetProblemType(self.eps, &ptype) )
-        if ptype == EPS_HEP or ptype == EPS_GHEP:
+        if ptype == EPS_HEP or ptype == EPS_GHEP or ptype == EPS_BSE:
             return toReal(PetscRealPart(sval1))
         else:
             return toComplex(sval1, sval2)
@@ -1459,7 +1502,7 @@ cdef class EPS(Object):
         cdef SlepcEPSProblemType ptype
         CHKERR( EPSGetEigenpair(self.eps, i, &sval1, &sval2, vecr, veci) )
         CHKERR( EPSGetProblemType(self.eps, &ptype) )
-        if ptype == EPS_HEP or ptype == EPS_GHEP:
+        if ptype == EPS_HEP or ptype == EPS_GHEP or ptype == EPS_BSE:
             return toReal(PetscRealPart(sval1))
         else:
             return toComplex(sval1, sval2)
